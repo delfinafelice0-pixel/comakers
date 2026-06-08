@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoMakers · Agencia de marketing en Tandil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Caveat:wght@500;600;700&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --magenta:#FF82FF;
+    --lima:#D3FF99;
+    --white:#FFFFFF;
+    --cream:#F3EFE6;
+    --ink:#16122E;
+    --ink-soft:#4A4664;
+    --blue:#1E14D6;
+    --line:#E2DCCE;
+    --display:'Fraunces',Georgia,serif;
+    --hand:'Caveat',cursive;
+    --body:'Inter Tight',-apple-system,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--body);
+    background:var(--cream);
+    color:var(--ink);
+    font-size:16px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--lima);color:var(--ink);}
+  a{color:inherit;text-decoration:none;}
+
+  /* nav */
+  nav{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 40px;background:rgba(243,239,230,.82);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  }
+  .logo{font-family:var(--display);font-weight:600;font-size:24px;line-height:.9;letter-spacing:-.02em;}
+  .logo span{display:block;}
+  .logo em{font-style:normal;color:var(--magenta);}
+  .navlinks{display:flex;align-items:center;gap:34px;}
+  .navlinks a.plain{font-weight:500;font-size:14.5px;color:var(--ink-soft);transition:color .2s;}
+  .navlinks a.plain:hover{color:var(--ink);}
+  .navlinks a.plain.active{color:var(--ink);font-weight:600;}
+  .navcta{background:var(--ink);color:var(--white);padding:10px 20px;border-radius:999px;font-weight:500;font-size:14px;transition:background .2s;}
+  .navcta:hover{background:var(--blue);}
+  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
+  .burger span{width:24px;height:2px;background:var(--ink);border-radius:2px;}
+
+  .spk{display:inline-block;vertical-align:middle;}
+
+  /* hero */
+  header{max-width:1120px;margin:0 auto;padding:96px 40px 70px;}
+  .kicker{font-family:var(--hand);font-size:27px;color:var(--blue);display:inline-block;transform:rotate(-2deg);margin-bottom:14px;}
+  h1.hero{font-family:var(--display);font-weight:500;font-size:clamp(46px,8vw,104px);line-height:.96;letter-spacing:-.035em;max-width:13ch;}
+  h1.hero em{font-style:italic;color:var(--magenta);}
+  .hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-top:42px;flex-wrap:wrap;}
+  .hero-sub{font-size:19px;color:var(--ink-soft);max-width:480px;}
+  .hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:500;font-size:15px;padding:13px 26px;border-radius:999px;transition:transform .18s,background .2s,box-shadow .2s;cursor:pointer;}
+  .btn-dark{background:var(--ink);color:var(--white);}
+  .btn-dark:hover{background:var(--blue);transform:translateY(-2px);}
+  .btn-ghost{border:1.5px solid var(--ink);color:var(--ink);}
+  .btn-ghost:hover{background:var(--ink);color:var(--white);}
+
+  /* hero band */
+  .band{background:var(--lima);overflow:hidden;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);}
+  .band-track{display:flex;gap:48px;white-space:nowrap;animation:scroll 26s linear infinite;width:max-content;padding:13px 0;}
+  .band-track span{font-family:var(--display);font-style:italic;font-size:22px;font-weight:500;display:inline-flex;gap:48px;}
+  @keyframes scroll{to{transform:translateX(-50%);}}
+
+  section{position:relative;}
+  .wrap{max-width:1120px;margin:0 auto;padding:96px 40px;}
+  .eyebrow{font-family:var(--hand);font-size:25px;color:var(--blue);}
+  .h2{font-family:var(--display);font-weight:500;font-size:clamp(32px,5vw,52px);line-height:1.04;letter-spacing:-.025em;margin:6px 0 16px;}
+  .lead{font-size:18px;color:var(--ink-soft);max-width:600px;}
+
+  /* services */
+  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-bottom:54px;}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:20px;overflow:hidden;}
+  .card{background:var(--white);padding:38px 34px;transition:background .25s;}
+  .card:hover{background:var(--cream);}
+  .card-top{display:flex;align-items:center;justify-content:space-between;}
+  .card .num{font-family:var(--display);font-style:italic;font-size:17px;color:var(--magenta);}
+  .card h3{font-family:var(--display);font-weight:500;font-size:27px;margin:18px 0 10px;letter-spacing:-.01em;}
+  .card p{font-size:15px;color:var(--ink-soft);}
+
+  /* about */
+  .sec-about{background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:54px;}
+  .person{display:flex;flex-direction:column;}
+  .photo{aspect-ratio:5/4;border-radius:16px;background:var(--cream);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .photo::after{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--ink) 1px,transparent 1.3px);background-size:8px 8px;opacity:.07;}
+  .photo .ph{font-family:var(--hand);font-size:22px;color:var(--ink-soft);z-index:1;}
+  .person h3{font-family:var(--display);font-weight:500;font-size:26px;margin-top:20px;}
+  .person .role{font-weight:500;font-size:13px;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 10px;}
+  .person p{font-size:15px;color:var(--ink-soft);max-width:38ch;}
+
+  /* quote / value strip */
+  .strip{background:var(--ink);color:var(--cream);}
+  .strip .wrap{text-align:center;}
+  .strip .big{font-family:var(--display);font-weight:400;font-size:clamp(26px,4vw,42px);line-height:1.25;letter-spacing:-.02em;max-width:18ch;margin:0 auto;}
+  .strip .big em{font-style:italic;color:var(--magenta);}
+  .strip .big mark{background:none;color:var(--lima);}
+
+  /* cta */
+  .sec-cta{text-align:center;}
+  .sec-cta .h2{font-size:clamp(38px,6.5vw,72px);margin-bottom:22px;}
+  .sec-cta .h2 em{font-style:italic;color:var(--magenta);}
+
+  footer{background:var(--ink);color:var(--cream);}
+  .foot-grid{max-width:1120px;margin:0 auto;padding:56px 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
+  .foot-logo{font-family:var(--display);font-weight:500;font-size:30px;line-height:.88;}
+  .foot-logo span{display:block;}
+  .foot-logo em{font-style:normal;color:var(--magenta);}
+  .foot-links{display:flex;gap:22px;font-size:14px;color:rgba(243,239,230,.75);flex-wrap:wrap;}
+  .foot-links a:hover{color:var(--lima);}
+  .foot-meta{font-size:13px;color:rgba(243,239,230,.55);margin-top:8px;}
+
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.in{opacity:1;transform:none;}
+
+  /* nuestro trabajo / reels */
+  .work{background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .work .wrap{padding:88px 40px;}
+  .reels{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:46px;}
+  .reel{position:relative;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:var(--cream);border:1px solid var(--line);display:flex;align-items:flex-end;cursor:pointer;transition:transform .18s;}
+  .reel:hover{transform:translateY(-4px);}
+  .reel::after{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--ink) 1px,transparent 1.3px);background-size:9px 9px;opacity:.06;}
+  .reel:nth-child(2){background:var(--lima);}
+  .reel:nth-child(3){background:#F7E0FA;}
+  .reel .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.92);border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;z-index:2;}
+  .reel .play svg{width:15px;height:15px;margin-left:2px;}
+  .reel .tag{position:relative;z-index:2;margin:0 0 14px 14px;font-family:var(--hand);font-size:18px;color:var(--ink-soft);}
+
+  /* clientes / confían */
+  .clients .wrap{padding:80px 40px;text-align:center;}
+  .clients .ctitle{font-family:var(--display);font-weight:500;font-size:clamp(22px,3.2vw,34px);letter-spacing:-.02em;margin:6px 0 6px;}
+  .clients .csub{color:var(--ink-soft);font-size:14.5px;margin-bottom:38px;}
+  .logos{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;}
+  .logo-slot{aspect-ratio:5/2;border:1.5px dashed var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#9a93a8;font-size:12.5px;font-weight:500;background:var(--white);}
+
+  /* panel demo */
+  .paneldemo{background:var(--ink);color:var(--cream);overflow:hidden;}
+  .paneldemo .wrap{padding:96px 40px;display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:center;}
+  .paneldemo .eyebrow{color:var(--lima);}
+  .paneldemo h2{font-family:var(--display);font-weight:500;font-size:clamp(30px,4.5vw,50px);color:var(--white);letter-spacing:-.025em;line-height:1.04;margin:6px 0 18px;}
+  .paneldemo p{color:rgba(243,239,230,.8);font-size:17px;max-width:46ch;margin-bottom:26px;}
+  .btn-lima{background:var(--lima);color:var(--ink);}
+  .btn-lima:hover{transform:translateY(-2px);}
+  .mock{background:var(--cream);border-radius:16px;box-shadow:0 30px 60px rgba(0,0,0,.38);overflow:hidden;color:var(--ink);transform:rotate(-1.2deg);}
+  .mock-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--white);border-bottom:1px solid var(--line);}
+  .mock-bar i{width:10px;height:10px;border-radius:50%;background:#E0D8C8;display:block;}
+  .mock-bar .mtitle{margin-left:10px;font-size:12px;color:var(--ink-soft);font-family:var(--display);}
+  .mock-body{display:grid;grid-template-columns:118px 1fr;min-height:236px;}
+  .mock-side{background:var(--white);border-right:1px solid var(--line);padding:16px 13px;}
+  .mock-side .mlogo{font-family:var(--display);font-weight:600;font-size:15px;line-height:.88;}
+  .mock-side .mlogo em{font-style:normal;color:var(--magenta);display:block;}
+  .mock-nav{margin-top:18px;display:grid;gap:9px;}
+  .mock-nav span{height:9px;border-radius:4px;background:var(--line);}
+  .mock-nav span.on{background:var(--blue);width:82%;}
+  .mock-main{padding:18px;}
+  .mock-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .mock-kpi{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:12px;}
+  .mock-kpi b{font-family:var(--display);font-size:20px;font-weight:600;display:block;line-height:1;}
+  .mock-kpi b.mag{color:var(--magenta);}
+  .mock-kpi b.blu{color:var(--blue);}
+  .mock-kpi small{font-size:9.5px;color:var(--ink-soft);}
+  .mock-chart{margin-top:12px;background:var(--white);border:1px solid var(--line);border-radius:10px;padding:14px;height:100px;display:flex;align-items:flex-end;gap:8px;}
+  .mock-chart i{flex:1;background:var(--lima);border-radius:4px 4px 0 0;display:block;}
+  .mock-chart i:nth-child(even){background:var(--blue);opacity:.85;}
+
+  @media(max-width:760px){
+    nav{padding:16px 22px;}
+    .navlinks{position:fixed;inset:60px 0 auto 0;flex-direction:column;background:var(--cream);border-bottom:1px solid var(--line);padding:22px;gap:20px;transform:translateY(-130%);transition:transform .3s;}
+    .navlinks.open{transform:none;}
+    .burger{display:flex;}
+    header{padding:56px 22px 50px;}
+    .wrap{padding:64px 22px;}
+    .cards{grid-template-columns:1fr;}
+    .about-grid{grid-template-columns:1fr;}
+    .reels{grid-template-columns:repeat(2,1fr);}
+    .logos{grid-template-columns:repeat(2,1fr);}
+    .work .wrap,.clients .wrap,.paneldemo .wrap{padding-top:60px;padding-bottom:60px;}
+    .paneldemo .wrap{grid-template-columns:1fr;gap:34px;}
+    .mock{transform:none;}
+    .foot-grid{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="sparkle" viewBox="0 0 100 100">
+    <path d="M50 2 C56 38 62 44 98 50 C62 56 56 62 50 98 C44 62 38 56 2 50 C38 44 44 38 50 2 Z"/>
+  </symbol>
+</defs></svg>
+
+<nav>
+  <a href="index.html" class="logo"><span>Co</span><span><em>Makers.</em></span></a>
+  <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
+  <div class="navlinks" id="navlinks">
+    <a href="index.html" class="plain active">Inicio</a>
+    <a href="servicios.html" class="plain">Servicios</a>
+    <a href="nosotras.html" class="plain">Nosotras</a>
+    <a href="mailto:hola@comakers.com.ar" class="navcta">Trabajemos juntas</a>
+  </div>
+</nav>
+
+<header>
+  <span class="kicker">marketing que se nota
+    <svg class="spk" width="22" height="22" fill="var(--magenta)"><use href="#sparkle"/></svg>
+  </span>
+  <h1 class="hero">Le ponemos cabeza, cámara y <em>data</em> a tu marca.</h1>
+  <div class="hero-row">
+    <p class="hero-sub">Agencia de marketing digital para pymes y emprendedores. Desde Tandil, para todo el país.</p>
+    <div class="hero-btns">
+      <a href="mailto:hola@comakers.com.ar" class="btn btn-dark">Trabajemos juntas →</a>
+      <a href="servicios.html" class="btn btn-ghost">Ver servicios</a>
+    </div>
+  </div>
+</header>
+
+<div class="band">
+  <div class="band-track">
+    <span>contenido — pauta — producción — data — marca — comunidad —&nbsp;</span>
+    <span>contenido — pauta — producción — data — marca — comunidad —&nbsp;</span>
+  </div>
+</div>
+
+<section id="servicios">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow reveal">lo que hacemos</span>
+        <h2 class="h2 reveal">Cuatro cosas,<br>bien hechas.</h2>
+      </div>
+      <p class="lead reveal">No vendemos humo ni "presencia en redes". Trabajamos la marca de punta a punta y te mostramos los números.</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="card-top"><span class="num">01</span>
+          <svg class="spk" width="20" height="20" fill="var(--lima)"><use href="#sparkle"/></svg></div>
+        <h3>Estrategia de contenido</h3>
+        <p>Planificación mensual, calendario, línea editorial y guiones. Sabés qué se publica y por qué, antes de que pase.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-top"><span class="num">02</span></div>
+        <h3>Producción presencial</h3>
+        <p>Vamos a tu local, evento o lugar de trabajo a filmar y fotografiar. Material real de tu marca, no banco de imágenes.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-top"><span class="num">03</span></div>
+        <h3>Pauta en Meta & Google</h3>
+        <p>Campañas con objetivo claro, presupuesto cuidado y optimización semanal. Cada peso invertido lo seguimos de cerca.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-top"><span class="num">04</span>
+          <svg class="spk" width="20" height="20" fill="var(--magenta)"><use href="#sparkle"/></svg></div>
+        <h3>Medición & reportes</h3>
+        <p>Reportes mensuales claros en un panel propio. Qué funcionó, qué no y qué hacemos el mes que viene.</p>
+      </div>
+    </div>
+    <div style="margin-top:36px"><a href="servicios.html" class="btn btn-ghost reveal">Ver cómo trabajamos cada servicio →</a></div>
+  </div>
+</section>
+
+<section class="work">
+  <div class="wrap">
+    <span class="eyebrow reveal">nuestro trabajo</span>
+    <h2 class="h2 reveal">Lo que producimos,<br>en movimiento.</h2>
+    <p class="lead reveal">Reels, fotos y campañas que filmamos y editamos nosotras. Esto es el espacio — pronto, material real de cada marca.</p>
+    <div class="reels">
+      <div class="reel reveal"><span class="play"><svg viewBox="0 0 24 24" fill="#16122E"><path d="M8 5v14l11-7z"/></svg></span><span class="tag">tu reel acá</span></div>
+      <div class="reel reveal"><span class="play"><svg viewBox="0 0 24 24" fill="#16122E"><path d="M8 5v14l11-7z"/></svg></span><span class="tag">tu reel acá</span></div>
+      <div class="reel reveal"><span class="play"><svg viewBox="0 0 24 24" fill="#16122E"><path d="M8 5v14l11-7z"/></svg></span><span class="tag">tu reel acá</span></div>
+      <div class="reel reveal"><span class="play"><svg viewBox="0 0 24 24" fill="#16122E"><path d="M8 5v14l11-7z"/></svg></span><span class="tag">tu reel acá</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="clients">
+  <div class="wrap">
+    <span class="eyebrow reveal">confían en nosotras</span>
+    <div class="ctitle reveal">Marcas que eligieron confiar en nosotras.</div>
+    <p class="csub reveal">(Acá van los logos — los sumamos en cuanto los tengas listos.)</p>
+    <div class="logos">
+      <div class="logo-slot reveal">logo cliente</div>
+      <div class="logo-slot reveal">logo cliente</div>
+      <div class="logo-slot reveal">logo cliente</div>
+      <div class="logo-slot reveal">logo cliente</div>
+      <div class="logo-slot reveal">logo cliente</div>
+    </div>
+  </div>
+</section>
+
+<section class="paneldemo">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">así trabajás con nosotras</span>
+      <h2>No te mandamos un PDF.<br>Te damos un panel.</h2>
+      <p>Cada mes ves la performance de tu marca en un panel web propio: alcance, campañas, contenido y el plan del mes siguiente. Cuando quieras, desde donde quieras.</p>
+      <a href="login-comakers.html" class="btn btn-lima">Ver el panel →</a>
+    </div>
+    <div class="mock reveal">
+      <div class="mock-bar"><i></i><i></i><i></i><span class="mtitle">Panel · tu marca</span></div>
+      <div class="mock-body">
+        <div class="mock-side">
+          <div class="mlogo">Co<em>Makers.</em></div>
+          <div class="mock-nav"><span class="on"></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="mock-main">
+          <div class="mock-kpis">
+            <div class="mock-kpi"><b class="blu">+38%</b><small>Alcance</small></div>
+            <div class="mock-kpi"><b class="mag">1.2k</b><small>Interacciones</small></div>
+            <div class="mock-kpi"><b>+24</b><small>Mensajes</small></div>
+          </div>
+          <div class="mock-chart">
+            <i style="height:42%"></i><i style="height:60%"></i><i style="height:48%"></i><i style="height:78%"></i><i style="height:64%"></i><i style="height:92%"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec-about" id="nosotras">
+  <div class="wrap">
+    <span class="eyebrow reveal">quiénes somos</span>
+    <h2 class="h2 reveal">Un equipo chico<br>y obsesivo.</h2>
+    <p class="lead reveal">Nos gusta laburar cerca del cliente, meter las manos en la producción y no escondernos detrás de métricas vanidosas.</p>
+    <div class="about-grid">
+      <div class="person reveal">
+        <div class="photo"><span class="ph">foto de Delfi</span></div>
+        <h3>Delfi</h3>
+        <div class="role">Estrategia & producción</div>
+        <p>Arma la estrategia, dirige las producciones y se ocupa de que cada marca tenga una voz propia.</p>
+      </div>
+      <div class="person reveal">
+        <div class="photo"><span class="ph">foto de Marti</span></div>
+        <h3>Martina Knell</h3>
+        <div class="role">Pauta & performance</div>
+        <p>Lleva las campañas de Meta y Google, y traduce los números en decisiones que mueven la aguja.</p>
+      </div>
+    </div>
+    <div style="margin-top:40px"><a href="nosotras.html" class="btn btn-ghost reveal">Conocé al equipo →</a></div>
+  </div>
+</section>
+
+<section class="strip">
+  <div class="wrap">
+    <p class="big reveal">Creemos que una buena marca no se <em>grita</em>: se <mark>construye</mark>, mes a mes, con datos en la mano.</p>
+  </div>
+</section>
+
+<section class="sec-cta" id="contacto">
+  <div class="wrap">
+    <span class="eyebrow reveal">¿arrancamos?</span>
+    <h2 class="h2 reveal">Hagamos algo que <em>se note.</em></h2>
+    <p class="lead reveal" style="margin:0 auto 30px">Contanos de tu marca y te respondemos con una propuesta concreta. Sin vueltas.</p>
+    <a href="mailto:hola@comakers.com.ar" class="btn btn-dark reveal">hola@comakers.com.ar →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <div class="foot-logo"><span>Co</span><span><em>Makers.</em></span></div>
+      <div class="foot-meta">Agencia de marketing digital · Tandil, Buenos Aires</div>
+    </div>
+    <div>
+      <div class="foot-links">
+        <a href="#servicios">Servicios</a>
+        <a href="#nosotras">Nosotras</a>
+        <a href="#contacto">Contacto</a>
+        <a href="#">Instagram</a>
+      </div>
+      <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const burger=document.getElementById('burger');
+  const navlinks=document.getElementById('navlinks');
+  burger.addEventListener('click',()=>navlinks.classList.toggle('open'));
+  navlinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>navlinks.classList.remove('open')));
+
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+  },{threshold:.15});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3*0.08)+'s';io.observe(el);});
+</script>
+<!-- WhatsApp flotante -->
+<style>
+  .wa-fab{position:fixed;right:22px;bottom:22px;z-index:90;width:58px;height:58px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.18);transition:transform .18s,box-shadow .18s;}
+  .wa-fab:hover{transform:scale(1.07);box-shadow:0 8px 26px rgba(0,0,0,.24);}
+  .wa-fab svg{width:32px;height:32px;}
+  .wa-fab::after{content:"";position:absolute;inset:0;border-radius:50%;animation:wa-pulse 2.8s ease-out infinite;}
+  @keyframes wa-pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.45);}70%{box-shadow:0 0 0 15px rgba(37,211,102,0);}100%{box-shadow:0 0 0 0 rgba(37,211,102,0);}}
+  @media(max-width:760px){.wa-fab{right:16px;bottom:16px;width:54px;height:54px;}}
+</style>
+<a class="wa-fab" id="waFab" href="#" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+  <svg viewBox="0 0 32 32" fill="#fff"><path d="M16 .4C7.4.4.4 7.4.4 16c0 2.8.7 5.5 2.1 7.9L.3 31.7l8-2.1c2.3 1.3 4.9 1.9 7.6 1.9h.1c8.6 0 15.6-7 15.6-15.6C31.6 7.4 24.6.4 16 .4zm0 28.5h-.1c-2.4 0-4.8-.6-6.8-1.9l-.5-.3-4.7 1.2 1.3-4.6-.3-.5C3.5 20.5 2.8 18.3 2.8 16 2.8 8.7 8.7 2.8 16 2.8 23.3 2.8 29.2 8.7 29.2 16S23.3 28.9 16 28.9zm7.3-9.6c-.4-.2-2.4-1.2-2.7-1.3-.4-.1-.6-.2-.9.2-.3.4-1 1.3-1.3 1.6-.2.2-.5.3-.9.1-.4-.2-1.7-.6-3.2-2-1.2-1.1-2-2.4-2.2-2.8-.2-.4 0-.6.2-.8.2-.2.4-.5.6-.7.2-.3.3-.4.4-.7.1-.3.1-.5 0-.7-.1-.2-.9-2.2-1.3-3-.3-.8-.7-.7-.9-.7h-.8c-.3 0-.7.1-1.1.5-.4.4-1.5 1.4-1.5 3.5s1.5 4.1 1.7 4.3c.2.3 3 4.6 7.3 6.4 1 .4 1.8.7 2.4.9 1 .3 1.9.3 2.7.2.8-.1 2.4-1 2.8-1.9.3-.9.3-1.7.2-1.9-.1-.2-.4-.3-.8-.5z"/></svg>
+</a>
+<script>
+  // Numero de WhatsApp -> luego saldra del perfil de la agencia.
+  // Formato wa.me: pais + 9 + caracteristica (sin 0) + numero (sin 15). Tandil: 549 2494 XXXXXX
+  const WA_NUMBER = "5492494209868";
+  const WA_MSG = encodeURIComponent("Hola CoMakers! Me gustaria saber mas sobre sus servicios.");
+  document.getElementById('waFab').href = "https://wa.me/" + WA_NUMBER + "?text=" + WA_MSG;
+</script>
+</body>
+</html>

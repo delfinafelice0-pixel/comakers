@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión · CoMakers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #F7F6F9;
+    --bg-elev: #FFFFFF;
+    --ink: #1B1620;
+    --ink-soft: #5B525E;
+    --ink-mute: #938C99;
+    --line: #ECEAF0;
+    --accent: #FF82FF;
+    --accent-soft: #FFE9FE;
+    --lime: #D3FF99;
+    --coral: #F26A8D;
+    --warn: #F26A8D;
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'DM Sans', -apple-system, system-ui, sans-serif;
+    --radius: 10px;
+    --shadow: 0 1px 0 rgba(27,22,32,0.04), 0 1px 3px rgba(27,22,32,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--body);
+    background: var(--lime);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 2px 8px rgba(26,26,23,0.06);
+  }
+
+  .brand {
+    margin-bottom: 32px;
+  }
+  .brand-name {
+    font-family: var(--body);
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: baseline;
+    line-height: 1;
+  }
+  .brand-name em {
+    font-family: var(--display);
+    font-style: normal;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .brand-spark { width: 15px; height: 15px; margin-left: 6px; color: var(--accent); align-self: flex-start; flex-shrink: 0; }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  input[type="email"],
+  input[type="password"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  input.error {
+    border-color: var(--warn);
+  }
+
+  .error-msg {
+    font-size: 12px;
+    color: var(--warn);
+    margin-top: 8px;
+    display: none;
+  }
+  .error-msg.visible {
+    display: block;
+  }
+
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--ink);
+    border: none;
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .footer-note {
+    font-size: 12px;
+    color: var(--ink-mute);
+    text-align: center;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">
+    <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
+    <div class="brand-sub">Panel de clientes</div>
+  </div>
+
+  <h1>Iniciar sesión</h1>
+  <p class="subtitle">Ingresá con tu cuenta para ver tu panel.</p>
+
+  <form id="loginForm" novalidate>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="tu@email.com" autocomplete="email" required>
+    </div>
+    <div class="field">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
+
+    <div class="error-msg" id="errorMsg">Email o contraseña incorrectos. Intentá de nuevo.</div>
+
+    <button type="submit" class="btn" id="submitBtn">Entrar</button>
+  </form>
+
+  <p class="footer-note">¿Problemas para entrar? Escribile a Delfi.</p>
+</div>
+
+<script>
+  // ── SUPABASE CONFIG ──────────────────────────────────
+  // Reemplazá estos valores con los de tu proyecto en Supabase
+  // (Project Settings > API)
+  const SUPABASE_URL      = 'https://ggcstolnadkkqhsqpzql.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Si ya hay sesión activa, ir directo al panel
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = 'panel-comakers.html';
+  });
+
+  const form    = document.getElementById('loginForm');
+  const emailEl = document.getElementById('email');
+  const passEl  = document.getElementById('password');
+  const errEl   = document.getElementById('errorMsg');
+  const btn     = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errEl.classList.remove('visible');
+    emailEl.classList.remove('error');
+    passEl.classList.remove('error');
+
+    const email    = emailEl.value.trim();
+    const password = passEl.value;
+
+    if (!email || !password) {
+      errEl.textContent = 'Completá email y contraseña.';
+      errEl.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Entrando…';
+
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+      errEl.textContent = 'Email o contraseña incorrectos. Intentá de nuevo.';
+      errEl.classList.add('visible');
+      emailEl.classList.add('error');
+      passEl.classList.add('error');
+      return;
+    }
+
+    window.location.href = 'panel-comakers.html';
+  });
+</script>
+
+</body>
+</html>
