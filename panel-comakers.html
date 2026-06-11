@@ -7527,10 +7527,16 @@
           <h1>Reportes</h1>
           <div class="greeting">Histórico mensual + evolución anual de las plataformas.</div>
         </div>
-        <button class="btn-primary" id="generarReporteBtn" data-agency-only>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Generar reporte
-        </button>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn-ghost" id="pullIgBtn" data-agency-only title="Trae alcance y engagement reales del mes desde Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg>
+            <span>Actualizar desde Instagram</span>
+          </button>
+          <button class="btn-primary" id="generarReporteBtn" data-agency-only>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Generar reporte
+          </button>
+        </div>
       </div>
 
       <!-- Sub-tabs -->
@@ -12886,6 +12892,46 @@
         }
       }
     });
+  });
+
+  // ─── Actualizar reporte con datos reales de Instagram ───
+  const _pullIgBtn = document.getElementById('pullIgBtn');
+  if (_pullIgBtn) _pullIgBtn.addEventListener('click', async () => {
+    const cli = CLIENTES[currentClient];
+    const clienteId = cli && cli.id;
+    if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return; }
+
+    const _txt = _pullIgBtn.querySelector('span');
+    const _orig = _txt ? _txt.textContent : '';
+    _pullIgBtn.disabled = true;
+    _pullIgBtn.style.opacity = '0.6';
+    if (_txt) _txt.textContent = 'Actualizando…';
+
+    try {
+      const { data, error } = await window.__sb.functions.invoke('pull-instagram', {
+        body: { cliente_id: clienteId }
+      });
+      if (error) {
+        // La función devolvió un status de error: leemos el mensaje del cuerpo
+        let msg = error.message || 'No se pudo conectar con Instagram';
+        try { const c = await error.context.json(); if (c && c.error) msg = c.error; } catch (e) {}
+        showToast(msg, 'warn');
+      } else if (data && data.error) {
+        showToast(data.error, 'warn');
+      } else if (data && data.ok) {
+        const alc = (data.alcance != null) ? Number(data.alcance).toLocaleString('es-AR') : '—';
+        showToast('Instagram actualizado · alcance del mes ' + alc, 'success');
+        await cargarReportes();
+      } else {
+        showToast('Respuesta inesperada de la función', 'warn');
+      }
+    } catch (e) {
+      showToast('Error al actualizar desde Instagram', 'warn');
+    } finally {
+      _pullIgBtn.disabled = false;
+      _pullIgBtn.style.opacity = '';
+      if (_txt) _txt.textContent = _orig;
+    }
   });
 
   renderReportes();
