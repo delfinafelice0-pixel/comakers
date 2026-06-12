@@ -12340,9 +12340,9 @@
       mesLabel: MESES_ES[mIdx] || '',
       año: y ? parseInt(y,10) : '',
       estado: row.estado, estadoLabel: _estadoLabel(row.estado),
-      generadoEn: row.generado_el || null, publicadoEn: row.publicado_el || null, generadoPor: row.generado_por || '',
-      alcance: row.alcance||0, conversiones: row.conversion||0, inversion: row.inversion||0, engagement: row.engagement||0,
-      alcanceDelta: row.alcance_delta||0, conversionesDelta: row.conversion_delta||0,
+      generadoEn: row.generado_en || null, publicadoEn: row.publicado_en || null, generadoPor: row.generado_por || '',
+      alcance: row.alcance||0, conversiones: row.conversiones||0, inversion: row.inversion||0, engagement: row.engagement||0,
+      alcanceDelta: row.alcance_delta||0, conversionesDelta: row.conversiones_delta||0,
       inversionDelta: row.inversion_delta||0, engagementDelta: row.engagement_delta||0,
       cierraEl: row.cierra_el || null
     };
@@ -12861,15 +12861,15 @@
           estado: d.estado,
           generado_por: _miNombre || 'Agencia',
           alcance: alcance,
-          conversion: conversiones,
+          conversiones: conversiones,
           inversion: inversion,
           engagement: engagement,
           alcance_delta: pct(alcance, prev && prev.alcance),
-          conversion_delta: prev ? (conversiones - prev.conversiones) : 0,
+          conversiones_delta: prev ? (conversiones - prev.conversiones) : 0,
           inversion_delta: pct(inversion, prev && prev.inversion),
           engagement_delta: prev ? (Math.round((engagement - prev.engagement) * 10) / 10) : 0,
           cierra_el: (d.cierra_el && d.cierra_el.trim()) ? d.cierra_el.trim() : null,
-          publicado_el: d.estado === 'publicado' ? new Date().toISOString().slice(0, 10) : null
+          publicado_en: d.estado === 'publicado' ? new Date().toISOString().slice(0, 10) : null
         };
 
         try {
@@ -12880,7 +12880,7 @@
           if (existe && existe.id) {
             ({ error } = await window.__sb.from('reporte').update(fila).eq('id', existe.id));
           } else {
-            fila.generado_el = new Date().toISOString().slice(0, 10);
+            fila.generado_en = new Date().toISOString().slice(0, 10);
             ({ error } = await window.__sb.from('reporte').insert(fila));
           }
           if (error) { showToast('No se pudo guardar: ' + error.message, 'warn'); return; }
