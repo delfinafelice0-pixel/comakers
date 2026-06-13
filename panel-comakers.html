@@ -12331,6 +12331,13 @@
 
   const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   function _estadoLabel(e){ return e==='publicado'?'Publicado':e==='en_curso'?'En curso':e==='borrador'?'Borrador':(e||''); }
+  // Deriva "31 de mayo" del último día del mes. Evita el "Se cierra el null" cuando cierra_el viene vacío.
+  function _cierreDeMes(yStr, mStr){
+    const y = parseInt(yStr,10), m = parseInt(mStr,10);
+    if (!y || !m) return null;
+    const ultimoDia = new Date(y, m, 0).getDate();
+    return `${ultimoDia} de ${MESES_ES[m-1].toLowerCase()}`;
+  }
   function _mapReporteRow(row){
     const parts = (row.mes||'').slice(0,10).split('-');
     const y = parts[0]||'', mIdx = (parseInt(parts[1],10)||1)-1;
@@ -12344,7 +12351,7 @@
       alcance: row.alcance||0, conversiones: row.conversiones||0, inversion: row.inversion||0, engagement: row.engagement||0,
       alcanceDelta: row.alcance_delta||0, conversionesDelta: row.conversiones_delta||0,
       inversionDelta: row.inversion_delta||0, engagementDelta: row.engagement_delta||0,
-      cierraEl: row.cierra_el || null
+      cierraEl: row.cierra_el || _cierreDeMes(parts[0], parts[1])
     };
   }
   async function cargarReportes(){
@@ -12470,7 +12477,7 @@
             <div class="reporte-foot">
               <div class="reporte-fecha">
                 ${isEnCurso
-                  ? `Se cierra el <strong>${r.cierraEl}</strong>`
+                  ? `Se cierra el <strong>${r.cierraEl || 'fin de mes'}</strong>`
                   : `Publicado <strong>${fechaPub}</strong>`}
               </div>
               ${isEnCurso
@@ -12717,7 +12724,7 @@
         <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 10px;">Resumen del mes</div>
         <div style="font-size: 13px; line-height: 1.6; color: var(--ink-soft); margin-bottom: 20px;">
           ${r.estado === 'en_curso'
-            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra el ${r.cierraEl}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
+            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra el ${r.cierraEl || 'fin de mes'}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
             : `Mes de ${r.mesLabel.toLowerCase()} cerrado con métricas sólidas. El alcance y las conversiones crecieron consistentemente vs el mes anterior, con foco en los proyectos activos (Ruta de la Luz, India 2027, Programa formativo).`}
         </div>
         <div style="display: flex; gap: 14px; padding: 14px; background: var(--bg); border-radius: 10px; margin-bottom: 18px;">
