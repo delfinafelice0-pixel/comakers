@@ -12983,6 +12983,7 @@
         const alc = (data.alcance != null) ? Number(data.alcance).toLocaleString('es-AR') : '—';
         showToast('Instagram actualizado · alcance del mes ' + alc, 'success');
         await cargarReportes();
+        if (typeof cargarEvolucion === 'function') await cargarEvolucion();
       } else {
         showToast('Respuesta inesperada de la función', 'warn');
       }
@@ -13281,7 +13282,7 @@
   const EVO_CONFIG = {
     ig: { label: 'Instagram', icon: 'IG', iconCls: 'ig', metricName: 'Seguidores', metrics: [
       { code: 'seguidores', label: 'Seguidores totales', primary: true },
-      { code: 'alcance_prom', label: 'Alcance promedio' },
+      { code: 'alcance_prom', label: 'Alcance del mes' },
       { code: 'impresiones', label: 'Impresiones' },
       { code: 'visitas_perfil', label: 'Visitas al perfil' }
     ]},
