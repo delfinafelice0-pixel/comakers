@@ -6761,7 +6761,7 @@
                 <circle cx="50" cy="50" r="38" fill="none" stroke="#4285F4" stroke-width="14"
                   stroke-dasharray="74 240" stroke-dashoffset="-148" transform="rotate(-90 50 50)"/>
                 <!-- TikTok (pausada): ~7% -->
-                <circle cx="50" cy="50" r="38" fill="none" stroke="var(--ink-mute)" stroke-width="14"
+                <circle data-red="tiktok" cx="50" cy="50" r="38" fill="none" stroke="var(--ink-mute)" stroke-width="14"
                   stroke-dasharray="17 240" stroke-dashoffset="-222" transform="rotate(-90 50 50)"/>
                 <text x="50" y="48" text-anchor="middle" font-family="Playfair Display" font-size="14" font-weight="500" fill="var(--ink)">$385K</text>
                 <text x="50" y="58" text-anchor="middle" font-family="DM Sans" font-size="6" fill="var(--ink-mute)" letter-spacing="0.5">TOTAL</text>
@@ -6781,7 +6781,7 @@
                     <div class="donut-amount">$119.480<span class="donut-pct">31%</span></div>
                   </div>
                 </div>
-                <div class="donut-item">
+                <div class="donut-item" data-red="tiktok">
                   <div class="donut-swatch" style="background: var(--ink-mute);"></div>
                   <div class="donut-info">
                     <div class="donut-platform">TikTok <span style="font-size:10px; color: var(--ink-mute);">(pausada)</span></div>
@@ -7649,6 +7649,17 @@
           </div>
         </div>
         <div class="modulos-grid" id="modulosGrid"></div>
+      </div>
+
+      <!-- Redes sociales activas -->
+      <div class="config-section">
+        <div class="section-head">
+          <div class="section-head-left">
+            <div class="section-title">Redes <em>sociales</em></div>
+            <div class="section-subtitle">Qué redes maneja este cliente. Si apagás una, desaparece de Evolución, Contenido y Pauta en todo el panel.</div>
+          </div>
+        </div>
+        <div class="modulos-grid" id="redesGrid"></div>
       </div>
 
       <!-- Visibilidad por sección -->
@@ -9634,12 +9645,52 @@
     };
   }
 
+  // ─── Visibilidad de REDES SOCIALES (canal activo) ───
+  // Controla dónde aparece cada red como canal: Evolución, Contenido (dropdowns), Pauta (chrome).
+  // NO toca textos narrativos (Estrategia/decisiones que mencionen una red).
+  // EKHOS = solo Meta (Instagram + Facebook); el resto apagado.
+  const REDES_DEF = [
+    { code: 'instagram', label: 'Instagram' },
+    { code: 'facebook', label: 'Facebook' },
+    { code: 'tiktok', label: 'TikTok' },
+    { code: 'youtube', label: 'YouTube' },
+    { code: 'linkedin', label: 'LinkedIn' },
+    { code: 'pinterest', label: 'Pinterest' }
+  ];
+  if (!CLIENTES.ekhos.redes) {
+    CLIENTES.ekhos.redes = { instagram: true, facebook: true, tiktok: false, youtube: false, linkedin: false, pinterest: false };
+  }
+  // Normaliza cualquier código de plataforma a la red canónica. 'google' u otros → null (no se gatean).
+  function _redCanon(code) {
+    const m = {
+      ig: 'instagram', instagram: 'instagram', meta: 'instagram',
+      fb: 'facebook', facebook: 'facebook',
+      tt: 'tiktok', tiktok: 'tiktok',
+      yt: 'youtube', youtube: 'youtube',
+      li: 'linkedin', linkedin: 'linkedin',
+      pin: 'pinterest', pinterest: 'pinterest'
+    };
+    return m[String(code || '').toLowerCase()] || null;
+  }
+  function redVisible(code) {
+    const canon = _redCanon(code);
+    if (!canon) return true; // no es una red social conocida → no se gatea
+    const redes = (CLIENTES[currentClient] && CLIENTES[currentClient].redes) || {};
+    return redes[canon] !== false;
+  }
+  // Oculta elementos estáticos marcados con data-red="<red>" cuando esa red está apagada.
+  function applyRedes() {
+    document.querySelectorAll('[data-red]').forEach(el => {
+      el.style.display = redVisible(el.dataset.red) ? '' : 'none';
+    });
+  }
+
   // Plataforma actualmente filtrada en Pauta ('todas' o slug)
   let pautaPlataforma = 'todas';
 
   function getPlataformasActivas() {
     const config = CLIENTES[currentClient].plataformasPauta || {};
-    return PLATAFORMAS_DEF.filter(p => config[p.slug]);
+    return PLATAFORMAS_DEF.filter(p => config[p.slug] && redVisible(p.slug));
   }
 
   function renderPautaPlatformBar() {
@@ -9707,7 +9758,7 @@
 
   // Filtro común: aplicable a todas las funciones de render de pauta
   function campañasFiltradas() {
-    if (pautaPlataforma === 'todas') return CAMPANAS;
+    if (pautaPlataforma === 'todas') return CAMPANAS.filter(c => redVisible(c.plataforma));
     return CAMPANAS.filter(c => c.plataforma === pautaPlataforma);
   }
 
@@ -10287,9 +10338,11 @@
     }
     // Re-render de configuraciones por cliente
     if (typeof renderModulosConfig === 'function') renderModulosConfig();
+    if (typeof renderRedesConfig === 'function') renderRedesConfig();
     if (typeof renderPilaresConfig === 'function') renderPilaresConfig();
     if (typeof renderEstadosConfig === 'function') renderEstadosConfig();
     if (typeof renderDriveConfig === 'function') renderDriveConfig();
+    if (typeof applyRedes === 'function') applyRedes();
   };
 
   // ═══════════════ ESTRATEGIA ═══════════════
@@ -13287,6 +13340,7 @@
           });
           // Armar EVO_DATA respetando el orden de EVO_CONFIG
           Object.entries(EVO_CONFIG).forEach(([pkey, cfg]) => {
+            if (!redVisible(pkey)) return; // red apagada en Configuración → no se muestra
             const pData = idx[pkey];
             if (!pData) return; // sin datos para esa plataforma → no se muestra
             const detalles = [];
@@ -13453,7 +13507,49 @@
   // Render inicial
   renderModulosConfig();
 
-  // ═══════════════ LLUVIA DE IDEAS ═══════════════
+  // ─── Config de Redes sociales activas ───
+  function renderRedesConfig() {
+    const cont = document.getElementById('redesGrid');
+    if (!cont) return;
+    const redes = CLIENTES[currentClient].redes || {};
+    cont.innerHTML = REDES_DEF.map(r => {
+      const isOn = redes[r.code] !== false;
+      return `
+        <div class="modulo-row ${isOn ? 'is-on' : ''}">
+          <div class="modulo-info">
+            <div class="modulo-nombre">${r.label}</div>
+            <div class="modulo-desc">${isOn ? 'Visible en todo el panel' : 'Oculta en Evolución, Contenido y Pauta'}</div>
+          </div>
+          <div class="switch ${isOn ? 'on' : ''}" data-red-toggle="${r.code}"></div>
+        </div>
+      `;
+    }).join('');
+
+    cont.querySelectorAll('[data-red-toggle]').forEach(sw => {
+      sw.addEventListener('click', () => {
+        const code = sw.dataset.redToggle;
+        if (!CLIENTES[currentClient].redes) CLIENTES[currentClient].redes = {};
+        const current = CLIENTES[currentClient].redes[code] !== false;
+        CLIENTES[currentClient].redes[code] = !current;
+        renderRedesConfig();
+        refreshRedesUI();
+        showToast((current ? 'Red oculta: ' : 'Red activada: ') + REDES_DEF.find(x => x.code === code).label);
+      });
+    });
+  }
+
+  // Refresca todo lo que depende de la visibilidad de redes
+  function refreshRedesUI() {
+    applyRedes();
+    if (typeof cargarEvolucion === 'function') cargarEvolucion();
+    if (typeof renderPautaPlatformBar === 'function') renderPautaPlatformBar();
+    if (typeof renderPautaContext === 'function') renderPautaContext();
+    if (typeof rerenderPautaAll === 'function') rerenderPautaAll();
+    if (typeof renderPlanilla === 'function') renderPlanilla();
+  }
+
+  renderRedesConfig();
+
   const IDEAS = [
     {
       id: 1,
@@ -13608,7 +13704,7 @@
       { v: 'youtube', l: 'YouTube' },
       { v: 'linkedin', l: 'LinkedIn' },
       { v: 'pinterest', l: 'Pinterest' }
-    ];
+    ].filter(o => o.v === '' || o.v === selected || redVisible(o.v));
     return opts.map(o => `<option value="${o.v}" ${o.v === (selected || '') ? 'selected' : ''}>${o.l}</option>`).join('');
   }
   function formatoOptionsHtml(selected) {
@@ -14083,8 +14179,10 @@
   renderEstadosConfig();
   renderDriveConfig();
   renderModulosConfig();
+  renderRedesConfig();
   applyRole('agency');
   drawChart('alcance');
+  applyRedes();
   initSesion();
 </script>
 
