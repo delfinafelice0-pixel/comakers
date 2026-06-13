@@ -8183,6 +8183,7 @@
     applyModulosToSidebar();
     renderClientDropdown();
     if (typeof cargarReportes === 'function') cargarReportes();
+    if (typeof cargarEvolucion === 'function') cargarEvolucion();
   }
 
   // Toggle dropdown
@@ -13222,48 +13223,93 @@
   // (Identidad visual: logos, paleta, tipografías, mood, misión, estética — HTML estático editable inline)
 
   // ═══════════════ EVOLUCIÓN ANUAL ═══════════════
-  // Mock data: 12 meses de seguidores por plataforma
-  const EVO_DATA = {
-    ig: {
-      label: 'Instagram', icon: 'IG', iconCls: 'ig', metricName: 'Seguidores',
-      seguidores: [22400, 23100, 24200, 25800, 26900, 27800, 28400, 29100, 30200, 30800, 31000, 31240],
-      detalles: [
-        { label: 'Seguidores totales', valores: [22400, 23100, 24200, 25800, 26900, 27800, 28400, 29100, 30200, 30800, 31000, 31240] },
-        { label: 'Alcance promedio', valores: [82000, 78000, 85000, 91000, 95000, 88000, 96000, 102000, 108000, 112000, 119000, 127400] },
-        { label: 'Impresiones', valores: [124000, 118000, 132000, 145000, 156000, 142000, 168000, 184000, 196000, 212000, 234000, 268000] },
-        { label: 'Visitas al perfil', valores: [3200, 2800, 3400, 4100, 4500, 3900, 4800, 5200, 5800, 6200, 6900, 7800] }
-      ]
-    },
-    tt: {
-      label: 'TikTok', icon: 'TT', iconCls: 'tt', metricName: 'Seguidores',
-      seguidores: [820, 1100, 1450, 1880, 2240, 2680, 3100, 3580, 4020, 4380, 4620, 4850],
-      detalles: [
-        { label: 'Seguidores totales', valores: [820, 1100, 1450, 1880, 2240, 2680, 3100, 3580, 4020, 4380, 4620, 4850] },
-        { label: 'Visualizaciones', valores: [24000, 38000, 52000, 71000, 89000, 112000, 134000, 158000, 178000, 192000, 218000, 246000] },
-        { label: 'Me gusta', valores: [1800, 2400, 3200, 4100, 5200, 6400, 7200, 8400, 9100, 9800, 10800, 11600] }
-      ]
-    },
-    yt: {
-      label: 'YouTube', icon: 'YT', iconCls: 'yt', metricName: 'Suscriptores',
-      seguidores: [340, 380, 420, 480, 540, 620, 720, 820, 940, 1080, 1240, 1420],
-      detalles: [
-        { label: 'Suscriptores', valores: [340, 380, 420, 480, 540, 620, 720, 820, 940, 1080, 1240, 1420] },
-        { label: 'Visualizaciones', valores: [4200, 4800, 5400, 6800, 8400, 9800, 12000, 14400, 17200, 20800, 24800, 29600] },
-        { label: 'Tiempo visto (hs)', valores: [180, 220, 260, 340, 420, 510, 620, 740, 880, 1040, 1240, 1480] }
-      ]
-    },
-    li: {
-      label: 'LinkedIn', icon: 'IN', iconCls: 'li', metricName: 'Seguidores',
-      seguidores: [180, 240, 320, 410, 520, 680, 840, 1020, 1240, 1480, 1740, 2010],
-      detalles: [
-        { label: 'Seguidores', valores: [180, 240, 320, 410, 520, 680, 840, 1020, 1240, 1480, 1740, 2010] },
-        { label: 'Impresiones de posts', valores: [2400, 3200, 4800, 6400, 8200, 10800, 13600, 17200, 21000, 25800, 31200, 37800] },
-        { label: 'Reacciones', valores: [48, 72, 96, 124, 168, 224, 288, 364, 448, 542, 648, 768] }
-      ]
-    }
+  // Datos reales desde la tabla evo_metrica (formato largo: una fila por plataforma/metrica/mes).
+  // La presentación (label, icono, orden de métricas, métrica titular) vive acá; la tabla queda normalizada.
+  const EVO_CONFIG = {
+    ig: { label: 'Instagram', icon: 'IG', iconCls: 'ig', metricName: 'Seguidores', metrics: [
+      { code: 'seguidores', label: 'Seguidores totales', primary: true },
+      { code: 'alcance_prom', label: 'Alcance promedio' },
+      { code: 'impresiones', label: 'Impresiones' },
+      { code: 'visitas_perfil', label: 'Visitas al perfil' }
+    ]},
+    tt: { label: 'TikTok', icon: 'TT', iconCls: 'tt', metricName: 'Seguidores', metrics: [
+      { code: 'seguidores', label: 'Seguidores totales', primary: true },
+      { code: 'visualizaciones', label: 'Visualizaciones' },
+      { code: 'me_gusta', label: 'Me gusta' }
+    ]},
+    yt: { label: 'YouTube', icon: 'YT', iconCls: 'yt', metricName: 'Suscriptores', metrics: [
+      { code: 'suscriptores', label: 'Suscriptores', primary: true },
+      { code: 'visualizaciones', label: 'Visualizaciones' },
+      { code: 'tiempo_visto', label: 'Tiempo visto (hs)' }
+    ]},
+    li: { label: 'LinkedIn', icon: 'IN', iconCls: 'li', metricName: 'Seguidores', metrics: [
+      { code: 'seguidores', label: 'Seguidores', primary: true },
+      { code: 'impresiones_posts', label: 'Impresiones de posts' },
+      { code: 'reacciones', label: 'Reacciones' }
+    ]}
   };
 
-  const EVO_MESES = ['jun 25', 'jul 25', 'ago 25', 'sept 25', 'oct 25', 'nov 25', 'dic 25', 'ene 26', 'feb 26', 'mar 26', 'abr 26', 'may 26'];
+  // Estructura que consumen renderEvolucion()/renderEvoTable(); se llena desde Supabase.
+  let EVO_DATA = {};
+  let EVO_MESES = [];
+
+  const _MES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'];
+  function _fmtMesCorto(mesKey){
+    const [y, m] = String(mesKey).slice(0,7).split('-').map(Number);
+    if (!y || !m) return mesKey;
+    return `${_MES_CORTO[m-1]} ${String(y).slice(-2)}`;
+  }
+
+  async function cargarEvolucion(){
+    EVO_DATA = {};
+    EVO_MESES = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId) {
+        const { data, error } = await window.__sb.from('evo_metrica')
+          .select('plataforma, metrica, mes, valor')
+          .eq('cliente_id', clienteId)
+          .order('mes', { ascending: true });
+        if (!error && Array.isArray(data) && data.length) {
+          // Eje de meses: claves YYYY-MM distintas, ordenadas
+          const mesesKeys = [];
+          data.forEach(r => { const k = String(r.mes).slice(0,7); if (!mesesKeys.includes(k)) mesesKeys.push(k); });
+          mesesKeys.sort();
+          EVO_MESES = mesesKeys.map(_fmtMesCorto);
+          // Índice plataforma -> metrica -> { mesKey: valor }
+          const idx = {};
+          data.forEach(r => {
+            const mk = String(r.mes).slice(0,7);
+            (idx[r.plataforma] = idx[r.plataforma] || {});
+            (idx[r.plataforma][r.metrica] = idx[r.plataforma][r.metrica] || {});
+            idx[r.plataforma][r.metrica][mk] = Number(r.valor) || 0;
+          });
+          // Armar EVO_DATA respetando el orden de EVO_CONFIG
+          Object.entries(EVO_CONFIG).forEach(([pkey, cfg]) => {
+            const pData = idx[pkey];
+            if (!pData) return; // sin datos para esa plataforma → no se muestra
+            const detalles = [];
+            let headline = null;
+            cfg.metrics.forEach(met => {
+              const porMes = pData[met.code];
+              if (!porMes) return;
+              const valores = mesesKeys.map(mk => (porMes[mk] != null ? porMes[mk] : 0));
+              detalles.push({ label: met.label, valores });
+              if (met.primary) headline = valores;
+            });
+            if (!detalles.length) return;
+            EVO_DATA[pkey] = {
+              label: cfg.label, icon: cfg.icon, iconCls: cfg.iconCls, metricName: cfg.metricName,
+              seguidores: headline || detalles[0].valores,
+              detalles
+            };
+          });
+        }
+      }
+    } catch (e) { /* sin conexión/datos: queda vacío y se muestra empty-state */ }
+    renderEvolucion();
+  }
 
   function fmtEvoNum(n) {
     if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
@@ -13273,6 +13319,16 @@
   function renderEvolucion() {
     const cont = document.getElementById('evoPlatforms');
     if (!cont) return;
+
+    if (!Object.keys(EVO_DATA).length) {
+      cont.innerHTML =
+        '<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--ink-mute);border:1px dashed var(--line);border-radius:16px;background:var(--bg-elev);">'
+        + 'Todavía no hay datos de evolución cargados para este cliente.<br>'
+        + '<span style="color:var(--ink-soft);">Importá la serie histórica en la tabla <strong>evo_metrica</strong> de Supabase.</span></div>';
+      const _t = document.getElementById('evoTable');
+      if (_t) _t.innerHTML = '';
+      return;
+    }
 
     // Cards top
     cont.innerHTML = Object.entries(EVO_DATA).map(([key, p]) => {
