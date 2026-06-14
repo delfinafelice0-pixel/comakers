@@ -6173,12 +6173,12 @@
 
       <div class="topbar">
         <div>
-          <h1>Resumen de <em>Mayo</em></h1>
+          <h1>Resumen de <em id="resumenMesEm">Mayo</em></h1>
           <div class="greeting" id="greeting">Hola Delfi 👋 — esto pasó en EKHOS este mes</div>
         </div>
         <div class="period-selector">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          Mayo 2026
+          <span id="resumenPeriodo">Mayo 2026</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
       </div>
@@ -8195,6 +8195,7 @@
     renderClientDropdown();
     if (typeof cargarReportes === 'function') cargarReportes();
     if (typeof cargarEvolucion === 'function') cargarEvolucion();
+    if (typeof cargarFeed === 'function') cargarFeed();
   }
 
   // Toggle dropdown
@@ -9162,33 +9163,69 @@
   // ─── FEED ───
   let feedFiltro = 'todos';
 
+  // Feed real: ultimas publicaciones traidas de Instagram (tabla ig_media)
+  let IG_FEED = [];
+  const _IG_TIPO = { VIDEO: 'reel', CAROUSEL_ALBUM: 'carrusel', IMAGE: 'post' };
+
+  async function cargarFeed() {
+    IG_FEED = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId) {
+        const { data, error } = await window.__sb.from('ig_media')
+          .select('id, media_type, media_url, thumbnail_url, permalink, caption, published_at, like_count, comments_count')
+          .eq('cliente_id', clienteId)
+          .order('published_at', { ascending: false })
+          .limit(12);
+        if (!error && Array.isArray(data)) {
+          IG_FEED = data.map(p => ({
+            id: p.id,
+            tipo: _IG_TIPO[p.media_type] || 'post',
+            img: (p.media_type === 'VIDEO' ? (p.thumbnail_url || p.media_url) : (p.media_url || p.thumbnail_url)) || '',
+            permalink: p.permalink || '',
+            likes: p.like_count || 0,
+            comentarios: p.comments_count || 0
+          }));
+        }
+      }
+    } catch (e) { /* sin datos -> empty state */ }
+    renderFeed();
+  }
+
   function renderFeed() {
-    const publicados = POSTS.filter(p => p.estado === 'publicado').sort((a, b) => b.fecha.localeCompare(a.fecha));
-    const visibles = feedFiltro === 'todos' ? publicados : publicados.filter(p => p.tipo === feedFiltro);
+    const grid = document.getElementById('feedGrid');
+    if (!grid) return;
+    const todos = IG_FEED;
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    set('feed-count-todos', todos.length);
+    set('feed-count-reel', todos.filter(p => p.tipo === 'reel').length);
+    set('feed-count-carrusel', todos.filter(p => p.tipo === 'carrusel').length);
+    set('feed-count-post', todos.filter(p => p.tipo === 'post').length);
 
-    document.getElementById('feed-count-todos').textContent = publicados.length;
-    document.getElementById('feed-count-reel').textContent = publicados.filter(p => p.tipo === 'reel').length;
-    document.getElementById('feed-count-carrusel').textContent = publicados.filter(p => p.tipo === 'carrusel').length;
-    document.getElementById('feed-count-post').textContent = publicados.filter(p => p.tipo === 'post').length;
+    if (!todos.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--ink-mute);border:1px dashed var(--line);border-radius:16px;background:var(--bg-elev);">Todavia no hay posts traidos de Instagram.<br><span style="color:var(--ink-soft);">Apreta &ldquo;Actualizar desde Instagram&rdquo; en Reportes para traer tus ultimas publicaciones.</span></div>';
+      return;
+    }
 
-    document.getElementById('feedGrid').innerHTML = visibles.map(p => `
-      <div class="feed-item" data-post-id="${p.id}" style="--bg-from: ${p.from}; --bg-to: ${p.to};">
-        <div class="feed-item-visual" style="background: linear-gradient(135deg, ${p.from}, ${p.to});">
-          <span class="feed-item-icon">${tipoLabel(p.tipo).charAt(0)}</span>
+    const visibles = feedFiltro === 'todos' ? todos : todos.filter(p => p.tipo === feedFiltro);
+    const heart = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+    const chat = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+
+    grid.innerHTML = visibles.map(p => `
+      <a class="feed-item" href="${p.permalink || '#'}" ${p.permalink ? 'target="_blank" rel="noopener"' : ''} style="text-decoration:none;color:inherit;">
+        <div class="feed-item-visual" style="position:relative;overflow:hidden;background:linear-gradient(135deg,#FF82FF,#2A2630);">
+          ${p.img ? `<img src="${p.img}" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : ''}
           <div class="feed-item-type">${tipoIcon(p.tipo)}</div>
           <div class="feed-item-overlay">
             <div class="feed-item-stats">
-              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>${formatK(p.likes)}</span>
-              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>${p.comentarios}</span>
+              <span>${heart}${formatK(p.likes)}</span>
+              <span>${chat}${p.comentarios}</span>
             </div>
           </div>
         </div>
-      </div>
+      </a>
     `).join('');
-
-    document.querySelectorAll('#feedGrid [data-post-id]').forEach(el => {
-      el.addEventListener('click', () => openPostModal(parseInt(el.dataset.postId)));
-    });
   }
 
   document.querySelectorAll('[data-feed]').forEach(btn => {
@@ -12451,6 +12488,12 @@
       ['kpiAlcanceDelta','kpiEngDelta','kpiConvDelta','kpiInvDelta'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.className='kpi-delta'; el.innerHTML=''; } });
       return;
     }
+    // Título y selector dinámicos según el mes del reporte en curso
+    const _mesEm = document.getElementById('resumenMesEm');
+    if (_mesEm) _mesEm.textContent = r.mesLabel || '';
+    const _periodo = document.getElementById('resumenPeriodo');
+    if (_periodo) _periodo.textContent = ((r.mesLabel || '') + ' ' + (r.año || '')).trim();
+
     setVal('kpiAlcanceVal', fmtKbig(r.alcance));
     setVal('kpiEngVal', r.engagement + '%');
     setVal('kpiConvVal', r.conversiones);
@@ -12984,6 +13027,7 @@
         showToast('Instagram actualizado · alcance del mes ' + alc, 'success');
         await cargarReportes();
         if (typeof cargarEvolucion === 'function') await cargarEvolucion();
+        if (typeof cargarFeed === 'function') await cargarFeed();
       } else {
         showToast('Respuesta inesperada de la función', 'warn');
       }
