@@ -8184,6 +8184,7 @@
     renderClientDropdown();
     if (typeof cargarReportes === 'function') cargarReportes();
     if (typeof cargarPosts === 'function') cargarPosts();
+    if (typeof cargarTareas === 'function') cargarTareas();
   }
 
   // Toggle dropdown
@@ -8324,7 +8325,7 @@
   });
 
   // ═══════════════ TAREAS ═══════════════
-  const TAREAS = [
+  const _SEED_TAREAS_IGNORED = [
     {
       id: 1, titulo: 'Editar reel campaña India 2027 (v3)',
       desc: 'Aplicar cambios solicitados: agregar testimonio de Jessica al cierre, ajustar color en planos exteriores',
@@ -8443,6 +8444,58 @@
     return true;
   }
 
+  // ─── TAREAS: datos reales desde Supabase (scope = cliente activo) ───
+  let TAREAS = [];
+  function _mapTareaRow(r){
+    return {
+      id: r.id,
+      titulo: r.titulo || '',
+      desc: r.descripcion || '',
+      responsableTipo: r.responsable_tipo || 'agencia',
+      responsable: r.responsable || '',
+      avatarColor: (r.responsable_tipo === 'cliente') ? 'cliente' : 'agencia',
+      proyecto: r.proyecto || 'General',
+      estado: r.estado || 'pendiente',
+      urgencia: r.urgencia || 'normal',
+      fechaLabel: r.fecha_label || 'Sin fecha',
+      fechaTipo: r.fecha_tipo || 'normal',
+      comentarios: r.comentarios || 0
+    };
+  }
+  async function cargarTareas(){
+    TAREAS = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId) {
+        const { data, error } = await window.__sb.from('tarea')
+          .select('*').eq('cliente_id', clienteId).order('created_at', { ascending: false });
+        if (!error && Array.isArray(data)) TAREAS = data.map(_mapTareaRow);
+      }
+    } catch (e) { /* sin conexión/datos: queda vacío */ }
+    if (typeof renderTareas === 'function') renderTareas();
+  }
+  async function crearTarea(fila){
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
+      const { error } = await window.__sb.from('tarea').insert(Object.assign({ cliente_id: clienteId }, fila));
+      if (error) { showToast('No se pudo crear la tarea', 'warn'); return false; }
+    } catch (e) { showToast('No se pudo crear la tarea', 'warn'); return false; }
+    await cargarTareas();
+    return true;
+  }
+  async function actualizarEstadoTarea(id, nuevoEstado){
+    try {
+      if (window.__sb) {
+        const { error } = await window.__sb.from('tarea').update({ estado: nuevoEstado }).eq('id', id);
+        if (error) { showToast('No se pudo actualizar la tarea', 'warn'); return; }
+      }
+    } catch (e) { showToast('No se pudo actualizar la tarea', 'warn'); return; }
+    await cargarTareas();
+  }
+
   function renderListaTarea(t) {
     return `
       <div class="tarea-row ${t.estado === 'completada' ? 'done' : ''}" data-id="${t.id}">
@@ -8530,10 +8583,8 @@
     document.querySelectorAll('[data-toggle]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = parseInt(btn.dataset.toggle);
-        const t = TAREAS.find(x => x.id === id);
-        t.estado = t.estado === 'completada' ? 'pendiente' : 'completada';
-        renderTareas();
+        const t = TAREAS.find(x => x.id === btn.dataset.toggle);
+        if (t) actualizarEstadoTarea(t.id, t.estado === 'completada' ? 'pendiente' : 'completada');
       });
     });
 
@@ -8541,8 +8592,7 @@
     document.querySelectorAll('.tarea-row[data-id], .card-kanban[data-id]').forEach(el => {
       el.addEventListener('click', (e) => {
         if (e.target.closest('[data-toggle]')) return;
-        const id = parseInt(el.dataset.id);
-        openModal(id);
+        openModal(el.dataset.id);
       });
     });
 
@@ -8565,13 +8615,9 @@
       col.addEventListener('drop', (e) => {
         e.preventDefault();
         col.classList.remove('drag-over');
-        const id = parseInt(e.dataTransfer.getData('text/plain'));
+        const id = e.dataTransfer.getData('text/plain');
         const nuevoEstado = col.dataset.estado;
-        const t = TAREAS.find(x => x.id === id);
-        if (t) {
-          t.estado = nuevoEstado;
-          renderTareas();
-        }
+        actualizarEstadoTarea(id, nuevoEstado);
       });
     });
   }
@@ -8740,33 +8786,30 @@
       ],
       onSubmit: (d) => {
         const respMap = {
-          'agencia': { nombre: 'Delfi', tipo: 'agencia', color: 'agencia' },
-          'agencia-marti': { nombre: 'Marti', tipo: 'agencia', color: 'agencia' },
-          'cliente': { nombre: 'Jessica', tipo: 'cliente', color: 'cliente' },
-          'cliente-virginia': { nombre: 'Virginia', tipo: 'cliente', color: 'cliente' }
+          'agencia': { nombre: 'Delfi', tipo: 'agencia' },
+          'agencia-marti': { nombre: 'Marti', tipo: 'agencia' },
+          'cliente': { nombre: 'Jessica', tipo: 'cliente' },
+          'cliente-virginia': { nombre: 'Virginia', tipo: 'cliente' }
         };
         const r = respMap[d.responsableTipo];
         const fechaLabel = d.fechaLimite
           ? new Date(d.fechaLimite).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
           : 'Sin fecha';
         const fechaTipo = d.urgencia === 'urgente' ? 'urgente' : d.urgencia === 'normal' ? 'pronto' : 'normal';
-        const newId = Math.max(...TAREAS.map(t => t.id)) + 1;
-        TAREAS.unshift({
-          id: newId,
+        crearTarea({
           titulo: d.titulo,
-          desc: d.desc || 'Sin descripción',
-          responsableTipo: r.tipo,
+          descripcion: d.desc || 'Sin descripción',
+          responsable_tipo: r.tipo,
           responsable: r.nombre,
-          avatarColor: r.color,
           proyecto: d.proyecto || 'General',
           estado: 'pendiente',
           urgencia: d.urgencia,
-          fechaLabel,
-          fechaTipo,
+          fecha_label: fechaLabel,
+          fecha_tipo: fechaTipo,
           comentarios: 0
+        }).then(ok => {
+          if (ok) showToast('Tarea creada · ' + d.titulo.substring(0, 40) + (d.titulo.length > 40 ? '…' : ''));
         });
-        renderTareas();
-        showToast('Tarea creada · ' + d.titulo.substring(0, 40) + (d.titulo.length > 40 ? '…' : ''));
       }
     });
   });
