@@ -5525,6 +5525,20 @@
     color: var(--ink);
     background: var(--warn-soft);
   }
+  .cell-action-btn.danger:hover {
+    border-color: #c0392b;
+    color: #c0392b;
+    background: var(--warn-soft);
+  }
+  /* Celdas de ideas ajenas (el cliente no las edita) */
+  .cell-text:disabled,
+  .cell-textarea:disabled,
+  .cell-select:disabled,
+  .cell-estado-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: transparent;
+  }
 
   /* Footer con botón "agregar fila" */
   .planilla-footer {
@@ -8185,6 +8199,7 @@
     if (typeof cargarReportes === 'function') cargarReportes();
     if (typeof cargarPosts === 'function') cargarPosts();
     if (typeof cargarTareas === 'function') cargarTareas();
+    if (typeof cargarIdeas === 'function') cargarIdeas();
     if (typeof cargarArchivos === 'function') cargarArchivos();
   }
 
@@ -8399,33 +8414,44 @@
     }
   ];
 
-  // Comentarios mock
-  const COMENTARIOS_MOCK = {
-    1: [
-      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Ayer 18:42', texto: 'Ya te dejé los cambios marcados en Frame.io' },
-      { autor: 'Jessica', avatar: 'J', color: 'cliente', fecha: 'Hoy 09:15', texto: 'Perfecto, gracias. ¿Llegamos para subir mañana?' },
-      { autor: 'Marti', avatar: 'M', color: 'agencia', fecha: 'Hoy 11:03', texto: 'Sí, lo tengo listo para hoy a la tarde 🙌' }
-    ],
-    2: [
-      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Hoy 08:20', texto: 'Detecté 4 keywords con QS bajo. Las pauso y rearmo grupo de anuncios' }
-    ],
-    4: [
-      { autor: 'Jessica', avatar: 'J', color: 'cliente', fecha: 'Hace 2 días', texto: 'Mandé agenda preliminar' },
-      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Ayer', texto: 'Sumé propuesta India y métricas Q2. Lo charlamos jueves' }
-    ],
-    5: [
-      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Hace 2 días', texto: 'Te dejé la versión 2 con cambios de Virginia incorporados' }
-    ],
-    7: [
-      { autor: 'Marti', avatar: 'M', color: 'agencia', fecha: 'Hace 3 días', texto: 'Adjunto el doc con desglose por audiencia' },
-      { autor: 'Virginia', avatar: 'V', color: 'cliente', fecha: 'Hace 2 días', texto: 'Lo reviso esta semana' },
-      { autor: 'Jessica', avatar: 'J', color: 'cliente', fecha: 'Ayer', texto: '¿Podemos subir un poco la asignación a Google?' },
-      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Hoy', texto: 'Sí, te paso simulación con 35/65' }
-    ],
-    9: [
-      { autor: 'Marti', avatar: 'M', color: 'agencia', fecha: 'Hace 3 días', texto: 'Subidas a /Ruta de la Luz/Mayo 2026' }
-    ]
-  };
+  // ─── COMENTARIOS DE TAREAS: datos reales desde Supabase ───
+  async function cargarComentariosTarea(tareaId){
+    try {
+      if (window.__sb && tareaId) {
+        const { data, error } = await window.__sb.from('comentario_tarea')
+          .select('*').eq('tarea_id', tareaId).order('created_at', { ascending: true });
+        if (!error && Array.isArray(data)) return data;
+      }
+    } catch (e) { /* sin conexión: lista vacía */ }
+    return [];
+  }
+  async function crearComentarioTarea(tareaId, texto){
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
+      const yo = (_miNombre || USERS[currentRole].name).split(' ')[0];
+      const { error } = await window.__sb.from('comentario_tarea').insert({
+        tarea_id: tareaId,
+        cliente_id: clienteId,
+        autor: yo,
+        autor_tipo: currentRole === 'client' ? 'cliente' : 'agencia',
+        texto: texto
+        // creado_por lo completa la base con auth.uid() (default + RLS)
+      });
+      if (error) { showToast('No se pudo enviar el comentario', 'warn'); return false; }
+    } catch (e) { showToast('No se pudo enviar el comentario', 'warn'); return false; }
+    return true;
+  }
+  function formatFechaComent(iso){
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d)) return '';
+      return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
+        ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
 
   // Filtros activos
   let filtroActivo = 'todas';
@@ -8685,7 +8711,6 @@
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
     const postVinc = (t.postId && typeof POSTS !== 'undefined' && Array.isArray(POSTS)) ? POSTS.find(x => x.id === t.postId) : null;
-    const comentarios = COMENTARIOS_MOCK[id] || [];
 
     const modal = document.getElementById('modal');
     modal.innerHTML = `
@@ -8738,21 +8763,13 @@
       ` : ''}
 
       <div class="modal-section">
-        <div class="modal-section-title">Comentarios (${comentarios.length})</div>
-        <div class="comentarios">
-          ${comentarios.map(c => `
-            <div class="comentario">
-              <div class="avatar-sm ${c.color}">${c.avatar}</div>
-              <div class="body">
-                <div class="autor">${c.autor}<span class="fecha">${c.fecha}</span></div>
-                <div class="texto">${c.texto}</div>
-              </div>
-            </div>
-          `).join('') || '<div style="font-size:12px; color: var(--ink-mute); font-style: italic;">Sin comentarios todavía</div>'}
+        <div class="modal-section-title">Comentarios (<span id="comentCount">…</span>)</div>
+        <div class="comentarios" id="comentariosCont">
+          <div style="font-size:12px; color: var(--ink-mute); font-style: italic;">Cargando comentarios…</div>
         </div>
         <div class="nuevo-comentario">
-          <input type="text" placeholder="Escribir comentario…">
-          <button onclick="enviarComentario(this)">Enviar</button>
+          <input type="text" id="nuevoComentInput" placeholder="Escribir comentario…">
+          <button id="enviarComentBtn">Enviar</button>
         </div>
       </div>
     `;
@@ -8761,6 +8778,44 @@
     document.getElementById('modalClose').addEventListener('click', closeModal);
     const verPostBtn = modal.querySelector('#verPostVinc');
     if (verPostBtn && postVinc) verPostBtn.addEventListener('click', () => openPostModal(postVinc.id));
+
+    // ── Comentarios reales (async) ──
+    const tareaId = t.id;
+    function pintarComentarios(arr){
+      const cont = document.getElementById('comentariosCont');
+      const cnt = document.getElementById('comentCount');
+      if (cnt) cnt.textContent = arr.length;
+      if (!cont) return;
+      cont.innerHTML = arr.map(c => `
+        <div class="comentario">
+          <div class="avatar-sm ${c.autor_tipo === 'cliente' ? 'cliente' : 'agencia'}">${(c.autor || '?').charAt(0).toUpperCase()}</div>
+          <div class="body">
+            <div class="autor">${escapeHtml(c.autor || '')}<span class="fecha">${formatFechaComent(c.created_at)}</span></div>
+            <div class="texto">${escapeHtml(c.texto || '')}</div>
+          </div>
+        </div>
+      `).join('') || '<div style="font-size:12px; color: var(--ink-mute); font-style: italic;">Sin comentarios todavía</div>';
+    }
+    cargarComentariosTarea(tareaId).then(pintarComentarios);
+
+    const enviarBtn = document.getElementById('enviarComentBtn');
+    const inputC = document.getElementById('nuevoComentInput');
+    function doEnviarComent(){
+      const txt = (inputC.value || '').trim();
+      if (!txt) { inputC.focus(); return; }
+      enviarBtn.disabled = true;
+      crearComentarioTarea(tareaId, txt).then(ok => {
+        enviarBtn.disabled = false;
+        if (ok) {
+          inputC.value = '';
+          cargarComentariosTarea(tareaId).then(pintarComentarios);
+          if (typeof cargarTareas === 'function') cargarTareas(); // refresca el badge (el trigger ya subió el contador)
+          showToast('Comentario enviado');
+        }
+      });
+    }
+    if (enviarBtn) enviarBtn.addEventListener('click', doEnviarComent);
+    if (inputC) inputC.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doEnviarComent(); } });
   }
 
   function closeModal() {
@@ -12517,6 +12572,7 @@
   // ─── Reportes: datos reales desde Supabase (scope = cliente activo) ───
   let REPORTES = [];
   let _miNombre = '';
+  let _miUid = '';
 
   const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   function _estadoLabel(e){ return e==='publicado'?'Publicado':e==='en_curso'?'En curso':e==='borrador'?'Borrador':(e||''); }
@@ -13573,92 +13629,69 @@
   renderModulosConfig();
 
   // ═══════════════ LLUVIA DE IDEAS ═══════════════
-  const IDEAS = [
-    {
-      id: 1,
-      titulo: 'Serie "Voces del territorio" — entrevistas a referentes locales',
-      desc: 'Reels de 60-90s con líderes de comunidades del NOA hablando sobre su trabajo regenerativo. Estética documental, sin filtros.',
-      autor: 'Jessica', autorTipo: 'cliente',
-      fecha: '2026-05-22',
-      plataforma: 'instagram',
-      formato: 'reel',
-      pilar: 'Ruta de la Luz',
-      inspiracion: 'https://instagram.com/p/abc123',
-      estado: 'idea'
-    },
-    {
-      id: 2,
-      titulo: 'Behind the scenes del viaje a Tilcara',
-      desc: 'Mostrar el detrás de cámara del shooting de mayo: cómo se arma, equipo trabajando, momentos espontáneos. Sumaría humanidad al contenido.',
-      autor: 'Marti', autorTipo: 'agencia',
-      fecha: '2026-05-20',
-      plataforma: 'instagram',
-      formato: 'reel',
-      pilar: 'Ruta de la Luz',
-      inspiracion: '',
-      estado: 'evaluacion'
-    },
-    {
-      id: 3,
-      titulo: 'Mini-doc sobre People & Planet First',
-      desc: 'Pieza de 3-5 minutos para YouTube explicando qué es la verificación, por qué importa, y cómo se obtiene. Para founders de organizaciones.',
-      autor: 'Delfi', autorTipo: 'agencia',
-      fecha: '2026-05-18',
-      plataforma: 'youtube',
-      formato: 'reel',
-      pilar: 'Verificación P&PF',
-      inspiracion: 'https://youtu.be/example',
-      estado: 'idea'
-    },
-    {
-      id: 4,
-      titulo: 'Carrusel: "5 mitos sobre organizaciones regenerativas"',
-      desc: 'Formato listicle pero contado desde experiencia real. Cada slide con un mito y la realidad detrás.',
-      autor: 'Florencia', autorTipo: 'cliente',
-      fecha: '2026-05-15',
-      plataforma: 'linkedin',
-      formato: 'carrusel',
-      pilar: 'Educación regenerativa',
-      inspiracion: '',
-      estado: 'convertida'
-    },
-    {
-      id: 5,
-      titulo: 'Live mensual con Jessica + un invitado',
-      desc: 'Conversaciones largas en IG Live (45-60 min). Bajar el contenido a clips para reels después. Periodicidad mensual.',
-      autor: 'Virginia', autorTipo: 'cliente',
-      fecha: '2026-05-12',
-      plataforma: 'instagram',
-      formato: 'story',
-      pilar: 'Educación regenerativa',
-      inspiracion: '',
-      estado: 'evaluacion'
-    },
-    {
-      id: 6,
-      titulo: 'Calendario lunar y siembra regenerativa',
-      desc: 'Posts mensuales conectando ciclos lunares con prácticas de agricultura regenerativa. Más nicho pero conecta con la audiencia más comprometida.',
-      autor: 'Jessica', autorTipo: 'cliente',
-      fecha: '2026-05-10',
-      plataforma: 'instagram',
-      formato: 'post',
-      pilar: '',
-      inspiracion: '',
-      estado: 'descartada'
-    },
-    {
-      id: 7,
-      titulo: 'Reel: "Un día en la vida del programa formativo"',
-      desc: 'Mostrar cómo es un día real para alguien que está cursando: clases, encuentros, lectura, etc. Pieza de captación para próxima cohorte.',
-      autor: 'Marti', autorTipo: 'agencia',
-      fecha: '2026-05-08',
-      plataforma: 'tiktok',
-      formato: 'reel',
-      pilar: 'Programa formativo',
-      inspiracion: 'https://tiktok.com/@example/video/123',
-      estado: 'idea'
-    }
-  ];
+  // ─── LLUVIA DE IDEAS: datos reales desde Supabase (scope = cliente activo) ───
+  let IDEAS = [];
+  const _IDEA_COL = { desc: 'descripcion', autorTipo: 'autor_tipo', postId: 'post_id' }; // resto 1:1
+  function _ideaCol(field){ return _IDEA_COL[field] || field; }
+  function _mapIdeaRow(r){
+    return {
+      id: r.id,
+      titulo: r.titulo || '',
+      desc: r.descripcion || '',
+      autor: r.autor || '',
+      autorTipo: r.autor_tipo || 'agencia',
+      plataforma: r.plataforma || '',
+      formato: r.formato || '',
+      pilar: r.pilar || '',
+      inspiracion: r.inspiracion || '',
+      estado: r.estado || 'idea',
+      postId: r.post_id || null,
+      creado_por: r.creado_por || null
+    };
+  }
+  async function cargarIdeas(){
+    IDEAS = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId) {
+        const { data, error } = await window.__sb.from('idea')
+          .select('*').eq('cliente_id', clienteId).order('created_at', { ascending: false });
+        if (!error && Array.isArray(data)) IDEAS = data.map(_mapIdeaRow);
+      }
+    } catch (e) { /* sin conexión/datos: queda vacío */ }
+    if (typeof renderIdeas === 'function') renderIdeas();
+    if (typeof renderIdeasStats === 'function') renderIdeasStats();
+  }
+  async function crearIdea(fila){
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
+      const { error } = await window.__sb.from('idea').insert(Object.assign({ cliente_id: clienteId }, fila));
+      if (error) { showToast('No se pudo crear la idea', 'warn'); return false; }
+    } catch (e) { showToast('No se pudo crear la idea', 'warn'); return false; }
+    await cargarIdeas();
+    return true;
+  }
+  async function actualizarIdea(id, patch){
+    try {
+      if (window.__sb) {
+        const { error } = await window.__sb.from('idea').update(patch).eq('id', id);
+        if (error) { showToast('No se guardó el cambio', 'warn'); return false; }
+      }
+    } catch (e) { showToast('No se guardó el cambio', 'warn'); return false; }
+    return true;
+  }
+  async function borrarIdea(id){
+    try {
+      if (window.__sb) {
+        const { error } = await window.__sb.from('idea').delete().eq('id', id);
+        if (error) { showToast('No se pudo borrar la idea', 'warn'); return; }
+      }
+    } catch (e) { showToast('No se pudo borrar la idea', 'warn'); return; }
+    await cargarIdeas();
+  }
 
   const IDEA_ESTADO_LABELS = {
     idea: 'Fresca',
@@ -13747,10 +13780,10 @@
     return optsArr.map(o => `<option value="${o.v}" ${o.v === (selected || '') ? 'selected' : ''}>${o.l}</option>`).join('');
   }
   function ideaEstadoOptionsHtml(selected) {
+    // "Convertida" no va acá: solo se llega vía el botón ✓ (que crea el post real).
     const opts = [
       { v: 'idea', l: 'Fresca' },
       { v: 'evaluacion', l: 'En evaluación' },
-      { v: 'convertida', l: 'Convertida' },
       { v: 'descartada', l: 'Descartada' }
     ];
     return opts.map(o => `<option value="${o.v}" ${o.v === selected ? 'selected' : ''}>${o.l}</option>`).join('');
@@ -13787,33 +13820,36 @@
       bodyHtml = visibles.map((idea, i) => {
         const numFila = IDEAS.indexOf(idea) + 1;
         const hasLink = idea.inspiracion && idea.inspiracion.startsWith('http');
+        const esMia = (currentRole === 'agency') || (idea.creado_por && idea.creado_por === _miUid);
+        const dis = esMia ? '' : 'disabled';
+        const esConvertida = idea.estado === 'convertida';
         return `
           <tr class="row-${idea.estado}" data-idea-row="${idea.id}">
             <td class="planilla-num">${String(numFila).padStart(2, '0')}</td>
             <td>
-              <select class="cell-select ${!idea.pilar ? 'empty' : ''}" data-idea-field="pilar" data-id="${idea.id}">
+              <select class="cell-select ${!idea.pilar ? 'empty' : ''}" data-idea-field="pilar" data-id="${idea.id}" ${dis}>
                 ${pilarOptionsHtml(idea.pilar)}
               </select>
             </td>
             <td>
-              <select class="cell-select ${!idea.plataforma ? 'empty' : ''}" data-idea-field="plataforma" data-id="${idea.id}">
+              <select class="cell-select ${!idea.plataforma ? 'empty' : ''}" data-idea-field="plataforma" data-id="${idea.id}" ${dis}>
                 ${platOptionsHtml(idea.plataforma)}
               </select>
             </td>
             <td>
-              <select class="cell-select ${!idea.formato ? 'empty' : ''}" data-idea-field="formato" data-id="${idea.id}">
+              <select class="cell-select ${!idea.formato ? 'empty' : ''}" data-idea-field="formato" data-id="${idea.id}" ${dis}>
                 ${formatoOptionsHtml(idea.formato)}
               </select>
             </td>
             <td>
-              <input class="cell-text" data-idea-field="titulo" data-id="${idea.id}" value="${escapeHtml(idea.titulo)}" placeholder="Idea…">
+              <input class="cell-text" data-idea-field="titulo" data-id="${idea.id}" value="${escapeHtml(idea.titulo)}" placeholder="Idea…" ${dis}>
             </td>
             <td>
-              <textarea class="cell-textarea" data-idea-field="desc" data-id="${idea.id}" placeholder="Detalle…" rows="1">${escapeHtml(idea.desc)}</textarea>
+              <textarea class="cell-textarea" data-idea-field="desc" data-id="${idea.id}" placeholder="Detalle…" rows="1" ${dis}>${escapeHtml(idea.desc)}</textarea>
             </td>
             <td>
               <div class="cell-link-wrap">
-                <input class="cell-text" data-idea-field="inspiracion" data-id="${idea.id}" value="${escapeHtml(idea.inspiracion)}" placeholder="URL de inspiración…">
+                <input class="cell-text" data-idea-field="inspiracion" data-id="${idea.id}" value="${escapeHtml(idea.inspiracion)}" placeholder="URL de inspiración…" ${dis}>
                 ${hasLink ? `<a class="cell-link-open" href="${escapeHtml(idea.inspiracion)}" target="_blank" rel="noopener" title="Abrir">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 </a>` : ''}
@@ -13821,8 +13857,8 @@
             </td>
             <td>
               <div class="cell-autor">
-                <span class="av ${idea.autorTipo}">${idea.autor.charAt(0)}</span>
-                ${idea.autor}
+                <span class="av ${idea.autorTipo}">${(idea.autor || '?').charAt(0)}</span>
+                ${escapeHtml(idea.autor)}
               </div>
             </td>
             <td>
@@ -13831,16 +13867,21 @@
                   <span class="dot"></span>
                   ${IDEA_ESTADO_LABELS[idea.estado]}
                 </span>
-                <select class="cell-estado-select" data-idea-field="estado" data-id="${idea.id}">
+                ${esConvertida ? '' : `<select class="cell-estado-select" data-idea-field="estado" data-id="${idea.id}" ${dis}>
                   ${ideaEstadoOptionsHtml(idea.estado)}
-                </select>
+                </select>`}
               </div>
             </td>
             <td class="cell-actions-cell">
               <div class="cell-actions">
-                ${idea.estado !== 'convertida' && idea.estado !== 'descartada' ? `
+                ${(!esConvertida && idea.estado !== 'descartada') ? `
                   <button class="cell-action-btn" data-agency-only data-idea-convert="${idea.id}" title="Convertir en post">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </button>
+                ` : ''}
+                ${esMia ? `
+                  <button class="cell-action-btn danger" data-idea-delete="${idea.id}" title="Borrar idea">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   </button>
                 ` : ''}
               </div>
@@ -13887,23 +13928,23 @@
     // Inputs y textareas
     document.querySelectorAll('[data-idea-field]').forEach(el => {
       const field = el.dataset.ideaField;
-      const id = parseInt(el.dataset.id);
+      const id = el.dataset.id; // uuid
       const idea = IDEAS.find(x => x.id === id);
       if (!idea) return;
+      if (el.disabled) return; // idea ajena: no se cablea edición
 
       if (el.tagName === 'SELECT') {
         el.addEventListener('change', () => {
           idea[field] = el.value;
+          actualizarIdea(idea.id, { [_ideaCol(field)]: el.value });
           if (field === 'estado') {
-            // Re-render para aplicar visual de estado
-            renderIdeas();
+            renderIdeas();      // re-render para aplicar visual de estado
             renderIdeasStats();
           } else {
             el.classList.toggle('empty', !el.value);
           }
         });
       } else if (el.tagName === 'TEXTAREA') {
-        // Auto-resize
         const autoResize = () => {
           el.style.height = 'auto';
           el.style.height = el.scrollHeight + 'px';
@@ -13913,15 +13954,15 @@
         el.addEventListener('blur', () => {
           if (idea[field] !== el.value) {
             idea[field] = el.value;
+            actualizarIdea(idea.id, { [_ideaCol(field)]: el.value });
           }
         });
       } else {
-        // Inputs de texto
         el.addEventListener('change', () => {
           idea[field] = el.value;
+          actualizarIdea(idea.id, { [_ideaCol(field)]: el.value });
           if (field === 'inspiracion') {
-            // Re-render para mostrar/ocultar el botón de "abrir"
-            renderIdeas();
+            renderIdeas(); // mostrar/ocultar el botón de "abrir"
           }
         });
         el.addEventListener('keydown', (e) => {
@@ -13930,48 +13971,53 @@
       }
     });
 
-    // Botones convertir
+    // Botones convertir (agencia)
     document.querySelectorAll('[data-idea-convert]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = parseInt(btn.dataset.ideaConvert);
-        convertIdeaToPost(id);
+        convertIdeaToPost(btn.dataset.ideaConvert);
+      });
+    });
+
+    // Botones borrar (propias / agencia)
+    document.querySelectorAll('[data-idea-delete]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.ideaDelete;
+        if (confirm('¿Borrar esta idea? No se puede deshacer.')) borrarIdea(id);
       });
     });
 
     // Botón agregar fila
     const addBtn = document.getElementById('addIdeaRowBtn');
     if (addBtn) {
-      addBtn.addEventListener('click', () => {
-        const yo = USERS[currentRole].name.split(' ')[0];
-        const newId = IDEAS.length > 0 ? Math.max(...IDEAS.map(i => i.id)) + 1 : 1;
-        IDEAS.push({
-          id: newId,
-          titulo: '',
-          desc: '',
-          autor: yo,
-          autorTipo: currentRole === 'client' ? 'cliente' : 'agencia',
-          fecha: new Date().toISOString().split('T')[0],
-          plataforma: '',
-          formato: '',
-          pilar: '',
-          inspiracion: '',
-          estado: 'idea'
-        });
-        // Forzar filtro "todas" o "idea" para que la nueva fila se vea
+      addBtn.addEventListener('click', async () => {
+        const yo = (_miNombre || USERS[currentRole].name).split(' ')[0];
+        // Si hay un filtro que ocultaría la fila nueva, lo reseteo a "todas"
         if (ideaFiltroActivo !== 'todas' && ideaFiltroActivo !== 'idea') {
           ideaFiltroActivo = 'todas';
           document.querySelectorAll('[data-idea-filter]').forEach(b =>
             b.classList.toggle('active', b.dataset.ideaFilter === 'todas')
           );
         }
-        renderIdeas();
-        renderIdeasStats();
-        // Focus en el campo "Idea" de la nueva fila
-        setTimeout(() => {
-          const newInput = document.querySelector(`[data-idea-field="titulo"][data-id="${newId}"]`);
-          if (newInput) newInput.focus();
-        }, 50);
+        const ok = await crearIdea({
+          titulo: '',
+          descripcion: '',
+          autor: yo,
+          autor_tipo: currentRole === 'client' ? 'cliente' : 'agencia',
+          plataforma: '',
+          formato: '',
+          pilar: '',
+          inspiracion: '',
+          estado: 'idea'
+        });
+        if (ok) {
+          // La nueva idea es la primera fila (orden created_at desc): foco ahí
+          setTimeout(() => {
+            const first = document.querySelector('[data-idea-field="titulo"]');
+            if (first && !first.disabled) first.focus();
+          }, 60);
+        }
       });
     }
   }
@@ -14055,10 +14101,11 @@
           caption: d.copy || ''
         }).then(ok => {
           if (ok) {
-            idea.estado = 'convertida';
-            renderIdeas();
-            renderIdeasStats();
-            showToast('Idea convertida en post · ' + d.titulo.substring(0, 35));
+            // Persistir el estado en la base (no solo en memoria)
+            actualizarIdea(idea.id, { estado: 'convertida' }).then(() => {
+              cargarIdeas();
+              showToast('Idea convertida en post · ' + d.titulo.substring(0, 35));
+            });
           }
         });
       }
@@ -14109,27 +14156,25 @@
       ],
       footerInfo: 'Después la agencia puede convertirla en un post real',
       onSubmit: (d) => {
-        const yo = USERS[currentRole].name.split(' ')[0];
-        const newId = Math.max(...IDEAS.map(i => i.id)) + 1;
-        IDEAS.unshift({
-          id: newId,
+        const yo = (_miNombre || USERS[currentRole].name).split(' ')[0];
+        crearIdea({
           titulo: d.titulo,
-          desc: d.desc,
+          descripcion: d.desc,
           autor: yo,
-          autorTipo: currentRole === 'client' ? 'cliente' : 'agencia',
-          fecha: new Date().toISOString().split('T')[0],
+          autor_tipo: currentRole === 'client' ? 'cliente' : 'agencia',
           plataforma: d.plataforma || null,
+          formato: null,
           pilar: d.pilar || null,
+          inspiracion: null,
           estado: 'idea'
+        }).then(ok => {
+          if (ok) showToast('Idea agregada · ' + d.titulo.substring(0, 35));
         });
-        renderIdeas();
-        renderIdeasStats();
-        showToast('Idea agregada · ' + d.titulo.substring(0, 35));
       }
     });
   });
 
-  // Render inicial
+  // Render inicial (queda vacío hasta que switchClient cargue las ideas del cliente)
   renderIdeas();
   renderIdeasStats();
 
@@ -14140,6 +14185,7 @@
     try {
       const { data: { session } } = await window.__sb.auth.getSession();
       if (!session) return;
+      _miUid = session.user.id;
       const { data: prof } = await window.__sb.from('profiles')
         .select('tipo, agencia, super_admin, nombre').eq('id', session.user.id).maybeSingle();
       perfil = prof;
