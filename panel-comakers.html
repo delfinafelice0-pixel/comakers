@@ -8459,6 +8459,7 @@
       urgencia: r.urgencia || 'normal',
       fechaLabel: r.fecha_label || 'Sin fecha',
       fechaTipo: r.fecha_tipo || 'normal',
+      postId: r.post_id || null,
       comentarios: r.comentarios || 0
     };
   }
@@ -8494,6 +8495,30 @@
       }
     } catch (e) { showToast('No se pudo actualizar la tarea', 'warn'); return; }
     await cargarTareas();
+  }
+
+  async function crearTareaDesdePost(p){
+    const existente = TAREAS.find(t => t.postId === p.id);
+    if (existente) { showToast('Este post ya tiene una tarea vinculada'); openModal(existente.id); return; }
+    let fechaLabel = 'Sin fecha';
+    if (p.fecha) {
+      const f = new Date(p.fecha + 'T00:00:00');
+      if (!isNaN(f)) fechaLabel = f.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+    }
+    const ok = await crearTarea({
+      titulo: 'Grabar: ' + (p.titulo || 'contenido'),
+      descripcion: 'Material a grabar / aportar para el post programado. Abrí el post vinculado para ver el detalle.',
+      responsable_tipo: 'cliente',
+      responsable: 'EKHOS',
+      proyecto: p.proyecto || 'General',
+      estado: 'pendiente',
+      urgencia: 'normal',
+      fecha_label: fechaLabel,
+      fecha_tipo: 'pronto',
+      comentarios: 0,
+      post_id: p.id
+    });
+    if (ok) { closeModal(); showToast('Tarea creada y vinculada · va a EKHOS'); }
   }
 
   function renderListaTarea(t) {
@@ -8658,6 +8683,7 @@
   function openModal(id) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
+    const postVinc = (t.postId && typeof POSTS !== 'undefined' && Array.isArray(POSTS)) ? POSTS.find(x => x.id === t.postId) : null;
     const comentarios = COMENTARIOS_MOCK[id] || [];
 
     const modal = document.getElementById('modal');
@@ -8703,6 +8729,13 @@
         <div class="text">${t.desc}</div>
       </div>
 
+      ${postVinc ? `
+      <div class="modal-section">
+        <div class="modal-section-title">Post vinculado</div>
+        <button class="btn-ghost" id="verPostVinc" style="font-size:13px;">📅 ${postVinc.titulo || 'Ver post'} →</button>
+      </div>
+      ` : ''}
+
       <div class="modal-section">
         <div class="modal-section-title">Comentarios (${comentarios.length})</div>
         <div class="comentarios">
@@ -8725,6 +8758,8 @@
 
     document.getElementById('modalOverlay').classList.add('active');
     document.getElementById('modalClose').addEventListener('click', closeModal);
+    const verPostBtn = modal.querySelector('#verPostVinc');
+    if (verPostBtn && postVinc) verPostBtn.addEventListener('click', () => openPostModal(postVinc.id));
   }
 
   function closeModal() {
@@ -9405,6 +9440,7 @@
   function openPostModal(id) {
     const p = POSTS.find(x => x.id === id);
     if (!p) return;
+    const tareaVinc = (typeof TAREAS !== 'undefined' && Array.isArray(TAREAS)) ? TAREAS.find(t => t.postId === p.id) : null;
 
     const esPublicado = p.estado === 'publicado';
     const eng = esPublicado ? calcEngagement(p).toFixed(1) : null;
@@ -9439,6 +9475,16 @@
         <div id="fichaTablaZone"></div>
       </div>
 
+      ${currentRole !== 'client' ? `
+        <div class="modal-section">
+          <div class="modal-section-title">Tarea para el cliente</div>
+          ${tareaVinc
+            ? `<button class="btn-ghost" id="verTareaVinc" style="font-size:13px;">Ver tarea vinculada →</button>`
+            : `<button class="btn-primary" id="crearTareaPost" style="font-size:13px; padding:10px 16px;">+ Crear tarea para el cliente</button>
+               <div style="font-size:11px; color:var(--ink-mute); margin-top:6px;">Le crea a EKHOS una tarea vinculada a este post, para que sepa que tiene que grabar/aportar material.</div>`}
+        </div>
+      ` : ''}
+
       ${p.estado === 'aprobacion' && currentRole === 'client' ? `
         <div style="display: flex; gap: 8px; margin-top: 16px;">
           <button class="btn-approve" style="flex:1; padding: 10px; font-size: 13px;" data-approve-modal="${p.id}">Aprobar publicación</button>
@@ -9466,6 +9512,10 @@
         actualizarEstadoPost(p.id, 'produccion');
       });
     }
+    const crearTareaBtn = modal.querySelector('#crearTareaPost');
+    if (crearTareaBtn) crearTareaBtn.addEventListener('click', () => crearTareaDesdePost(p));
+    const verTareaBtn = modal.querySelector('#verTareaVinc');
+    if (verTareaBtn && tareaVinc) verTareaBtn.addEventListener('click', () => openModal(tareaVinc.id));
   }
 
   document.getElementById('newPostBtn').addEventListener('click', () => {
