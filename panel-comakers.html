@@ -8813,6 +8813,7 @@
       from: r.color_from || '#FF82FF',
       to: r.color_to || '#2A2630',
       copy: r.caption || '',
+      tabla: r.tabla || null,
       alcance: r.alcance || 0, likes: r.likes || 0, comentarios: r.comentarios || 0,
       guardados: r.guardados || 0, compartidos: r.compartidos || 0, reproducciones: r.reproducciones || 0
     };
@@ -13068,8 +13069,8 @@
           <button class="btn-ghost" data-tabla-act="replace">Reemplazar</button>
           <button class="btn-ghost" data-tabla-act="clear">Borrar</button>
         </div>`;
-      z.querySelector('[data-tabla-act="replace"]').addEventListener('click', () => { p.tabla = null; renderFichaTabla(p); });
-      z.querySelector('[data-tabla-act="clear"]').addEventListener('click', () => { p.tabla = null; renderFichaTabla(p); showToast('Tabla borrada'); });
+      z.querySelector('[data-tabla-act="replace"]').addEventListener('click', () => { p.tabla = null; actualizarCampoPost(p.id, 'tabla', null); renderFichaTabla(p); });
+      z.querySelector('[data-tabla-act="clear"]').addEventListener('click', () => { p.tabla = null; actualizarCampoPost(p.id, 'tabla', null); renderFichaTabla(p); showToast('Tabla borrada'); });
     } else {
       z.innerHTML = `<div class="ficha-tabla-drop" id="fichaTablaDrop" contenteditable="true" spellcheck="false">
           <div class="ficha-tabla-drop-inner">
@@ -13082,7 +13083,7 @@
       drop.addEventListener('paste', (e) => {
         e.preventDefault();
         const rows = parseClipboardTable(e);
-        if (rows.length) { p.tabla = rowsToTableHtml(rows); renderFichaTabla(p); showToast('Tabla pegada'); }
+        if (rows.length) { p.tabla = rowsToTableHtml(rows); actualizarCampoPost(p.id, 'tabla', p.tabla); renderFichaTabla(p); showToast('Tabla pegada'); }
         else { drop.innerHTML = drop.innerHTML; showToast('No se detectó una tabla en lo que pegaste', 'warn'); }
       });
     }
