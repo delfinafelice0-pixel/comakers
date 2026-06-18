@@ -6173,12 +6173,12 @@
 
       <div class="topbar">
         <div>
-          <h1>Resumen de <em id="resumenMesEm">Mayo</em></h1>
+          <h1>Resumen de <em>Mayo</em></h1>
           <div class="greeting" id="greeting">Hola Delfi 👋 — esto pasó en EKHOS este mes</div>
         </div>
         <div class="period-selector">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span id="resumenPeriodo">Mayo 2026</span>
+          Mayo 2026
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
       </div>
@@ -6761,7 +6761,7 @@
                 <circle cx="50" cy="50" r="38" fill="none" stroke="#4285F4" stroke-width="14"
                   stroke-dasharray="74 240" stroke-dashoffset="-148" transform="rotate(-90 50 50)"/>
                 <!-- TikTok (pausada): ~7% -->
-                <circle data-red="tiktok" cx="50" cy="50" r="38" fill="none" stroke="var(--ink-mute)" stroke-width="14"
+                <circle cx="50" cy="50" r="38" fill="none" stroke="var(--ink-mute)" stroke-width="14"
                   stroke-dasharray="17 240" stroke-dashoffset="-222" transform="rotate(-90 50 50)"/>
                 <text x="50" y="48" text-anchor="middle" font-family="Playfair Display" font-size="14" font-weight="500" fill="var(--ink)">$385K</text>
                 <text x="50" y="58" text-anchor="middle" font-family="DM Sans" font-size="6" fill="var(--ink-mute)" letter-spacing="0.5">TOTAL</text>
@@ -6781,7 +6781,7 @@
                     <div class="donut-amount">$119.480<span class="donut-pct">31%</span></div>
                   </div>
                 </div>
-                <div class="donut-item" data-red="tiktok">
+                <div class="donut-item">
                   <div class="donut-swatch" style="background: var(--ink-mute);"></div>
                   <div class="donut-info">
                     <div class="donut-platform">TikTok <span style="font-size:10px; color: var(--ink-mute);">(pausada)</span></div>
@@ -7651,17 +7651,6 @@
         <div class="modulos-grid" id="modulosGrid"></div>
       </div>
 
-      <!-- Redes sociales activas -->
-      <div class="config-section">
-        <div class="section-head">
-          <div class="section-head-left">
-            <div class="section-title">Redes <em>sociales</em></div>
-            <div class="section-subtitle">Qué redes maneja este cliente. Si apagás una, desaparece de Evolución, Contenido y Pauta en todo el panel.</div>
-          </div>
-        </div>
-        <div class="modulos-grid" id="redesGrid"></div>
-      </div>
-
       <!-- Visibilidad por sección -->
       <div class="config-section">
         <div class="section-head">
@@ -8194,8 +8183,7 @@
     applyModulosToSidebar();
     renderClientDropdown();
     if (typeof cargarReportes === 'function') cargarReportes();
-    if (typeof cargarEvolucion === 'function') cargarEvolucion();
-    if (typeof cargarFeed === 'function') cargarFeed();
+    if (typeof cargarPosts === 'function') cargarPosts();
   }
 
   // Toggle dropdown
@@ -8788,8 +8776,8 @@
 
   // ═══════════════ CONTENIDO Y REDES ═══════════════
   // Posts mock — verosímiles para EKHOS
-  const POSTS = [
-    // Mayo (publicados)
+  const _SEED_POSTS_IGNORED = [
+    // Mayo (publicados) — datos de ejemplo, ya NO se usan (el calendario lee de Supabase)
     { id: 1, fecha: '2026-05-02', tipo: 'carrusel', estado: 'publicado', titulo: 'Ecosistemas de Impacto: 5 claves del modelo EKHOS', proyecto: 'Programa formativo', from: '#FF82FF', to: '#2A2630', alcance: 18420, likes: 892, comentarios: 64, guardados: 312, compartidos: 87, copy: 'Te explicamos en 5 pasos cómo funcionan los Ecosistemas de Impacto que venimos cocreando hace años...' },
     { id: 2, fecha: '2026-05-05', tipo: 'reel', estado: 'publicado', titulo: 'Detrás de escena: encuentro en Tilcara', proyecto: 'Ruta de la Luz', from: '#F26A8D', to: '#F26A8D', alcance: 42180, likes: 2240, comentarios: 178, guardados: 540, compartidos: 312, copy: 'Volvimos a la Puna. Encuentro intergeneracional con la comunidad de Tilcara, parte del trabajo continuo de Ruta de la Luz.', reproducciones: 56300 },
     { id: 3, fecha: '2026-05-08', tipo: 'post', estado: 'publicado', titulo: 'India 2027: inscripciones abiertas', proyecto: 'India 2027', from: '#F26A8D', to: '#F26A8D', alcance: 14260, likes: 678, comentarios: 92, guardados: 178, compartidos: 56, copy: 'Llegó el momento. Las inscripciones para el viaje inmersivo a India 2027 están oficialmente abiertas.' },
@@ -8807,6 +8795,74 @@
     { id: 13, fecha: '2026-06-04', tipo: 'carrusel', estado: 'idea', titulo: '¿Qué es un Ecosistema de Impacto?', proyecto: 'Programa formativo', from: '#FF82FF', to: '#25212B', copy: 'Definición simple del concepto que estructura todo nuestro trabajo.' },
     { id: 14, fecha: '2026-06-06', tipo: 'post', estado: 'idea', titulo: 'Convocatoria charla embajada de India', proyecto: 'India 2027', from: '#F26A8D', to: '#F26A8D', copy: 'Charla abierta sobre el viaje inmersivo, con representante de la embajada de India.' }
   ];
+
+  // ─── POSTS: datos reales desde Supabase (scope = cliente activo) ───
+  let POSTS = [];
+  const _POST_COL = { copy: 'caption', from: 'color_from', to: 'color_to' }; // resto 1:1
+  function _postCol(field){ return _POST_COL[field] || field; }
+  function _mapPostRow(r){
+    return {
+      id: r.id,
+      fecha: (r.fecha || '').slice(0, 10),
+      tipo: r.tipo || 'post',
+      estado: r.estado || 'idea',
+      titulo: r.titulo || '',
+      proyecto: r.proyecto || 'General',
+      plataforma: r.plataforma || 'instagram',
+      pilar: r.pilar || null,
+      from: r.color_from || '#FF82FF',
+      to: r.color_to || '#2A2630',
+      copy: r.caption || '',
+      alcance: r.alcance || 0, likes: r.likes || 0, comentarios: r.comentarios || 0,
+      guardados: r.guardados || 0, compartidos: r.compartidos || 0, reproducciones: r.reproducciones || 0
+    };
+  }
+  async function cargarPosts(){
+    POSTS = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId) {
+        const { data, error } = await window.__sb.from('post')
+          .select('*').eq('cliente_id', clienteId).order('fecha', { ascending: true });
+        if (!error && Array.isArray(data)) POSTS = data.map(_mapPostRow);
+      }
+    } catch (e) { /* sin conexión/datos: queda vacío y se ve el empty-state */ }
+    if (typeof renderCalendario === 'function') renderCalendario();
+    if (typeof renderCalLista === 'function' && document.getElementById('calLista')) {
+      try { renderCalLista(); } catch (e) {}
+    }
+  }
+  async function crearPost(fila){
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
+      const { error } = await window.__sb.from('post').insert(Object.assign({ cliente_id: clienteId }, fila));
+      if (error) { showToast('No se pudo crear el post', 'warn'); return false; }
+    } catch (e) { showToast('No se pudo crear el post', 'warn'); return false; }
+    await cargarPosts();
+    return true;
+  }
+  async function actualizarEstadoPost(id, nuevoEstado){
+    try {
+      if (window.__sb) {
+        const { error } = await window.__sb.from('post').update({ estado: nuevoEstado }).eq('id', id);
+        if (error) { showToast('No se pudo actualizar el estado', 'warn'); return; }
+      }
+    } catch (e) { showToast('No se pudo actualizar el estado', 'warn'); return; }
+    await cargarPosts();
+  }
+  async function actualizarCampoPost(id, field, value){
+    try {
+      if (window.__sb) {
+        const col = _postCol(field);
+        const patch = {}; patch[col] = value;
+        const { error } = await window.__sb.from('post').update(patch).eq('id', id);
+        if (error) { showToast('No se guardó el cambio', 'warn'); }
+      }
+    } catch (e) { showToast('No se guardó el cambio', 'warn'); }
+  }
 
   let calCurrentDate = new Date(2026, 4, 1); // Mayo 2026
   const HOY = new Date(2026, 4, 24); // 24 de mayo 2026 (simulado)
@@ -8934,25 +8990,19 @@
     document.querySelectorAll('[data-post-id]').forEach(el => {
       el.addEventListener('click', (e) => {
         if (e.target.closest('[data-approve], [data-reject]')) return;
-        openPostModal(parseInt(el.dataset.postId));
+        openPostModal(el.dataset.postId);
       });
     });
     document.querySelectorAll('[data-approve]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = parseInt(btn.dataset.approve);
-        const p = POSTS.find(x => x.id === id);
-        if (p) {
-          p.estado = 'aprobado';
-          renderCalendario();
-        }
+        actualizarEstadoPost(btn.dataset.approve, 'aprobado');
       });
     });
     document.querySelectorAll('[data-reject]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = parseInt(btn.dataset.reject);
-        openPostModal(id);
+        openPostModal(btn.dataset.reject);
       });
     });
   }
@@ -9100,13 +9150,14 @@
   function bindCalListaCells() {
     document.querySelectorAll('[data-post-field]').forEach(el => {
       const field = el.dataset.postField;
-      const id = parseInt(el.dataset.id);
+      const id = el.dataset.id;
       const post = POSTS.find(x => x.id === id);
       if (!post) return;
 
       if (el.tagName === 'SELECT') {
         el.addEventListener('change', () => {
           post[field] = el.value;
+          actualizarCampoPost(post.id, field, el.value);
           if (field === 'estado') {
             renderCalLista();
             renderCalendario();
@@ -9122,10 +9173,10 @@
         autoResize();
         el.addEventListener('input', autoResize);
         el.addEventListener('blur', () => {
-          if (post[field] !== el.value) post[field] = el.value;
+          if (post[field] !== el.value) { post[field] = el.value; actualizarCampoPost(post.id, field, el.value); }
         });
       } else {
-        el.addEventListener('change', () => { post[field] = el.value; });
+        el.addEventListener('change', () => { post[field] = el.value; actualizarCampoPost(post.id, field, el.value); });
         el.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
         });
@@ -9135,20 +9186,14 @@
     document.querySelectorAll('[data-post-detail]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openPostModal(parseInt(btn.dataset.postDetail));
+        openPostModal(btn.dataset.postDetail);
       });
     });
     document.querySelectorAll('[data-approve-lista]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = parseInt(btn.dataset.approveLista);
-        const p = POSTS.find(x => x.id === id);
-        if (p) {
-          p.estado = 'aprobado';
-          renderCalLista();
-          renderCalendario();
-          showToast('Post aprobado');
-        }
+        actualizarEstadoPost(btn.dataset.approveLista, 'aprobado');
+        showToast('Post aprobado');
       });
     });
   }
@@ -9163,69 +9208,33 @@
   // ─── FEED ───
   let feedFiltro = 'todos';
 
-  // Feed real: ultimas publicaciones traidas de Instagram (tabla ig_media)
-  let IG_FEED = [];
-  const _IG_TIPO = { VIDEO: 'reel', CAROUSEL_ALBUM: 'carrusel', IMAGE: 'post' };
-
-  async function cargarFeed() {
-    IG_FEED = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId) {
-        const { data, error } = await window.__sb.from('ig_media')
-          .select('id, media_type, media_url, thumbnail_url, permalink, caption, published_at, like_count, comments_count')
-          .eq('cliente_id', clienteId)
-          .order('published_at', { ascending: false })
-          .limit(12);
-        if (!error && Array.isArray(data)) {
-          IG_FEED = data.map(p => ({
-            id: p.id,
-            tipo: _IG_TIPO[p.media_type] || 'post',
-            img: (p.media_type === 'VIDEO' ? (p.thumbnail_url || p.media_url) : (p.media_url || p.thumbnail_url)) || '',
-            permalink: p.permalink || '',
-            likes: p.like_count || 0,
-            comentarios: p.comments_count || 0
-          }));
-        }
-      }
-    } catch (e) { /* sin datos -> empty state */ }
-    renderFeed();
-  }
-
   function renderFeed() {
-    const grid = document.getElementById('feedGrid');
-    if (!grid) return;
-    const todos = IG_FEED;
-    const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-    set('feed-count-todos', todos.length);
-    set('feed-count-reel', todos.filter(p => p.tipo === 'reel').length);
-    set('feed-count-carrusel', todos.filter(p => p.tipo === 'carrusel').length);
-    set('feed-count-post', todos.filter(p => p.tipo === 'post').length);
+    const publicados = POSTS.filter(p => p.estado === 'publicado').sort((a, b) => b.fecha.localeCompare(a.fecha));
+    const visibles = feedFiltro === 'todos' ? publicados : publicados.filter(p => p.tipo === feedFiltro);
 
-    if (!todos.length) {
-      grid.innerHTML = '<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--ink-mute);border:1px dashed var(--line);border-radius:16px;background:var(--bg-elev);">Todavia no hay posts traidos de Instagram.<br><span style="color:var(--ink-soft);">Apreta &ldquo;Actualizar desde Instagram&rdquo; en Reportes para traer tus ultimas publicaciones.</span></div>';
-      return;
-    }
+    document.getElementById('feed-count-todos').textContent = publicados.length;
+    document.getElementById('feed-count-reel').textContent = publicados.filter(p => p.tipo === 'reel').length;
+    document.getElementById('feed-count-carrusel').textContent = publicados.filter(p => p.tipo === 'carrusel').length;
+    document.getElementById('feed-count-post').textContent = publicados.filter(p => p.tipo === 'post').length;
 
-    const visibles = feedFiltro === 'todos' ? todos : todos.filter(p => p.tipo === feedFiltro);
-    const heart = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
-    const chat = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
-
-    grid.innerHTML = visibles.map(p => `
-      <a class="feed-item" href="${p.permalink || '#'}" ${p.permalink ? 'target="_blank" rel="noopener"' : ''} style="text-decoration:none;color:inherit;">
-        <div class="feed-item-visual" style="position:relative;overflow:hidden;background:linear-gradient(135deg,#FF82FF,#2A2630);">
-          ${p.img ? `<img src="${p.img}" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+    document.getElementById('feedGrid').innerHTML = visibles.map(p => `
+      <div class="feed-item" data-post-id="${p.id}" style="--bg-from: ${p.from}; --bg-to: ${p.to};">
+        <div class="feed-item-visual" style="background: linear-gradient(135deg, ${p.from}, ${p.to});">
+          <span class="feed-item-icon">${tipoLabel(p.tipo).charAt(0)}</span>
           <div class="feed-item-type">${tipoIcon(p.tipo)}</div>
           <div class="feed-item-overlay">
             <div class="feed-item-stats">
-              <span>${heart}${formatK(p.likes)}</span>
-              <span>${chat}${p.comentarios}</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>${formatK(p.likes)}</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>${p.comentarios}</span>
             </div>
           </div>
         </div>
-      </a>
+      </div>
     `).join('');
+
+    document.querySelectorAll('#feedGrid [data-post-id]').forEach(el => {
+      el.addEventListener('click', () => openPostModal(el.dataset.postId));
+    });
   }
 
   document.querySelectorAll('[data-feed]').forEach(btn => {
@@ -9327,10 +9336,10 @@
 
     // Click rows → modal
     document.querySelectorAll('#perfTableBody tr').forEach(tr => {
-      tr.addEventListener('click', () => openPostModal(parseInt(tr.dataset.postId)));
+      tr.addEventListener('click', () => openPostModal(tr.dataset.postId));
     });
     document.querySelectorAll('#perfTop [data-post-id]').forEach(el => {
-      el.addEventListener('click', () => openPostModal(parseInt(el.dataset.postId)));
+      el.addEventListener('click', () => openPostModal(el.dataset.postId));
     });
   }
 
@@ -9401,18 +9410,16 @@
     const approveBtn = modal.querySelector('[data-approve-modal]');
     if (approveBtn) {
       approveBtn.addEventListener('click', () => {
-        p.estado = 'aprobado';
         closeModal();
-        renderCalendario();
+        actualizarEstadoPost(p.id, 'aprobado');
       });
     }
     const rejectBtn = modal.querySelector('.btn-reject');
     if (rejectBtn) {
       rejectBtn.addEventListener('click', () => {
-        p.estado = 'produccion';
         closeModal();
-        renderCalendario();
         showToast('Cambios solicitados · volvió a producción', 'warn');
+        actualizarEstadoPost(p.id, 'produccion');
       });
     }
   }
@@ -9495,9 +9502,7 @@
         }
       ],
       onSubmit: (d) => {
-        const newId = Math.max(...POSTS.map(p => p.id)) + 1;
-        POSTS.push({
-          id: newId,
+        crearPost({
           fecha: d.fecha,
           tipo: d.tipo,
           plataforma: d.plataforma,
@@ -9505,19 +9510,22 @@
           estado: d.estado,
           titulo: d.titulo,
           proyecto: d.proyecto === 'general' ? 'General' : d.proyecto,
-          from: d.color.from,
-          to: d.color.to,
-          copy: d.copy || 'Sin copy todavía.'
+          color_from: d.color.from,
+          color_to: d.color.to,
+          caption: d.copy || ''
+        }).then(ok => {
+          if (ok) {
+            const pilarTxt = d.pilar ? ' · ' + d.pilar : '';
+            showToast('Post creado · ' + d.plataforma + pilarTxt);
+          }
         });
-        renderCalendario();
-        const pilarTxt = d.pilar ? ' · ' + d.pilar : '';
-        showToast('Post creado · ' + d.plataforma + pilarTxt);
       }
     });
   });
 
   // Render inicial
   renderCalendario();
+  if (typeof cargarPosts === 'function') cargarPosts();
 
   // ═══════════════ PAUTA ═══════════════
   const CAMPANAS = [
@@ -9682,52 +9690,12 @@
     };
   }
 
-  // ─── Visibilidad de REDES SOCIALES (canal activo) ───
-  // Controla dónde aparece cada red como canal: Evolución, Contenido (dropdowns), Pauta (chrome).
-  // NO toca textos narrativos (Estrategia/decisiones que mencionen una red).
-  // EKHOS = solo Meta (Instagram + Facebook); el resto apagado.
-  const REDES_DEF = [
-    { code: 'instagram', label: 'Instagram' },
-    { code: 'facebook', label: 'Facebook' },
-    { code: 'tiktok', label: 'TikTok' },
-    { code: 'youtube', label: 'YouTube' },
-    { code: 'linkedin', label: 'LinkedIn' },
-    { code: 'pinterest', label: 'Pinterest' }
-  ];
-  if (!CLIENTES.ekhos.redes) {
-    CLIENTES.ekhos.redes = { instagram: true, facebook: true, tiktok: false, youtube: false, linkedin: false, pinterest: false };
-  }
-  // Normaliza cualquier código de plataforma a la red canónica. 'google' u otros → null (no se gatean).
-  function _redCanon(code) {
-    const m = {
-      ig: 'instagram', instagram: 'instagram', meta: 'instagram',
-      fb: 'facebook', facebook: 'facebook',
-      tt: 'tiktok', tiktok: 'tiktok',
-      yt: 'youtube', youtube: 'youtube',
-      li: 'linkedin', linkedin: 'linkedin',
-      pin: 'pinterest', pinterest: 'pinterest'
-    };
-    return m[String(code || '').toLowerCase()] || null;
-  }
-  function redVisible(code) {
-    const canon = _redCanon(code);
-    if (!canon) return true; // no es una red social conocida → no se gatea
-    const redes = (CLIENTES[currentClient] && CLIENTES[currentClient].redes) || {};
-    return redes[canon] !== false;
-  }
-  // Oculta elementos estáticos marcados con data-red="<red>" cuando esa red está apagada.
-  function applyRedes() {
-    document.querySelectorAll('[data-red]').forEach(el => {
-      el.style.display = redVisible(el.dataset.red) ? '' : 'none';
-    });
-  }
-
   // Plataforma actualmente filtrada en Pauta ('todas' o slug)
   let pautaPlataforma = 'todas';
 
   function getPlataformasActivas() {
     const config = CLIENTES[currentClient].plataformasPauta || {};
-    return PLATAFORMAS_DEF.filter(p => config[p.slug] && redVisible(p.slug));
+    return PLATAFORMAS_DEF.filter(p => config[p.slug]);
   }
 
   function renderPautaPlatformBar() {
@@ -9795,7 +9763,7 @@
 
   // Filtro común: aplicable a todas las funciones de render de pauta
   function campañasFiltradas() {
-    if (pautaPlataforma === 'todas') return CAMPANAS.filter(c => redVisible(c.plataforma));
+    if (pautaPlataforma === 'todas') return CAMPANAS;
     return CAMPANAS.filter(c => c.plataforma === pautaPlataforma);
   }
 
@@ -10375,11 +10343,9 @@
     }
     // Re-render de configuraciones por cliente
     if (typeof renderModulosConfig === 'function') renderModulosConfig();
-    if (typeof renderRedesConfig === 'function') renderRedesConfig();
     if (typeof renderPilaresConfig === 'function') renderPilaresConfig();
     if (typeof renderEstadosConfig === 'function') renderEstadosConfig();
     if (typeof renderDriveConfig === 'function') renderDriveConfig();
-    if (typeof applyRedes === 'function') applyRedes();
   };
 
   // ═══════════════ ESTRATEGIA ═══════════════
@@ -12422,13 +12388,6 @@
 
   const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   function _estadoLabel(e){ return e==='publicado'?'Publicado':e==='en_curso'?'En curso':e==='borrador'?'Borrador':(e||''); }
-  // Deriva "31 de mayo" del último día del mes. Evita el "Se cierra el null" cuando cierra_el viene vacío.
-  function _cierreDeMes(yStr, mStr){
-    const y = parseInt(yStr,10), m = parseInt(mStr,10);
-    if (!y || !m) return null;
-    const ultimoDia = new Date(y, m, 0).getDate();
-    return `${ultimoDia} de ${MESES_ES[m-1].toLowerCase()}`;
-  }
   function _mapReporteRow(row){
     const parts = (row.mes||'').slice(0,10).split('-');
     const y = parts[0]||'', mIdx = (parseInt(parts[1],10)||1)-1;
@@ -12442,7 +12401,7 @@
       alcance: row.alcance||0, conversiones: row.conversiones||0, inversion: row.inversion||0, engagement: row.engagement||0,
       alcanceDelta: row.alcance_delta||0, conversionesDelta: row.conversiones_delta||0,
       inversionDelta: row.inversion_delta||0, engagementDelta: row.engagement_delta||0,
-      cierraEl: row.cierra_el || _cierreDeMes(parts[0], parts[1])
+      cierraEl: row.cierra_el || null
     };
   }
   async function cargarReportes(){
@@ -12488,12 +12447,6 @@
       ['kpiAlcanceDelta','kpiEngDelta','kpiConvDelta','kpiInvDelta'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.className='kpi-delta'; el.innerHTML=''; } });
       return;
     }
-    // Título y selector dinámicos según el mes del reporte en curso
-    const _mesEm = document.getElementById('resumenMesEm');
-    if (_mesEm) _mesEm.textContent = r.mesLabel || '';
-    const _periodo = document.getElementById('resumenPeriodo');
-    if (_periodo) _periodo.textContent = ((r.mesLabel || '') + ' ' + (r.año || '')).trim();
-
     setVal('kpiAlcanceVal', fmtKbig(r.alcance));
     setVal('kpiEngVal', r.engagement + '%');
     setVal('kpiConvVal', r.conversiones);
@@ -12574,7 +12527,7 @@
             <div class="reporte-foot">
               <div class="reporte-fecha">
                 ${isEnCurso
-                  ? `Se cierra el <strong>${r.cierraEl || 'fin de mes'}</strong>`
+                  ? `Se cierra el <strong>${r.cierraEl}</strong>`
                   : `Publicado <strong>${fechaPub}</strong>`}
               </div>
               ${isEnCurso
@@ -12821,7 +12774,7 @@
         <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 10px;">Resumen del mes</div>
         <div style="font-size: 13px; line-height: 1.6; color: var(--ink-soft); margin-bottom: 20px;">
           ${r.estado === 'en_curso'
-            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra el ${r.cierraEl || 'fin de mes'}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
+            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra el ${r.cierraEl}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
             : `Mes de ${r.mesLabel.toLowerCase()} cerrado con métricas sólidas. El alcance y las conversiones crecieron consistentemente vs el mes anterior, con foco en los proyectos activos (Ruta de la Luz, India 2027, Programa formativo).`}
         </div>
         <div style="display: flex; gap: 14px; padding: 14px; background: var(--bg); border-radius: 10px; margin-bottom: 18px;">
@@ -13026,8 +12979,6 @@
         const alc = (data.alcance != null) ? Number(data.alcance).toLocaleString('es-AR') : '—';
         showToast('Instagram actualizado · alcance del mes ' + alc, 'success');
         await cargarReportes();
-        if (typeof cargarEvolucion === 'function') await cargarEvolucion();
-        if (typeof cargarFeed === 'function') await cargarFeed();
       } else {
         showToast('Respuesta inesperada de la función', 'warn');
       }
@@ -13321,94 +13272,48 @@
   // (Identidad visual: logos, paleta, tipografías, mood, misión, estética — HTML estático editable inline)
 
   // ═══════════════ EVOLUCIÓN ANUAL ═══════════════
-  // Datos reales desde la tabla evo_metrica (formato largo: una fila por plataforma/metrica/mes).
-  // La presentación (label, icono, orden de métricas, métrica titular) vive acá; la tabla queda normalizada.
-  const EVO_CONFIG = {
-    ig: { label: 'Instagram', icon: 'IG', iconCls: 'ig', metricName: 'Seguidores', metrics: [
-      { code: 'seguidores', label: 'Seguidores totales', primary: true },
-      { code: 'alcance_prom', label: 'Alcance del mes' },
-      { code: 'impresiones', label: 'Impresiones' },
-      { code: 'visitas_perfil', label: 'Visitas al perfil' }
-    ]},
-    tt: { label: 'TikTok', icon: 'TT', iconCls: 'tt', metricName: 'Seguidores', metrics: [
-      { code: 'seguidores', label: 'Seguidores totales', primary: true },
-      { code: 'visualizaciones', label: 'Visualizaciones' },
-      { code: 'me_gusta', label: 'Me gusta' }
-    ]},
-    yt: { label: 'YouTube', icon: 'YT', iconCls: 'yt', metricName: 'Suscriptores', metrics: [
-      { code: 'suscriptores', label: 'Suscriptores', primary: true },
-      { code: 'visualizaciones', label: 'Visualizaciones' },
-      { code: 'tiempo_visto', label: 'Tiempo visto (hs)' }
-    ]},
-    li: { label: 'LinkedIn', icon: 'IN', iconCls: 'li', metricName: 'Seguidores', metrics: [
-      { code: 'seguidores', label: 'Seguidores', primary: true },
-      { code: 'impresiones_posts', label: 'Impresiones de posts' },
-      { code: 'reacciones', label: 'Reacciones' }
-    ]}
+  // Mock data: 12 meses de seguidores por plataforma
+  const EVO_DATA = {
+    ig: {
+      label: 'Instagram', icon: 'IG', iconCls: 'ig', metricName: 'Seguidores',
+      seguidores: [22400, 23100, 24200, 25800, 26900, 27800, 28400, 29100, 30200, 30800, 31000, 31240],
+      detalles: [
+        { label: 'Seguidores totales', valores: [22400, 23100, 24200, 25800, 26900, 27800, 28400, 29100, 30200, 30800, 31000, 31240] },
+        { label: 'Alcance promedio', valores: [82000, 78000, 85000, 91000, 95000, 88000, 96000, 102000, 108000, 112000, 119000, 127400] },
+        { label: 'Impresiones', valores: [124000, 118000, 132000, 145000, 156000, 142000, 168000, 184000, 196000, 212000, 234000, 268000] },
+        { label: 'Visitas al perfil', valores: [3200, 2800, 3400, 4100, 4500, 3900, 4800, 5200, 5800, 6200, 6900, 7800] }
+      ]
+    },
+    tt: {
+      label: 'TikTok', icon: 'TT', iconCls: 'tt', metricName: 'Seguidores',
+      seguidores: [820, 1100, 1450, 1880, 2240, 2680, 3100, 3580, 4020, 4380, 4620, 4850],
+      detalles: [
+        { label: 'Seguidores totales', valores: [820, 1100, 1450, 1880, 2240, 2680, 3100, 3580, 4020, 4380, 4620, 4850] },
+        { label: 'Visualizaciones', valores: [24000, 38000, 52000, 71000, 89000, 112000, 134000, 158000, 178000, 192000, 218000, 246000] },
+        { label: 'Me gusta', valores: [1800, 2400, 3200, 4100, 5200, 6400, 7200, 8400, 9100, 9800, 10800, 11600] }
+      ]
+    },
+    yt: {
+      label: 'YouTube', icon: 'YT', iconCls: 'yt', metricName: 'Suscriptores',
+      seguidores: [340, 380, 420, 480, 540, 620, 720, 820, 940, 1080, 1240, 1420],
+      detalles: [
+        { label: 'Suscriptores', valores: [340, 380, 420, 480, 540, 620, 720, 820, 940, 1080, 1240, 1420] },
+        { label: 'Visualizaciones', valores: [4200, 4800, 5400, 6800, 8400, 9800, 12000, 14400, 17200, 20800, 24800, 29600] },
+        { label: 'Tiempo visto (hs)', valores: [180, 220, 260, 340, 420, 510, 620, 740, 880, 1040, 1240, 1480] }
+      ]
+    },
+    li: {
+      label: 'LinkedIn', icon: 'IN', iconCls: 'li', metricName: 'Seguidores',
+      seguidores: [180, 240, 320, 410, 520, 680, 840, 1020, 1240, 1480, 1740, 2010],
+      detalles: [
+        { label: 'Seguidores', valores: [180, 240, 320, 410, 520, 680, 840, 1020, 1240, 1480, 1740, 2010] },
+        { label: 'Impresiones de posts', valores: [2400, 3200, 4800, 6400, 8200, 10800, 13600, 17200, 21000, 25800, 31200, 37800] },
+        { label: 'Reacciones', valores: [48, 72, 96, 124, 168, 224, 288, 364, 448, 542, 648, 768] }
+      ]
+    }
   };
 
-  // Estructura que consumen renderEvolucion()/renderEvoTable(); se llena desde Supabase.
-  let EVO_DATA = {};
-  let EVO_MESES = [];
-
-  const _MES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sept','oct','nov','dic'];
-  function _fmtMesCorto(mesKey){
-    const [y, m] = String(mesKey).slice(0,7).split('-').map(Number);
-    if (!y || !m) return mesKey;
-    return `${_MES_CORTO[m-1]} ${String(y).slice(-2)}`;
-  }
-
-  async function cargarEvolucion(){
-    EVO_DATA = {};
-    EVO_MESES = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId) {
-        const { data, error } = await window.__sb.from('evo_metrica')
-          .select('plataforma, metrica, mes, valor')
-          .eq('cliente_id', clienteId)
-          .order('mes', { ascending: true });
-        if (!error && Array.isArray(data) && data.length) {
-          // Eje de meses: claves YYYY-MM distintas, ordenadas
-          const mesesKeys = [];
-          data.forEach(r => { const k = String(r.mes).slice(0,7); if (!mesesKeys.includes(k)) mesesKeys.push(k); });
-          mesesKeys.sort();
-          EVO_MESES = mesesKeys.map(_fmtMesCorto);
-          // Índice plataforma -> metrica -> { mesKey: valor }
-          const idx = {};
-          data.forEach(r => {
-            const mk = String(r.mes).slice(0,7);
-            (idx[r.plataforma] = idx[r.plataforma] || {});
-            (idx[r.plataforma][r.metrica] = idx[r.plataforma][r.metrica] || {});
-            idx[r.plataforma][r.metrica][mk] = Number(r.valor) || 0;
-          });
-          // Armar EVO_DATA respetando el orden de EVO_CONFIG
-          Object.entries(EVO_CONFIG).forEach(([pkey, cfg]) => {
-            if (!redVisible(pkey)) return; // red apagada en Configuración → no se muestra
-            const pData = idx[pkey];
-            if (!pData) return; // sin datos para esa plataforma → no se muestra
-            const detalles = [];
-            let headline = null;
-            cfg.metrics.forEach(met => {
-              const porMes = pData[met.code];
-              if (!porMes) return;
-              const valores = mesesKeys.map(mk => (porMes[mk] != null ? porMes[mk] : 0));
-              detalles.push({ label: met.label, valores });
-              if (met.primary) headline = valores;
-            });
-            if (!detalles.length) return;
-            EVO_DATA[pkey] = {
-              label: cfg.label, icon: cfg.icon, iconCls: cfg.iconCls, metricName: cfg.metricName,
-              seguidores: headline || detalles[0].valores,
-              detalles
-            };
-          });
-        }
-      }
-    } catch (e) { /* sin conexión/datos: queda vacío y se muestra empty-state */ }
-    renderEvolucion();
-  }
+  const EVO_MESES = ['jun 25', 'jul 25', 'ago 25', 'sept 25', 'oct 25', 'nov 25', 'dic 25', 'ene 26', 'feb 26', 'mar 26', 'abr 26', 'may 26'];
 
   function fmtEvoNum(n) {
     if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
@@ -13418,16 +13323,6 @@
   function renderEvolucion() {
     const cont = document.getElementById('evoPlatforms');
     if (!cont) return;
-
-    if (!Object.keys(EVO_DATA).length) {
-      cont.innerHTML =
-        '<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--ink-mute);border:1px dashed var(--line);border-radius:16px;background:var(--bg-elev);">'
-        + 'Todavía no hay datos de evolución cargados para este cliente.<br>'
-        + '<span style="color:var(--ink-soft);">Importá la serie histórica en la tabla <strong>evo_metrica</strong> de Supabase.</span></div>';
-      const _t = document.getElementById('evoTable');
-      if (_t) _t.innerHTML = '';
-      return;
-    }
 
     // Cards top
     cont.innerHTML = Object.entries(EVO_DATA).map(([key, p]) => {
@@ -13552,49 +13447,7 @@
   // Render inicial
   renderModulosConfig();
 
-  // ─── Config de Redes sociales activas ───
-  function renderRedesConfig() {
-    const cont = document.getElementById('redesGrid');
-    if (!cont) return;
-    const redes = CLIENTES[currentClient].redes || {};
-    cont.innerHTML = REDES_DEF.map(r => {
-      const isOn = redes[r.code] !== false;
-      return `
-        <div class="modulo-row ${isOn ? 'is-on' : ''}">
-          <div class="modulo-info">
-            <div class="modulo-nombre">${r.label}</div>
-            <div class="modulo-desc">${isOn ? 'Visible en todo el panel' : 'Oculta en Evolución, Contenido y Pauta'}</div>
-          </div>
-          <div class="switch ${isOn ? 'on' : ''}" data-red-toggle="${r.code}"></div>
-        </div>
-      `;
-    }).join('');
-
-    cont.querySelectorAll('[data-red-toggle]').forEach(sw => {
-      sw.addEventListener('click', () => {
-        const code = sw.dataset.redToggle;
-        if (!CLIENTES[currentClient].redes) CLIENTES[currentClient].redes = {};
-        const current = CLIENTES[currentClient].redes[code] !== false;
-        CLIENTES[currentClient].redes[code] = !current;
-        renderRedesConfig();
-        refreshRedesUI();
-        showToast((current ? 'Red oculta: ' : 'Red activada: ') + REDES_DEF.find(x => x.code === code).label);
-      });
-    });
-  }
-
-  // Refresca todo lo que depende de la visibilidad de redes
-  function refreshRedesUI() {
-    applyRedes();
-    if (typeof cargarEvolucion === 'function') cargarEvolucion();
-    if (typeof renderPautaPlatformBar === 'function') renderPautaPlatformBar();
-    if (typeof renderPautaContext === 'function') renderPautaContext();
-    if (typeof rerenderPautaAll === 'function') rerenderPautaAll();
-    if (typeof renderPlanilla === 'function') renderPlanilla();
-  }
-
-  renderRedesConfig();
-
+  // ═══════════════ LLUVIA DE IDEAS ═══════════════
   const IDEAS = [
     {
       id: 1,
@@ -13749,7 +13602,7 @@
       { v: 'youtube', l: 'YouTube' },
       { v: 'linkedin', l: 'LinkedIn' },
       { v: 'pinterest', l: 'Pinterest' }
-    ].filter(o => o.v === '' || o.v === selected || redVisible(o.v));
+    ];
     return opts.map(o => `<option value="${o.v}" ${o.v === (selected || '') ? 'selected' : ''}>${o.l}</option>`).join('');
   }
   function formatoOptionsHtml(selected) {
@@ -14064,9 +13917,7 @@
         }
       ],
       onSubmit: (d) => {
-        const newId = Math.max(...POSTS.map(p => p.id)) + 1;
-        POSTS.push({
-          id: newId,
+        crearPost({
           fecha: d.fecha,
           tipo: d.tipo,
           plataforma: d.plataforma,
@@ -14074,16 +13925,17 @@
           estado: d.estado,
           titulo: d.titulo,
           proyecto: 'General',
-          from: d.color.from,
-          to: d.color.to,
-          copy: d.copy || 'Sin copy todavía.'
+          color_from: d.color.from,
+          color_to: d.color.to,
+          caption: d.copy || ''
+        }).then(ok => {
+          if (ok) {
+            idea.estado = 'convertida';
+            renderIdeas();
+            renderIdeasStats();
+            showToast('Idea convertida en post · ' + d.titulo.substring(0, 35));
+          }
         });
-        // Marcar idea como convertida
-        idea.estado = 'convertida';
-        renderCalendario();
-        renderIdeas();
-        renderIdeasStats();
-        showToast('Idea convertida en post · ' + d.titulo.substring(0, 35));
       }
     });
   }
@@ -14224,10 +14076,8 @@
   renderEstadosConfig();
   renderDriveConfig();
   renderModulosConfig();
-  renderRedesConfig();
   applyRole('agency');
   drawChart('alcance');
-  applyRedes();
   initSesion();
 </script>
 
