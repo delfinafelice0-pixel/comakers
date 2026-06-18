@@ -8185,6 +8185,7 @@
     if (typeof cargarReportes === 'function') cargarReportes();
     if (typeof cargarPosts === 'function') cargarPosts();
     if (typeof cargarTareas === 'function') cargarTareas();
+    if (typeof cargarArchivos === 'function') cargarArchivos();
   }
 
   // Toggle dropdown
@@ -12204,6 +12205,43 @@
   drawTraficoChart();
   applyEmailProvider();
 
+  // ─── ARCHIVOS (Recursos): links/carpetas por cliente, desde Supabase ───
+  let RECURSOS = [];
+  function _mapArchivoRow(r){ return { id: r.id, nombre: r.nombre || 'Sin nombre', url: r.url || '' }; }
+  async function cargarArchivos(){
+    RECURSOS = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId) {
+        const { data, error } = await window.__sb.from('archivo')
+          .select('id, nombre, url, created_at').eq('cliente_id', clienteId).order('created_at', { ascending: true });
+        if (!error && Array.isArray(data)) RECURSOS = data.map(_mapArchivoRow);
+      }
+    } catch (e) { /* sin conexión/datos: queda vacío */ }
+    if (typeof renderArchivos === 'function') renderArchivos();
+  }
+  async function agregarRecurso(nombre, url){
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
+      const { error } = await window.__sb.from('archivo').insert({ cliente_id: clienteId, nombre: nombre || 'Sin nombre', url: url || '' });
+      if (error) { showToast('No se pudo agregar', 'warn'); return false; }
+    } catch (e) { showToast('No se pudo agregar', 'warn'); return false; }
+    await cargarArchivos();
+    return true;
+  }
+  async function quitarRecurso(id){
+    try {
+      if (window.__sb) {
+        const { error } = await window.__sb.from('archivo').delete().eq('id', id);
+        if (error) { showToast('No se pudo quitar', 'warn'); return; }
+      }
+    } catch (e) { showToast('No se pudo quitar', 'warn'); return; }
+    await cargarArchivos();
+  }
+
   // ═══════════════ ARCHIVOS ═══════════════
   const ARCHIVOS = [
     // Brand kit
@@ -13184,14 +13222,7 @@
 
 
   // ═══════════ ARCHIVOS = carpeta de Drive (override) ═══════════
-  function getRecursos() {
-    const c = CLIENTES[currentClient];
-    if (!c.recursos) c.recursos = [
-      { id: 'r_gen',   nombre: 'Carpeta general',          url: 'https://drive.google.com/drive/folders/' },
-      { id: 'r_fotos', nombre: 'Fotos · Ruta de la Luz',   url: 'https://drive.google.com/drive/folders/' }
-    ];
-    return c.recursos;
-  }
+  function getRecursos() { return RECURSOS; }
   function renderArchivos() {
     const wrap = document.getElementById('recursosWrap');
     if (!wrap) return;
@@ -13216,8 +13247,9 @@
         </div>`;
       }).join('');
       wrap.querySelectorAll('[data-rec-remove]').forEach(btn => btn.addEventListener('click', () => {
-        const arr = getRecursos(), i = arr.findIndex(x => x.id === btn.dataset.recRemove);
-        if (i >= 0) { const rm = arr.splice(i, 1)[0]; renderArchivos(); showToast('"' + (rm.nombre || 'Recurso') + '" quitado'); }
+        const rec = getRecursos().find(x => x.id === btn.dataset.recRemove);
+        quitarRecurso(btn.dataset.recRemove);
+        if (rec) showToast('"' + (rec.nombre || 'Recurso') + '" quitado');
       }));
     }
     if (typeof applyRolePermissions === 'function') applyRolePermissions();
@@ -13231,10 +13263,9 @@
       const n = document.getElementById('recAddNombre'), u = document.getElementById('recAddUrl');
       const nombre = n.value.trim(), url = u.value.trim();
       if (!nombre && !url) return;
-      getRecursos().push({ id: 'r_' + Date.now().toString(36) + Math.floor(Math.random() * 1000), nombre: nombre || 'Sin nombre', url });
-      n.value = ''; u.value = '';
-      renderArchivos();
-      showToast('Recurso agregado');
+      agregarRecurso(nombre, url).then(ok => {
+        if (ok) { n.value = ''; u.value = ''; showToast('Recurso agregado'); }
+      });
     };
     btn.addEventListener('click', add);
     const u = document.getElementById('recAddUrl');
