@@ -13659,7 +13659,7 @@
   renderModulosConfig();
 
   // ─── Reportes: ámbito Orgánico / Pauta según servicio del cliente ───
-  let repAmbito = 'organico';
+  var repAmbito = 'organico'; // var (no let): renderReportes() corre en el init antes de esta línea
   function ambitosCliente() {
     const c = CLIENTES[currentClient] || {};
     const arr = [];
