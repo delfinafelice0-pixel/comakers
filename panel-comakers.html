@@ -9068,6 +9068,7 @@
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.subtab;
+      if (!target) return; // botones .subtab sin data-subtab (ámbito Orgánico/Pauta, rep-tab) tienen su propio handler
       document.querySelectorAll('.subtab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.querySelectorAll('.subpanel').forEach(p => p.classList.remove('active'));
