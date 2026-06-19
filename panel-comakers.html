@@ -7553,6 +7553,18 @@
         </div>
       </div>
 
+      <!-- Ámbito: Orgánico / Pauta (según servicio del cliente) -->
+      <div class="subtabs" id="repAmbitoBar" style="margin-bottom: 10px;">
+        <button class="subtab active" data-rep-ambito="organico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg>
+          Orgánico
+        </button>
+        <button class="subtab" data-rep-ambito="pauta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+          Pauta
+        </button>
+      </div>
+
       <!-- Sub-tabs -->
       <div class="subtabs">
         <button class="subtab active" data-rep-tab="mensuales">
@@ -7663,6 +7675,17 @@
           </div>
         </div>
         <div class="modulos-grid" id="modulosGrid"></div>
+      </div>
+
+      <!-- Reportes que ve el cliente -->
+      <div class="config-section">
+        <div class="section-head">
+          <div class="section-head-left">
+            <div class="section-title">Reportes que <em>ve el cliente</em></div>
+            <div class="section-subtitle">Según el servicio contratado · se muestran como reportes separados</div>
+          </div>
+        </div>
+        <div class="modulos-grid" id="repFlagsGrid"></div>
       </div>
 
       <!-- Visibilidad por sección -->
@@ -10493,6 +10516,8 @@
     }
     // Re-render de configuraciones por cliente
     if (typeof renderModulosConfig === 'function') renderModulosConfig();
+    if (typeof renderRepFlagsConfig === 'function') renderRepFlagsConfig();
+    if (typeof renderRepAmbitoSwitch === 'function') renderRepAmbitoSwitch();
     if (typeof renderPilaresConfig === 'function') renderPilaresConfig();
     if (typeof renderEstadosConfig === 'function') renderEstadosConfig();
     if (typeof renderDriveConfig === 'function') renderDriveConfig();
@@ -12669,6 +12694,7 @@
   }
 
   function renderReportes() {
+    if (typeof renderRepAmbitoSwitch === 'function') renderRepAmbitoSwitch();
     if (!REPORTES.length) {
       document.getElementById('reportesGrid').innerHTML =
         '<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--ink-mute);border:1px dashed var(--line);border-radius:16px;background:var(--bg-elev);">'
@@ -12679,6 +12705,29 @@
     document.getElementById('reportesGrid').innerHTML = REPORTES.map(r => {
       const isEnCurso = r.estado === 'en_curso';
       const fechaPub = r.publicadoEn ? fmtFechaArc(r.publicadoEn) : null;
+      const statsOrganico = `
+              <div class="reporte-stat">
+                <div class="label">Alcance</div>
+                <div class="value">${fmtKbig(r.alcance)}</div>
+                <div class="delta ${deltaClass(r.alcanceDelta)}">${deltaIcon(r.alcanceDelta)}${r.alcanceDelta > 0 ? '+' : ''}${r.alcanceDelta}%</div>
+              </div>
+              <div class="reporte-stat">
+                <div class="label">Engagement</div>
+                <div class="value">${r.engagement}%</div>
+                <div class="delta ${deltaClass(r.engagementDelta)}">${deltaIcon(r.engagementDelta)}${r.engagementDelta > 0 ? '+' : ''}${r.engagementDelta}pp</div>
+              </div>`;
+      const statsPauta = `
+              <div class="reporte-stat">
+                <div class="label">Conversiones</div>
+                <div class="value">${r.conversiones}</div>
+                <div class="delta ${deltaClass(r.conversionesDelta)}">${deltaIcon(r.conversionesDelta)}${r.conversionesDelta > 0 ? '+' : ''}${r.conversionesDelta}</div>
+              </div>
+              <div class="reporte-stat">
+                <div class="label">Inversión</div>
+                <div class="value">${fmtARSrep(r.inversion)}</div>
+                <div class="delta ${deltaClass(r.inversionDelta, true)}">${deltaIcon(r.inversionDelta)}${r.inversionDelta > 0 ? '+' : ''}${r.inversionDelta}%</div>
+              </div>`;
+      const stats = (repAmbito === 'pauta') ? statsPauta : statsOrganico;
       return `
         <div class="reporte-card ${isEnCurso ? 'en-curso' : ''}" data-rep-id="${r.id}">
           <div class="reporte-head">
@@ -12691,26 +12740,7 @@
           </div>
           <div class="reporte-body">
             <div class="reporte-mini-stats">
-              <div class="reporte-stat">
-                <div class="label">Alcance</div>
-                <div class="value">${fmtKbig(r.alcance)}</div>
-                <div class="delta ${deltaClass(r.alcanceDelta)}">${deltaIcon(r.alcanceDelta)}${r.alcanceDelta > 0 ? '+' : ''}${r.alcanceDelta}%</div>
-              </div>
-              <div class="reporte-stat">
-                <div class="label">Conversiones</div>
-                <div class="value">${r.conversiones}</div>
-                <div class="delta ${deltaClass(r.conversionesDelta)}">${deltaIcon(r.conversionesDelta)}${r.conversionesDelta > 0 ? '+' : ''}${r.conversionesDelta}</div>
-              </div>
-              <div class="reporte-stat">
-                <div class="label">Inversión</div>
-                <div class="value">${fmtARSrep(r.inversion)}</div>
-                <div class="delta ${deltaClass(r.inversionDelta, true)}">${deltaIcon(r.inversionDelta)}${r.inversionDelta > 0 ? '+' : ''}${r.inversionDelta}%</div>
-              </div>
-              <div class="reporte-stat">
-                <div class="label">Engagement</div>
-                <div class="value">${r.engagement}%</div>
-                <div class="delta ${deltaClass(r.engagementDelta)}">${deltaIcon(r.engagementDelta)}${r.engagementDelta > 0 ? '+' : ''}${r.engagementDelta}pp</div>
-              </div>
+              ${stats}
             </div>
             <div class="reporte-foot">
               <div class="reporte-fecha">
@@ -13628,6 +13658,85 @@
   // Render inicial
   renderModulosConfig();
 
+  // ─── Reportes: ámbito Orgánico / Pauta según servicio del cliente ───
+  let repAmbito = 'organico';
+  function ambitosCliente() {
+    const c = CLIENTES[currentClient] || {};
+    const arr = [];
+    if (c.repOrganico !== false) arr.push('organico');
+    if (c.repPauta === true) arr.push('pauta');
+    if (!arr.length) arr.push('organico');
+    return arr;
+  }
+  function renderRepAmbitoSwitch() {
+    const disponibles = ambitosCliente();
+    if (!disponibles.includes(repAmbito)) repAmbito = disponibles[0];
+    const bar = document.getElementById('repAmbitoBar');
+    if (bar) {
+      bar.style.display = disponibles.length > 1 ? '' : 'none';
+      bar.querySelectorAll('[data-rep-ambito]').forEach(btn => {
+        const a = btn.dataset.repAmbito;
+        btn.classList.toggle('hidden', !disponibles.includes(a));
+        btn.classList.toggle('active', a === repAmbito);
+      });
+    }
+    // "Actualizar desde Instagram" solo aplica al orgánico
+    const igBtn = document.getElementById('pullIgBtn');
+    if (igBtn) igBtn.style.display = (repAmbito === 'organico') ? '' : 'none';
+  }
+  document.querySelectorAll('[data-rep-ambito]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      repAmbito = btn.dataset.repAmbito;
+      renderRepAmbitoSwitch();
+      renderReportes();
+    });
+  });
+
+  // ─── Reportes que ve el cliente (Configuración · persistido en clientes) ───
+  async function actualizarRepFlags() {
+    const c = CLIENTES[currentClient];
+    if (!window.__sb || !c || !c.id) return;
+    try {
+      const { error } = await window.__sb.from('clientes').update({
+        rep_organico: c.repOrganico !== false,
+        rep_pauta: c.repPauta === true
+      }).eq('id', c.id);
+      if (error) showToast('No se guardó el cambio', 'warn');
+    } catch (e) { showToast('No se guardó el cambio', 'warn'); }
+  }
+  function renderRepFlagsConfig() {
+    const cont = document.getElementById('repFlagsGrid');
+    if (!cont) return;
+    const c = CLIENTES[currentClient] || {};
+    const rows = [
+      { key: 'repOrganico', label: 'Reporte Orgánico', desc: 'Instagram · alcance, interacciones, seguidores', on: c.repOrganico !== false },
+      { key: 'repPauta', label: 'Reporte de Pauta', desc: 'Meta / Google Ads · inversión, conversiones', on: c.repPauta === true }
+    ];
+    cont.innerHTML = rows.map(r => `
+      <div class="modulo-row ${r.on ? 'is-on' : ''}">
+        <div class="modulo-info">
+          <div class="modulo-nombre">${r.label}</div>
+          <div class="modulo-desc">${r.desc}</div>
+        </div>
+        <div class="switch ${r.on ? 'on' : ''}" data-repflag-toggle="${r.key}"></div>
+      </div>`).join('');
+    cont.querySelectorAll('[data-repflag-toggle]').forEach(sw => {
+      sw.addEventListener('click', () => {
+        const key = sw.dataset.repflagToggle;
+        const cur = (key === 'repOrganico')
+          ? (CLIENTES[currentClient].repOrganico !== false)
+          : (CLIENTES[currentClient].repPauta === true);
+        CLIENTES[currentClient][key] = !cur;
+        renderRepFlagsConfig();
+        actualizarRepFlags();
+        renderRepAmbitoSwitch();
+        showToast((!cur ? 'Activado' : 'Desactivado') + ': ' +
+          (key === 'repOrganico' ? 'Reporte Orgánico' : 'Reporte de Pauta'));
+      });
+    });
+  }
+  renderRepFlagsConfig();
+
   // ═══════════════ LLUVIA DE IDEAS ═══════════════
   // ─── LLUVIA DE IDEAS: datos reales desde Supabase (scope = cliente activo) ───
   let IDEAS = [];
@@ -14194,7 +14303,7 @@
     // 1) Clientes accesibles (la RLS ya los filtra: el super ve todos)
     try {
       const { data: cls } = await window.__sb.from('clientes')
-        .select('id, nombre, slug, agencia').order('nombre');
+        .select('id, nombre, slug, agencia, rep_organico, rep_pauta').order('nombre');
       if (cls && cls.length) {
         const slugs = [];
         cls.forEach(c => {
@@ -14208,6 +14317,8 @@
             if (!CLIENTES[key].modulos) { CLIENTES[key].modulos = {}; MODULOS_DEF.forEach(m => { CLIENTES[key].modulos[m.slug] = true; }); }
           }
           CLIENTES[key].id = c.id;
+          CLIENTES[key].repOrganico = c.rep_organico !== false; // default true
+          CLIENTES[key].repPauta = c.rep_pauta === true;          // default false
         });
         _clientesVisibles = slugs;
         if (!slugs.includes(currentClient)) currentClient = slugs[0];
