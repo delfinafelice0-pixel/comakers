@@ -12746,8 +12746,8 @@
             <div class="reporte-foot">
               <div class="reporte-fecha">
                 ${isEnCurso
-                  ? `Se cierra el <strong>${r.cierraEl}</strong>`
-                  : `Publicado <strong>${fechaPub}</strong>`}
+                  ? (r.cierraEl ? `Se cierra el <strong>${r.cierraEl}</strong>` : `Mes en curso`)
+                  : (fechaPub ? `Publicado <strong>${fechaPub}</strong>` : ``)}
               </div>
               ${isEnCurso
                 ? `<button class="btn-download disabled" disabled>
