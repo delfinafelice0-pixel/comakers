@@ -6263,49 +6263,9 @@
         <div class="card">
           <div class="card-head">
             <div class="card-title">Highlights del <em>mes</em></div>
-            <a class="card-link" href="#">Ver todo</a>
           </div>
-          <div class="highlights">
-            <div class="highlight">
-              <div class="highlight-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              </div>
-              <div>
-                <div class="highlight-text"><strong>Reel de Ruta de la Luz</strong> superó las 84 mil reproducciones, el contenido con mejor performance del trimestre.</div>
-                <div class="highlight-meta">12 de mayo · orgánico</div>
-              </div>
-              <div class="highlight-stat">84.2K</div>
-            </div>
-            <div class="highlight">
-              <div class="highlight-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-              </div>
-              <div>
-                <div class="highlight-text"><strong>Campaña India 2027</strong> generó 21 leads calificados en 14 días con ROAS de 4.8x.</div>
-                <div class="highlight-meta">Pauta Meta · presupuesto $180K</div>
-              </div>
-              <div class="highlight-stat">21</div>
-            </div>
-            <div class="highlight">
-              <div class="highlight-icon warn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              </div>
-              <div>
-                <div class="highlight-text"><strong>Caída de impresiones en Google Ads</strong> la segunda quincena. Sugerencia: revisar pujas y palabras clave.</div>
-                <div class="highlight-meta">Requiere atención · agencia</div>
-              </div>
-              <div class="highlight-stat">-32%</div>
-            </div>
-            <div class="highlight">
-              <div class="highlight-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              </div>
-              <div>
-                <div class="highlight-text"><strong>1.240 nuevos seguidores</strong> en Instagram, 78% mujeres de 28-45 años de AMBA y Córdoba.</div>
-                <div class="highlight-meta">@ekhosorg · perfil audiencia</div>
-              </div>
-              <div class="highlight-stat">+1.2K</div>
-            </div>
+          <div class="highlights" id="highlightsList">
+            <div style="font-size:13px;color:var(--ink-mute);line-height:1.55;padding:6px 0;">Sin highlights cargados este mes todavía.</div>
           </div>
         </div>
 
@@ -6324,8 +6284,8 @@
       <div class="card chart-card" data-section="resumen.chart">
         <div class="card-head">
           <div>
-            <div class="card-title">Performance últimos <em>3 meses</em></div>
-            <div class="kpi-sub" style="margin-top:2px;">Evolución diaria · marzo a mayo</div>
+            <div class="card-title">Performance del <em>mes</em></div>
+            <div class="kpi-sub" style="margin-top:2px;">Día a día · se completa con cada sync de Instagram</div>
           </div>
           <div class="chart-tabs">
             <button class="chart-tab active" data-metric="alcance">Alcance</button>
@@ -6334,6 +6294,7 @@
           </div>
         </div>
         <div class="chart-wrap">
+          <div id="chartEmpty" style="display:none;font-size:13px;color:var(--ink-mute);text-align:center;padding:48px 16px;line-height:1.55;">Recolectando datos del mes — el gráfico se va dibujando a medida que sincronices Instagram.</div>
           <svg viewBox="0 0 800 220" preserveAspectRatio="none" id="chart">
             <!-- grid -->
             <line x1="0" y1="55" x2="800" y2="55" stroke="#ECEAF0" stroke-width="1"/>
@@ -6349,10 +6310,7 @@
                 <stop offset="100%" stop-color="#FF82FF" stop-opacity="0"/>
               </linearGradient>
             </defs>
-            <!-- x labels -->
-            <text x="20" y="210" font-size="11" fill="#938C99" font-family="DM Sans">Mar</text>
-            <text x="280" y="210" font-size="11" fill="#938C99" font-family="DM Sans">Abr</text>
-            <text x="540" y="210" font-size="11" fill="#938C99" font-family="DM Sans">May</text>
+            <!-- x labels: ocultos en vista diaria -->
           </svg>
         </div>
       </div>
@@ -6368,15 +6326,15 @@
         </button>
         <button class="quick-card" data-goto="pauta">
           <div class="quick-card-text">
-            <div class="quick-card-label">Pauta activa</div>
-            <div class="quick-card-title">3 campañas corriendo</div>
+            <div class="quick-card-label">Pauta</div>
+            <div class="quick-card-title">Ver campañas</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
         <button class="quick-card" data-goto="proyectos">
           <div class="quick-card-text">
-            <div class="quick-card-label">En marcha</div>
-            <div class="quick-card-title">India 2027 · Ruta de la Luz</div>
+            <div class="quick-card-label">Proyectos</div>
+            <div class="quick-card-title">Ver proyectos</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
@@ -8226,6 +8184,7 @@
     if (typeof cargarTareas === 'function') cargarTareas();
     if (typeof cargarIdeas === 'function') cargarIdeas();
     if (typeof cargarArchivos === 'function') cargarArchivos();
+    if (typeof cargarMetricasDiarias === 'function') cargarMetricasDiarias();
   }
 
   // Toggle dropdown
@@ -8283,28 +8242,41 @@
     }
 
     // Tareas
-    renderTasks(u.tasks);
+    renderTasks();
   }
 
-  function renderTasks(tasks) {
+  function renderTasks() {
     const cont = document.getElementById('pendientes');
+    if (!cont) return;
+    // Pendientes reales = tareas del cliente que no están completadas
+    const pend = TAREAS.filter(t => t.estado !== 'completada' && t.estado !== 'hecha');
+    // Actualizar el contador del link "Ver todas (N)"
+    const link = document.querySelector('[data-section="resumen.highlights-pendientes"] [data-goto="tareas"]');
+    if (link) link.textContent = `Ver todas (${pend.length})`;
     cont.innerHTML = '';
-    tasks.slice(0, 4).forEach(t => {
+    if (pend.length === 0) {
+      cont.innerHTML = '<div style="font-size:13px;color:var(--ink-mute);line-height:1.5;padding:6px 0;">No hay tareas pendientes por ahora.</div>';
+      return;
+    }
+    const dueMap = { urgente: 'urgent', pronto: 'soon', normal: 'normal' };
+    pend.slice(0, 4).forEach(t => {
+      const due = dueMap[t.fechaTipo] || 'normal';
+      const meta = t.proyecto + (t.responsable ? ' · ' + t.responsable : '');
       const el = document.createElement('div');
-      el.className = 'task' + (t.done ? ' done' : '');
+      el.className = 'task';
       el.innerHTML = `
-        <button class="task-check ${t.done ? 'done' : ''}" aria-label="Marcar como hecha"></button>
+        <button class="task-check" aria-label="Marcar como hecha"></button>
         <div class="task-content">
-          <div class="task-title">${t.title}</div>
-          <div class="task-meta">${t.meta}</div>
+          <div class="task-title">${t.titulo}</div>
+          <div class="task-meta">${meta}</div>
         </div>
-        <span class="task-due ${t.due}">${t.dueLabel}</span>
+        <span class="task-due ${due}">${t.fechaLabel}</span>
       `;
       const check = el.querySelector('.task-check');
       check.addEventListener('click', () => {
-        t.done = !t.done;
-        check.classList.toggle('done', t.done);
-        el.classList.toggle('done', t.done);
+        check.classList.add('done');
+        el.classList.add('done');
+        if (typeof actualizarEstadoTarea === 'function') actualizarEstadoTarea(t.id, 'completada');
       });
       cont.appendChild(el);
     });
@@ -8316,45 +8288,67 @@
   });
 
   // ═══════════════ CHART ═══════════════
-  // Datos verosímiles: alcance diario en miles, 92 días (mar-may)
-  const chartData = {
-    alcance: generateSeries(92, 2.5, 5.5, 0.15, [70, 78]),
-    engagement: generateSeries(92, 4.0, 7.0, 0.20, [40, 50]),
-    conv: generateSeries(92, 0.8, 2.2, 0.30, [55, 70])
-  };
+  // Datos diarios REALES del mes en curso (tabla metrica_diaria). Se van sumando con cada sync de Instagram.
+  let CHART_DIARIO = [];
 
-  function generateSeries(n, min, max, noise, peaks) {
-    const arr = [];
-    const trend = (max - min) / n;
-    for (let i = 0; i < n; i++) {
-      let v = min + trend * i + (Math.random() - 0.5) * noise * (max - min);
-      // pequeño pico semanal
-      v += Math.sin(i / 3) * 0.15;
-      // picos fuertes en fechas específicas
-      if (peaks && peaks.includes(i)) v *= 1.6;
-      arr.push(Math.max(min * 0.7, v));
-    }
-    return arr;
+  function _serieDiaria(metric) {
+    const campo = metric === 'engagement' ? 'engagement' : (metric === 'conv' ? 'conversiones' : 'alcance');
+    return CHART_DIARIO.map(d => Number(d[campo]) || 0);
+  }
+
+  async function cargarMetricasDiarias() {
+    CHART_DIARIO = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId) {
+        const hoy = new Date();
+        const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().slice(0, 10);
+        const { data, error } = await window.__sb.from('metrica_diaria')
+          .select('*').eq('cliente_id', clienteId).gte('fecha', desde).order('fecha', { ascending: true });
+        if (!error && Array.isArray(data)) CHART_DIARIO = data;
+      }
+    } catch (e) { /* sin datos: queda vacío */ }
+    const activo = document.querySelector('.chart-tab.active');
+    drawChart(activo ? activo.dataset.metric : 'alcance');
   }
 
   function drawChart(metric) {
-    const data = chartData[metric];
+    const data = _serieDiaria(metric);
+    const lineEl = document.getElementById('chartLine');
+    const areaEl = document.getElementById('chartArea');
+    const svgEl = document.getElementById('chart');
+    const emptyEl = document.getElementById('chartEmpty');
+    if (!lineEl || !areaEl) return;
+
+    // Con menos de 2 puntos no se puede trazar una curva: mostramos estado "recolectando"
+    if (data.length < 2) {
+      lineEl.setAttribute('d', '');
+      areaEl.setAttribute('d', '');
+      if (svgEl) svgEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = '';
+      return;
+    }
+    if (svgEl) svgEl.style.display = '';
+    if (emptyEl) emptyEl.style.display = 'none';
+
     const W = 800, H = 220, padX = 20, padY = 30;
-    const max = Math.max(...data) * 1.1;
+    const max = (Math.max(...data) * 1.1) || 1;
     const min = Math.min(...data) * 0.85;
+    const denom = (max - min) || 1;
     const xStep = (W - padX * 2) / (data.length - 1);
 
     let line = '';
     data.forEach((v, i) => {
       const x = padX + i * xStep;
-      const y = padY + (H - padY * 2) * (1 - (v - min) / (max - min));
+      const y = padY + (H - padY * 2) * (1 - (v - min) / denom);
       line += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
     });
 
     const area = line + `L${padX + (data.length - 1) * xStep},${H - padY} L${padX},${H - padY} Z`;
 
-    document.getElementById('chartLine').setAttribute('d', line);
-    document.getElementById('chartArea').setAttribute('d', area);
+    lineEl.setAttribute('d', line);
+    areaEl.setAttribute('d', area);
   }
 
   document.querySelectorAll('.chart-tab').forEach(tab => {
@@ -8527,6 +8521,7 @@
       }
     } catch (e) { /* sin conexión/datos: queda vacío */ }
     if (typeof renderTareas === 'function') renderTareas();
+    if (typeof renderTasks === 'function') renderTasks();
   }
   async function crearTarea(fila){
     try {
@@ -13199,7 +13194,19 @@
       } else if (data && data.ok) {
         const alc = (data.alcance != null) ? Number(data.alcance).toLocaleString('es-AR') : '—';
         showToast('Instagram actualizado · alcance del mes ' + alc, 'success');
+        // Guardar el punto de HOY para el gráfico diario del mes (se va completando con cada sync)
+        try {
+          const _hoy = new Date().toISOString().slice(0, 10);
+          await window.__sb.from('metrica_diaria').upsert({
+            cliente_id: clienteId,
+            fecha: _hoy,
+            alcance: (data.alcance != null) ? data.alcance : null,
+            engagement: (data.engagement != null) ? data.engagement : null,
+            conversiones: (data.conversiones != null) ? data.conversiones : null
+          }, { onConflict: 'cliente_id,fecha' });
+        } catch (e) { /* si falla el guardado diario, no rompe el resto */ }
         await cargarReportes();
+        if (typeof cargarMetricasDiarias === 'function') await cargarMetricasDiarias();
       } else {
         showToast('Respuesta inesperada de la función', 'warn');
       }
