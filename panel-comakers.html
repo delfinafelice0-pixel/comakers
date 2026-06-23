@@ -13073,7 +13073,7 @@
         <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 10px;">Resumen del mes</div>
         <div style="font-size: 13px; line-height: 1.6; color: var(--ink-soft); margin-bottom: 20px;">
           ${r.estado === 'en_curso'
-            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra el ${r.cierraEl}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
+            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra ${r.cierraEl ? 'el ' + r.cierraEl : 'a fin de mes'}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
             : `Mes de ${r.mesLabel.toLowerCase()} cerrado con métricas sólidas. El alcance y las conversiones crecieron consistentemente vs el mes anterior, con foco en los proyectos activos (Ruta de la Luz, India 2027, Programa formativo).`}
         </div>
 
