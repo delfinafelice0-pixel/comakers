@@ -4478,6 +4478,70 @@
     .reporte-modal-stat { padding: 0; border-right: none; }
   }
 
+  /* ── REPORTE ORGÁNICO PROFUNDO (dentro del modal) ── */
+  .deep-loading { padding: 22px 0; font-size: 13px; color: var(--ink-mute); text-align: center; }
+  .deep-sec { padding: 18px 0; border-top: 1px solid var(--line); }
+  .deep-sec:first-child { border-top: none; padding-top: 2px; }
+  .deep-sec-head { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 14px; }
+  .deep-sec-num { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0; }
+  .deep-big { font-size: 30px; font-weight: 700; line-height: 1.1; color: var(--ink); margin-bottom: 14px; }
+  .deep-big-cap { display: block; font-size: 12px; font-weight: 500; color: var(--ink-mute); margin-top: 4px; }
+
+  .deep-bars { display: flex; flex-direction: column; gap: 9px; }
+  .deep-bars.tight { gap: 7px; }
+  .deep-bar-row { display: grid; grid-template-columns: 92px 1fr auto; align-items: center; gap: 10px; }
+  .deep-bar-label { font-size: 12px; color: var(--ink-soft); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .deep-bar-track { height: 8px; background: var(--line-soft); border-radius: 6px; overflow: hidden; }
+  .deep-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; transition: width .55s cubic-bezier(.2,.8,.2,1); }
+  .deep-bar-val { font-size: 12px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .deep-bar-sub { color: var(--ink-mute); font-weight: 500; }
+
+  .deep-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .deep-card { padding: 12px 10px; background: var(--bg); border-radius: 10px; text-align: center; }
+  .deep-card-val { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .deep-card-lbl { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
+  .deep-card.up .deep-card-val { color: #1F9D6B; }
+  .deep-card.down .deep-card-val { color: #C0392B; }
+
+  .deep-split { margin-top: 16px; }
+  .deep-split-head { font-size: 11px; color: var(--ink-mute); font-weight: 600; margin-bottom: 7px; }
+  .deep-split-bar { display: flex; height: 10px; border-radius: 6px; overflow: hidden; background: var(--line-soft); }
+  .deep-split-seg.posts { background: var(--accent); }
+  .deep-split-seg.reels { background: #C58BD6; }
+  .deep-split-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
+  .deep-split-legend .dot, .deep-donut-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .dot.posts { background: var(--accent); }
+  .dot.reels { background: #C58BD6; }
+
+  .deep-spark { margin-top: 16px; }
+  .deep-spark-bars { display: flex; align-items: flex-end; gap: 4px; height: 56px; }
+  .deep-spark-bar { flex: 1; background: var(--accent); opacity: .85; border-radius: 3px 3px 0 0; min-height: 4px; }
+  .deep-spark-bar:last-child { opacity: 1; }
+  .deep-spark-cap { font-size: 11px; color: var(--ink-mute); margin-top: 6px; }
+
+  .deep-aud { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .deep-aud-block { min-width: 0; }
+  .deep-aud-title { font-size: 11px; color: var(--ink-mute); font-weight: 600; margin-bottom: 10px; }
+  .deep-donut-wrap { display: flex; align-items: center; gap: 14px; }
+  .deep-donut { width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0; -webkit-mask: radial-gradient(circle 23px at center, transparent 98%, #000 100%); mask: radial-gradient(circle 23px at center, transparent 98%, #000 100%); }
+  .deep-donut-legend { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+
+  .deep-analisis-input { width: 100%; min-height: 110px; resize: vertical; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 13px; line-height: 1.6; color: var(--ink); background: var(--bg-elev); box-sizing: border-box; }
+  .deep-analisis-input:focus { outline: none; border-color: var(--accent); }
+  .deep-analisis-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 10px; }
+  .deep-analisis-status { font-size: 12px; color: var(--ink-mute); }
+  .deep-analisis-status.ok { color: #1F9D6B; }
+  .deep-analisis-status.err { color: #C0392B; }
+  .deep-analisis-btn { padding: 8px 16px; font-size: 13px; }
+  .deep-analisis-read { font-size: 13px; line-height: 1.6; color: var(--ink-soft); white-space: pre-wrap; }
+  .deep-analisis-empty { font-size: 12px; color: var(--ink-mute); font-style: italic; }
+
+  @media (max-width: 560px) {
+    .deep-aud { grid-template-columns: 1fr; }
+    .deep-cards { grid-template-columns: repeat(2, 1fr); }
+    .deep-bar-row { grid-template-columns: 78px 1fr auto; }
+  }
+
   /* ── MODALES DE CREACIÓN ──────────────────── */
   .create-modal {
     max-width: 580px;
@@ -12612,7 +12676,26 @@
       alcance: row.alcance||0, conversiones: row.conversiones||0, inversion: row.inversion||0, engagement: row.engagement||0,
       alcanceDelta: row.alcance_delta||0, conversionesDelta: row.conversiones_delta||0,
       inversionDelta: row.inversion_delta||0, engagementDelta: row.engagement_delta||0,
-      cierraEl: row.cierra_el || null
+      cierraEl: row.cierra_el || null,
+      analisis: row.analisis || '',
+      // Métricas orgánicas de IG (null = la métrica no se trajo ese mes, ≠ 0 real)
+      org: {
+        views:        row.views_org           ?? null,
+        viewsHist:    row.views_org_historias  ?? null,
+        viewsPosts:   row.views_org_posts      ?? null,
+        viewsReels:   row.views_org_reels      ?? null,
+        reach:        row.reach_org            ?? null,
+        likes:        row.likes_org            ?? null,
+        comments:     row.comments_org         ?? null,
+        saves:        row.saves_org            ?? null,
+        shares:       row.shares_org           ?? null,
+        replies:      row.replies_org          ?? null,
+        reposts:      row.reposts_org          ?? null,
+        interPosts:   row.inter_posts_org      ?? null,
+        interReels:   row.inter_reels_org      ?? null,
+        follows:      row.follows_mes          ?? null,
+        unfollows:    row.unfollows_mes        ?? null
+      }
     };
   }
   async function cargarReportes(){
@@ -12993,6 +13076,10 @@
             ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra el ${r.cierraEl}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
             : `Mes de ${r.mesLabel.toLowerCase()} cerrado con métricas sólidas. El alcance y las conversiones crecieron consistentemente vs el mes anterior, con foco en los proyectos activos (Ruta de la Luz, India 2027, Programa formativo).`}
         </div>
+
+        <!-- ░░ Reporte orgánico profundo (IG) — se llena async desde renderReporteDeep() ░░ -->
+        <div id="reporteDeep"></div>
+
         <div style="display: flex; gap: 14px; padding: 14px; background: var(--bg); border-radius: 10px; margin-bottom: 18px;">
           <div style="flex: 1;">
             <div style="font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; margin-bottom: 3px;">Generado por</div>
@@ -13026,6 +13113,232 @@
     });
     const dlBtn = modal.querySelector('[data-rep-modal-download]');
     if (dlBtn) dlBtn.addEventListener('click', () => alert('Descarga del PDF — próxima iteración 🙂'));
+    renderReporteDeep(r);
+  }
+
+  // ═══════════ REPORTE ORGÁNICO PROFUNDO (IG) ═══════════
+  function _rNum(n){ return (n==null) ? '—' : Number(n).toLocaleString('es-AR'); }
+  function _rPct(part, total){ if(!total) return 0; return Math.round((part/total)*1000)/10; }
+  function _has(v){ return v != null; }
+  function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+  function _genLabel(s){ return s==='F'?'Mujeres':s==='M'?'Hombres':s==='U'?'Otro / sin dato':s; }
+
+  // Barra horizontal en CSS puro
+  function _deepBar(label, value, max, sub){
+    const pct = (max>0 && value>0) ? Math.max(3, Math.round((value/max)*100)) : 0;
+    return `
+      <div class="deep-bar-row">
+        <div class="deep-bar-label" title="${_esc(label)}">${_esc(label)}</div>
+        <div class="deep-bar-track"><div class="deep-bar-fill" style="width:${pct}%"></div></div>
+        <div class="deep-bar-val">${_rNum(value)}${sub?`<span class="deep-bar-sub">${sub}</span>`:''}</div>
+      </div>`;
+  }
+
+  // Mini-gráfico de seguidores (CSS)
+  function _deepSpark(serie){
+    const last = serie.slice(-12);
+    const vals = last.map(x=>x.val);
+    const max = Math.max(...vals, 1), min = Math.min(...vals);
+    const span = (max - min) || 1;
+    return `<div class="deep-spark">
+      <div class="deep-spark-bars">
+        ${last.map(x=>{
+          const h = Math.round(((x.val - min) / span) * 70) + 25; // 25–95%
+          return `<div class="deep-spark-bar" style="height:${h}%" title="${x.mes}: ${_rNum(x.val)}"></div>`;
+        }).join('')}
+      </div>
+      <div class="deep-spark-cap">Seguidores · últimos ${last.length} ${last.length===1?'mes':'meses'}</div>
+    </div>`;
+  }
+
+  function _buildDeepHTML(r, o, demo, segMes, segSerie){
+    const esAgencia = (typeof currentRole !== 'undefined') && currentRole === 'agency';
+    const palette = ['var(--accent)', '#C58BD6', '#E7B7A0', '#9BB8D8'];
+
+    // ── 01 Visualizaciones ──
+    const vmax = Math.max(o.viewsHist||0, o.viewsPosts||0, o.viewsReels||0);
+    const sec01 = (o.views!=null || vmax>0) ? `
+      <div class="deep-sec">
+        <div class="deep-sec-head"><span class="deep-sec-num">01</span> Visualizaciones</div>
+        ${_has(o.views)?`<div class="deep-big">${_rNum(o.views)}<span class="deep-big-cap">reproducciones del contenido orgánico este mes</span></div>`:''}
+        <div class="deep-bars">
+          ${_has(o.viewsHist)? _deepBar('Historias', o.viewsHist, vmax) : ''}
+          ${_has(o.viewsPosts)? _deepBar('Publicaciones', o.viewsPosts, vmax) : ''}
+          ${_has(o.viewsReels)? _deepBar('Reels', o.viewsReels, vmax) : ''}
+        </div>
+      </div>` : '';
+
+    // ── 02 Interacciones ──
+    const interKeys = [['likes','Me gusta'],['comments','Comentarios'],['saves','Guardados'],['shares','Compartidos'],['reposts','Reposts'],['replies','Respuestas']];
+    const intTot = interKeys.reduce((s,[k])=> s + (o[k]||0), 0);
+    const hayInter = interKeys.some(([k])=>_has(o[k]));
+    const ip = o.interPosts||0, ir = o.interReels||0, ipr = ip+ir;
+    const sec02 = hayInter ? `
+      <div class="deep-sec">
+        <div class="deep-sec-head"><span class="deep-sec-num">02</span> Interacciones</div>
+        <div class="deep-big">${_rNum(intTot)}<span class="deep-big-cap">interacciones totales · me gusta, comentarios, guardados y más</span></div>
+        <div class="deep-cards">
+          ${interKeys.filter(([k])=>_has(o[k])).map(([k,lbl])=>`
+            <div class="deep-card"><div class="deep-card-val">${_rNum(o[k])}</div><div class="deep-card-lbl">${lbl}</div></div>`).join('')}
+        </div>
+        ${ipr>0 ? `
+          <div class="deep-split">
+            <div class="deep-split-head">Interacciones por formato</div>
+            <div class="deep-split-bar">
+              <div class="deep-split-seg posts" style="width:${_rPct(ip,ipr)}%"></div>
+              <div class="deep-split-seg reels" style="width:${_rPct(ir,ipr)}%"></div>
+            </div>
+            <div class="deep-split-legend">
+              <span><i class="dot posts"></i>Publicaciones · ${_rNum(ip)} (${_rPct(ip,ipr)}%)</span>
+              <span><i class="dot reels"></i>Reels · ${_rNum(ir)} (${_rPct(ir,ipr)}%)</span>
+            </div>
+          </div>` : ''}
+      </div>` : '';
+
+    // ── 03 Seguidores ──
+    const fol = o.follows, unf = o.unfollows;
+    const haySeg = _has(fol) || _has(unf) || _has(segMes);
+    const neto = (_has(fol)||_has(unf)) ? ((fol||0)-(unf||0)) : null;
+    const sec03 = haySeg ? `
+      <div class="deep-sec">
+        <div class="deep-sec-head"><span class="deep-sec-num">03</span> Seguidores</div>
+        ${_has(segMes)?`<div class="deep-big">${_rNum(segMes)}<span class="deep-big-cap">seguidores al cierre del mes</span></div>`:''}
+        ${(_has(fol)||_has(unf))?`
+        <div class="deep-cards three">
+          <div class="deep-card up"><div class="deep-card-val">+${_rNum(fol||0)}</div><div class="deep-card-lbl">Nuevos seguidores</div></div>
+          <div class="deep-card down"><div class="deep-card-val">−${_rNum(unf||0)}</div><div class="deep-card-lbl">Dejaron de seguir</div></div>
+          <div class="deep-card ${neto>=0?'up':'down'}"><div class="deep-card-val">${neto>=0?'+':'−'}${_rNum(Math.abs(neto||0))}</div><div class="deep-card-lbl">Crecimiento neto</div></div>
+        </div>`:''}
+        ${segSerie.length>=2 ? _deepSpark(segSerie) : ''}
+      </div>` : '';
+
+    // ── 04 Audiencia (demografía) ──
+    const gTot = demo.genero.reduce((s,x)=>s+x.val,0);
+    let acc=0; const gSegs=[];
+    demo.genero.forEach((x,i)=>{ const p=_rPct(x.val,gTot); gSegs.push(`${palette[i%palette.length]} ${acc}% ${acc+p}%`); acc+=p; });
+    const donutBg = gSegs.length ? `conic-gradient(${gSegs.join(',')})` : 'var(--line-soft)';
+    const ageOrder = ['13-17','18-24','25-34','35-44','45-54','55-64','65+'];
+    const edad = demo.edad.slice().sort((a,b)=> ageOrder.indexOf(a.seg)-ageOrder.indexOf(b.seg));
+    const eTot = edad.reduce((s,x)=>s+x.val,0), eMax = Math.max(...edad.map(x=>x.val),1);
+    const ciudades = demo.ciudad.slice(0,6), cMax = Math.max(...ciudades.map(x=>x.val),1);
+    const hayDemo = demo.genero.length || edad.length || ciudades.length;
+    const sec04 = hayDemo ? `
+      <div class="deep-sec">
+        <div class="deep-sec-head"><span class="deep-sec-num">04</span> Audiencia</div>
+        <div class="deep-aud">
+          ${demo.genero.length?`
+            <div class="deep-aud-block">
+              <div class="deep-aud-title">Género</div>
+              <div class="deep-donut-wrap">
+                <div class="deep-donut" style="background:${donutBg}"></div>
+                <div class="deep-donut-legend">
+                  ${demo.genero.map((x,i)=>`<span><i class="dot" style="background:${palette[i%palette.length]}"></i>${_genLabel(x.seg)} · ${_rPct(x.val,gTot)}%</span>`).join('')}
+                </div>
+              </div>
+            </div>`:''}
+          ${edad.length?`
+            <div class="deep-aud-block">
+              <div class="deep-aud-title">Edad</div>
+              <div class="deep-bars tight">
+                ${edad.map(x=>_deepBar(x.seg, x.val, eMax, ' · '+_rPct(x.val,eTot)+'%')).join('')}
+              </div>
+            </div>`:''}
+        </div>
+        ${ciudades.length?`
+          <div class="deep-aud-block" style="margin-top:16px;">
+            <div class="deep-aud-title">Top ciudades</div>
+            <div class="deep-bars tight">
+              ${ciudades.map(x=>_deepBar(x.seg, x.val, cMax)).join('')}
+            </div>
+          </div>`:''}
+      </div>` : '';
+
+    // ── 05 Análisis del mes ──
+    const sec05 = `
+      <div class="deep-sec">
+        <div class="deep-sec-head"><span class="deep-sec-num">05</span> Análisis del mes</div>
+        ${esAgencia ? `
+          <textarea id="deepAnalisis" class="deep-analisis-input" placeholder="Escribí la lectura del mes para el cliente: qué funcionó, qué aprendimos y qué proponemos para el mes que viene…">${_esc(r.analisis||'')}</textarea>
+          <div class="deep-analisis-foot">
+            <span id="deepAnalisisStatus" class="deep-analisis-status"></span>
+            <button id="deepAnalisisSave" class="btn-primary deep-analisis-btn">Guardar análisis</button>
+          </div>`
+        : (r.analisis
+            ? `<div class="deep-analisis-read">${_esc(r.analisis)}</div>`
+            : `<div class="deep-analisis-empty">El análisis de este mes todavía no fue cargado por el equipo.</div>`)}
+      </div>`;
+
+    return sec01 + sec02 + sec03 + sec04 + sec05;
+  }
+
+  function _bindDeepAnalisis(r){
+    const btn = document.getElementById('deepAnalisisSave');
+    if(!btn) return;
+    btn.addEventListener('click', async () => {
+      const ta = document.getElementById('deepAnalisis');
+      const status = document.getElementById('deepAnalisisStatus');
+      const val = ta ? ta.value.trim() : '';
+      btn.disabled = true;
+      if(status){ status.textContent = 'Guardando…'; status.className = 'deep-analisis-status'; }
+      try {
+        if(window.__sb){
+          const { error } = await window.__sb.from('reporte').update({ analisis: val }).eq('id', r.id);
+          if(error) throw error;
+        }
+        r.analisis = val;
+        const idx = REPORTES.findIndex(x=>x.id===r.id);
+        if(idx>=0) REPORTES[idx].analisis = val;
+        if(status){ status.textContent = 'Guardado ✓'; status.classList.add('ok'); }
+        if(typeof showToast === 'function') showToast('Análisis del mes guardado');
+      } catch(e){
+        if(status){ status.textContent = 'No se pudo guardar'; status.classList.add('err'); }
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  async function renderReporteDeep(r){
+    const cont = document.getElementById('reporteDeep');
+    if(!cont) return;
+    const o = r.org || {};
+
+    // ¿Hay algún dato orgánico? Si no, no mostramos nada (cliente solo-pauta o reporte viejo).
+    const hayOrg = ['views','reach','likes','comments','saves','shares','follows','unfollows','interPosts','interReels']
+      .some(k => o[k] != null);
+    if(!hayOrg){ cont.innerHTML = ''; return; }
+
+    cont.innerHTML = `<div class="deep-loading">Cargando reporte orgánico…</div>`;
+
+    // ── Consultas lazy: demografía del mes + histórico de seguidores ──
+    let demo = { genero: [], edad: [], ciudad: [] };
+    let segMes = null, segSerie = [];
+    try {
+      const cli = CLIENTES[currentClient];
+      const clienteId = cli && cli.id;
+      if (window.__sb && clienteId && r.mes) {
+        const mesISO = r.mes + '-01';
+        const [demoRes, evoRes] = await Promise.all([
+          window.__sb.from('reporte_demografia')
+            .select('corte,segmento,valor').eq('cliente_id', clienteId).eq('mes', mesISO),
+          window.__sb.from('evo_metrica')
+            .select('mes,valor').eq('cliente_id', clienteId).eq('plataforma','ig').eq('metrica','seguidores')
+            .order('mes', { ascending: true })
+        ]);
+        if (demoRes && !demoRes.error && Array.isArray(demoRes.data)) {
+          demoRes.data.forEach(row => { const arr = demo[row.corte]; if (arr) arr.push({ seg: row.segmento, val: row.valor||0 }); });
+          Object.values(demo).forEach(a => a.sort((x,y)=>y.val-x.val));
+        }
+        if (evoRes && !evoRes.error && Array.isArray(evoRes.data)) {
+          segSerie = evoRes.data.map(x => ({ mes: (x.mes||'').slice(0,7), val: x.valor||0 }));
+          const hit = segSerie.find(x => x.mes === r.mes);
+          segMes = hit ? hit.val : (segSerie.length ? segSerie[segSerie.length-1].val : null);
+        }
+      }
+    } catch(e){ /* sin datos: degrada y sigue */ }
+
+    cont.innerHTML = _buildDeepHTML(r, o, demo, segMes, segSerie);
+    _bindDeepAnalisis(r);
   }
 
   // ─── Comparativo ───
