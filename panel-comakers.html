@@ -4542,6 +4542,21 @@
     .deep-bar-row { grid-template-columns: 78px 1fr auto; }
   }
 
+  /* ── PANEL DE ACCIONES DE AGENCIA (modal reporte) ── */
+  .rep-agency-panel { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 4px 0 18px; background: var(--bg); }
+  .rep-agency-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 12px; }
+  .rep-agency-estado { display: inline-flex; padding: 3px; gap: 3px; background: var(--line-soft); border-radius: 9px; }
+  .rep-estado-btn { border: none; background: transparent; padding: 7px 14px; border-radius: 7px; font: inherit; font-size: 12px; font-weight: 600; color: var(--ink-soft); cursor: pointer; transition: background .15s, color .15s; }
+  .rep-estado-btn:hover { color: var(--ink); }
+  .rep-estado-btn.active { background: var(--bg-elev); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .rep-estado-btn.pub.active { background: var(--accent); color: #fff; }
+  .rep-agency-cierra { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .rep-agency-cierra label { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
+  .rep-agency-cierra input { flex: 1; min-width: 140px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 13px; color: var(--ink); background: var(--bg-elev); box-sizing: border-box; }
+  .rep-agency-cierra input:focus { outline: none; border-color: var(--accent); }
+  .rep-cierra-save { padding: 7px 14px; font-size: 12px; }
+  .rep-agency-hint { font-size: 11px; color: var(--ink-mute); margin-top: 10px; line-height: 1.5; }
+
   /* ── MODALES DE CREACIÓN ──────────────────── */
   .create-modal {
     max-width: 580px;
@@ -12716,7 +12731,60 @@
     renderReportes();
     renderComparativo();
     actualizarResumenKPIs();
+    renderHighlights();
   }
+  function renderHighlights(){
+    const box = document.getElementById('highlightsList');
+    if (!box) return;
+    const r = REPORTES.find(x => x.estado === 'en_curso') || REPORTES[0] || null;
+    if (!r) { box.innerHTML = '<div style="font-size:13px;color:var(--ink-mute);line-height:1.55;padding:6px 0;">Sin highlights cargados este mes todavía.</div>'; return; }
+    const o = r.org || {};
+    const ic = {
+      up:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>',
+      heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>',
+      users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+      play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>'
+    };
+    const item = (icon, warn, html, meta, stat) => `
+      <div class="highlight">
+        <div class="highlight-icon${warn?' warn':''}">${icon}</div>
+        <div><div class="highlight-text">${html}</div>${meta?`<div class="highlight-meta">${meta}</div>`:''}</div>
+        <div class="highlight-stat">${stat}</div>
+      </div>`;
+    const out = [];
+
+    out.push(item(ic.up, false,
+      `<strong>Alcance</strong> del mes`,
+      (r.alcanceDelta ? (r.alcanceDelta>0?'+':'')+r.alcanceDelta+'% vs mes anterior' : 'contenido orgánico'),
+      fmtKbig(r.alcance)));
+
+    out.push(item(ic.heart, false,
+      `<strong>Engagement</strong> promedio`,
+      (r.engagementDelta ? (r.engagementDelta>0?'+':'')+r.engagementDelta+'pp vs mes anterior' : 'interacciones sobre alcance'),
+      r.engagement + '%'));
+
+    if (o.follows != null || o.unfollows != null) {
+      const neto = (o.follows||0) - (o.unfollows||0);
+      out.push(item(ic.users, neto<0,
+        `Crecimiento de <strong>seguidores</strong>`,
+        `+${(o.follows||0).toLocaleString('es-AR')} nuevos · −${(o.unfollows||0).toLocaleString('es-AR')} bajas`,
+        (neto>=0?'+':'−')+Math.abs(neto).toLocaleString('es-AR')));
+    }
+
+    const fmts = [['Historias', o.viewsHist],['Publicaciones', o.viewsPosts],['Reels', o.viewsReels]].filter(x=>x[1]!=null);
+    if (fmts.length) {
+      const top = fmts.slice().sort((a,b)=>b[1]-a[1])[0];
+      const tot = fmts.reduce((s,x)=>s+x[1],0);
+      const pct = tot ? Math.round(top[1]/tot*100) : 0;
+      out.push(item(ic.play, false,
+        `<strong>${top[0]}</strong> fue tu formato más visto`,
+        `${pct}% de las reproducciones del mes`,
+        fmtKbig(top[1])));
+    }
+
+    box.innerHTML = out.join('');
+  }
+
   function poblarCompMes(){
     const s1 = document.getElementById('compMes1'), s2 = document.getElementById('compMes2');
     if (!s1 || !s2) return;
@@ -12853,8 +12921,7 @@
     document.querySelectorAll('[data-rep-download]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const r = REPORTES.find(x => x.id === btn.dataset.repDownload);
-        alert(`Descarga del PDF — próxima iteración 🙂\n\nReporte ${r.mesLabel} ${r.año} en formato PDF con narrativa, KPIs, highlights y gráficos.`);
+        descargarReportePDF(btn.dataset.repDownload);
       });
     });
   }
@@ -12985,7 +13052,7 @@
     ov.querySelectorAll('[data-wr-cta]').forEach(b => b.addEventListener('click', () => {
       const act = b.dataset.wrCta;
       if (act === 'full') { closeWrapped(); openReporteModal(_wrap.rid); }
-      else alert('Descarga del PDF — próxima iteración 🙂');
+      else descargarReportePDF(_wrap.rid);
     }));
     document.addEventListener('keydown', _wrapKey);
     showWrapSlide(0);
@@ -13080,6 +13147,22 @@
         <!-- ░░ Reporte orgánico profundo (IG) — se llena async desde renderReporteDeep() ░░ -->
         <div id="reporteDeep"></div>
 
+        ${currentRole === 'agency' ? `
+        <div class="rep-agency-panel">
+          <div class="rep-agency-title">Acciones de agencia</div>
+          <div class="rep-agency-estado">
+            <button class="rep-estado-btn ${r.estado==='borrador'?'active':''}" data-set-estado="borrador">Borrador</button>
+            <button class="rep-estado-btn ${r.estado==='en_curso'?'active':''}" data-set-estado="en_curso">En curso</button>
+            <button class="rep-estado-btn pub ${r.estado==='publicado'?'active':''}" data-set-estado="publicado">Publicado</button>
+          </div>
+          <div class="rep-agency-cierra">
+            <label for="repCierraInput">Se cierra el</label>
+            <input type="text" id="repCierraInput" value="${_esc(r.cierraEl||'')}" placeholder="Ej: 30 de junio">
+            <button class="btn-ghost rep-cierra-save" id="repCierraSave">Guardar</button>
+          </div>
+          <div class="rep-agency-hint">El estado define qué ve el cliente. “Publicado” lo hace visible y registra la fecha; volver a borrador la quita.</div>
+        </div>` : ''}
+
         <div style="display: flex; gap: 14px; padding: 14px; background: var(--bg); border-radius: 10px; margin-bottom: 18px;">
           <div style="flex: 1;">
             <div style="font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; margin-bottom: 3px;">Generado por</div>
@@ -13092,18 +13175,7 @@
             </div>
           ` : ''}
         </div>
-        <div style="display: flex; gap: 8px;">
-          ${r.estado === 'publicado'
-            ? `<button class="btn-primary" data-rep-modal-download="${r.id}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Descargar PDF
-              </button>
-              <button class="btn-ghost" onclick="copyLink()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                Copiar link
-              </button>`
-            : `<div style="font-size: 12px; color: var(--ink-mute); font-style: italic; padding: 8px 0;">El PDF estará disponible cuando se cierre el mes.</div>`}
-        </div>
+        <div id="repModalFooter">${_repFooterHTML(r)}</div>
       </div>
     `;
     document.getElementById('modalOverlay').classList.add('active');
@@ -13111,9 +13183,9 @@
       modal.classList.remove('reporte-modal');
       closeModal();
     });
-    const dlBtn = modal.querySelector('[data-rep-modal-download]');
-    if (dlBtn) dlBtn.addEventListener('click', () => alert('Descarga del PDF — próxima iteración 🙂'));
+    _bindRepFooter(r);
     renderReporteDeep(r);
+    _bindRepAgency(r);
   }
 
   // ═══════════ REPORTE ORGÁNICO PROFUNDO (IG) ═══════════
@@ -13151,8 +13223,9 @@
     </div>`;
   }
 
-  function _buildDeepHTML(r, o, demo, segMes, segSerie){
-    const esAgencia = (typeof currentRole !== 'undefined') && currentRole === 'agency';
+  function _buildDeepHTML(r, o, demo, segMes, segSerie, opts){
+    opts = opts || {};
+    const esAgencia = !opts.readonly && (typeof currentRole !== 'undefined') && currentRole === 'agency';
     const palette = ['var(--accent)', '#C58BD6', '#E7B7A0', '#9BB8D8'];
 
     // ── 01 Visualizaciones ──
@@ -13298,19 +13371,171 @@
     });
   }
 
-  async function renderReporteDeep(r){
-    const cont = document.getElementById('reporteDeep');
-    if(!cont) return;
+  // Guarda cambios de estado/cierre del reporte (panel de agencia)
+  async function _repUpdate(r, campos, okMsg){
+    try {
+      if (window.__sb) {
+        const { error } = await window.__sb.from('reporte').update(campos).eq('id', r.id);
+        if (error) throw error;
+      }
+      if ('estado' in campos){ r.estado = campos.estado; r.estadoLabel = _estadoLabel(campos.estado); }
+      if ('publicado_en' in campos){ r.publicadoEn = campos.publicado_en; }
+      if ('cierra_el' in campos){ r.cierraEl = campos.cierra_el; }
+      const idx = REPORTES.findIndex(x=>x.id===r.id);
+      if (idx>=0) Object.assign(REPORTES[idx], { estado: r.estado, estadoLabel: r.estadoLabel, publicadoEn: r.publicadoEn, cierraEl: r.cierraEl });
+      if (typeof refreshReportesUI === 'function') refreshReportesUI();
+      else if (typeof renderReportes === 'function') renderReportes();
+      // Refrescar el pie del modal si está abierto (botón de descarga / mensaje según estado)
+      if ('estado' in campos) {
+        const ft = document.getElementById('repModalFooter');
+        if (ft) { ft.innerHTML = _repFooterHTML(r); _bindRepFooter(r); }
+      }
+      if (typeof showToast === 'function') showToast(okMsg);
+      return true;
+    } catch(e){
+      if (typeof showToast === 'function') showToast('No se pudo guardar el cambio', 'warn');
+      return false;
+    }
+  }
+
+  function _bindRepAgency(r){
+    if (currentRole !== 'agency') return;
+    const modal = document.getElementById('modal');
+    if (!modal) return;
+    modal.querySelectorAll('[data-set-estado]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const nuevo = btn.dataset.setEstado;
+        if (nuevo === r.estado) return;
+        if (nuevo === 'publicado' && !confirm('¿Publicar este reporte? Va a quedar visible para el cliente.')) return;
+        const ok = await _repUpdate(r, {
+          estado: nuevo,
+          publicado_en: nuevo === 'publicado' ? (r.publicadoEn || new Date().toISOString().slice(0,10)) : null
+        }, 'Estado: ' + _estadoLabel(nuevo));
+        if (ok) modal.querySelectorAll('[data-set-estado]').forEach(b => b.classList.toggle('active', b.dataset.setEstado === r.estado));
+      });
+    });
+    const cb = document.getElementById('repCierraSave');
+    if (cb) cb.addEventListener('click', async () => {
+      const inp = document.getElementById('repCierraInput');
+      const val = inp ? inp.value.trim() : '';
+      await _repUpdate(r, { cierra_el: val || null }, 'Fecha de cierre guardada');
+    });
+  }
+
+  // Pie del modal de reporte (reusable: se re-renderiza al cambiar estado)
+  function _repFooterHTML(r){
+    const esAgencia = (typeof currentRole !== 'undefined') && currentRole === 'agency';
+    const puedeDescargar = (r.estado === 'publicado') || esAgencia;
+    if (puedeDescargar) {
+      return `<div style="display:flex;gap:8px;">
+        <button class="btn-primary" data-rep-pdf="${r.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Descargar PDF
+        </button>
+        ${r.estado === 'publicado' ? `<button class="btn-ghost" onclick="copyLink()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          Copiar link
+        </button>` : (esAgencia ? `<span style="font-size:11px;color:var(--ink-mute);align-self:center;">Vista previa — el cliente lo ve al publicar.</span>` : '')}
+      </div>`;
+    }
+    return `<div style="font-size:12px;color:var(--ink-mute);font-style:italic;padding:8px 0;">El PDF estará disponible cuando se publique el reporte.</div>`;
+  }
+  function _bindRepFooter(r){
+    const modal = document.getElementById('modal'); if(!modal) return;
+    const btn = modal.querySelector('[data-rep-pdf]');
+    if (btn) btn.addEventListener('click', () => descargarReportePDF(r.id));
+  }
+
+  // Genera el reporte como documento imprimible → "Guardar como PDF" del navegador
+  async function descargarReportePDF(id){
+    const r = REPORTES.find(x => x.id === id);
+    if (!r) return;
+    const cli = CLIENTES[currentClient] || {};
     const o = r.org || {};
+    if (typeof showToast === 'function') showToast('Preparando el PDF…');
 
-    // ¿Hay algún dato orgánico? Si no, no mostramos nada (cliente solo-pauta o reporte viejo).
-    const hayOrg = ['views','reach','likes','comments','saves','shares','follows','unfollows','interPosts','interReels']
-      .some(k => o[k] != null);
-    if(!hayOrg){ cont.innerHTML = ''; return; }
+    const { demo, segMes, segSerie } = await _fetchDeepData(r);
+    const deepHTML = _buildDeepHTML(r, o, demo, segMes, segSerie, { readonly: true });
 
-    cont.innerHTML = `<div class="deep-loading">Cargando reporte orgánico…</div>`;
+    // Stats del hero: solo las que tienen sentido (pauta solo si hubo)
+    const heroStats = [
+      ['Alcance', fmtKbig(r.alcance)],
+      (r.conversiones ? ['Conversiones', String(r.conversiones)] : null),
+      (r.inversion ? ['Inversión', fmtARSrep(r.inversion)] : null),
+      ['Engagement', r.engagement + '%']
+    ].filter(Boolean);
 
-    // ── Consultas lazy: demografía del mes + histórico de seguidores ──
+    const css = `
+      :root{--bg:#F7F6F9;--bg-elev:#FFFFFF;--ink:#1B1620;--ink-soft:#5B525E;--ink-mute:#938C99;--line:#ECEAF0;--line-soft:#F3F1F6;--accent:#FF82FF;--accent-soft:#FFE9FE;}
+      *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink);margin:0;padding:38px 44px;background:#fff;}
+      .pdf-head{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;}
+      .pdf-brand{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);}
+      .pdf-cli{font-size:12px;color:var(--ink-mute);margin-top:4px;letter-spacing:.04em;text-transform:uppercase;}
+      .pdf-mes{font-family:Georgia,'Times New Roman',serif;font-size:34px;font-weight:700;margin-top:6px;}
+      .pdf-hero{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:24px;}
+      .pdf-stat{flex:1;padding:16px 18px;border-right:1px solid var(--line);}
+      .pdf-stat:last-child{border-right:none;}
+      .pdf-stat span{display:block;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);font-weight:700;margin-bottom:6px;}
+      .pdf-stat b{font-size:22px;font-weight:700;}
+      .deep-sec{padding:16px 0;border-top:1px solid var(--line);break-inside:avoid;}
+      .deep-sec:first-child{border-top:none;}
+      .deep-sec-head{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);font-weight:700;margin-bottom:14px;}
+      .deep-sec-num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;}
+      .deep-big{font-size:28px;font-weight:700;line-height:1.1;margin-bottom:14px;}
+      .deep-big-cap{display:block;font-size:12px;font-weight:500;color:var(--ink-mute);margin-top:4px;}
+      .deep-bars{display:flex;flex-direction:column;gap:9px;}.deep-bars.tight{gap:7px;}
+      .deep-bar-row{display:grid;grid-template-columns:92px 1fr auto;align-items:center;gap:10px;}
+      .deep-bar-label{font-size:12px;color:var(--ink-soft);font-weight:500;}
+      .deep-bar-track{height:8px;background:var(--line-soft);border-radius:6px;overflow:hidden;}
+      .deep-bar-fill{height:100%;background:var(--accent);border-radius:6px;}
+      .deep-bar-val{font-size:12px;font-weight:600;}.deep-bar-sub{color:var(--ink-mute);font-weight:500;}
+      .deep-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+      .deep-card{padding:12px 10px;background:var(--bg);border-radius:10px;text-align:center;}
+      .deep-card-val{font-size:18px;font-weight:700;}.deep-card-lbl{font-size:11px;color:var(--ink-mute);margin-top:2px;}
+      .deep-card.up .deep-card-val{color:#1F9D6B;}.deep-card.down .deep-card-val{color:#C0392B;}
+      .deep-split{margin-top:16px;}.deep-split-head{font-size:11px;color:var(--ink-mute);font-weight:600;margin-bottom:7px;}
+      .deep-split-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--line-soft);}
+      .deep-split-seg.posts{background:var(--accent);}.deep-split-seg.reels{background:#C58BD6;}
+      .deep-split-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:12px;color:var(--ink-soft);}
+      .deep-split-legend .dot,.deep-donut-legend .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;}
+      .dot.posts{background:var(--accent);}.dot.reels{background:#C58BD6;}
+      .deep-spark{margin-top:16px;}.deep-spark-bars{display:flex;align-items:flex-end;gap:4px;height:56px;}
+      .deep-spark-bar{flex:1;background:var(--accent);opacity:.85;border-radius:3px 3px 0 0;min-height:4px;}.deep-spark-bar:last-child{opacity:1;}
+      .deep-spark-cap{font-size:11px;color:var(--ink-mute);margin-top:6px;}
+      .deep-aud{display:grid;grid-template-columns:1fr 1fr;gap:20px;}.deep-aud-block{min-width:0;}
+      .deep-aud-title{font-size:11px;color:var(--ink-mute);font-weight:600;margin-bottom:10px;}
+      .deep-donut-wrap{display:flex;align-items:center;gap:14px;}
+      .deep-donut{width:84px;height:84px;border-radius:50%;flex-shrink:0;-webkit-mask:radial-gradient(circle 23px at center,transparent 98%,#000 100%);mask:radial-gradient(circle 23px at center,transparent 98%,#000 100%);}
+      .deep-donut-legend{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink-soft);}
+      .deep-analisis-read{font-size:13px;line-height:1.6;color:var(--ink-soft);white-space:pre-wrap;}
+      .deep-analisis-empty{font-size:12px;color:var(--ink-mute);font-style:italic;}
+      .pdf-foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--ink-mute);letter-spacing:.04em;}
+      @page{margin:14mm;}
+    `;
+    const doc = `<!doctype html><html lang="es"><head><meta charset="utf-8">
+      <title>Reporte ${r.mesLabel} ${r.año} — ${_esc(cli.nombre||'')}</title><style>${css}</style></head><body>
+      <div class="pdf-head">
+        <div class="pdf-brand">CoMakers</div>
+        <div class="pdf-cli">${_esc(cli.nombre||'')} · Reporte mensual</div>
+        <div class="pdf-mes">${r.mesLabel} ${r.año}</div>
+      </div>
+      <div class="pdf-hero">
+        ${heroStats.map(([l,v]) => `<div class="pdf-stat"><span>${l}</span><b>${v}</b></div>`).join('')}
+      </div>
+      ${deepHTML}
+      <div class="pdf-foot">Generado por CoMakers · ${new Date().toLocaleDateString('es-AR')} · comakers.com.ar</div>
+    </body></html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) { if (typeof showToast === 'function') showToast('Permití las ventanas emergentes para descargar el PDF', 'warn'); return; }
+    win.document.open(); win.document.write(doc); win.document.close();
+    win.focus();
+    setTimeout(() => { try { win.print(); } catch(e){} }, 400);
+  }
+
+  // Trae demografía del mes + histórico de seguidores (reusado por modal y PDF)
+  async function _fetchDeepData(r){
     let demo = { genero: [], edad: [], ciudad: [] };
     let segMes = null, segSerie = [];
     try {
@@ -13336,7 +13561,21 @@
         }
       }
     } catch(e){ /* sin datos: degrada y sigue */ }
+    return { demo, segMes, segSerie };
+  }
 
+  async function renderReporteDeep(r){
+    const cont = document.getElementById('reporteDeep');
+    if(!cont) return;
+    const o = r.org || {};
+
+    // ¿Hay algún dato orgánico? Si no, no mostramos nada (cliente solo-pauta o reporte viejo).
+    const hayOrg = ['views','reach','likes','comments','saves','shares','follows','unfollows','interPosts','interReels']
+      .some(k => o[k] != null);
+    if(!hayOrg){ cont.innerHTML = ''; return; }
+
+    cont.innerHTML = `<div class="deep-loading">Cargando reporte orgánico…</div>`;
+    const { demo, segMes, segSerie } = await _fetchDeepData(r);
     cont.innerHTML = _buildDeepHTML(r, o, demo, segMes, segSerie);
     _bindDeepAnalisis(r);
   }
@@ -13414,8 +13653,8 @@
           ]
         },
         { id: 'alcance', label: 'Alcance (personas alcanzadas)', type: 'number', required: true, placeholder: 'Ej: 127400' },
-        { id: 'conversiones', label: 'Conversiones (leads)', type: 'number', required: true, placeholder: 'Ej: 48' },
-        { id: 'inversion', label: 'Inversión en pauta (ARS)', type: 'number', required: true, placeholder: 'Ej: 385420' },
+        { id: 'conversiones', label: 'Conversiones (leads)', type: 'number', placeholder: 'Ej: 48', help: 'Dejalo vacío si el cliente es solo orgánico.' },
+        { id: 'inversion', label: 'Inversión en pauta (ARS)', type: 'number', placeholder: 'Ej: 385420', help: 'Dejalo vacío si no hubo pauta.' },
         { id: 'engagement', label: 'Engagement (%)', type: 'number', required: true, placeholder: 'Ej: 6.2', help: 'Promedio del mes. Acepta decimales.' },
         { id: 'cierra_el', label: 'Se cierra el (opcional)', type: 'text', placeholder: 'Ej: 30 de junio — solo si está en curso' }
       ],
@@ -13428,11 +13667,11 @@
         const mesKey = (d.mes || '').slice(0, 7);
         const mes = mesKey + '-01';
         const alcance = parseInt(d.alcance, 10);
-        const conversiones = parseInt(d.conversiones, 10);
-        const inversion = Math.round(parseFloat(d.inversion));
+        const conversiones = parseInt(d.conversiones, 10) || 0;
+        const inversion = Math.round(parseFloat(d.inversion)) || 0;
         const engagement = parseFloat(d.engagement);
-        if ([alcance, conversiones, inversion, engagement].some(n => isNaN(n))) {
-          showToast('Revisá los números: hay algún campo inválido', 'warn'); return;
+        if ([alcance, engagement].some(n => isNaN(n))) {
+          showToast('Revisá los números: alcance y engagement son obligatorios', 'warn'); return;
         }
 
         // Mes anterior del mismo cliente, para calcular los deltas
