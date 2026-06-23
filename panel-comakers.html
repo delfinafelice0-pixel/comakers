@@ -9778,133 +9778,7 @@
   if (typeof cargarPosts === 'function') cargarPosts();
 
   // ═══════════════ PAUTA ═══════════════
-  const CAMPANAS = [
-    {
-      id: 1, nombre: 'India 2027 — Inscripciones', plataforma: 'meta',
-      objetivo: 'conversiones', estado: 'activa',
-      fechaInicio: '2026-05-08', fechaFin: '2026-06-15',
-      presupuesto: 180000, gastado: 117200, conversiones: 21,
-      impresiones: 384000, clicks: 9420, alcance: 142800,
-      ctr: 2.45, cpc: 12.44, cpm: 305, cpl: 5581, roas: 4.8,
-      mejorAnuncio: 'reel-puna',
-      anuncios: [
-        { id: 'a1', nombre: 'Reel - Imágenes de Puna', tipo: 'reel', impresiones: 187000, clicks: 5240, conversiones: 14, ctr: 2.80, from: '#F26A8D', to: '#F26A8D', best: true },
-        { id: 'a2', nombre: 'Carrusel - 5 razones', tipo: 'carrusel', impresiones: 124000, clicks: 2810, conversiones: 5, ctr: 2.27, from: '#F26A8D', to: '#F26A8D' },
-        { id: 'a3', nombre: 'Imagen - Mapa ruta India', tipo: 'imagen', impresiones: 73000, clicks: 1370, conversiones: 2, ctr: 1.88, from: '#F26A8D', to: '#F26A8D' }
-      ],
-      audiencias: {
-        edad: [{ label: '25-34', pct: 38 }, { label: '35-44', pct: 32 }, { label: '45-54', pct: 18 }, { label: '18-24', pct: 8 }, { label: '55+', pct: 4 }],
-        genero: [{ label: 'Femenino', pct: 72 }, { label: 'Masculino', pct: 26 }, { label: 'Otro', pct: 2 }],
-        ubicacion: [{ label: 'CABA + AMBA', pct: 42 }, { label: 'Córdoba', pct: 18 }, { label: 'Rosario', pct: 12 }, { label: 'Resto país', pct: 22 }, { label: 'Exterior', pct: 6 }]
-      }
-    },
-    {
-      id: 2, nombre: 'Programa formativo — Cohorte junio', plataforma: 'meta',
-      objetivo: 'leads', estado: 'activa',
-      fechaInicio: '2026-05-01', fechaFin: '2026-05-31',
-      presupuesto: 120000, gastado: 93600, conversiones: 24,
-      impresiones: 268000, clicks: 6420, alcance: 98400,
-      ctr: 2.40, cpc: 14.58, cpm: 349, cpl: 3900, roas: null,
-      mejorAnuncio: 'video-testim',
-      anuncios: [
-        { id: 'b1', nombre: 'Video - Testimonios cohorte 2025', tipo: 'reel', impresiones: 142000, clicks: 3820, conversiones: 16, ctr: 2.69, from: '#FF82FF', to: '#1B1620', best: true },
-        { id: 'b2', nombre: 'Carrusel - Programa día a día', tipo: 'carrusel', impresiones: 84000, clicks: 1840, conversiones: 6, ctr: 2.19, from: '#FF82FF', to: '#25212B' },
-        { id: 'b3', nombre: 'Imagen - Próxima cohorte', tipo: 'imagen', impresiones: 42000, clicks: 760, conversiones: 2, ctr: 1.81, from: '#FF82FF', to: '#322D3A' }
-      ],
-      audiencias: {
-        edad: [{ label: '25-34', pct: 42 }, { label: '35-44', pct: 35 }, { label: '45-54', pct: 14 }, { label: '18-24', pct: 6 }, { label: '55+', pct: 3 }],
-        genero: [{ label: 'Femenino', pct: 78 }, { label: 'Masculino', pct: 21 }, { label: 'Otro', pct: 1 }],
-        ubicacion: [{ label: 'CABA + AMBA', pct: 48 }, { label: 'Córdoba', pct: 16 }, { label: 'Rosario', pct: 10 }, { label: 'Resto país', pct: 21 }, { label: 'Exterior', pct: 5 }]
-      }
-    },
-    {
-      id: 3, nombre: 'Ruta de la Luz — Branding', plataforma: 'google',
-      objetivo: 'alcance', estado: 'activa',
-      fechaInicio: '2026-04-15', fechaFin: '2026-06-15',
-      presupuesto: 80000, gastado: 52400, conversiones: 3,
-      impresiones: 412000, clicks: 4280, alcance: 218000,
-      ctr: 1.04, cpc: 12.24, cpm: 127, cpl: null, roas: null,
-      mejorAnuncio: 'search-1',
-      anuncios: [
-        { id: 'c1', nombre: 'Search - "ecosistemas de impacto"', tipo: 'search', impresiones: 184000, clicks: 2480, conversiones: 2, ctr: 1.35, from: '#4285F4', to: '#1A56B8', best: true },
-        { id: 'c2', nombre: 'Display - Banner Ruta de la Luz', tipo: 'display', impresiones: 168000, clicks: 1420, conversiones: 1, ctr: 0.85, from: '#34A853', to: '#1F6B33' },
-        { id: 'c3', nombre: 'Search - "regeneración Puna"', tipo: 'search', impresiones: 60000, clicks: 380, conversiones: 0, ctr: 0.63, from: '#5A7A9C', to: '#2F4A6E' }
-      ],
-      audiencias: {
-        edad: [{ label: '35-44', pct: 36 }, { label: '25-34', pct: 28 }, { label: '45-54', pct: 22 }, { label: '55+', pct: 10 }, { label: '18-24', pct: 4 }],
-        genero: [{ label: 'Femenino', pct: 64 }, { label: 'Masculino', pct: 35 }, { label: 'Otro', pct: 1 }],
-        ubicacion: [{ label: 'CABA + AMBA', pct: 38 }, { label: 'Córdoba', pct: 14 }, { label: 'Jujuy + NOA', pct: 18 }, { label: 'Resto país', pct: 24 }, { label: 'Exterior', pct: 6 }]
-      }
-    },
-    {
-      id: 4, nombre: 'Verificación P&PF — Awareness', plataforma: 'meta',
-      objetivo: 'alcance', estado: 'pausada',
-      fechaInicio: '2026-04-01', fechaFin: '2026-04-30',
-      presupuesto: 60000, gastado: 58400, conversiones: 8,
-      impresiones: 184000, clicks: 3120, alcance: 84200,
-      ctr: 1.70, cpc: 18.72, cpm: 317, cpl: 7300, roas: null,
-      mejorAnuncio: null,
-      anuncios: [], audiencias: null
-    },
-    {
-      id: 5, nombre: 'TikTok piloto — Audiencia joven', plataforma: 'tiktok',
-      objetivo: 'engagement', estado: 'finalizada',
-      fechaInicio: '2026-03-15', fechaFin: '2026-04-15',
-      presupuesto: 30000, gastado: 26980, conversiones: 4,
-      impresiones: 142000, clicks: 1820, alcance: 96400,
-      ctr: 1.28, cpc: 14.82, cpm: 190, cpl: 6745, roas: null,
-      mejorAnuncio: null,
-      anuncios: [], audiencias: null
-    },
-    {
-      id: 6, nombre: 'TikTok — Programa formativo viral', plataforma: 'tiktok',
-      objetivo: 'alcance', estado: 'activa',
-      fechaInicio: '2026-05-12', fechaFin: '2026-06-12',
-      presupuesto: 45000, gastado: 28400, conversiones: 6,
-      impresiones: 218000, clicks: 4820, alcance: 168000,
-      ctr: 2.21, cpc: 5.89, cpm: 130, cpl: 4733, roas: null,
-      mejorAnuncio: 'tk-1',
-      anuncios: [
-        { id: 'tk1', nombre: 'Video - Un día en el programa', tipo: 'video', impresiones: 124000, clicks: 3140, conversiones: 4, ctr: 2.53, from: '#FF0050', to: '#F26A8D', best: true },
-        { id: 'tk2', nombre: 'Video - POV egresada', tipo: 'video', impresiones: 64000, clicks: 1280, conversiones: 2, ctr: 2.00, from: '#00F2EA', to: '#008C86' },
-        { id: 'tk3', nombre: 'Video - Datos del impacto', tipo: 'video', impresiones: 30000, clicks: 400, conversiones: 0, ctr: 1.33, from: '#1B1620', to: '#2E2A33' }
-      ],
-      audiencias: {
-        edad: [{ label: '18-24', pct: 48 }, { label: '25-34', pct: 32 }, { label: '35-44', pct: 14 }, { label: '45-54', pct: 5 }, { label: '55+', pct: 1 }],
-        genero: [{ label: 'Femenino', pct: 68 }, { label: 'Masculino', pct: 30 }, { label: 'Otro', pct: 2 }],
-        ubicacion: [{ label: 'CABA + AMBA', pct: 36 }, { label: 'Córdoba', pct: 14 }, { label: 'Rosario', pct: 11 }, { label: 'Resto país', pct: 32 }, { label: 'Exterior', pct: 7 }]
-      }
-    },
-    {
-      id: 7, nombre: 'LinkedIn — Lead gen founders', plataforma: 'linkedin',
-      objetivo: 'leads', estado: 'activa',
-      fechaInicio: '2026-05-05', fechaFin: '2026-06-05',
-      presupuesto: 95000, gastado: 64200, conversiones: 9,
-      impresiones: 48000, clicks: 1240, alcance: 38400,
-      ctr: 2.58, cpc: 51.77, cpm: 1338, cpl: 7133, roas: 3.2,
-      mejorAnuncio: 'li-1',
-      anuncios: [
-        { id: 'li1', nombre: 'Sponsored content - Caso EKHOS', tipo: 'sponsored', impresiones: 28000, clicks: 820, conversiones: 6, ctr: 2.93, from: '#0A66C2', to: '#063D7A', best: true },
-        { id: 'li2', nombre: 'Document ad - Whitepaper P&PF', tipo: 'document', impresiones: 14000, clicks: 320, conversiones: 3, ctr: 2.29, from: '#1F4E79', to: '#0E2D49' },
-        { id: 'li3', nombre: 'Single image - Programa formativo', tipo: 'image', impresiones: 6000, clicks: 100, conversiones: 0, ctr: 1.67, from: '#5A7A9C', to: '#2F4A6E' }
-      ],
-      audiencias: {
-        edad: [{ label: '35-44', pct: 42 }, { label: '25-34', pct: 28 }, { label: '45-54', pct: 22 }, { label: '55+', pct: 7 }, { label: '18-24', pct: 1 }],
-        genero: [{ label: 'Femenino', pct: 54 }, { label: 'Masculino', pct: 45 }, { label: 'Otro', pct: 1 }],
-        ubicacion: [{ label: 'CABA + AMBA', pct: 58 }, { label: 'Córdoba', pct: 12 }, { label: 'Rosario', pct: 8 }, { label: 'Resto país', pct: 14 }, { label: 'Exterior', pct: 8 }]
-      }
-    },
-    {
-      id: 8, nombre: 'Meta — Retargeting visitas web', plataforma: 'meta',
-      objetivo: 'conversiones', estado: 'activa',
-      fechaInicio: '2026-05-18', fechaFin: '2026-06-18',
-      presupuesto: 50000, gastado: 18400, conversiones: 7,
-      impresiones: 96000, clicks: 2840, alcance: 32400,
-      ctr: 2.96, cpc: 6.48, cpm: 192, cpl: 2629, roas: 5.4,
-      mejorAnuncio: null,
-      anuncios: [], audiencias: null
-    }
-  ];
+  const CAMPANAS = [];
 
   const PLATAFORMA_LABEL = { meta: 'Meta', google: 'Google', tiktok: 'TikTok', linkedin: 'LinkedIn' };
   const PLATAFORMA_INICIAL = { meta: 'M', google: 'G', tiktok: 'T', linkedin: 'In' };
@@ -10538,7 +10412,7 @@
       ],
       footerInfo: 'La campaña se sincronizará con la plataforma al conectar',
       onSubmit: (d) => {
-        const newId = Math.max(...CAMPANAS.map(c => c.id)) + 1;
+        const newId = (CAMPANAS.length ? Math.max(...CAMPANAS.map(c => c.id)) : 0) + 1;
         const presup = parseInt(d.presupuesto) || 100000;
         CAMPANAS.unshift({
           id: newId,
@@ -10601,59 +10475,9 @@
   };
 
   // ═══════════════ ESTRATEGIA ═══════════════
-  const OBJETIVOS = [
-    {
-      id: 1, titulo: '800 inscriptos al programa formativo en 2026',
-      desc: 'Crecer base de organizaciones que pasan por el programa. Mix orgánico + pauta + referidos.',
-      trimestre: 'Q2 2026', actual: 184, meta: 200, unidad: 'inscriptos Q2', estado: 'activo'
-    },
-    {
-      id: 2, titulo: '50 personas confirmadas viaje India 2027',
-      desc: 'Cohorte completa para el viaje inmersivo de octubre 2027. Cierre de inscripciones en septiembre 2026.',
-      trimestre: 'Q2-Q3', actual: 21, meta: 50, unidad: 'leads calificados', estado: 'activo'
-    },
-    {
-      id: 3, titulo: 'Llegar a 35K seguidores en IG con engagement >5%',
-      desc: 'No es el número solo, es la calidad de la audiencia. Engagement promedio sostenido >5% mensual.',
-      trimestre: 'Q2 2026', actual: 31240, meta: 35000, unidad: 'seguidores', estado: 'activo'
-    },
-    {
-      id: 4, titulo: 'Verificación P&PF para 5 nuevas organizaciones',
-      desc: 'Sumar 5 orgs verificadas al ecosistema People & Planet First durante Q2.',
-      trimestre: 'Q2 2026', actual: 5, meta: 5, unidad: 'organizaciones', estado: 'cumplido'
-    }
-  ];
+  const OBJETIVOS = [];
 
-  const HIPOTESIS = [
-    {
-      id: 1, titulo: 'La audiencia 35-45 responde mejor a contenido educativo que aspiracional',
-      razon: 'Los carruseles explicativos de abril tuvieron 2.4x más guardados que los reels aspiracionales del mismo período.',
-      validar: 'Comparar engagement por tipo de contenido en cohortes de edad durante mayo-junio.',
-      estado: 'probando',
-      resultado: null
-    },
-    {
-      id: 2, titulo: 'Reels documentales largos (60-90s) generan más conversión que micro-reels',
-      razon: 'Hipótesis del equipo: la audiencia de EKHOS premia profundidad. Sin datos directos todavía.',
-      validar: 'Publicar 4 reels >60s en mayo y comparar CPL e inscripciones contra el promedio de abril.',
-      estado: 'probando',
-      resultado: null
-    },
-    {
-      id: 3, titulo: 'Asociar Ruta de la Luz con India 2027 sube conversión del viaje',
-      razon: 'Personas que ya conocen Ruta entienden mejor la propuesta del viaje inmersivo. Son audiencias afines.',
-      validar: 'Campaña India 2027 segmentando a audiencia ya engaged con contenido de Ruta de la Luz.',
-      estado: 'confirmada',
-      resultado: 'CPL 38% por debajo del benchmark en audiencias engaged con Ruta. La asociación funciona.'
-    },
-    {
-      id: 4, titulo: 'Pauta en TikTok sirve para captar audiencia <30 años',
-      razon: 'Suposición inicial: TikTok nos daría audiencia más joven al menor costo.',
-      validar: 'Campaña piloto de un mes en marzo-abril.',
-      estado: 'descartada',
-      resultado: 'CPL en TikTok 2.4x más caro que en Meta. La audiencia joven no se convirtió en leads cualificados. Pausamos por ahora.'
-    }
-  ];
+  const HIPOTESIS = [];
 
   const DECISIONES = [
     {
@@ -10770,7 +10594,7 @@
           </div>
         </div>
       `;
-    }).join('');
+    }).join('') || '<div style="grid-column:1/-1; padding:48px; text-align:center; color:var(--ink-mute); border:1px dashed var(--line); border-radius:14px;">Todavía no cargaste objetivos. Sumá el primero con el botón de arriba.</div>';
     bindEditables();
   }
 
@@ -10806,7 +10630,7 @@
           </div>
         ` : ''}
       </div>
-    `).join('');
+    `).join('') || '<div style="padding:32px; text-align:center; color:var(--ink-mute); font-style:italic;">Todavía no cargaste hipótesis.</div>';
     bindEditables();
   }
 
@@ -10947,7 +10771,7 @@
         { id: 'actual', label: 'Valor actual (opcional)', type: 'number', placeholder: '0', help: 'Si ya hay avance, anotalo. Si no, queda en 0.' }
       ],
       onSubmit: (d) => {
-        const newId = Math.max(...OBJETIVOS.map(o => o.id)) + 1;
+        const newId = (OBJETIVOS.length ? Math.max(...OBJETIVOS.map(o => o.id)) : 0) + 1;
         OBJETIVOS.unshift({
           id: newId,
           titulo: d.titulo,
@@ -10983,7 +10807,7 @@
         }
       ],
       onSubmit: (d) => {
-        const newId = Math.max(...HIPOTESIS.map(h => h.id)) + 1;
+        const newId = (HIPOTESIS.length ? Math.max(...HIPOTESIS.map(h => h.id)) : 0) + 1;
         HIPOTESIS.unshift({
           id: newId,
           titulo: d.titulo,
@@ -11136,152 +10960,7 @@
   };
 
   // ═══════════════ PROYECTOS ═══════════════
-  const PROYECTOS = [
-    {
-      id: 1, slug: 'ruta-luz',
-      nombre: 'Ruta de la Luz',
-      monogram: 'R',
-      desc: 'Trabajo intergeneracional en la Puna jujeña. Cuatro años recorriendo Tilcara, Humahuaca y comunidades cercanas — memoria territorial y prácticas regenerativas.',
-      estado: 'en_curso', estadoLabel: 'En curso',
-      from: '#F26A8D', to: '#F26A8D',
-      fechaInicio: '2022-03-01', fechaFinEst: null, fechaFinReal: null,
-      responsableAgencia: 'Marti', responsableCliente: 'Jessica',
-      objetivo: 'Documentar y sostener el trabajo en 8 comunidades de la Puna',
-      metaActual: 6, metaNumero: 8, metaUnidad: 'comunidades activas',
-      // Counts pulled
-      tareasCount: 3, postsCount: 8, campanasCount: 1,
-      hitos: [
-        { titulo: 'Primera expedición a Tilcara', desc: 'Encuentro inicial con líderes comunitarios. Definición de pilares del proyecto.', fecha: '2022-04-15', estado: 'completado' },
-        { titulo: 'Documental Año 1 publicado', desc: 'Pieza audiovisual de 22 minutos sobre el primer ciclo. Subido a YouTube + extracto para redes.', fecha: '2023-03-10', estado: 'completado' },
-        { titulo: 'Verificación P&PF obtenida', desc: 'El proyecto suma la verificación People & Planet First como caso emblemático.', fecha: '2024-08-20', estado: 'completado' },
-        { titulo: 'Reel cierre 4 años · Voces de la Puna', desc: 'Pieza estrella de mayo 2026. 84K views, 4.8K likes, mejor performance del trimestre.', fecha: '2026-05-12', estado: 'completado' },
-        { titulo: 'Próximo encuentro en Humahuaca', desc: 'Reunión con tres comunidades nuevas que se suman al ecosistema.', fecha: '2026-07-08', estado: 'en_curso' },
-        { titulo: 'Libro fotográfico de 5 años', desc: 'Compilación visual a publicar en marzo 2027 para celebrar el lustro.', fecha: '2027-03-15', estado: 'pendiente' }
-      ],
-      tareasLinked: [
-        { titulo: 'Mandar fotos del último encuentro en Puna', responsable: 'Jessica', tipo: 'cliente', urgencia: 'urgente' },
-        { titulo: 'Subir fotos del viaje Jujuy al drive', responsable: 'Marti', tipo: 'agencia', urgencia: 'normal', done: true },
-        { titulo: 'Firmar contrato con productora', responsable: 'Jessica', tipo: 'cliente', urgencia: 'normal', done: true }
-      ],
-      postsLinked: [
-        { titulo: 'Detrás de escena: encuentro en Tilcara', tipo: 'reel', fecha: '5 may', from: '#F26A8D', to: '#F26A8D' },
-        { titulo: 'Ruta de la Luz: las voces de la Puna', tipo: 'reel', fecha: '12 may', from: '#F26A8D', to: '#F26A8D', star: true },
-        { titulo: 'Recuperar memoria territorial', tipo: 'post', fecha: '29 may', from: '#F26A8D', to: '#F26A8D', estado: 'aprobacion' }
-      ],
-      campanasLinked: [
-        { nombre: 'Ruta de la Luz — Branding', plataforma: 'google', estado: 'activa', gastado: 52400, presupuesto: 80000, conversiones: 3, kpi: 'CPM $127' }
-      ],
-      prensa: [
-        { medio: 'Revista Anfibia', tituloArt: 'La Puna como territorio de reinvención: 4 años de Ruta de la Luz', url: '#', fecha: '2026-04-22', alcance: 28000, tipo: 'prensa' },
-        { medio: 'Conexión Tierra Podcast', tituloArt: 'Jessica Oyarbide: trabajo regenerativo desde el sur', url: '#', fecha: '2026-05-17', alcance: 12500, tipo: 'podcast' },
-        { medio: 'La Nación · Suplemento Comunidad', tituloArt: 'Cómo se construye un ecosistema de impacto en el NOA', url: '#', fecha: '2026-02-08', alcance: 84000, tipo: 'prensa' },
-        { medio: 'RTA Argentina', tituloArt: 'Mirada al norte: comunidades que sostienen su territorio', url: '#', fecha: '2025-11-14', alcance: 45000, tipo: 'tv' }
-      ]
-    },
-    {
-      id: 2, slug: 'india-2027',
-      nombre: 'Viaje India 2027',
-      monogram: 'I',
-      desc: 'Viaje inmersivo a India en octubre 2027. Encuentros con líderes regenerativos locales, visitas a comunidades y prácticas de aprendizaje profundo.',
-      estado: 'planificacion', estadoLabel: 'Planificación',
-      from: '#F26A8D', to: '#F26A8D',
-      fechaInicio: '2026-04-01', fechaFinEst: '2027-10-15', fechaFinReal: null,
-      responsableAgencia: 'Delfi', responsableCliente: 'Jessica',
-      objetivo: 'Cupo completo de 50 participantes confirmados',
-      metaActual: 21, metaNumero: 50, metaUnidad: 'leads calificados',
-      tareasCount: 2, postsCount: 3, campanasCount: 1,
-      hitos: [
-        { titulo: 'Definición de itinerario y partners locales', desc: 'Acuerdos con organizaciones en Rajasthan, Kerala y Sikkim.', fecha: '2026-03-15', estado: 'completado' },
-        { titulo: 'Lanzamiento de inscripciones', desc: 'Apertura oficial el 8 de mayo. Campaña Meta + comunicación orgánica + email.', fecha: '2026-05-08', estado: 'completado' },
-        { titulo: 'Reel adelanto del viaje', desc: 'Pieza con material de scouting + testimonios de partners. Aprobación pendiente.', fecha: '2026-05-26', estado: 'en_curso' },
-        { titulo: 'Charla abierta con embajada de India', desc: 'Evento online con representante diplomático. Mid-funnel para leads tibios.', fecha: '2026-07-12', estado: 'pendiente' },
-        { titulo: 'Cierre de inscripciones', desc: 'Deadline de confirmaciones + pago de seña.', fecha: '2026-09-30', estado: 'pendiente' },
-        { titulo: 'Viaje', desc: 'Encuentro de partida en Delhi. 12 días de inmersión.', fecha: '2027-10-04', estado: 'pendiente' }
-      ],
-      tareasLinked: [
-        { titulo: 'Editar reel campaña India 2027 (v3)', responsable: 'Marti', tipo: 'agencia', urgencia: 'urgente' },
-        { titulo: 'Aprobar copy de campaña India 2027', responsable: 'Jessica', tipo: 'cliente', urgencia: 'urgente' }
-      ],
-      postsLinked: [
-        { titulo: 'India 2027: inscripciones abiertas', tipo: 'post', fecha: '8 may', from: '#F26A8D', to: '#F26A8D' },
-        { titulo: 'Adelanto: viaje India 2027 — mirá lo que vas a vivir', tipo: 'reel', fecha: '26 may', from: '#F26A8D', to: '#F26A8D', estado: 'aprobacion' },
-        { titulo: 'Convocatoria charla embajada de India', tipo: 'post', fecha: '6 jun', from: '#F26A8D', to: '#F26A8D', estado: 'idea' }
-      ],
-      campanasLinked: [
-        { nombre: 'India 2027 — Inscripciones', plataforma: 'meta', estado: 'activa', gastado: 117200, presupuesto: 180000, conversiones: 21, kpi: 'CPL $5.581' }
-      ],
-      prensa: [
-        { medio: 'Pulso Sostenible', tituloArt: 'Tres viajes inmersivos para repensar el rol del liderazgo', url: '#', fecha: '2026-05-02', alcance: 18000, tipo: 'newsletter_externo' }
-      ]
-    },
-    {
-      id: 3, slug: 'programa-formativo',
-      nombre: 'Programa Formativo · Cohorte Junio',
-      monogram: 'P',
-      desc: 'Próxima cohorte del programa formativo de Ecosistemas de Impacto. Tres meses, 50 inscriptos esperados, mix orgánico + pauta + referidos.',
-      estado: 'en_curso', estadoLabel: 'En curso',
-      from: '#FF82FF', to: '#2A2630',
-      fechaInicio: '2026-04-15', fechaFinEst: '2026-09-15', fechaFinReal: null,
-      responsableAgencia: 'Delfi', responsableCliente: 'Virginia',
-      objetivo: 'Llenar cohorte con 50 organizaciones inscriptas',
-      metaActual: 38, metaNumero: 50, metaUnidad: 'inscripciones',
-      tareasCount: 2, postsCount: 4, campanasCount: 1,
-      hitos: [
-        { titulo: 'Definición de currícula 2026', desc: 'Actualización de contenidos, nuevos módulos sobre verificación P&PF.', fecha: '2026-03-20', estado: 'completado' },
-        { titulo: 'Lanzamiento de inscripciones cohorte junio', desc: 'Apertura el 1 de mayo con campaña Meta + orgánico + email.', fecha: '2026-05-01', estado: 'completado' },
-        { titulo: 'Cambio de naming "curso" → "programa formativo"', desc: 'Decisión estratégica documentada en bitácora del 28 abril.', fecha: '2026-05-01', estado: 'completado' },
-        { titulo: 'Cierre inscripciones', desc: 'Deadline para sumarse a la cohorte de junio.', fecha: '2026-06-10', estado: 'en_curso' },
-        { titulo: 'Encuentro inaugural de cohorte', desc: 'Bienvenida y primer módulo presencial-híbrido.', fecha: '2026-06-15', estado: 'pendiente' },
-        { titulo: 'Encuentro de cierre', desc: 'Presentación de proyectos finales por organización.', fecha: '2026-09-12', estado: 'pendiente' }
-      ],
-      tareasLinked: [
-        { titulo: 'Preparar copy newsletter junio', responsable: 'Delfi', tipo: 'agencia', urgencia: 'normal' },
-        { titulo: 'Cerrar plan trimestral con Jessica', responsable: 'Delfi', tipo: 'agencia', urgencia: 'normal' }
-      ],
-      postsLinked: [
-        { titulo: 'Ecosistemas de Impacto: 5 claves del modelo EKHOS', tipo: 'carrusel', fecha: '2 may', from: '#FF82FF', to: '#2A2630' },
-        { titulo: 'Una semana en la cohorte del programa', tipo: 'reel', fecha: '19 may', from: '#F26A8D', to: '#F26A8D' },
-        { titulo: '8 organizaciones que ya pasaron por nuestro programa', tipo: 'carrusel', fecha: '21 may', from: '#FF82FF', to: '#25212B' },
-        { titulo: 'Próxima cohorte: junio 2026', tipo: 'carrusel', fecha: '27 may', from: '#FF82FF', to: '#2A2630', estado: 'aprobado' }
-      ],
-      campanasLinked: [
-        { nombre: 'Programa formativo — Cohorte junio', plataforma: 'meta', estado: 'activa', gastado: 93600, presupuesto: 120000, conversiones: 24, kpi: 'CPL $3.900' }
-      ],
-      prensa: [
-        { medio: 'Forbes Argentina', tituloArt: 'Las 10 propuestas formativas más interesantes en sustentabilidad', url: '#', fecha: '2026-04-18', alcance: 92000, tipo: 'prensa' }
-      ]
-    },
-    {
-      id: 4, slug: 'ppf-2026',
-      nombre: 'Verificación P&PF 2026',
-      monogram: 'V',
-      desc: 'Proceso anual de verificación People & Planet First para 5 organizaciones nuevas. Documentación, auditoría y comunicación de los casos.',
-      estado: 'cerrado', estadoLabel: 'Cerrado con éxito',
-      from: '#FF82FF', to: '#25212B',
-      fechaInicio: '2026-01-15', fechaFinEst: '2026-04-30', fechaFinReal: '2026-04-25',
-      responsableAgencia: 'Marti', responsableCliente: 'Virginia',
-      objetivo: 'Sumar 5 organizaciones verificadas P&PF',
-      metaActual: 5, metaNumero: 5, metaUnidad: 'organizaciones',
-      tareasCount: 0, postsCount: 1, campanasCount: 1,
-      hitos: [
-        { titulo: 'Convocatoria abierta', desc: 'Llamado a organizaciones interesadas en la verificación.', fecha: '2026-01-20', estado: 'completado' },
-        { titulo: 'Selección de las 5 organizaciones', desc: 'Comité interno selecciona casos con mayor potencial.', fecha: '2026-02-15', estado: 'completado' },
-        { titulo: 'Proceso de auditoría', desc: 'Visitas, entrevistas y revisión documental.', fecha: '2026-03-30', estado: 'completado' },
-        { titulo: 'Verificación obtenida + ceremonia', desc: 'Las 5 organizaciones reciben su certificación.', fecha: '2026-04-25', estado: 'completado' }
-      ],
-      tareasLinked: [],
-      postsLinked: [
-        { titulo: 'Verificación People & Planet First', tipo: 'carrusel', fecha: '14 may', from: '#FF82FF', to: '#1B1620' }
-      ],
-      campanasLinked: [
-        { nombre: 'Verificación P&PF — Awareness', plataforma: 'meta', estado: 'pausada', gastado: 58400, presupuesto: 60000, conversiones: 8, kpi: 'CPL $7.300' }
-      ],
-      prensa: [
-        { medio: 'Apertura Magazine', tituloArt: 'Las 5 organizaciones que sumaron la verificación People & Planet First este año', url: '#', fecha: '2026-04-28', alcance: 34000, tipo: 'prensa' },
-        { medio: 'El Cronista · Suplemento', tituloArt: 'Cómo el sector privado argentino se mide en impacto', url: '#', fecha: '2026-05-05', alcance: 56000, tipo: 'prensa' }
-      ]
-    }
-  ];
+  const PROYECTOS = [];
 
   let proyectoActivo = null;
   let proyFiltro = 'todos';
@@ -11668,7 +11347,7 @@
         { id: 'metaUnidad', label: 'Unidad', type: 'text', placeholder: 'inscripciones, leads, alcance…' }
       ],
       onSubmit: (d) => {
-        const newId = Math.max(...PROYECTOS.map(p => p.id)) + 1;
+        const newId = (PROYECTOS.length ? Math.max(...PROYECTOS.map(p => p.id)) : 0) + 1;
         const monogram = d.nombre.trim().charAt(0).toUpperCase();
         const slug = d.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         const estadoLabels = { planificacion: 'Planificación', en_curso: 'En curso', pausado: 'Pausado' };
