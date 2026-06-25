@@ -144,6 +144,26 @@
   .reel:hover .play{transform:scale(1.12);}
   body[data-energy="ludico"] .reel:hover{transform:translateY(-4px);}
 
+  /* ---------- video reels (self-hosted) ---------- */
+  .ig-grid{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;}
+  .ig-card{flex:0 1 320px;max-width:320px;width:100%;}
+  .ig-card .igtag{font-family:var(--hand);font-size:23px;color:var(--blue);display:inline-block;transform:rotate(-2deg);margin:0 0 12px 4px;}
+  .vreel{position:relative;aspect-ratio:9/16;border-radius:20px;overflow:hidden;border:1.5px solid var(--ink);background:#0e0b1f;box-shadow:5px 7px 0 rgba(22,18,46,.14);}
+  .vreel video{width:100%;height:100%;object-fit:cover;display:block;}
+  .vreel .vplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:none;background:linear-gradient(180deg,rgba(22,18,46,.05),rgba(22,18,46,.28));cursor:pointer;transition:opacity .3s;}
+  .vreel .vplay .circle{width:64px;height:64px;border-radius:50%;background:var(--magenta);display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink);transition:transform .25s;box-shadow:0 6px 18px rgba(22,18,46,.3);}
+  .vreel .vplay .circle svg{width:22px;height:22px;margin-left:3px;fill:var(--ink);}
+  .vreel .vplay:hover .circle{transform:scale(1.12);}
+  .vreel.playing .vplay{opacity:0;pointer-events:none;}
+  .vreel .poster-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#1a1535,#2b2550);color:rgba(243,239,230,.6);font-size:13px;text-align:center;padding:20px;}
+  .ig-card .iglink{display:inline-block;margin:10px 0 0 4px;font-size:13px;color:var(--ink-soft);}
+  .ig-card .iglink:hover{color:var(--blue);}
+
+  /* ---------- reviews ---------- */
+  .reviews{padding:30px 0 96px;}
+  .reviews .head{max-width:640px;margin-bottom:46px;}
+  .reviews .head p{margin-top:16px;}
+
   /* ---------- logos ---------- */
   .logos{padding:30px 0 96px;}
   .logos p.k{text-align:center;font-family:var(--hand);font-size:24px;color:var(--blue);margin-bottom:8px;}
@@ -321,13 +341,31 @@
     <div class="head">
       <span class="eyebrow reveal">nuestro trabajo</span>
       <h2 class="h2 reveal d1" style="margin-top:10px;">Lo que producimos, <em>en movimiento.</em></h2>
-      <p class="lead reveal d2">Reels, fotos y campañas que filmamos y editamos nosotras. Esto es el espacio — pronto, material real de cada marca.</p>
+      <p class="lead reveal d2">Reels, fotos y campañas que filmamos y editamos nosotras. Un par de ejemplos de cómo trabajamos.</p>
     </div>
-    <div class="reel-grid">
-      <div class="reel reel-tilt reveal"><div class="play">__PLAY__</div><span class="tag">tu reel acá</span></div>
-      <div class="reel reel-tilt reveal d1"><div class="play">__PLAY__</div><span class="tag">tu reel acá</span></div>
-      <div class="reel reel-tilt reveal d2"><div class="play">__PLAY__</div><span class="tag">tu reel acá</span></div>
-      <div class="reel reel-tilt reveal d3"><div class="play">__PLAY__</div><span class="tag">tu reel acá</span></div>
+    <div class="ig-grid">
+      <div class="ig-card reveal">
+        <span class="igtag">Edición de video</span>
+        <div class="vreel">
+          <video preload="none" playsinline poster="edicion.jpg">
+            <source src="edicion.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí edicion.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle">__PLAY__</span></button>
+        </div>
+        <a class="iglink" href="https://www.instagram.com/reel/DY5ejdVFCfp/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
+      </div>
+      <div class="ig-card reveal d1">
+        <span class="igtag">Estrategia de contenido</span>
+        <div class="vreel">
+          <video preload="none" playsinline poster="estrategia.jpg">
+            <source src="estrategia.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí estrategia.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle">__PLAY__</span></button>
+        </div>
+        <a class="iglink" href="https://www.instagram.com/reel/DYfvrTUBPwo/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
+      </div>
     </div>
   </div>
 </section>
@@ -343,6 +381,42 @@
       <div class="logo-box">logo cliente</div>
       <div class="logo-box">logo cliente</div>
       <div class="logo-box">logo cliente</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REVIEWS ===== -->
+<section class="reviews">
+  <div class="spark" style="top:4%;left:10%;width:28px;color:var(--magenta);"><svg viewBox="0 0 100 100"><path d="M50 0C55 36 64 45 100 50C64 55 55 64 50 100C45 64 36 55 0 50C36 45 45 36 50 0Z"/></svg></div>
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow reveal">reseñas</span>
+      <h2 class="h2 reveal d1" style="margin-top:10px;">Lo que dicen <em>de nosotras.</em></h2>
+      <p class="lead reveal d2">No lo decimos solo nosotras. Mirá lo que cuentan las marcas con las que trabajamos.</p>
+    </div>
+    <div class="ig-grid">
+      <div class="ig-card reveal">
+        <span class="igtag">Reseña</span>
+        <div class="vreel">
+          <video preload="none" playsinline poster="resena-1.jpg">
+            <source src="resena-1.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí resena-1.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle">__PLAY__</span></button>
+        </div>
+        <a class="iglink" href="https://www.instagram.com/reel/DZoCFMUPkdT/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
+      </div>
+      <div class="ig-card reveal d1">
+        <span class="igtag">Reseña</span>
+        <div class="vreel">
+          <video preload="none" playsinline poster="resena-2.jpg">
+            <source src="resena-2.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí resena-2.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle">__PLAY__</span></button>
+        </div>
+        <a class="iglink" href="https://www.instagram.com/reel/DYVe5UauwfA/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
+      </div>
     </div>
   </div>
 </section>
@@ -451,7 +525,7 @@ const SVGS = {
   PLAY:`<svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg>`,
   SPARK_S:`<svg viewBox="0 0 100 100"><path d="M50 0C55 36 64 45 100 50C64 55 55 64 50 100C45 64 36 55 0 50C36 45 45 36 50 0Z"/></svg>`
 };
-document.querySelectorAll('.sticker, .reel .play').forEach(el=>{
+document.querySelectorAll('.sticker, .vplay .circle').forEach(el=>{
   el.innerHTML = el.innerHTML
     .replace('__CAMERA__',SVGS.CAMERA)
     .replace('__PLANE__',SVGS.PLANE)
@@ -499,6 +573,21 @@ const barsIO=new IntersectionObserver((es)=>{
   es.forEach(e=>{ if(e.isIntersecting){ e.target.querySelectorAll('i').forEach(i=>{ i.style.height=i.style.getPropertyValue('--h'); }); barsIO.unobserve(e.target); } });
 },{threshold:.5});
 const barsEl=document.getElementById('bars'); if(barsEl) barsIO.observe(barsEl);
+
+/* ============ self-hosted video reels (click to play) ============ */
+document.querySelectorAll('.vreel').forEach(card=>{
+  const v=card.querySelector('video');
+  const btn=card.querySelector('.vplay');
+  if(!v||!btn) return;
+  btn.addEventListener('click',()=>{
+    v.setAttribute('controls','');     // native controls once playing
+    card.classList.add('playing');
+    const p=v.play();
+    if(p&&p.catch) p.catch(()=>{});    // ignore autoplay-block errors
+  });
+  // if it ends, bring back the big play button
+  v.addEventListener('ended',()=>{ card.classList.remove('playing'); v.removeAttribute('controls'); });
+});
 
 /* ============ burger ============ */
 const burger=document.getElementById('burger'), navlinks=document.getElementById('navlinks');
