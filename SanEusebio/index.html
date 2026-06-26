@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>San Eusebio · La Hostería — Kit de marca</title>
+<meta name="description" content="Las piezas de la identidad de San Eusebio · La Hostería, reunidas en un solo lugar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --colorado:#A23E2F;
+    --verde:#2F4A3B;
+    --ambar:#D99A2B;
+    --lino:#F4EDDE;
+    --tabaco:#6A4A30;
+    --tinta:#241F18;
+    --tabaco-rgb:106,74,48;
+    --tinta-rgb:36,31,24;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html{-webkit-text-size-adjust:100%}
+
+  body{
+    background:var(--lino);
+    color:var(--tinta);
+    font-family:"Spectral",Georgia,serif;
+    font-weight:400;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    /* veladura tenue de luz cálida, casi imperceptible */
+    background-image:radial-gradient(120% 80% at 50% -10%, rgba(217,154,43,.10), transparent 60%);
+    background-attachment:fixed;
+  }
+
+  .wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding:clamp(2.75rem,7vw,5.5rem) clamp(1.25rem,5vw,2.5rem) clamp(3rem,6vw,4.5rem);
+  }
+
+  /* ---------- Encabezado / logotipo ---------- */
+  header{text-align:center}
+
+  .eyebrow{
+    font-family:"Spectral",serif;
+    font-weight:500;
+    font-size:.72rem;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:var(--tabaco);
+    margin-bottom:clamp(1.4rem,4vw,2rem);
+  }
+
+  .wordmark{
+    font-family:"Fraunces",serif;
+    font-weight:400;
+    font-optical-sizing:auto;
+    color:var(--colorado);
+    text-transform:uppercase;
+    letter-spacing:.22em;
+    /* el espaciado empuja el bloque a la derecha; lo compensamos */
+    text-indent:.22em;
+    font-size:clamp(2rem,7.5vw,3.4rem);
+    line-height:1.05;
+  }
+
+  /* el filete ámbar: la firma de la marca */
+  .filete{
+    width:clamp(48px,12vw,72px);
+    height:2px;
+    background:var(--ambar);
+    border:0;
+    margin:clamp(.9rem,2.5vw,1.2rem) auto clamp(.7rem,2vw,1rem);
+  }
+
+  .bajada{
+    font-family:"Spectral",serif;
+    font-weight:400;
+    font-size:clamp(.72rem,2.4vw,.82rem);
+    letter-spacing:.42em;
+    text-transform:uppercase;
+    text-indent:.42em;
+    color:var(--tabaco);
+  }
+
+  .claim{
+    font-family:"Fraunces",serif;
+    font-style:italic;
+    font-weight:300;
+    color:var(--verde);
+    font-size:clamp(1.35rem,4.6vw,2.1rem);
+    line-height:1.2;
+    margin-top:clamp(2.2rem,6vw,3rem);
+  }
+
+  .intro{
+    max-width:34rem;
+    margin:1.1rem auto 0;
+    font-size:clamp(1rem,2.6vw,1.08rem);
+    color:rgba(var(--tinta-rgb),.82);
+  }
+
+  /* ---------- Piezas ---------- */
+  .piezas{
+    margin-top:clamp(2.75rem,7vw,4rem);
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:clamp(.9rem,2.5vw,1.15rem);
+  }
+
+  .pieza{
+    grid-column:span 1;
+    display:flex;
+    flex-direction:column;
+    text-decoration:none;
+    color:inherit;
+    background:rgba(255,255,255,.28);
+    border:1px solid rgba(var(--tabaco-rgb),.28);
+    border-radius:3px;
+    padding:clamp(1.3rem,3.5vw,1.7rem) clamp(1.3rem,3.5vw,1.6rem) clamp(1.4rem,3.5vw,1.65rem);
+    position:relative;
+    overflow:hidden;
+    transition:transform .35s ease, border-color .35s ease, background .35s ease;
+  }
+
+  /* la pieza destacada: el sitio para huéspedes, ocupa la fila entera */
+  .pieza--destacada{
+    grid-column:1 / -1;
+    background:rgba(47,74,59,.06);
+    border-color:rgba(47,74,59,.3);
+  }
+
+  .pieza__folio{
+    font-family:"Fraunces",serif;
+    font-weight:300;
+    font-size:.85rem;
+    letter-spacing:.06em;
+    color:var(--ambar);
+    margin-bottom:.55rem;
+  }
+
+  .pieza__titulo{
+    font-family:"Fraunces",serif;
+    font-weight:400;
+    font-optical-sizing:auto;
+    font-size:clamp(1.2rem,3.4vw,1.5rem);
+    line-height:1.2;
+    color:var(--colorado);
+    margin-bottom:.35rem;
+  }
+  .pieza--destacada .pieza__titulo{
+    color:var(--verde);
+    font-size:clamp(1.4rem,4.6vw,1.85rem);
+  }
+
+  .pieza__desc{
+    font-size:.96rem;
+    color:rgba(var(--tinta-rgb),.78);
+    flex:1 1 auto;
+  }
+
+  .pieza__abrir{
+    margin-top:1rem;
+    font-family:"Spectral",serif;
+    font-weight:500;
+    font-size:.78rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--tabaco);
+    display:inline-flex;
+    align-items:center;
+    gap:.45em;
+  }
+  .pieza__abrir .flecha{transition:transform .35s ease;display:inline-block}
+
+  /* filete ámbar que crece bajo el folio al pasar / enfocar */
+  .pieza::after{
+    content:"";
+    position:absolute;
+    left:clamp(1.3rem,3.5vw,1.6rem);
+    bottom:0;
+    height:2px;
+    width:0;
+    background:var(--ambar);
+    transition:width .4s ease;
+  }
+
+  @media (hover:hover){
+    .pieza:hover{
+      transform:translateY(-3px);
+      border-color:rgba(var(--tabaco-rgb),.5);
+      background:rgba(255,255,255,.55);
+    }
+    .pieza--destacada:hover{
+      border-color:rgba(47,74,59,.55);
+      background:rgba(47,74,59,.1);
+    }
+    .pieza:hover::after{width:clamp(48px,12vw,72px)}
+    .pieza:hover .flecha{transform:translateX(4px)}
+  }
+
+  .pieza:focus-visible{
+    outline:2px solid var(--ambar);
+    outline-offset:3px;
+  }
+
+  /* ---------- Pie ---------- */
+  footer{
+    margin-top:clamp(3rem,8vw,4.5rem);
+    padding-top:clamp(1.5rem,4vw,2rem);
+    border-top:1px solid rgba(var(--tabaco-rgb),.2);
+    text-align:center;
+    font-size:.82rem;
+    color:rgba(var(--tinta-rgb),.6);
+    line-height:1.8;
+  }
+  footer .lugar{
+    font-family:"Fraunces",serif;
+    font-style:italic;
+    font-weight:300;
+    font-size:.95rem;
+    color:var(--tabaco);
+  }
+  footer .pendiente{
+    display:block;
+    margin-top:.5rem;
+    font-size:.74rem;
+    color:rgba(var(--tinta-rgb),.42);
+  }
+
+  /* ---------- Entrada en escena (una sola vez) ---------- */
+  @media (prefers-reduced-motion:no-preference){
+    .reveal{opacity:0;transform:translateY(12px);animation:subir .7s ease forwards}
+    .reveal.d1{animation-delay:.05s}
+    .reveal.d2{animation-delay:.13s}
+    .reveal.d3{animation-delay:.21s}
+    .reveal.d4{animation-delay:.29s}
+    .reveal.d5{animation-delay:.37s}
+    .reveal.d6{animation-delay:.45s}
+    @keyframes subir{to{opacity:1;transform:none}}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow reveal">Kit de identidad</p>
+      <h1 class="wordmark reveal d1">San&nbsp;Eusebio</h1>
+      <hr class="filete reveal d1">
+      <p class="bajada reveal d1">La&nbsp;Hostería</p>
+      <p class="claim reveal d2">El campo, sin apuro.</p>
+      <p class="intro reveal d2">Acá está la propuesta para San Eusebio, reunida para que la recorras a tu tiempo.</p>
+    </header>
+
+    <main class="piezas">
+      <a class="pieza pieza--destacada reveal d3" href="sitio-san-eusebio.html">
+        <span class="pieza__folio">01</span>
+        <h2 class="pieza__titulo">Sitio web</h2>
+        <p class="pieza__desc">La landing para huéspedes: la cara pública de la hostería.</p>
+        <span class="pieza__abrir">Abrir <span class="flecha">→</span></span>
+      </a>
+
+      <a class="pieza reveal d4" href="marca-san-eusebio.html">
+        <span class="pieza__folio">02</span>
+        <h2 class="pieza__titulo">Identidad de marca</h2>
+        <p class="pieza__desc">El relato y los fundamentos: quiénes somos y por qué.</p>
+        <span class="pieza__abrir">Abrir <span class="flecha">→</span></span>
+      </a>
+
+      <a class="pieza reveal d4" href="modelo-negocio-san-eusebio.html">
+        <span class="pieza__folio">03</span>
+        <h2 class="pieza__titulo">Modelo de negocio</h2>
+        <p class="pieza__desc">La propuesta: posicionamiento, tarifas e inversión.</p>
+        <span class="pieza__abrir">Abrir <span class="flecha">→</span></span>
+      </a>
+    </main>
+
+    <footer class="reveal d6">
+      <span class="lugar">Tandil · Provincia de Buenos Aires</span><br>
+      San Eusebio · La Hostería
+      <span class="pendiente">Datos de contacto a completar antes de publicar.</span>
+    </footer>
+  </div>
+</body>
+</html>
