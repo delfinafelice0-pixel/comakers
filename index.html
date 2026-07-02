@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CoMakers · Agencia de marketing en Tandil</title>
-<meta name="description" content="Le ponemos cabeza, cámara y data a tu marca. Agencia de marketing digital para pymes y emprendedores. Desde Tandil, para todo el país.">
+<meta name="description" content="Le ponemos cabeza, cámara y data a tu marca. Agencia de marketing digital para pymes y marcas. Desde Tandil, para todo el país.">
 <!-- Open Graph (WhatsApp, Facebook, LinkedIn, Telegram) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CoMakers">
 <meta property="og:title" content="CoMakers · Agencia de marketing en Tandil">
-<meta property="og:description" content="Le ponemos cabeza, cámara y data a tu marca. Marketing digital para pymes y emprendedores.">
+<meta property="og:description" content="Le ponemos cabeza, cámara y data a tu marca. Marketing digital para pymes y marcas.">
 <meta property="og:url" content="https://comakers.com.ar/">
 <meta property="og:image" content="https://comakers.com.ar/og-comakers.png">
 <meta property="og:image:secure_url" content="https://comakers.com.ar/og-comakers.png">
@@ -21,7 +21,7 @@
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CoMakers · Agencia de marketing en Tandil">
-<meta name="twitter:description" content="Le ponemos cabeza, cámara y data a tu marca. Marketing digital para pymes y emprendedores.">
+<meta name="twitter:description" content="Le ponemos cabeza, cámara y data a tu marca. Marketing digital para pymes y marcas.">
 <meta name="twitter:image" content="https://comakers.com.ar/og-comakers.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +36,8 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
-  body{font-family:var(--body);background:var(--cream);color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;}
+  body{font-family:var(--body);background:var(--cream) url("paper-bg.jpg") center top/cover fixed;color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;}
+  .paper-veil{position:fixed;inset:0;z-index:-1;background:rgba(243,239,230,.30);pointer-events:none;}
   ::selection{background:var(--lima);color:var(--ink);}
   a{color:inherit;text-decoration:none;}
   img{max-width:100%;display:block;}
@@ -48,7 +49,8 @@
 
   /* ---------- nav ---------- */
   nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(243,239,230,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
-  .logo{font-family:var(--display);font-weight:600;font-size:23px;line-height:.88;letter-spacing:-.02em;display:flex;flex-direction:column;}
+  .logo{display:inline-flex;align-items:center;}
+  .logo-img{height:38px;width:auto;display:block;}
   .logo em{font-style:normal;color:var(--magenta);}
   .navlinks{display:flex;align-items:center;gap:32px;}
   .navlinks a.plain{font-weight:500;font-size:14.5px;color:var(--ink-soft);transition:color .2s;}
@@ -107,6 +109,27 @@
   .hero h1 em{font-style:italic;color:var(--magenta);}
   .hero p{font-size:19px;color:var(--ink-soft);max-width:520px;margin:26px 0 34px;}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap;}
+  /* ---- hero: selección digital + cartel iPhone (mix analógico) ---- */
+  .hero-select{position:relative;display:inline-block;max-width:min(820px,100%);margin:2px 0 0;z-index:3;}
+  .hero-select .sel-h1{font-family:var(--display);font-weight:500;font-style:italic;font-size:clamp(40px,7.4vw,82px);line-height:1.08;letter-spacing:-.02em;color:var(--ink);max-width:none;}
+  .hero-select .sel{background:rgba(43,111,255,.26);-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:.02em .06em;border-radius:1px;}
+  .hero-select .sel b{font-weight:700;font-style:italic;}
+  .ios-menu{position:absolute;left:50%;top:-60px;transform:translateX(-50%);display:inline-flex;align-items:stretch;background:#fff;border-radius:13px;box-shadow:0 14px 30px rgba(22,18,46,.28),0 3px 8px rgba(22,18,46,.16);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter Tight',system-ui,sans-serif;white-space:nowrap;z-index:5;}
+  .ios-menu .it{padding:10px 18px;font-size:15px;color:#0a0a0a;position:relative;}
+  .ios-menu .it+.it::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:1px;background:#dcdcde;}
+  .ios-menu .it.chev{padding:10px 14px;color:#3c3c43;}
+  .ios-menu::after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%) rotate(45deg);width:16px;height:16px;background:#fff;border-radius:0 0 3px 0;box-shadow:3px 3px 6px rgba(22,18,46,.12);}
+  .hero-select .handle{position:absolute;z-index:4;}
+  .hero-select .handle .bar{position:absolute;width:2.5px;background:#2B6FFF;border-radius:2px;}
+  .hero-select .handle .dot{position:absolute;width:13px;height:13px;border-radius:50%;background:#2B6FFF;}
+  .hero-select .handle.tl{left:-3px;top:-2px;}
+  .hero-select .handle.tl .bar{top:0;height:calc(1em + 8px);left:0;}
+  .hero-select .handle.tl .dot{top:-11px;left:-5px;}
+  .hero-select .handle.br{right:-3px;bottom:-2px;}
+  .hero-select .handle.br .bar{bottom:0;height:calc(1em + 8px);right:0;}
+  .hero-select .handle.br .dot{bottom:-11px;right:-5px;}
+  @media(max-width:760px){.ios-menu{top:-54px;}.ios-menu .it{padding:8px 12px;font-size:13px;}.ios-menu .it.chev{padding:8px 10px;}}
+  @media(max-width:430px){.ios-menu .it:nth-child(3),.ios-menu .it.chev{display:none;}}
 
   /* ---------- marquee ---------- */
   .band{background:var(--lima);overflow:hidden;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);position:relative;z-index:2;}
@@ -260,6 +283,7 @@
 </style>
 </head>
 <body data-energy="ludico">
+<div class="paper-veil"></div>
 
 <!-- custom cursor -->
 <div class="cur-ring" id="curRing"></div>
@@ -267,12 +291,12 @@
 
 <!-- ===== NAV ===== -->
 <nav>
-  <a href="#" class="logo"><span>Co</span><span>Makers<em>.</em></span></a>
+  <a href="#" class="logo" aria-label="CoMakers inicio"><img class="logo-img" src="comakers-logo.png" alt="CoMakers"></a>
   <div class="navlinks" id="navlinks">
     <a class="plain" href="#">Inicio</a>
     <a class="plain" href="servicios.html">Servicios</a>
     <a class="plain" href="nosotras.html">Nosotras</a>
-    <a class="navcta" href="mailto:hola@comakers.com.ar">Trabajemos juntas</a>
+    <a class="navcta" href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Trabajemos juntas</a>
   </div>
   <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
 </nav>
@@ -287,10 +311,15 @@
   <div class="spark" style="top:30%;left:24%;width:20px;color:var(--blue);animation-delay:.6s;"><svg viewBox="0 0 100 100"><path d="M50 0C55 36 64 45 100 50C64 55 55 64 50 100C45 64 36 55 0 50C36 45 45 36 50 0Z"/></svg></div>
 
   <span class="eyebrow reveal">marketing que se nota</span>
-  <h1 class="reveal d1">Le ponemos cabeza, cámara y <em>data</em> a tu marca.</h1>
-  <p class="reveal d2">Agencia de marketing digital para pymes y emprendedores. Desde Tandil, para todo el país.</p>
+  <div class="hero-select reveal d1">
+    <div class="ios-menu" aria-hidden="true"><span class="it">Copy</span><span class="it">Select All</span><span class="it">Share</span><span class="it chev">›</span></div>
+    <h1 class="sel-h1"><span class="sel"><b>creamos y gestionamos</b> tu presencia digital con estrategia</span></h1>
+    <span class="handle tl"><span class="bar"></span><span class="dot"></span></span>
+    <span class="handle br"><span class="bar"></span><span class="dot"></span></span>
+  </div>
+  <p class="reveal d2">Contenido y pauta, para que tu marca crezca sin que vos tengas que ocuparte de todo.</p>
   <div class="hero-cta reveal d3">
-    <a class="btn btn-dark mag" href="mailto:hola@comakers.com.ar">Trabajemos juntas →</a>
+    <a class="btn btn-dark mag" href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Trabajemos juntas →</a>
     <a class="btn btn-ghost mag" href="servicios.html">Ver servicios</a>
   </div>
 </section>
@@ -453,8 +482,8 @@
   <div class="wrap">
     <div class="head">
       <span class="eyebrow reveal">quiénes somos</span>
-      <h2 class="h2 reveal d1" style="margin-top:10px;">Un equipo chico <em>y obsesivo.</em></h2>
-      <p class="lead reveal d2">Nos gusta laburar cerca del cliente, meter las manos en la producción y no escondernos detrás de métricas vanidosas.</p>
+      <h2 class="h2 reveal d1" style="margin-top:10px;">Un equipo<em>.</em></h2>
+      <p class="lead reveal d2">Nos gusta trabajar cerca del cliente, meter las manos en la producción y no escondernos detrás de métricas vanidosas.</p>
     </div>
     <div class="team-grid">
       <div class="member reveal">
@@ -481,7 +510,7 @@
 <!-- ===== QUOTE ===== -->
 <section class="quote">
   <div class="wrap">
-    <p class="reveal">Creemos que una buena marca no se <em>grita</em>: se <span class="mark">construye</span>, mes a mes, con datos en la mano.</p>
+    <p class="reveal">Una marca con identidad no depende de la <em>suerte</em>: se construye con <span class="mark">estrategia</span>.</p>
   </div>
 </section>
 
@@ -493,22 +522,22 @@
   <span class="eyebrow reveal">¿arrancamos?</span>
   <h2 class="reveal d1">Hagamos algo que <em>se note.</em></h2>
   <p class="lead reveal d2">Contanos de tu marca y te respondemos con una propuesta concreta. Sin vueltas.</p>
-  <a class="btn btn-dark mag reveal d3" href="mailto:hola@comakers.com.ar" style="font-size:16px;padding:16px 30px;">hola@comakers.com.ar →</a>
+  <a class="btn btn-dark mag reveal d3" href="mailto:comakers.tan@gmail.com" style="font-size:16px;padding:16px 30px;">comakers.tan@gmail.com →</a>
 </section>
 
 <!-- ===== FOOTER ===== -->
 <footer>
   <div class="foot-grid">
     <div>
-      <div class="foot-logo"><span>Co</span><span>Makers<em>.</em></span></div>
+      <div class="foot-logo"><img class="foot-logo-img" src="comakers-logo.png" alt="CoMakers" style="height:52px;width:auto;"></div>
       <div class="foot-meta">Agencia de marketing digital · Tandil, Buenos Aires</div>
       <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
     </div>
     <div class="foot-links">
       <a href="servicios.html">Servicios</a>
       <a href="nosotras.html">Nosotras</a>
-      <a href="mailto:hola@comakers.com.ar">Contacto</a>
-      <a href="#">Instagram</a>
+      <a href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Contacto</a>
+      <a href="https://www.instagram.com/co.makers_/" target="_blank" rel="noopener">Instagram</a>
     </div>
   </div>
 </footer>
@@ -693,6 +722,23 @@ document.querySelectorAll('.reel-tilt').forEach(card=>{
 
 /* init — locked to Lúdico */
 applyEnergy('ludico');
+</script>
+<!-- WhatsApp flotante -->
+<style>
+  .wa-fab{position:fixed;right:22px;bottom:22px;z-index:90;width:58px;height:58px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,.18);transition:transform .18s,box-shadow .18s;}
+  .wa-fab:hover{transform:scale(1.07);box-shadow:0 8px 26px rgba(0,0,0,.24);}
+  .wa-fab svg{width:32px;height:32px;}
+  .wa-fab::after{content:"";position:absolute;inset:0;border-radius:50%;animation:wa-pulse 2.8s ease-out infinite;}
+  @keyframes wa-pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.45);}70%{box-shadow:0 0 0 15px rgba(37,211,102,0);}100%{box-shadow:0 0 0 0 rgba(37,211,102,0);}}
+  @media(max-width:760px){.wa-fab{right:16px;bottom:16px;width:54px;height:54px;}}
+</style>
+<a class="wa-fab" id="waFab" href="#" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+  <svg viewBox="0 0 32 32" fill="#fff"><path d="M16 .4C7.4.4.4 7.4.4 16c0 2.8.7 5.5 2.1 7.9L.3 31.7l8-2.1c2.3 1.3 4.9 1.9 7.6 1.9h.1c8.6 0 15.6-7 15.6-15.6C31.6 7.4 24.6.4 16 .4zm0 28.5h-.1c-2.4 0-4.8-.6-6.8-1.9l-.5-.3-4.7 1.2 1.3-4.6-.3-.5C3.5 20.5 2.8 18.3 2.8 16 2.8 8.7 8.7 2.8 16 2.8 23.3 2.8 29.2 8.7 29.2 16S23.3 28.9 16 28.9zm7.3-9.6c-.4-.2-2.4-1.2-2.7-1.3-.4-.1-.6-.2-.9.2-.3.4-1 1.3-1.3 1.6-.2.2-.5.3-.9.1-.4-.2-1.7-.6-3.2-2-1.2-1.1-2-2.4-2.2-2.8-.2-.4 0-.6.2-.8.2-.2.4-.5.6-.7.2-.3.3-.4.4-.7.1-.3.1-.5 0-.7-.1-.2-.9-2.2-1.3-3-.3-.8-.7-.7-.9-.7h-.8c-.3 0-.7.1-1.1.5-.4.4-1.5 1.4-1.5 3.5s1.5 4.1 1.7 4.3c.2.3 3 4.6 7.3 6.4 1 .4 1.8.7 2.4.9 1 .3 1.9.3 2.7.2.8-.1 2.4-1 2.8-1.9.3-.9.3-1.7.2-1.9-.1-.2-.4-.3-.8-.5z"/></svg>
+</a>
+<script>
+  const WA_NUMBER = "5492494209868";
+  const WA_MSG = encodeURIComponent("Hola CoMakers! Quiero potenciar mi marca ✨");
+  document.getElementById('waFab').href = "https://wa.me/" + WA_NUMBER + "?text=" + WA_MSG;
 </script>
 </body>
 </html>

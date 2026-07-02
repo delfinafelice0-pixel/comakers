@@ -15,12 +15,13 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
-  body{font-family:var(--body);background:var(--cream);color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  body{font-family:var(--body);background:var(--cream) url("paper-bg.jpg") center top/cover fixed;color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
   ::selection{background:var(--lima);color:var(--ink);}
   a{color:inherit;text-decoration:none;}
 
   nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:rgba(243,239,230,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
-  .logo{font-family:var(--display);font-weight:600;font-size:24px;line-height:.9;letter-spacing:-.02em;}
+  .logo{display:inline-flex;align-items:center;}
+  .logo-img{height:40px;width:auto;display:block;}
   .logo span{display:block;}
   .logo em{font-style:normal;color:var(--magenta);}
   .navlinks{display:flex;align-items:center;gap:34px;}
@@ -133,13 +134,13 @@
 </defs></svg>
 
 <nav>
-  <a href="index.html" class="logo"><span>Co</span><span><em>Makers.</em></span></a>
+  <a href="index.html" class="logo" aria-label="CoMakers inicio"><img class="logo-img" src="comakers-logo.png" alt="CoMakers"></a>
   <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
   <div class="navlinks" id="navlinks">
     <a href="index.html" class="plain">Inicio</a>
     <a href="servicios.html" class="plain">Servicios</a>
     <a href="nosotras.html" class="plain active">Nosotras</a>
-    <a href="mailto:hola@comakers.com.ar" class="navcta">Trabajemos juntas</a>
+    <a href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener" class="navcta">Trabajemos juntas</a>
   </div>
 </nav>
 
@@ -226,8 +227,8 @@
   <div class="wrap">
     <span class="eyebrow reveal">¿charlamos?</span>
     <h2 class="reveal">Contanos de <em>tu marca.</em></h2>
-    <p class="lead reveal">Una charla sin compromiso para ver si tenemos química. La primera idea siempre es gratis.</p>
-    <a href="mailto:hola@comakers.com.ar" class="btn btn-dark reveal">hola@comakers.com.ar →</a>
+    <p class="lead reveal">Una charla sin compromiso para ver si tenemos química.</p>
+    <a href="mailto:comakers.tan@gmail.com" class="btn btn-dark reveal">comakers.tan@gmail.com →</a>
   </div>
 </section>
 
@@ -241,7 +242,7 @@
       <div class="foot-links">
         <a href="servicios.html">Servicios</a>
         <a href="nosotras.html">Nosotras</a>
-        <a href="mailto:hola@comakers.com.ar">Contacto</a>
+        <a href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Contacto</a>
         <a href="#">Instagram</a>
       </div>
       <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
