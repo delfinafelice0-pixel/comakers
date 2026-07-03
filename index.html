@@ -141,6 +141,23 @@
   .band-track .bi{width:20px;height:20px;color:var(--ink);}
   .band-track .bi svg{width:100%;height:100%;fill:currentColor;}
   @keyframes scroll{to{transform:translateX(-50%);}}
+  /* ===== showreel (estilo YouTube) ===== */
+  .showreel .wrap{max-width:1120px;margin:0 auto;padding:80px 40px 24px;}
+  .showreel .head{max-width:640px;margin-bottom:32px;}
+  .yt{position:relative;max-width:900px;margin:0 auto;aspect-ratio:16/9;border-radius:20px;overflow:hidden;border:1.5px solid var(--ink);background:#0e0b1f;box-shadow:6px 8px 0 rgba(22,18,46,.14);}
+  .yt video{width:100%;height:100%;object-fit:contain;background:#0e0b1f;display:block;}
+  .yt .vplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:none;background:linear-gradient(180deg,rgba(22,18,46,.04),rgba(22,18,46,.22));cursor:pointer;transition:opacity .3s;}
+  .yt .vplay .circle{width:74px;height:74px;border-radius:50%;background:var(--magenta);display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink);box-shadow:0 6px 18px rgba(22,18,46,.3);transition:transform .25s;}
+  .yt .vplay .circle svg{width:26px;height:26px;margin-left:3px;fill:var(--ink);}
+  .yt .vplay:hover .circle{transform:scale(1.1);}
+  .yt.playing .vplay{opacity:0;pointer-events:none;}
+  .yt .poster-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(243,239,230,.55);font-size:14px;}
+  /* ===== teasers marcados ===== */
+  .marked .wrap{padding-top:16px;padding-bottom:16px;}
+  .marked .head{background:var(--white);border:1.5px solid var(--ink);border-radius:26px;padding:54px 48px;box-shadow:6px 9px 0 rgba(22,18,46,.10);max-width:820px;margin:40px auto;text-align:center;}
+  .marked .head .lead{margin:16px auto 0;max-width:52ch;}
+  .marked .head .btn{margin-top:26px;}
+  @media(max-width:760px){.showreel .wrap{padding:56px 22px 12px;}.marked .head{padding:40px 24px;}}
 
   /* ---------- services ---------- */
   .services{padding:96px 0 30px;}
@@ -247,8 +264,9 @@
   /* ---------- footer ---------- */
   footer{background:var(--ink);color:var(--cream);}
   .foot-grid{max-width:1120px;margin:0 auto;padding:54px 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
-  .foot-logo{font-family:var(--display);font-weight:500;font-size:30px;line-height:.86;display:flex;flex-direction:column;}
+  .foot-logo{display:flex;flex-direction:column;align-items:flex-start;}
   .foot-logo em{font-style:normal;color:var(--magenta);}
+  .foot-logo-img{width:170px;height:auto;max-width:100%;display:block;}
   .foot-meta{font-size:13px;color:rgba(243,239,230,.55);margin-top:8px;}
   .foot-links{display:flex;gap:22px;font-size:14px;color:rgba(243,239,230,.75);flex-wrap:wrap;}
   .foot-links a:hover{color:var(--lima);}
@@ -329,13 +347,30 @@
   <div class="band-track" id="bandTrack"></div>
 </div>
 
+<!-- ===== SHOWREEL ===== -->
+<section class="showreel">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow reveal">mirá esto</span>
+      <h2 class="h2 reveal d1" style="margin-top:10px;">CoMakers, <em>en movimiento.</em></h2>
+    </div>
+    <div class="yt reveal">
+      <video preload="none" playsinline poster="estrategia.jpg">
+        <source src="estrategia.mp4" type="video/mp4">
+        <div class="poster-fallback">Subí estrategia.mp4</div>
+      </video>
+      <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
+    </div>
+  </div>
+</section>
+
 <!-- ===== SERVICES (teaser -> servicios.html) ===== -->
-<section class="services">
+<section class="services marked">
   <div class="wrap">
     <div class="head">
       <span class="eyebrow reveal">lo que hacemos</span>
-      <h2 class="h2 reveal d1" style="margin-top:10px;">Cuatro cosas, <em>bien hechas.</em></h2>
-      <p class="lead reveal d2">Estrategia, producción, pauta y medición — la marca de punta a punta, con los números a la vista.</p>
+      <h2 class="h2 reveal d1" style="margin-top:10px;">Lo que hacemos, <em>bien hecho.</em></h2>
+      <p class="lead reveal d2">Desde optimizar tu perfil hasta gestionar tu marca entera. Elegís cuánto delegás y cuánto hacés vos.</p>
       <a class="btn btn-dark mag reveal d3" href="servicios.html" style="margin-top:22px;">Ver servicios →</a>
     </div>
   </div>
@@ -420,12 +455,12 @@
 </section>
 
 <!-- ===== TEAM (teaser -> nosotras.html) ===== -->
-<section class="team">
+<section class="team marked">
   <div class="wrap">
     <div class="head">
       <span class="eyebrow reveal">quiénes somos</span>
       <h2 class="h2 reveal d1" style="margin-top:10px;">Un equipo<em>.</em></h2>
-      <p class="lead reveal d2">Chico, obsesivo y cerca del cliente. Delfi en estrategia y producción, Marti en pauta y performance.</p>
+      <p class="lead reveal d2">Un equipo obsesivo con tu marca, trabajando a distancia desde Tandil.</p>
       <a class="btn btn-dark mag reveal d3" href="nosotras.html" style="margin-top:22px;">Conocé al equipo →</a>
     </div>
   </div>
@@ -453,7 +488,7 @@
 <footer>
   <div class="foot-grid">
     <div>
-      <div class="foot-logo"><img class="foot-logo-img" src="comakers-logo.png" alt="CoMakers" style="height:52px;width:auto;"></div>
+      <div class="foot-logo"><img class="foot-logo-img" src="comakers-logo.png" alt="CoMakers"></div>
       <div class="foot-meta">Agencia de marketing digital · Tandil, Buenos Aires</div>
       <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
     </div>
@@ -528,7 +563,7 @@ const barsIO=new IntersectionObserver((es)=>{
 const barsEl=document.getElementById('bars'); if(barsEl) barsIO.observe(barsEl);
 
 /* ============ self-hosted video reels (click to play) ============ */
-document.querySelectorAll('.vreel').forEach(card=>{
+document.querySelectorAll('.vreel,.yt').forEach(card=>{
   const v=card.querySelector('video');
   const btn=card.querySelector('.vplay');
   if(!v||!btn) return;

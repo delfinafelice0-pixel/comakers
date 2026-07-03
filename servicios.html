@@ -94,6 +94,36 @@
   .tick{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--lima);border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;margin-top:1px;}
   .tick svg{width:11px;height:11px;}
 
+  /* ===== servicios v2: grupos + video al lado ===== */
+  .svc-group-head{max-width:1120px;margin:0 auto;padding:64px 40px 4px;}
+  .svc-group-head .eyebrow{display:inline-block;transform:rotate(-2deg);}
+  .svc-group-head h2{font-family:var(--display);font-weight:500;font-size:clamp(28px,4vw,44px);letter-spacing:-.025em;margin-top:6px;line-height:1.03;}
+  .svc-group-head .sub{color:var(--ink-soft);font-size:16.5px;margin-top:10px;max-width:60ch;}
+  .svc2{border-bottom:1px solid var(--line);}
+  .svc2 .wrap{padding:52px 40px;display:grid;grid-template-columns:1.5fr 0.85fr;gap:52px;align-items:start;}
+  .svc2.flip .svc2-text{order:2;}
+  .svc2.flip .svc2-video{order:1;}
+  .svc2:nth-of-type(even){background:var(--white);}
+  .svc2-name{font-family:var(--display);font-weight:500;font-size:clamp(26px,3.6vw,42px);line-height:1.02;letter-spacing:-.02em;display:block;}
+  .svc2-badge{display:inline-block;margin-left:12px;font-family:var(--body);font-size:12px;font-weight:600;background:var(--lima);border:1.5px solid var(--ink);border-radius:999px;padding:3px 11px;vertical-align:middle;letter-spacing:0;}
+  .svc2-tag{font-family:var(--display);font-style:italic;font-size:20px;color:var(--magenta);margin:8px 0 14px;}
+  .svc2-desc{font-size:17px;color:var(--ink-soft);margin-bottom:22px;max-width:54ch;}
+  .svc2 .incl{list-style:none;display:grid;gap:12px;margin-bottom:22px;}
+  .svc2 .incl li{display:flex;gap:12px;font-size:15.5px;color:var(--ink-soft);align-items:flex-start;}
+  .svc2-role{font-size:15px;color:var(--ink-soft);border-left:3px solid var(--lima);padding-left:14px;}
+  .svc2-role b{color:var(--ink);font-weight:600;}
+  .svc2-video .vreel{max-width:300px;margin:0;}
+  .svc2.flip .svc2-video .vreel{margin-left:auto;}
+  .vreel-ph{aspect-ratio:9/16;border-radius:20px;border:1.5px dashed var(--ink);background:#0e0b1f;position:relative;max-width:300px;}
+  .vreel-ph .poster-fallback{border-radius:18px;}
+  @media(max-width:820px){
+    .svc2 .wrap,.svc2.flip .wrap{grid-template-columns:1fr;gap:26px;}
+    .svc2.flip .svc2-text{order:1;}.svc2.flip .svc2-video{order:2;}
+    .svc2-video .vreel,.svc2.flip .svc2-video .vreel{margin:0 auto;max-width:260px;}
+    .svc-group-head{padding:48px 22px 4px;}
+  }
+
+
   /* process */
   .process{background:var(--ink);color:var(--cream);}
   .process .wrap{padding:88px 40px;}
@@ -165,93 +195,141 @@
     <svg class="spk" width="22" height="22" fill="var(--magenta)"><use href="#sparkle"/></svg>
   </span>
   <h1>Servicios que <em>se complementan.</em></h1>
-  <p>Podés tomar uno suelto o todo el combo. Cuando van juntos, estrategia, producción, pauta y medición, es cuando la marca despega de verdad.</p>
+  <p>Elegí un trabajo puntual o un acompañamiento mes a mes. Armamos lo que tu marca necesita ahora — ni más, ni menos.</p>
 </div>
 
 <div class="band">
   <div class="band-track">
-    <span>estrategia, producción, pauta, medición, estrategia, producción,estrategia · producción · pauta · medición · estrategia · producción ·&nbsp;nbsp;</span>
-    <span>estrategia, producción, pauta, medición, estrategia, producción,estrategia · producción · pauta · medición · estrategia · producción ·&nbsp;nbsp;</span>
+    <span>One Shot, Co-Creación, Creación Completa, Pauta, Plan Despegue, Landing,&nbsp;</span>
+    <span>One Shot, Co-Creación, Creación Completa, Pauta, Plan Despegue, Landing,&nbsp;</span>
   </div>
 </div>
 
 <!-- 01 -->
-<section class="svc">
+<!-- ===== GRUPO: DE UNA SOLA VEZ ===== -->
+<div class="svc-group-head">
+  <span class="eyebrow reveal">de una sola vez</span>
+  <h2 class="reveal">Servicios puntuales.</h2>
+  <p class="sub reveal">Un trabajo concreto, con principio y fin. Ideal para arrancar o para un objetivo específico.</p>
+</div>
+<section class="svc2">
   <div class="wrap">
-    <div class="svc-meta reveal">
-      <div class="num">01</div>
-      <h2>Estrategia de contenido</h2>
-      <span class="tag">Calendario mensual</span><span class="tag">Línea editorial</span><span class="tag">Guiones</span>
-    </div>
-    <div class="svc-body reveal">
-      <p class="intro">Antes de publicar nada, definimos qué tiene para decir tu marca y a quién. Después lo bajamos a un plan concreto que podés ver venir.</p>
+    <div class="svc2-text">
+      <span class="svc2-name">Reunión One Shot</span>
+      <p class="svc2-tag">Tu Instagram, sin fricciones.</p>
+      <p class="svc2-desc">Una reunión intensiva donde analizamos tu perfil desde los ojos de tu cliente ideal y lo dejamos listo para convertir visitas en ventas.</p>
       <ul class="incl">
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Diagnóstico inicial</b> de tu cuenta, tu competencia y tu público.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Calendario mensual</b> de contenidos con temas, formatos y fechas.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Línea editorial y tono</b> propios, para que se note que sos vos.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Guiones y copys</b> de reels, carruseles y stories listos para producir.</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Análisis del perfil desde la mirada del usuario</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimización de nombre, biografía y foto de perfil</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Revisión de modos de contacto y links en bio</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Identificación de oportunidades de mejora</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Documento con todos los puntos trabajados</span></li>
       </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Participás de la reunión y luego implementás los cambios. Nosotras te guiamos en cada paso.</p>
     </div>
+    <div class="svc2-video"><div class="vreel">
+          <video preload="none" playsinline poster="edicion.jpg">
+            <source src="edicion.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí edicion.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
+        </div></div>
+  </div>
+</section>
+<section class="svc2 flip">
+  <div class="wrap">
+    <div class="svc2-text">
+      <span class="svc2-name">Creación de landing</span>
+      <p class="svc2-tag">Una página que convierte, no solo que se ve linda.</p>
+      <p class="svc2-desc">Diseñamos y programamos tu landing a medida — pensada para que quien entra entienda tu marca y haga lo que buscás: comprar, reservar o escribirte.</p>
+      <ul class="incl">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Diseño a medida con tu identidad de marca</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Copy y estructura pensados para convertir</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimizada para celular y para que cargue rápido</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Botones directos a WhatsApp, Instagram o tienda</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Lista para publicar en tu propio dominio</span></li>
+      </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Nos contás de tu marca y tus objetivos; nosotras diseñamos, escribimos y programamos. Vos aprobás y sale a la calle.</p>
+    </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
   </div>
 </section>
 
-<!-- 02 -->
-<section class="svc alt">
+<!-- ===== GRUPO: MES A MES ===== -->
+<div class="svc-group-head">
+  <span class="eyebrow reveal">mes a mes</span>
+  <h2 class="reveal">Acompañamiento continuo.</h2>
+  <p class="sub reveal">Trabajamos tu marca todos los meses. Elegís cuánto delegás y cuánto hacés vos.</p>
+</div>
+<section class="svc2">
   <div class="wrap">
-    <div class="svc-meta reveal">
-      <div class="num">02</div>
-      <h2>Producción presencial</h2>
-      <span class="tag">Foto</span><span class="tag">Video</span><span class="tag">En tu lugar</span>
-    </div>
-    <div class="svc-body reveal">
-      <p class="intro">Vamos a donde está tu marca, el local, el taller, el evento, y filmamos. Material propio y real, no banco de imágenes genérico.</p>
+    <div class="svc2-text">
+      <span class="svc2-name">Co-Creación</span>
+      <p class="svc2-tag">La estrategia es nuestra. El protagonismo, tuyo.</p>
+      <p class="svc2-desc">Trabajamos juntos: nosotras pensamos, planificamos y editamos. Vos grabás y seguís siendo la cara de tu marca.</p>
       <ul class="incl">
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Jornada de producción</b> en tu local, evento o lugar de trabajo.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Foto y video</b> pensados para redes (vertical, dinámico, con tu estética).</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Edición y postproducción</b> de reels y piezas, con subtítulos y música.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Banco de material</b> propio para que nunca te falte qué publicar.</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Estrategia y calendario mensual de contenidos</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Fichas de contenido con tomas, fotos y guiones detallados</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Edición profesional de cada pieza</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Adaptado 100% a tu marca y tu ritmo</span></li>
       </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Grabás siguiendo nuestras indicaciones y nos enviás el material. Las historias del día a día y el manejo de la cuenta quedan a tu cargo.</p>
     </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
   </div>
 </section>
-
-<!-- 03 -->
-<section class="svc">
+<section class="svc2 flip">
   <div class="wrap">
-    <div class="svc-meta reveal">
-      <div class="num">03</div>
-      <h2>Pauta en Meta &amp; Google</h2>
-      <span class="tag">Instagram &amp; Facebook</span><span class="tag">Google Ads</span><span class="tag">Optimización semanal</span>
-    </div>
-    <div class="svc-body reveal">
-      <p class="intro">Invertir en pauta sin estrategia es tirar plata. Armamos campañas con un objetivo claro y las seguimos de cerca, semana a semana.</p>
+    <div class="svc2-text">
+      <span class="svc2-name">Creación Completa</span>
+      <p class="svc2-tag">Nosotras nos encargamos de todo.</p>
+      <p class="svc2-desc">Desde la idea hasta la publicación. Vos nos abrís las puertas de tu marca y nosotras hacemos el resto — la última palabra siempre es tuya.</p>
       <ul class="incl">
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Estrategia de campaña</b> según tu objetivo: ventas, mensajes o reconocimiento.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Configuración y segmentación</b> de públicos en Meta y Google.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Optimización semanal</b> de presupuesto, creatividades y públicos.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Control de inversión</b>: sabés en qué se fue cada peso y qué trajo.</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Estrategia, ideas y calendario mensual</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Producción y grabación del contenido</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Edición profesional</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Publicación e historias</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Gestión de cuenta</span></li>
       </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Estar disponible para las grabaciones y dar el visto bueno final. Los mensajes de tu comunidad quedan a tu cargo.</p>
     </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
   </div>
 </section>
-
-<!-- 04 -->
-<section class="svc alt">
+<section class="svc2">
   <div class="wrap">
-    <div class="svc-meta reveal">
-      <div class="num">04</div>
-      <h2>Medición &amp; reportes</h2>
-      <span class="tag">Panel propio</span><span class="tag">Reporte mensual</span><span class="tag">Sin PDFs aburridos</span>
-    </div>
-    <div class="svc-body reveal">
-      <p class="intro">Todos los meses te mostramos qué pasó, en un panel web propio donde ves tus números cuando quieras. Nada de planillas indescifrables.</p>
+    <div class="svc2-text">
+      <span class="svc2-name">Pauta en Meta &amp; Google</span>
+      <p class="svc2-tag">Cada peso, con un objetivo claro.</p>
+      <p class="svc2-desc">Invertir en pauta sin estrategia no rinde. Armamos campañas con un objetivo claro y las seguimos de cerca, semana a semana.</p>
       <ul class="incl">
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Panel online</b> con la performance de tu marca, accesible 24/7.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Métricas que importan</b>: alcance, interacción, mensajes, ventas.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Lectura clara</b> de qué funcionó y qué no, en castellano.</span></li>
-        <li><span class="tick"><svg><use href="#check"/></svg></span><span><b>Plan del mes siguiente</b> basado en datos, no en corazonadas.</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Estrategia de campaña según tu objetivo: ventas, mensajes o reconocimiento</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Configuración y segmentación de públicos en Meta y Google</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimización semanal de presupuesto, creatividades y públicos</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Control de inversión: sabés en qué se fue cada peso y qué trajo</span></li>
       </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Nos definís objetivo y presupuesto; nosotras armamos, optimizamos y te reportamos mes a mes.</p>
     </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
+  </div>
+</section>
+<section class="svc2 flip">
+  <div class="wrap">
+    <div class="svc2-text">
+      <span class="svc2-name">Plan Despegue 🚀<span class="svc2-badge">3 meses</span></span>
+      <p class="svc2-tag">Tres meses para encaminar tu marca y aprender a gestionarla.</p>
+      <p class="svc2-desc">Te acompañamos, te enseñamos y te damos las herramientas para que puedas llevar tu marca con criterio y estrategia propia.</p>
+      <ul class="incl">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Reunión One Shot inicial para definir el rumbo de tu marca</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Reuniones mensuales de seguimiento y ajuste</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Informe de estadísticas mensual</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Calendario de contenidos y pilares de comunicación</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Soporte por WhatsApp durante los 3 meses</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Hoja de ruta al finalizar para seguir creciendo o dar el salto a Co-Creación</span></li>
+      </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Implementás vos mismo con nuestro acompañamiento. Este plan es para quienes quieren aprender a gestionar su marca con criterio.</p>
+    </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
   </div>
 </section>
 
@@ -265,41 +343,6 @@
       <div class="step reveal"><div class="n">3</div><h3>Producción</h3><p>Filmamos, editamos y dejamos todo el contenido listo.</p></div>
       <div class="step reveal"><div class="n">4</div><h3>Pauta</h3><p>Lanzamos y optimizamos campañas semana a semana.</p></div>
       <div class="step reveal"><div class="n">5</div><h3>Medición</h3><p>Reporte en tu panel y ajustamos para el mes que viene.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== REELS (portado del home) ===== -->
-<section class="reels-sec">
-  <div class="wrap">
-    <div class="head">
-      <span class="eyebrow reveal">nuestro trabajo</span>
-      <h2 class="reveal">Lo que producimos, <em>en movimiento.</em></h2>
-      <p class="reveal">Reels, fotos y campañas que filmamos y editamos nosotras. Un par de ejemplos de cómo trabajamos.</p>
-    </div>
-    <div class="ig-grid">
-      <div class="ig-card reveal">
-        <span class="igtag">Edición de video</span>
-        <div class="vreel">
-          <video preload="none" playsinline poster="edicion.jpg">
-            <source src="edicion.mp4" type="video/mp4">
-            <div class="poster-fallback">Subí edicion.mp4</div>
-          </video>
-          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
-        </div>
-        <a class="iglink" href="https://www.instagram.com/reel/DY5ejdVFCfp/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
-      </div>
-      <div class="ig-card reveal d1">
-        <span class="igtag">Estrategia de contenido</span>
-        <div class="vreel">
-          <video preload="none" playsinline poster="estrategia.jpg">
-            <source src="estrategia.mp4" type="video/mp4">
-            <div class="poster-fallback">Subí estrategia.mp4</div>
-          </video>
-          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
-        </div>
-        <a class="iglink" href="https://www.instagram.com/reel/DYfvrTUBPwo/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
-      </div>
     </div>
   </div>
 </section>

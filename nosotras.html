@@ -61,6 +61,13 @@
   .ig-card .iglink{display:inline-block;margin:10px 0 0 4px;font-size:13px;color:var(--ink-soft);}
   .ig-card .iglink:hover{color:var(--blue);}
   @media(max-width:760px){.reels-sec .wrap{padding:60px 22px;}}
+  /* ===== video de agencia (quiénes somos) ===== */
+  .agency-video .wrap{padding:84px 40px;text-align:center;}
+  .agency-video .eyebrow{display:inline-block;transform:rotate(-2deg);}
+  .agency-video h2{font-family:var(--display);font-weight:500;font-size:clamp(30px,5vw,52px);letter-spacing:-.025em;line-height:1.03;margin-top:8px;}
+  .agency-video > .wrap > p{color:var(--ink-soft);font-size:18px;margin-top:14px;max-width:52ch;margin-left:auto;margin-right:auto;}
+  .av-wrap{max-width:320px;margin:40px auto 0;}
+  @media(max-width:760px){.agency-video .wrap{padding:60px 22px;}.av-wrap{max-width:270px;}}
 
   .eyebrow{font-family:var(--hand);font-size:25px;color:var(--blue);}
   .lead{font-size:18px;color:var(--ink-soft);}
@@ -169,39 +176,31 @@
   <span class="kicker">quiénes somos
     <svg class="spk" width="22" height="22" fill="var(--magenta)"><use href="#sparkle"/></svg>
   </span>
-  <h1>Una agencia <em>chica,</em> hecha en Tandil.</h1>
-  <p>Somos dos personas que se cansaron de ver marcas buenísimas comunicar mal. CoMakers nació para cambiar eso, de cerca y con las manos en la masa.</p>
+  <h1>Una agencia hecha en <em>Tandil.</em></h1>
+  <p>Nos cansamos de ver marcas buenísimas comunicar mal. CoMakers nació para cambiar eso: con estrategia, criterio y las manos en la masa.</p>
 </div>
 
 <section class="manifesto">
   <div class="wrap">
     <div class="reveal"><span class="label">nuestra forma</span></div>
     <div class="big reveal">
-      Creemos que una marca no se construye a la distancia. Por eso vamos al local, conocemos a quien atiende, entendemos el negocio. <strong>Producimos contenido real</strong>, pauteamos con cabeza y te mostramos cada número. Sin humo, sin métricas vanidosas, sin <em>"presencia en redes"</em> que no significa nada.
+      Creemos que una buena marca se construye con estrategia y constancia, trabajando a distancia pero siempre cerca de tu marca. <strong>Producimos contenido real</strong>, pauteamos con cabeza y te mostramos cada número. Sin humo, sin métricas vanidosas, sin <em>"presencia en redes"</em> que no significa nada.
     </div>
   </div>
 </section>
 
-<section class="team">
+<section class="agency-video">
   <div class="wrap">
-    <span class="eyebrow reveal">el equipo</span>
-    <h2 class="reveal">Las dos caras de CoMakers.</h2>
-    <div class="people">
-      <div class="person reveal">
-        <div class="photo"><span class="ph">foto de Delfi</span></div>
-        <h3>Delfi</h3>
-        <div class="role">Estrategia &amp; producción</div>
-        <p>Es la que piensa la estrategia y baja las ideas a tierra. Dirige las jornadas de producción, escribe los guiones y se asegura de que cada marca suene distinta a las demás.</p>
-        <p>Viene del mundo de la comunicación y la producción audiovisual, y es la que más disfruta estar en el lugar, cámara en mano.</p>
-        <p class="quote">"Una marca se nota cuando tiene algo para decir y lo dice bien."</p>
-      </div>
-      <div class="person reveal">
-        <div class="photo"><span class="ph">foto de Marti</span></div>
-        <h3>Martina Knell</h3>
-        <div class="role">Pauta &amp; performance</div>
-        <p>Es la cabeza de los números. Arma y optimiza las campañas de Meta y Google, sigue cada métrica y traduce los datos en decisiones concretas para cada cliente.</p>
-        <p>Le gusta entender por qué pasan las cosas: qué creatividad rinde, qué público responde, dónde conviene poner el próximo peso.</p>
-        <p class="quote">"Los datos no mienten. La gracia está en saber qué preguntarles."</p>
+    <span class="eyebrow reveal">quiénes somos</span>
+    <h2 class="reveal">CoMakers, en una toma.</h2>
+    <p class="reveal">Más que presentarnos una por una, preferimos mostrarte cómo trabajamos.</p>
+    <div class="av-wrap reveal">
+      <div class="vreel">
+        <video preload="none" playsinline poster="estrategia.jpg">
+          <source src="estrategia.mp4" type="video/mp4">
+          <div class="poster-fallback">Subí estrategia.mp4</div>
+        </video>
+        <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
       </div>
     </div>
   </div>
@@ -241,41 +240,6 @@
     <span class="eyebrow reveal">para quién</span>
     <h2 class="reveal">Pymes y marcas que quieren crecer en serio.</h2>
     <p class="reveal">Si tenés un negocio que funciona pero sentís que comunicás de menos —o que invertís en redes sin saber qué te devuelve— ahí entramos nosotras.</p>
-  </div>
-</section>
-
-<!-- ===== REELS (portado del home) ===== -->
-<section class="reels-sec">
-  <div class="wrap">
-    <div class="head">
-      <span class="eyebrow reveal">nuestro trabajo</span>
-      <h2 class="reveal">Lo que producimos, <em>en movimiento.</em></h2>
-      <p class="reveal">Reels, fotos y campañas que filmamos y editamos nosotras. Un par de ejemplos de cómo trabajamos.</p>
-    </div>
-    <div class="ig-grid">
-      <div class="ig-card reveal">
-        <span class="igtag">Edición de video</span>
-        <div class="vreel">
-          <video preload="none" playsinline poster="edicion.jpg">
-            <source src="edicion.mp4" type="video/mp4">
-            <div class="poster-fallback">Subí edicion.mp4</div>
-          </video>
-          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
-        </div>
-        <a class="iglink" href="https://www.instagram.com/reel/DY5ejdVFCfp/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
-      </div>
-      <div class="ig-card reveal d1">
-        <span class="igtag">Estrategia de contenido</span>
-        <div class="vreel">
-          <video preload="none" playsinline poster="estrategia.jpg">
-            <source src="estrategia.mp4" type="video/mp4">
-            <div class="poster-fallback">Subí estrategia.mp4</div>
-          </video>
-          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
-        </div>
-        <a class="iglink" href="https://www.instagram.com/reel/DYfvrTUBPwo/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
-      </div>
-    </div>
   </div>
 </section>
 
