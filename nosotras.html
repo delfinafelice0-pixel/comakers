@@ -41,6 +41,27 @@
   .btn-ghost:hover{background:var(--ink);color:var(--white);}
 
   .wrap{max-width:1120px;margin:0 auto;padding:0 40px;}
+  /* ===== video reels (portado del home) ===== */
+  .reels-sec .wrap{padding:88px 40px;}
+  .reels-sec .head{max-width:640px;margin-bottom:40px;}
+  .reels-sec .head h2{font-family:var(--display);font-weight:500;font-size:clamp(28px,4.4vw,46px);line-height:1.04;letter-spacing:-.02em;margin-top:12px;}
+  .reels-sec .head h2 em{font-style:italic;color:var(--magenta);}
+  .reels-sec .head p{margin-top:16px;color:var(--ink-soft);font-size:18px;}
+  .ig-grid{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;}
+  .ig-card{flex:0 1 320px;max-width:320px;width:100%;}
+  .ig-card .igtag{font-family:var(--hand);font-size:23px;color:var(--blue);display:inline-block;transform:rotate(-2deg);margin:0 0 12px 4px;}
+  .vreel{position:relative;aspect-ratio:9/16;border-radius:20px;overflow:hidden;border:1.5px solid var(--ink);background:#0e0b1f;box-shadow:5px 7px 0 rgba(22,18,46,.14);}
+  .vreel video{width:100%;height:100%;object-fit:cover;display:block;}
+  .vreel .vplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:none;background:linear-gradient(180deg,rgba(22,18,46,.05),rgba(22,18,46,.28));cursor:pointer;transition:opacity .3s;}
+  .vreel .vplay .circle{width:64px;height:64px;border-radius:50%;background:var(--magenta);display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink);transition:transform .25s;box-shadow:0 6px 18px rgba(22,18,46,.3);}
+  .vreel .vplay .circle svg{width:22px;height:22px;margin-left:3px;fill:var(--ink);}
+  .vreel .vplay:hover .circle{transform:scale(1.12);}
+  .vreel.playing .vplay{opacity:0;pointer-events:none;}
+  .vreel .poster-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#1a1535,#2b2550);color:rgba(243,239,230,.6);font-size:13px;text-align:center;padding:20px;}
+  .ig-card .iglink{display:inline-block;margin:10px 0 0 4px;font-size:13px;color:var(--ink-soft);}
+  .ig-card .iglink:hover{color:var(--blue);}
+  @media(max-width:760px){.reels-sec .wrap{padding:60px 22px;}}
+
   .eyebrow{font-family:var(--hand);font-size:25px;color:var(--blue);}
   .lead{font-size:18px;color:var(--ink-soft);}
 
@@ -218,8 +239,43 @@
 <section class="audience">
   <div class="wrap">
     <span class="eyebrow reveal">para quién</span>
-    <h2 class="reveal">Pymes y emprendedores que quieren crecer en serio.</h2>
+    <h2 class="reveal">Pymes y marcas que quieren crecer en serio.</h2>
     <p class="reveal">Si tenés un negocio que funciona pero sentís que comunicás de menos —o que invertís en redes sin saber qué te devuelve— ahí entramos nosotras.</p>
+  </div>
+</section>
+
+<!-- ===== REELS (portado del home) ===== -->
+<section class="reels-sec">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow reveal">nuestro trabajo</span>
+      <h2 class="reveal">Lo que producimos, <em>en movimiento.</em></h2>
+      <p class="reveal">Reels, fotos y campañas que filmamos y editamos nosotras. Un par de ejemplos de cómo trabajamos.</p>
+    </div>
+    <div class="ig-grid">
+      <div class="ig-card reveal">
+        <span class="igtag">Edición de video</span>
+        <div class="vreel">
+          <video preload="none" playsinline poster="edicion.jpg">
+            <source src="edicion.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí edicion.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
+        </div>
+        <a class="iglink" href="https://www.instagram.com/reel/DY5ejdVFCfp/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
+      </div>
+      <div class="ig-card reveal d1">
+        <span class="igtag">Estrategia de contenido</span>
+        <div class="vreel">
+          <video preload="none" playsinline poster="estrategia.jpg">
+            <source src="estrategia.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí estrategia.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
+        </div>
+        <a class="iglink" href="https://www.instagram.com/reel/DYfvrTUBPwo/" target="_blank" rel="noopener">↗ Ver en Instagram</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -276,6 +332,14 @@
   const WA_NUMBER = "5492494209868";
   const WA_MSG = encodeURIComponent("Hola CoMakers! Me gustaria saber mas sobre sus servicios.");
   document.getElementById('waFab').href = "https://wa.me/" + WA_NUMBER + "?text=" + WA_MSG;
+</script>
+<script>
+  document.querySelectorAll('.vreel').forEach(card=>{
+    const v=card.querySelector('video'); const btn=card.querySelector('.vplay');
+    if(!v||!btn) return;
+    btn.addEventListener('click',()=>{ v.setAttribute('controls',''); card.classList.add('playing'); const p=v.play(); if(p&&p.catch)p.catch(()=>{}); });
+    v.addEventListener('ended',()=>{ card.classList.remove('playing'); v.removeAttribute('controls'); });
+  });
 </script>
 </body>
 </html>
