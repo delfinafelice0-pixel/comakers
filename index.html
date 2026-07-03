@@ -109,6 +109,21 @@
   .hero h1 em{font-style:italic;color:var(--magenta);}
   .hero p{font-size:19px;color:var(--ink-soft);max-width:520px;margin:26px 0 34px;}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap;}
+  /* ===== hero D (editorial) ===== */
+  .hero-d{padding:36px 40px 74px;max-width:1160px;margin:0 auto;}
+  .hero-d .d-grid{display:grid;grid-template-columns:1.35fr .85fr;gap:56px;align-items:center;}
+  .hero-d .eyebrow{margin-bottom:14px;}
+  .hero-d .d-text h1{font-family:var(--display);font-weight:500;font-size:clamp(34px,4.8vw,60px);line-height:1.06;letter-spacing:-.02em;max-width:none;}
+  .hero-d .d-text h1 em{font-style:italic;color:var(--magenta);}
+  .hero-d .d-text h1 .mark{background:linear-gradient(transparent 58%,var(--lima) 58%);padding:0 .04em;}
+  .hero-d .hero-cta{margin-top:34px;}
+  .hero-d .d-visual{max-width:330px;width:100%;margin-left:auto;}
+  .hero-d .d-visual .vreel{aspect-ratio:9/16;}
+  @media(max-width:820px){
+    .hero-d{padding:20px 22px 56px;}
+    .hero-d .d-grid{grid-template-columns:1fr;gap:30px;}
+    .hero-d .d-text{order:1;} .hero-d .d-visual{order:2;margin:0 auto;max-width:300px;}
+  }
   /* ---- hero: selección digital + cartel iPhone (mix analógico) ---- */
   .hero-select{position:relative;display:inline-block;max-width:min(820px,100%);margin:2px 0 0;z-index:3;}
   .hero-select .sel-h1{font-family:var(--display);font-weight:500;font-style:italic;font-size:clamp(40px,7.4vw,82px);line-height:1.08;letter-spacing:-.02em;color:var(--ink);max-width:none;}
@@ -319,26 +334,26 @@
   <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
 </nav>
 
-<!-- ===== HERO ===== -->
-<section class="hero">
-  <!-- stickers -->
-  <div class="sticker keep" style="top:6%;right:6%;width:120px;--rot:-8deg;">__CAMERA__</div>
-  <div class="sticker" style="top:48%;right:14%;width:78px;--rot:10deg;">__PLANE__</div>
-  <div class="sticker" style="bottom:4%;left:2%;width:92px;--rot:-6deg;">__MEGAPHONE__</div>
-  <div class="spark" style="top:8%;left:30%;width:34px;"><svg viewBox="0 0 100 100"><path d="M50 0C55 36 64 45 100 50C64 55 55 64 50 100C45 64 36 55 0 50C36 45 45 36 50 0Z"/></svg></div>
-  <div class="spark" style="top:30%;left:24%;width:20px;color:var(--blue);animation-delay:.6s;"><svg viewBox="0 0 100 100"><path d="M50 0C55 36 64 45 100 50C64 55 55 64 50 100C45 64 36 55 0 50C36 45 45 36 50 0Z"/></svg></div>
-
-  <span class="eyebrow reveal">marketing que se nota</span>
-  <div class="hero-select reveal d1">
-    <div class="ios-menu" aria-hidden="true"><span class="it">Copy</span><span class="it">Select All</span><span class="it">Share</span><span class="it chev">›</span></div>
-    <h1 class="sel-h1"><span class="sel"><b>creamos y gestionamos</b> tu presencia digital con estrategia</span></h1>
-    <span class="handle tl"><span class="bar"></span><span class="dot"></span></span>
-    <span class="handle br"><span class="bar"></span><span class="dot"></span></span>
-  </div>
-  <p class="reveal d2">Contenido y pauta, para que tu marca crezca sin que vos tengas que ocuparte de todo.</p>
-  <div class="hero-cta reveal d3">
-    <a class="btn btn-dark mag" href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Trabajemos juntas →</a>
-    <a class="btn btn-ghost mag" href="servicios.html">Ver servicios</a>
+<!-- ===== HERO (D · editorial) ===== -->
+<section class="hero hero-d">
+  <div class="d-grid">
+    <div class="d-text">
+      <span class="eyebrow reveal">marketing que se nota</span>
+      <h1 class="reveal d1">Una marca con identidad no depende de la <em>suerte</em>: se construye con <span class="mark">estrategia</span>.</h1>
+      <div class="hero-cta reveal d2">
+        <a class="btn btn-dark mag" href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Trabajemos juntas →</a>
+        <a class="btn btn-ghost mag" href="servicios.html">Ver servicios</a>
+      </div>
+    </div>
+    <div class="d-visual reveal">
+      <div class="vreel">
+        <video preload="none" playsinline poster="estrategia.jpg">
+          <source src="estrategia.mp4" type="video/mp4">
+          <div class="poster-fallback">Subí estrategia.mp4</div>
+        </video>
+        <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -346,23 +361,6 @@
 <div class="band">
   <div class="band-track" id="bandTrack"></div>
 </div>
-
-<!-- ===== SHOWREEL ===== -->
-<section class="showreel">
-  <div class="wrap">
-    <div class="head">
-      <span class="eyebrow reveal">mirá esto</span>
-      <h2 class="h2 reveal d1" style="margin-top:10px;">CoMakers, <em>en movimiento.</em></h2>
-    </div>
-    <div class="yt reveal">
-      <video preload="none" playsinline poster="estrategia.jpg">
-        <source src="estrategia.mp4" type="video/mp4">
-        <div class="poster-fallback">Subí estrategia.mp4</div>
-      </video>
-      <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
-    </div>
-  </div>
-</section>
 
 <!-- ===== SERVICES (teaser -> servicios.html) ===== -->
 <section class="services marked">
@@ -463,13 +461,6 @@
       <p class="lead reveal d2">Un equipo obsesivo con tu marca, trabajando a distancia desde Tandil.</p>
       <a class="btn btn-dark mag reveal d3" href="nosotras.html" style="margin-top:22px;">Conocé al equipo →</a>
     </div>
-  </div>
-</section>
-
-<!-- ===== QUOTE ===== -->
-<section class="quote">
-  <div class="wrap">
-    <p class="reveal">Una marca con identidad no depende de la <em>suerte</em>: se construye con <span class="mark">estrategia</span>.</p>
   </div>
 </section>
 
