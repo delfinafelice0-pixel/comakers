@@ -4478,85 +4478,6 @@
     .reporte-modal-stat { padding: 0; border-right: none; }
   }
 
-  /* ── REPORTE ORGÁNICO PROFUNDO (dentro del modal) ── */
-  .deep-loading { padding: 22px 0; font-size: 13px; color: var(--ink-mute); text-align: center; }
-  .deep-sec { padding: 18px 0; border-top: 1px solid var(--line); }
-  .deep-sec:first-child { border-top: none; padding-top: 2px; }
-  .deep-sec-head { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 14px; }
-  .deep-sec-num { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0; }
-  .deep-big { font-size: 30px; font-weight: 700; line-height: 1.1; color: var(--ink); margin-bottom: 14px; }
-  .deep-big-cap { display: block; font-size: 12px; font-weight: 500; color: var(--ink-mute); margin-top: 4px; }
-
-  .deep-bars { display: flex; flex-direction: column; gap: 9px; }
-  .deep-bars.tight { gap: 7px; }
-  .deep-bar-row { display: grid; grid-template-columns: 92px 1fr auto; align-items: center; gap: 10px; }
-  .deep-bar-label { font-size: 12px; color: var(--ink-soft); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .deep-bar-track { height: 8px; background: var(--line-soft); border-radius: 6px; overflow: hidden; }
-  .deep-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; transition: width .55s cubic-bezier(.2,.8,.2,1); }
-  .deep-bar-val { font-size: 12px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .deep-bar-sub { color: var(--ink-mute); font-weight: 500; }
-
-  .deep-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .deep-card { padding: 12px 10px; background: var(--bg); border-radius: 10px; text-align: center; }
-  .deep-card-val { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .deep-card-lbl { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
-  .deep-card.up .deep-card-val { color: #1F9D6B; }
-  .deep-card.down .deep-card-val { color: #C0392B; }
-
-  .deep-split { margin-top: 16px; }
-  .deep-split-head { font-size: 11px; color: var(--ink-mute); font-weight: 600; margin-bottom: 7px; }
-  .deep-split-bar { display: flex; height: 10px; border-radius: 6px; overflow: hidden; background: var(--line-soft); }
-  .deep-split-seg.posts { background: var(--accent); }
-  .deep-split-seg.reels { background: #C58BD6; }
-  .deep-split-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
-  .deep-split-legend .dot, .deep-donut-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
-  .dot.posts { background: var(--accent); }
-  .dot.reels { background: #C58BD6; }
-
-  .deep-spark { margin-top: 16px; }
-  .deep-spark-bars { display: flex; align-items: flex-end; gap: 4px; height: 56px; }
-  .deep-spark-bar { flex: 1; background: var(--accent); opacity: .85; border-radius: 3px 3px 0 0; min-height: 4px; }
-  .deep-spark-bar:last-child { opacity: 1; }
-  .deep-spark-cap { font-size: 11px; color: var(--ink-mute); margin-top: 6px; }
-
-  .deep-aud { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .deep-aud-block { min-width: 0; }
-  .deep-aud-title { font-size: 11px; color: var(--ink-mute); font-weight: 600; margin-bottom: 10px; }
-  .deep-donut-wrap { display: flex; align-items: center; gap: 14px; }
-  .deep-donut { width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0; -webkit-mask: radial-gradient(circle 23px at center, transparent 98%, #000 100%); mask: radial-gradient(circle 23px at center, transparent 98%, #000 100%); }
-  .deep-donut-legend { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ink-soft); }
-
-  .deep-analisis-input { width: 100%; min-height: 110px; resize: vertical; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 13px; line-height: 1.6; color: var(--ink); background: var(--bg-elev); box-sizing: border-box; }
-  .deep-analisis-input:focus { outline: none; border-color: var(--accent); }
-  .deep-analisis-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 10px; }
-  .deep-analisis-status { font-size: 12px; color: var(--ink-mute); }
-  .deep-analisis-status.ok { color: #1F9D6B; }
-  .deep-analisis-status.err { color: #C0392B; }
-  .deep-analisis-btn { padding: 8px 16px; font-size: 13px; }
-  .deep-analisis-read { font-size: 13px; line-height: 1.6; color: var(--ink-soft); white-space: pre-wrap; }
-  .deep-analisis-empty { font-size: 12px; color: var(--ink-mute); font-style: italic; }
-
-  @media (max-width: 560px) {
-    .deep-aud { grid-template-columns: 1fr; }
-    .deep-cards { grid-template-columns: repeat(2, 1fr); }
-    .deep-bar-row { grid-template-columns: 78px 1fr auto; }
-  }
-
-  /* ── PANEL DE ACCIONES DE AGENCIA (modal reporte) ── */
-  .rep-agency-panel { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 4px 0 18px; background: var(--bg); }
-  .rep-agency-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 12px; }
-  .rep-agency-estado { display: inline-flex; padding: 3px; gap: 3px; background: var(--line-soft); border-radius: 9px; }
-  .rep-estado-btn { border: none; background: transparent; padding: 7px 14px; border-radius: 7px; font: inherit; font-size: 12px; font-weight: 600; color: var(--ink-soft); cursor: pointer; transition: background .15s, color .15s; }
-  .rep-estado-btn:hover { color: var(--ink); }
-  .rep-estado-btn.active { background: var(--bg-elev); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
-  .rep-estado-btn.pub.active { background: var(--accent); color: #fff; }
-  .rep-agency-cierra { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-  .rep-agency-cierra label { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
-  .rep-agency-cierra input { flex: 1; min-width: 140px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 13px; color: var(--ink); background: var(--bg-elev); box-sizing: border-box; }
-  .rep-agency-cierra input:focus { outline: none; border-color: var(--accent); }
-  .rep-cierra-save { padding: 7px 14px; font-size: 12px; }
-  .rep-agency-hint { font-size: 11px; color: var(--ink-mute); margin-top: 10px; line-height: 1.5; }
-
   /* ── MODALES DE CREACIÓN ──────────────────── */
   .create-modal {
     max-width: 580px;
@@ -5604,20 +5525,6 @@
     color: var(--ink);
     background: var(--warn-soft);
   }
-  .cell-action-btn.danger:hover {
-    border-color: #c0392b;
-    color: #c0392b;
-    background: var(--warn-soft);
-  }
-  /* Celdas de ideas ajenas (el cliente no las edita) */
-  .cell-text:disabled,
-  .cell-textarea:disabled,
-  .cell-select:disabled,
-  .cell-estado-select:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: transparent;
-  }
 
   /* Footer con botón "agregar fila" */
   .planilla-footer {
@@ -6198,6 +6105,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
         Contenido y Redes
       </button>
+      <button class="nav-item" data-tab="creador" data-modulo="creador" data-agency-only>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"></path><path d="M5 20l1-2.5L8.5 16.5 6 15.5 5 13l-1 2.5L1.5 16.5 4 17.5z"></path></svg>
+        Creador de calendario
+      </button>
       <button class="nav-item" data-tab="ideas" data-modulo="ideas">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2z"></path></svg>
         Lluvia de ideas
@@ -6342,9 +6253,49 @@
         <div class="card">
           <div class="card-head">
             <div class="card-title">Highlights del <em>mes</em></div>
+            <a class="card-link" href="#">Ver todo</a>
           </div>
-          <div class="highlights" id="highlightsList">
-            <div style="font-size:13px;color:var(--ink-mute);line-height:1.55;padding:6px 0;">Sin highlights cargados este mes todavía.</div>
+          <div class="highlights">
+            <div class="highlight">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              </div>
+              <div>
+                <div class="highlight-text"><strong>Reel de Ruta de la Luz</strong> superó las 84 mil reproducciones, el contenido con mejor performance del trimestre.</div>
+                <div class="highlight-meta">12 de mayo · orgánico</div>
+              </div>
+              <div class="highlight-stat">84.2K</div>
+            </div>
+            <div class="highlight">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+              </div>
+              <div>
+                <div class="highlight-text"><strong>Campaña India 2027</strong> generó 21 leads calificados en 14 días con ROAS de 4.8x.</div>
+                <div class="highlight-meta">Pauta Meta · presupuesto $180K</div>
+              </div>
+              <div class="highlight-stat">21</div>
+            </div>
+            <div class="highlight">
+              <div class="highlight-icon warn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              </div>
+              <div>
+                <div class="highlight-text"><strong>Caída de impresiones en Google Ads</strong> la segunda quincena. Sugerencia: revisar pujas y palabras clave.</div>
+                <div class="highlight-meta">Requiere atención · agencia</div>
+              </div>
+              <div class="highlight-stat">-32%</div>
+            </div>
+            <div class="highlight">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              </div>
+              <div>
+                <div class="highlight-text"><strong>1.240 nuevos seguidores</strong> en Instagram, 78% mujeres de 28-45 años de AMBA y Córdoba.</div>
+                <div class="highlight-meta">@ekhosorg · perfil audiencia</div>
+              </div>
+              <div class="highlight-stat">+1.2K</div>
+            </div>
           </div>
         </div>
 
@@ -6363,8 +6314,8 @@
       <div class="card chart-card" data-section="resumen.chart">
         <div class="card-head">
           <div>
-            <div class="card-title">Performance del <em>mes</em></div>
-            <div class="kpi-sub" style="margin-top:2px;">Día a día · se completa con cada sync de Instagram</div>
+            <div class="card-title">Performance últimos <em>3 meses</em></div>
+            <div class="kpi-sub" style="margin-top:2px;">Evolución diaria · marzo a mayo</div>
           </div>
           <div class="chart-tabs">
             <button class="chart-tab active" data-metric="alcance">Alcance</button>
@@ -6373,7 +6324,6 @@
           </div>
         </div>
         <div class="chart-wrap">
-          <div id="chartEmpty" style="display:none;font-size:13px;color:var(--ink-mute);text-align:center;padding:48px 16px;line-height:1.55;">Recolectando datos del mes — el gráfico se va dibujando a medida que sincronices Instagram.</div>
           <svg viewBox="0 0 800 220" preserveAspectRatio="none" id="chart">
             <!-- grid -->
             <line x1="0" y1="55" x2="800" y2="55" stroke="#ECEAF0" stroke-width="1"/>
@@ -6389,7 +6339,10 @@
                 <stop offset="100%" stop-color="#FF82FF" stop-opacity="0"/>
               </linearGradient>
             </defs>
-            <!-- x labels: ocultos en vista diaria -->
+            <!-- x labels -->
+            <text x="20" y="210" font-size="11" fill="#938C99" font-family="DM Sans">Mar</text>
+            <text x="280" y="210" font-size="11" fill="#938C99" font-family="DM Sans">Abr</text>
+            <text x="540" y="210" font-size="11" fill="#938C99" font-family="DM Sans">May</text>
           </svg>
         </div>
       </div>
@@ -6405,15 +6358,15 @@
         </button>
         <button class="quick-card" data-goto="pauta">
           <div class="quick-card-text">
-            <div class="quick-card-label">Pauta</div>
-            <div class="quick-card-title">Ver campañas</div>
+            <div class="quick-card-label">Pauta activa</div>
+            <div class="quick-card-title">3 campañas corriendo</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
         <button class="quick-card" data-goto="proyectos">
           <div class="quick-card-text">
-            <div class="quick-card-label">Proyectos</div>
-            <div class="quick-card-title">Ver proyectos</div>
+            <div class="quick-card-label">En marcha</div>
+            <div class="quick-card-title">India 2027 · Ruta de la Luz</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
@@ -6547,6 +6500,108 @@
 
     <!-- Toast container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <style id="cc-styles">
+      #panel-creador .cc-brief { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 16px; }
+      #panel-creador .cc-brief-row { display: flex; flex-direction: column; gap: 5px; }
+      #panel-creador .cc-brief-row.full { grid-column: 1 / -1; }
+      #panel-creador .cc-brief-row label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+      #panel-creador .cc-brief-row input, #panel-creador .cc-brief-row textarea { border: 1px solid var(--line); border-radius: var(--radius); padding: 9px 11px; font-size: 13px; background: var(--bg); color: var(--ink); outline: none; }
+      #panel-creador .cc-brief-row input:focus, #panel-creador .cc-brief-row textarea:focus { border-color: var(--accent); background: var(--bg-elev); }
+      #panel-creador .cc-brief-row textarea { resize: vertical; min-height: 52px; }
+      #panel-creador .cc-pilares { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 3px; }
+      #panel-creador .cc-pilchip { font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 20px; background: var(--accent-soft); color: var(--ink); }
+      #panel-creador .cc-pilchip.empty { background: var(--line-soft); color: var(--ink-mute); }
+      #panel-creador .cc-hint { font-size: 12px; color: var(--ink-mute); margin-top: 10px; }
+      #panel-creador .cc-hint b { color: var(--ink-soft); }
+      #panel-creador .cc-loading { text-align: center; padding: 48px 20px; }
+      #panel-creador .cc-spinner { width: 34px; height: 34px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; margin: 0 auto 14px; animation: cc-spin .8s linear infinite; }
+      @keyframes cc-spin { to { transform: rotate(360deg); } }
+      #panel-creador .cc-notice { border: 1px dashed var(--line); border-radius: var(--radius-lg); padding: 30px; text-align: center; background: var(--bg-elev); }
+      #panel-creador .cc-notice h3 { font-family: var(--display); font-weight: 500; margin: 0 0 6px; font-size: 18px; }
+      #panel-creador .cc-notice p { color: var(--ink-mute); max-width: 460px; margin: 0 auto 16px; font-size: 13px; }
+      #panel-creador .cc-notice code { background: var(--line-soft); padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+      #panel-creador .cc-week { font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--ink); margin: 18px 2px 8px; }
+      #panel-creador .cc-card { display: flex; gap: 13px; border: 1px solid var(--line); border-radius: var(--radius); padding: 13px 15px; margin-bottom: 9px; background: var(--bg-elev); transition: border-color .15s, background .15s; }
+      #panel-creador .cc-card.on { border-color: var(--accent); background: var(--accent-soft); }
+      #panel-creador .cc-check input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; margin-top: 3px; }
+      #panel-creador .cc-main { flex: 1; min-width: 0; }
+      #panel-creador .cc-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 7px; }
+      #panel-creador .cc-date { border: 1px solid var(--line); border-radius: 7px; padding: 3px 7px; font-size: 12px; background: var(--bg-elev); color: var(--ink-soft); }
+      #panel-creador .cc-tag { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+      #panel-creador .cc-tag.pilar { background: var(--cyan); color: var(--ink); }
+      #panel-creador .cc-tag.fmt { background: var(--line-soft); color: var(--ink-soft); text-transform: capitalize; }
+      #panel-creador .cc-varsw { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+      #panel-creador .cc-varlbl { font-size: 11px; color: var(--ink-mute); font-weight: 600; }
+      #panel-creador .cc-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); border: 1px solid var(--line); padding: 0; cursor: pointer; }
+      #panel-creador .cc-dot.on { background: var(--accent); border-color: var(--accent); }
+      #panel-creador .cc-title-in { width: 100%; font-weight: 600; font-size: 14px; border: none; background: none; padding: 2px 0; color: var(--ink); border-bottom: 1px solid transparent; }
+      #panel-creador .cc-title-in:focus { outline: none; border-bottom-color: var(--line); }
+      #panel-creador .cc-copy-in { width: 100%; border: none; background: none; resize: vertical; min-height: 38px; font-size: 13px; color: var(--ink-soft); padding: 3px 0 0; }
+      #panel-creador .cc-copy-in:focus { outline: none; }
+      #panel-creador .cc-notas { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+      #panel-creador .cc-nota { font-size: 11px; background: var(--lime-soft); color: var(--ink-soft); border: 1px solid var(--lime); padding: 2px 8px; border-radius: 20px; }
+      #panel-creador .cc-refine { display: flex; gap: 7px; margin-top: 9px; }
+      #panel-creador .cc-refine input { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font-size: 12px; background: var(--bg-elev); color: var(--ink); }
+      #panel-creador .cc-refine input:focus { outline: none; border-color: var(--accent); }
+      #panel-creador .cc-refine button { flex-shrink: 0; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 8px; background: var(--ink); color: #fff; cursor: pointer; }
+      #panel-creador .cc-cardbusy { font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+      #panel-creador .cc-cardbusy .cc-spinner { width: 14px; height: 14px; border-width: 2px; margin: 0; }
+      #panel-creador .cc-footbar { position: sticky; bottom: 0; display: flex; align-items: center; gap: 12px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-top: 16px; box-shadow: 0 -2px 10px rgba(27,22,32,.05); font-size: 13px; }
+      #panel-creador .cc-footbar b { color: var(--ink); }
+    </style>
+    <section class="panel" id="panel-creador">
+      <div class="topbar">
+        <div>
+          <h1>Creador de <em>calendario</em></h1>
+          <div class="greeting">Generá el mes de contenido con IA desde el brief del cliente. Vos revisás y lo pasás a Contenido y Redes.</div>
+        </div>
+      </div>
+
+      <div id="cc-intro">
+        <div class="cc-brief">
+          <div class="cc-brief-row">
+            <label>Mes a generar</label>
+            <input type="month" id="cc-mes">
+          </div>
+          <div class="cc-brief-row">
+            <label>Posts por semana</label>
+            <input type="number" id="cc-frec" min="1" max="7" value="3">
+          </div>
+          <div class="cc-brief-row">
+            <label>Objetivo del contenido</label>
+            <input type="text" id="cc-objetivo" placeholder="Ej: comunidad + visibilidad → agendar consulta">
+          </div>
+          <div class="cc-brief-row">
+            <label>Tono de marca</label>
+            <input type="text" id="cc-tono" placeholder="Ej: profesional pero cercano">
+          </div>
+          <div class="cc-brief-row full">
+            <label>Pilares de contenido <span style="font-weight:400;color:var(--ink-mute)">(del cliente actual)</span></label>
+            <div class="cc-pilares" id="cc-pilares"></div>
+          </div>
+          <div class="cc-brief-row full">
+            <label>Foco del mes / fechas clave <span style="font-weight:400;color:var(--ink-mute)">(opcional)</span></label>
+            <textarea id="cc-foco" placeholder="Ej: empujar la primera entrevista gratis, lanzamiento de un taller, fecha clave del sector…"></textarea>
+          </div>
+        </div>
+        <button class="btn-primary" id="cc-generar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"></path></svg>
+          Generar mes con IA
+        </button>
+        <div class="cc-hint">La IA redacta borradores en estado <b>Idea</b>. Nada se publica solo: vos revisás, editás y aprobás cada pieza.</div>
+      </div>
+
+      <div id="cc-results"></div>
+
+      <div class="cc-footbar" id="cc-footbar" style="display:none">
+        <span id="cc-count"></span>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+          <button class="btn-ghost" id="cc-regen">Volver a generar</button>
+          <button class="btn-primary" id="cc-pasar">Pasar al calendario</button>
+        </div>
+      </div>
+    </section>
 
     <section class="panel" id="panel-contenido">
       <div class="topbar">
@@ -7590,22 +7645,8 @@
         </div>
       </div>
 
-      <!-- Ámbito: Orgánico / Pauta (según servicio del cliente) -->
-      <div class="subtabs" id="repAmbitoBar" style="margin-bottom: 10px;">
-        <button class="subtab active" data-rep-ambito="organico">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg>
-          Orgánico
-        </button>
-        <button class="subtab" data-rep-ambito="pauta">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
-          Pauta
-        </button>
-      </div>
-
-      <!-- Sub-tabs · "Evolución anual" oculto hasta tener histórico real en la base.
-           Queda solo "Mensuales", así que ocultamos toda la barra y el panel mensual se muestra directo.
-           Para reactivar Evolución: quitar el display:none de abajo. -->
-      <div class="subtabs" style="display:none;">
+      <!-- Sub-tabs -->
+      <div class="subtabs">
         <button class="subtab active" data-rep-tab="mensuales">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           Mensuales
@@ -7714,17 +7755,6 @@
           </div>
         </div>
         <div class="modulos-grid" id="modulosGrid"></div>
-      </div>
-
-      <!-- Reportes que ve el cliente -->
-      <div class="config-section">
-        <div class="section-head">
-          <div class="section-head-left">
-            <div class="section-title">Reportes que <em>ve el cliente</em></div>
-            <div class="section-subtitle">Según el servicio contratado · se muestran como reportes separados</div>
-          </div>
-        </div>
-        <div class="modulos-grid" id="repFlagsGrid"></div>
       </div>
 
       <!-- Visibilidad por sección -->
@@ -8259,11 +8289,6 @@
     applyModulosToSidebar();
     renderClientDropdown();
     if (typeof cargarReportes === 'function') cargarReportes();
-    if (typeof cargarPosts === 'function') cargarPosts();
-    if (typeof cargarTareas === 'function') cargarTareas();
-    if (typeof cargarIdeas === 'function') cargarIdeas();
-    if (typeof cargarArchivos === 'function') cargarArchivos();
-    if (typeof cargarMetricasDiarias === 'function') cargarMetricasDiarias();
   }
 
   // Toggle dropdown
@@ -8317,45 +8342,32 @@
     // Si el cliente está viendo una tab que no tiene permiso, lo mando a Resumen
     if (!u.showAgencyOnly) {
       const activeTab = document.querySelector('.nav-item.active')?.dataset.tab;
-      if (activeTab === 'config') goTo('resumen');
+      if (activeTab === 'config' || activeTab === 'creador') goTo('resumen');
     }
 
     // Tareas
-    renderTasks();
+    renderTasks(u.tasks);
   }
 
-  function renderTasks() {
+  function renderTasks(tasks) {
     const cont = document.getElementById('pendientes');
-    if (!cont) return;
-    // Pendientes reales = tareas del cliente que no están completadas
-    const pend = TAREAS.filter(t => t.estado !== 'completada' && t.estado !== 'hecha');
-    // Actualizar el contador del link "Ver todas (N)"
-    const link = document.querySelector('[data-section="resumen.highlights-pendientes"] [data-goto="tareas"]');
-    if (link) link.textContent = `Ver todas (${pend.length})`;
     cont.innerHTML = '';
-    if (pend.length === 0) {
-      cont.innerHTML = '<div style="font-size:13px;color:var(--ink-mute);line-height:1.5;padding:6px 0;">No hay tareas pendientes por ahora.</div>';
-      return;
-    }
-    const dueMap = { urgente: 'urgent', pronto: 'soon', normal: 'normal' };
-    pend.slice(0, 4).forEach(t => {
-      const due = dueMap[t.fechaTipo] || 'normal';
-      const meta = t.proyecto + (t.responsable ? ' · ' + t.responsable : '');
+    tasks.slice(0, 4).forEach(t => {
       const el = document.createElement('div');
-      el.className = 'task';
+      el.className = 'task' + (t.done ? ' done' : '');
       el.innerHTML = `
-        <button class="task-check" aria-label="Marcar como hecha"></button>
+        <button class="task-check ${t.done ? 'done' : ''}" aria-label="Marcar como hecha"></button>
         <div class="task-content">
-          <div class="task-title">${t.titulo}</div>
-          <div class="task-meta">${meta}</div>
+          <div class="task-title">${t.title}</div>
+          <div class="task-meta">${t.meta}</div>
         </div>
-        <span class="task-due ${due}">${t.fechaLabel}</span>
+        <span class="task-due ${t.due}">${t.dueLabel}</span>
       `;
       const check = el.querySelector('.task-check');
       check.addEventListener('click', () => {
-        check.classList.add('done');
-        el.classList.add('done');
-        if (typeof actualizarEstadoTarea === 'function') actualizarEstadoTarea(t.id, 'completada');
+        t.done = !t.done;
+        check.classList.toggle('done', t.done);
+        el.classList.toggle('done', t.done);
       });
       cont.appendChild(el);
     });
@@ -8367,67 +8379,45 @@
   });
 
   // ═══════════════ CHART ═══════════════
-  // Datos diarios REALES del mes en curso (tabla metrica_diaria). Se van sumando con cada sync de Instagram.
-  let CHART_DIARIO = [];
+  // Datos verosímiles: alcance diario en miles, 92 días (mar-may)
+  const chartData = {
+    alcance: generateSeries(92, 2.5, 5.5, 0.15, [70, 78]),
+    engagement: generateSeries(92, 4.0, 7.0, 0.20, [40, 50]),
+    conv: generateSeries(92, 0.8, 2.2, 0.30, [55, 70])
+  };
 
-  function _serieDiaria(metric) {
-    const campo = metric === 'engagement' ? 'engagement' : (metric === 'conv' ? 'conversiones' : 'alcance');
-    return CHART_DIARIO.map(d => Number(d[campo]) || 0);
-  }
-
-  async function cargarMetricasDiarias() {
-    CHART_DIARIO = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId) {
-        const hoy = new Date();
-        const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().slice(0, 10);
-        const { data, error } = await window.__sb.from('metrica_diaria')
-          .select('*').eq('cliente_id', clienteId).gte('fecha', desde).order('fecha', { ascending: true });
-        if (!error && Array.isArray(data)) CHART_DIARIO = data;
-      }
-    } catch (e) { /* sin datos: queda vacío */ }
-    const activo = document.querySelector('.chart-tab.active');
-    drawChart(activo ? activo.dataset.metric : 'alcance');
+  function generateSeries(n, min, max, noise, peaks) {
+    const arr = [];
+    const trend = (max - min) / n;
+    for (let i = 0; i < n; i++) {
+      let v = min + trend * i + (Math.random() - 0.5) * noise * (max - min);
+      // pequeño pico semanal
+      v += Math.sin(i / 3) * 0.15;
+      // picos fuertes en fechas específicas
+      if (peaks && peaks.includes(i)) v *= 1.6;
+      arr.push(Math.max(min * 0.7, v));
+    }
+    return arr;
   }
 
   function drawChart(metric) {
-    const data = _serieDiaria(metric);
-    const lineEl = document.getElementById('chartLine');
-    const areaEl = document.getElementById('chartArea');
-    const svgEl = document.getElementById('chart');
-    const emptyEl = document.getElementById('chartEmpty');
-    if (!lineEl || !areaEl) return;
-
-    // Con menos de 2 puntos no se puede trazar una curva: mostramos estado "recolectando"
-    if (data.length < 2) {
-      lineEl.setAttribute('d', '');
-      areaEl.setAttribute('d', '');
-      if (svgEl) svgEl.style.display = 'none';
-      if (emptyEl) emptyEl.style.display = '';
-      return;
-    }
-    if (svgEl) svgEl.style.display = '';
-    if (emptyEl) emptyEl.style.display = 'none';
-
+    const data = chartData[metric];
     const W = 800, H = 220, padX = 20, padY = 30;
-    const max = (Math.max(...data) * 1.1) || 1;
+    const max = Math.max(...data) * 1.1;
     const min = Math.min(...data) * 0.85;
-    const denom = (max - min) || 1;
     const xStep = (W - padX * 2) / (data.length - 1);
 
     let line = '';
     data.forEach((v, i) => {
       const x = padX + i * xStep;
-      const y = padY + (H - padY * 2) * (1 - (v - min) / denom);
+      const y = padY + (H - padY * 2) * (1 - (v - min) / (max - min));
       line += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
     });
 
     const area = line + `L${padX + (data.length - 1) * xStep},${H - padY} L${padX},${H - padY} Z`;
 
-    lineEl.setAttribute('d', line);
-    areaEl.setAttribute('d', area);
+    document.getElementById('chartLine').setAttribute('d', line);
+    document.getElementById('chartArea').setAttribute('d', area);
   }
 
   document.querySelectorAll('.chart-tab').forEach(tab => {
@@ -8439,7 +8429,7 @@
   });
 
   // ═══════════════ TAREAS ═══════════════
-  const _SEED_TAREAS_IGNORED = [
+  const TAREAS = [
     {
       id: 1, titulo: 'Editar reel campaña India 2027 (v3)',
       desc: 'Aplicar cambios solicitados: agregar testimonio de Jessica al cierre, ajustar color en planos exteriores',
@@ -8512,44 +8502,33 @@
     }
   ];
 
-  // ─── COMENTARIOS DE TAREAS: datos reales desde Supabase ───
-  async function cargarComentariosTarea(tareaId){
-    try {
-      if (window.__sb && tareaId) {
-        const { data, error } = await window.__sb.from('comentario_tarea')
-          .select('*').eq('tarea_id', tareaId).order('created_at', { ascending: true });
-        if (!error && Array.isArray(data)) return data;
-      }
-    } catch (e) { /* sin conexión: lista vacía */ }
-    return [];
-  }
-  async function crearComentarioTarea(tareaId, texto){
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
-      const yo = (_miNombre || USERS[currentRole].name).split(' ')[0];
-      const { error } = await window.__sb.from('comentario_tarea').insert({
-        tarea_id: tareaId,
-        cliente_id: clienteId,
-        autor: yo,
-        autor_tipo: currentRole === 'client' ? 'cliente' : 'agencia',
-        texto: texto
-        // creado_por lo completa la base con auth.uid() (default + RLS)
-      });
-      if (error) { showToast('No se pudo enviar el comentario', 'warn'); return false; }
-    } catch (e) { showToast('No se pudo enviar el comentario', 'warn'); return false; }
-    return true;
-  }
-  function formatFechaComent(iso){
-    if (!iso) return '';
-    try {
-      const d = new Date(iso);
-      if (isNaN(d)) return '';
-      return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
-        ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-    } catch (e) { return ''; }
-  }
+  // Comentarios mock
+  const COMENTARIOS_MOCK = {
+    1: [
+      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Ayer 18:42', texto: 'Ya te dejé los cambios marcados en Frame.io' },
+      { autor: 'Jessica', avatar: 'J', color: 'cliente', fecha: 'Hoy 09:15', texto: 'Perfecto, gracias. ¿Llegamos para subir mañana?' },
+      { autor: 'Marti', avatar: 'M', color: 'agencia', fecha: 'Hoy 11:03', texto: 'Sí, lo tengo listo para hoy a la tarde 🙌' }
+    ],
+    2: [
+      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Hoy 08:20', texto: 'Detecté 4 keywords con QS bajo. Las pauso y rearmo grupo de anuncios' }
+    ],
+    4: [
+      { autor: 'Jessica', avatar: 'J', color: 'cliente', fecha: 'Hace 2 días', texto: 'Mandé agenda preliminar' },
+      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Ayer', texto: 'Sumé propuesta India y métricas Q2. Lo charlamos jueves' }
+    ],
+    5: [
+      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Hace 2 días', texto: 'Te dejé la versión 2 con cambios de Virginia incorporados' }
+    ],
+    7: [
+      { autor: 'Marti', avatar: 'M', color: 'agencia', fecha: 'Hace 3 días', texto: 'Adjunto el doc con desglose por audiencia' },
+      { autor: 'Virginia', avatar: 'V', color: 'cliente', fecha: 'Hace 2 días', texto: 'Lo reviso esta semana' },
+      { autor: 'Jessica', avatar: 'J', color: 'cliente', fecha: 'Ayer', texto: '¿Podemos subir un poco la asignación a Google?' },
+      { autor: 'Delfi', avatar: 'D', color: 'agencia', fecha: 'Hoy', texto: 'Sí, te paso simulación con 35/65' }
+    ],
+    9: [
+      { autor: 'Marti', avatar: 'M', color: 'agencia', fecha: 'Hace 3 días', texto: 'Subidas a /Ruta de la Luz/Mayo 2026' }
+    ]
+  };
 
   // Filtros activos
   let filtroActivo = 'todas';
@@ -8567,84 +8546,6 @@
       if (t.responsable !== yo) return false;
     }
     return true;
-  }
-
-  // ─── TAREAS: datos reales desde Supabase (scope = cliente activo) ───
-  let TAREAS = [];
-  function _mapTareaRow(r){
-    return {
-      id: r.id,
-      titulo: r.titulo || '',
-      desc: r.descripcion || '',
-      responsableTipo: r.responsable_tipo || 'agencia',
-      responsable: r.responsable || '',
-      avatarColor: (r.responsable_tipo === 'cliente') ? 'cliente' : 'agencia',
-      proyecto: r.proyecto || 'General',
-      estado: r.estado || 'pendiente',
-      urgencia: r.urgencia || 'normal',
-      fechaLabel: r.fecha_label || 'Sin fecha',
-      fechaTipo: r.fecha_tipo || 'normal',
-      postId: r.post_id || null,
-      comentarios: r.comentarios || 0
-    };
-  }
-  async function cargarTareas(){
-    TAREAS = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId) {
-        const { data, error } = await window.__sb.from('tarea')
-          .select('*').eq('cliente_id', clienteId).order('created_at', { ascending: false });
-        if (!error && Array.isArray(data)) TAREAS = data.map(_mapTareaRow);
-      }
-    } catch (e) { /* sin conexión/datos: queda vacío */ }
-    if (typeof renderTareas === 'function') renderTareas();
-    if (typeof renderTasks === 'function') renderTasks();
-  }
-  async function crearTarea(fila){
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
-      const { error } = await window.__sb.from('tarea').insert(Object.assign({ cliente_id: clienteId }, fila));
-      if (error) { showToast('No se pudo crear la tarea', 'warn'); return false; }
-    } catch (e) { showToast('No se pudo crear la tarea', 'warn'); return false; }
-    await cargarTareas();
-    return true;
-  }
-  async function actualizarEstadoTarea(id, nuevoEstado){
-    try {
-      if (window.__sb) {
-        const { error } = await window.__sb.from('tarea').update({ estado: nuevoEstado }).eq('id', id);
-        if (error) { showToast('No se pudo actualizar la tarea', 'warn'); return; }
-      }
-    } catch (e) { showToast('No se pudo actualizar la tarea', 'warn'); return; }
-    await cargarTareas();
-  }
-
-  async function crearTareaDesdePost(p){
-    const existente = TAREAS.find(t => t.postId === p.id);
-    if (existente) { showToast('Este post ya tiene una tarea vinculada'); openModal(existente.id); return; }
-    let fechaLabel = 'Sin fecha';
-    if (p.fecha) {
-      const f = new Date(p.fecha + 'T00:00:00');
-      if (!isNaN(f)) fechaLabel = f.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
-    }
-    const ok = await crearTarea({
-      titulo: 'Grabar: ' + (p.titulo || 'contenido'),
-      descripcion: 'Material a grabar / aportar para el post programado. Abrí el post vinculado para ver el detalle.',
-      responsable_tipo: 'cliente',
-      responsable: 'EKHOS',
-      proyecto: p.proyecto || 'General',
-      estado: 'pendiente',
-      urgencia: 'normal',
-      fecha_label: fechaLabel,
-      fecha_tipo: 'pronto',
-      comentarios: 0,
-      post_id: p.id
-    });
-    if (ok) { closeModal(); showToast('Tarea creada y vinculada · va a EKHOS'); }
   }
 
   function renderListaTarea(t) {
@@ -8734,8 +8635,10 @@
     document.querySelectorAll('[data-toggle]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const t = TAREAS.find(x => x.id === btn.dataset.toggle);
-        if (t) actualizarEstadoTarea(t.id, t.estado === 'completada' ? 'pendiente' : 'completada');
+        const id = parseInt(btn.dataset.toggle);
+        const t = TAREAS.find(x => x.id === id);
+        t.estado = t.estado === 'completada' ? 'pendiente' : 'completada';
+        renderTareas();
       });
     });
 
@@ -8743,7 +8646,8 @@
     document.querySelectorAll('.tarea-row[data-id], .card-kanban[data-id]').forEach(el => {
       el.addEventListener('click', (e) => {
         if (e.target.closest('[data-toggle]')) return;
-        openModal(el.dataset.id);
+        const id = parseInt(el.dataset.id);
+        openModal(id);
       });
     });
 
@@ -8766,9 +8670,13 @@
       col.addEventListener('drop', (e) => {
         e.preventDefault();
         col.classList.remove('drag-over');
-        const id = e.dataTransfer.getData('text/plain');
+        const id = parseInt(e.dataTransfer.getData('text/plain'));
         const nuevoEstado = col.dataset.estado;
-        actualizarEstadoTarea(id, nuevoEstado);
+        const t = TAREAS.find(x => x.id === id);
+        if (t) {
+          t.estado = nuevoEstado;
+          renderTareas();
+        }
       });
     });
   }
@@ -8809,7 +8717,7 @@
   function openModal(id) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
-    const postVinc = (t.postId && typeof POSTS !== 'undefined' && Array.isArray(POSTS)) ? POSTS.find(x => x.id === t.postId) : null;
+    const comentarios = COMENTARIOS_MOCK[id] || [];
 
     const modal = document.getElementById('modal');
     modal.innerHTML = `
@@ -8854,67 +8762,28 @@
         <div class="text">${t.desc}</div>
       </div>
 
-      ${postVinc ? `
       <div class="modal-section">
-        <div class="modal-section-title">Post vinculado</div>
-        <button class="btn-ghost" id="verPostVinc" style="font-size:13px;">📅 ${postVinc.titulo || 'Ver post'} →</button>
-      </div>
-      ` : ''}
-
-      <div class="modal-section">
-        <div class="modal-section-title">Comentarios (<span id="comentCount">…</span>)</div>
-        <div class="comentarios" id="comentariosCont">
-          <div style="font-size:12px; color: var(--ink-mute); font-style: italic;">Cargando comentarios…</div>
+        <div class="modal-section-title">Comentarios (${comentarios.length})</div>
+        <div class="comentarios">
+          ${comentarios.map(c => `
+            <div class="comentario">
+              <div class="avatar-sm ${c.color}">${c.avatar}</div>
+              <div class="body">
+                <div class="autor">${c.autor}<span class="fecha">${c.fecha}</span></div>
+                <div class="texto">${c.texto}</div>
+              </div>
+            </div>
+          `).join('') || '<div style="font-size:12px; color: var(--ink-mute); font-style: italic;">Sin comentarios todavía</div>'}
         </div>
         <div class="nuevo-comentario">
-          <input type="text" id="nuevoComentInput" placeholder="Escribir comentario…">
-          <button id="enviarComentBtn">Enviar</button>
+          <input type="text" placeholder="Escribir comentario…">
+          <button onclick="enviarComentario(this)">Enviar</button>
         </div>
       </div>
     `;
 
     document.getElementById('modalOverlay').classList.add('active');
     document.getElementById('modalClose').addEventListener('click', closeModal);
-    const verPostBtn = modal.querySelector('#verPostVinc');
-    if (verPostBtn && postVinc) verPostBtn.addEventListener('click', () => openPostModal(postVinc.id));
-
-    // ── Comentarios reales (async) ──
-    const tareaId = t.id;
-    function pintarComentarios(arr){
-      const cont = document.getElementById('comentariosCont');
-      const cnt = document.getElementById('comentCount');
-      if (cnt) cnt.textContent = arr.length;
-      if (!cont) return;
-      cont.innerHTML = arr.map(c => `
-        <div class="comentario">
-          <div class="avatar-sm ${c.autor_tipo === 'cliente' ? 'cliente' : 'agencia'}">${(c.autor || '?').charAt(0).toUpperCase()}</div>
-          <div class="body">
-            <div class="autor">${escapeHtml(c.autor || '')}<span class="fecha">${formatFechaComent(c.created_at)}</span></div>
-            <div class="texto">${escapeHtml(c.texto || '')}</div>
-          </div>
-        </div>
-      `).join('') || '<div style="font-size:12px; color: var(--ink-mute); font-style: italic;">Sin comentarios todavía</div>';
-    }
-    cargarComentariosTarea(tareaId).then(pintarComentarios);
-
-    const enviarBtn = document.getElementById('enviarComentBtn');
-    const inputC = document.getElementById('nuevoComentInput');
-    function doEnviarComent(){
-      const txt = (inputC.value || '').trim();
-      if (!txt) { inputC.focus(); return; }
-      enviarBtn.disabled = true;
-      crearComentarioTarea(tareaId, txt).then(ok => {
-        enviarBtn.disabled = false;
-        if (ok) {
-          inputC.value = '';
-          cargarComentariosTarea(tareaId).then(pintarComentarios);
-          if (typeof cargarTareas === 'function') cargarTareas(); // refresca el badge (el trigger ya subió el contador)
-          showToast('Comentario enviado');
-        }
-      });
-    }
-    if (enviarBtn) enviarBtn.addEventListener('click', doEnviarComent);
-    if (inputC) inputC.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doEnviarComent(); } });
   }
 
   function closeModal() {
@@ -8976,30 +8845,33 @@
       ],
       onSubmit: (d) => {
         const respMap = {
-          'agencia': { nombre: 'Delfi', tipo: 'agencia' },
-          'agencia-marti': { nombre: 'Marti', tipo: 'agencia' },
-          'cliente': { nombre: 'Jessica', tipo: 'cliente' },
-          'cliente-virginia': { nombre: 'Virginia', tipo: 'cliente' }
+          'agencia': { nombre: 'Delfi', tipo: 'agencia', color: 'agencia' },
+          'agencia-marti': { nombre: 'Marti', tipo: 'agencia', color: 'agencia' },
+          'cliente': { nombre: 'Jessica', tipo: 'cliente', color: 'cliente' },
+          'cliente-virginia': { nombre: 'Virginia', tipo: 'cliente', color: 'cliente' }
         };
         const r = respMap[d.responsableTipo];
         const fechaLabel = d.fechaLimite
           ? new Date(d.fechaLimite).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
           : 'Sin fecha';
         const fechaTipo = d.urgencia === 'urgente' ? 'urgente' : d.urgencia === 'normal' ? 'pronto' : 'normal';
-        crearTarea({
+        const newId = Math.max(...TAREAS.map(t => t.id)) + 1;
+        TAREAS.unshift({
+          id: newId,
           titulo: d.titulo,
-          descripcion: d.desc || 'Sin descripción',
-          responsable_tipo: r.tipo,
+          desc: d.desc || 'Sin descripción',
+          responsableTipo: r.tipo,
           responsable: r.nombre,
+          avatarColor: r.color,
           proyecto: d.proyecto || 'General',
           estado: 'pendiente',
           urgencia: d.urgencia,
-          fecha_label: fechaLabel,
-          fecha_tipo: fechaTipo,
+          fechaLabel,
+          fechaTipo,
           comentarios: 0
-        }).then(ok => {
-          if (ok) showToast('Tarea creada · ' + d.titulo.substring(0, 40) + (d.titulo.length > 40 ? '…' : ''));
         });
+        renderTareas();
+        showToast('Tarea creada · ' + d.titulo.substring(0, 40) + (d.titulo.length > 40 ? '…' : ''));
       }
     });
   });
@@ -9009,8 +8881,8 @@
 
   // ═══════════════ CONTENIDO Y REDES ═══════════════
   // Posts mock — verosímiles para EKHOS
-  const _SEED_POSTS_IGNORED = [
-    // Mayo (publicados) — datos de ejemplo, ya NO se usan (el calendario lee de Supabase)
+  const POSTS = [
+    // Mayo (publicados)
     { id: 1, fecha: '2026-05-02', tipo: 'carrusel', estado: 'publicado', titulo: 'Ecosistemas de Impacto: 5 claves del modelo EKHOS', proyecto: 'Programa formativo', from: '#FF82FF', to: '#2A2630', alcance: 18420, likes: 892, comentarios: 64, guardados: 312, compartidos: 87, copy: 'Te explicamos en 5 pasos cómo funcionan los Ecosistemas de Impacto que venimos cocreando hace años...' },
     { id: 2, fecha: '2026-05-05', tipo: 'reel', estado: 'publicado', titulo: 'Detrás de escena: encuentro en Tilcara', proyecto: 'Ruta de la Luz', from: '#F26A8D', to: '#F26A8D', alcance: 42180, likes: 2240, comentarios: 178, guardados: 540, compartidos: 312, copy: 'Volvimos a la Puna. Encuentro intergeneracional con la comunidad de Tilcara, parte del trabajo continuo de Ruta de la Luz.', reproducciones: 56300 },
     { id: 3, fecha: '2026-05-08', tipo: 'post', estado: 'publicado', titulo: 'India 2027: inscripciones abiertas', proyecto: 'India 2027', from: '#F26A8D', to: '#F26A8D', alcance: 14260, likes: 678, comentarios: 92, guardados: 178, compartidos: 56, copy: 'Llegó el momento. Las inscripciones para el viaje inmersivo a India 2027 están oficialmente abiertas.' },
@@ -9028,75 +8900,6 @@
     { id: 13, fecha: '2026-06-04', tipo: 'carrusel', estado: 'idea', titulo: '¿Qué es un Ecosistema de Impacto?', proyecto: 'Programa formativo', from: '#FF82FF', to: '#25212B', copy: 'Definición simple del concepto que estructura todo nuestro trabajo.' },
     { id: 14, fecha: '2026-06-06', tipo: 'post', estado: 'idea', titulo: 'Convocatoria charla embajada de India', proyecto: 'India 2027', from: '#F26A8D', to: '#F26A8D', copy: 'Charla abierta sobre el viaje inmersivo, con representante de la embajada de India.' }
   ];
-
-  // ─── POSTS: datos reales desde Supabase (scope = cliente activo) ───
-  let POSTS = [];
-  const _POST_COL = { copy: 'caption', from: 'color_from', to: 'color_to' }; // resto 1:1
-  function _postCol(field){ return _POST_COL[field] || field; }
-  function _mapPostRow(r){
-    return {
-      id: r.id,
-      fecha: (r.fecha || '').slice(0, 10),
-      tipo: r.tipo || 'post',
-      estado: r.estado || 'idea',
-      titulo: r.titulo || '',
-      proyecto: r.proyecto || 'General',
-      plataforma: r.plataforma || 'instagram',
-      pilar: r.pilar || null,
-      from: r.color_from || '#FF82FF',
-      to: r.color_to || '#2A2630',
-      copy: r.caption || '',
-      tabla: r.tabla || null,
-      alcance: r.alcance || 0, likes: r.likes || 0, comentarios: r.comentarios || 0,
-      guardados: r.guardados || 0, compartidos: r.compartidos || 0, reproducciones: r.reproducciones || 0
-    };
-  }
-  async function cargarPosts(){
-    POSTS = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId) {
-        const { data, error } = await window.__sb.from('post')
-          .select('*').eq('cliente_id', clienteId).order('fecha', { ascending: true });
-        if (!error && Array.isArray(data)) POSTS = data.map(_mapPostRow);
-      }
-    } catch (e) { /* sin conexión/datos: queda vacío y se ve el empty-state */ }
-    if (typeof renderCalendario === 'function') renderCalendario();
-    if (typeof renderCalLista === 'function' && document.getElementById('calLista')) {
-      try { renderCalLista(); } catch (e) {}
-    }
-  }
-  async function crearPost(fila){
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
-      const { error } = await window.__sb.from('post').insert(Object.assign({ cliente_id: clienteId }, fila));
-      if (error) { showToast('No se pudo crear el post', 'warn'); return false; }
-    } catch (e) { showToast('No se pudo crear el post', 'warn'); return false; }
-    await cargarPosts();
-    return true;
-  }
-  async function actualizarEstadoPost(id, nuevoEstado){
-    try {
-      if (window.__sb) {
-        const { error } = await window.__sb.from('post').update({ estado: nuevoEstado }).eq('id', id);
-        if (error) { showToast('No se pudo actualizar el estado', 'warn'); return; }
-      }
-    } catch (e) { showToast('No se pudo actualizar el estado', 'warn'); return; }
-    await cargarPosts();
-  }
-  async function actualizarCampoPost(id, field, value){
-    try {
-      if (window.__sb) {
-        const col = _postCol(field);
-        const patch = {}; patch[col] = value;
-        const { error } = await window.__sb.from('post').update(patch).eq('id', id);
-        if (error) { showToast('No se guardó el cambio', 'warn'); }
-      }
-    } catch (e) { showToast('No se guardó el cambio', 'warn'); }
-  }
 
   let calCurrentDate = new Date(2026, 4, 1); // Mayo 2026
   const HOY = new Date(2026, 4, 24); // 24 de mayo 2026 (simulado)
@@ -9144,7 +8947,6 @@
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.subtab;
-      if (!target) return; // botones .subtab sin data-subtab (ámbito Orgánico/Pauta, rep-tab) tienen su propio handler
       document.querySelectorAll('.subtab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.querySelectorAll('.subpanel').forEach(p => p.classList.remove('active'));
@@ -9225,19 +9027,25 @@
     document.querySelectorAll('[data-post-id]').forEach(el => {
       el.addEventListener('click', (e) => {
         if (e.target.closest('[data-approve], [data-reject]')) return;
-        openPostModal(el.dataset.postId);
+        openPostModal(parseInt(el.dataset.postId));
       });
     });
     document.querySelectorAll('[data-approve]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        actualizarEstadoPost(btn.dataset.approve, 'aprobado');
+        const id = parseInt(btn.dataset.approve);
+        const p = POSTS.find(x => x.id === id);
+        if (p) {
+          p.estado = 'aprobado';
+          renderCalendario();
+        }
       });
     });
     document.querySelectorAll('[data-reject]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openPostModal(btn.dataset.reject);
+        const id = parseInt(btn.dataset.reject);
+        openPostModal(id);
       });
     });
   }
@@ -9385,14 +9193,13 @@
   function bindCalListaCells() {
     document.querySelectorAll('[data-post-field]').forEach(el => {
       const field = el.dataset.postField;
-      const id = el.dataset.id;
+      const id = parseInt(el.dataset.id);
       const post = POSTS.find(x => x.id === id);
       if (!post) return;
 
       if (el.tagName === 'SELECT') {
         el.addEventListener('change', () => {
           post[field] = el.value;
-          actualizarCampoPost(post.id, field, el.value);
           if (field === 'estado') {
             renderCalLista();
             renderCalendario();
@@ -9408,10 +9215,10 @@
         autoResize();
         el.addEventListener('input', autoResize);
         el.addEventListener('blur', () => {
-          if (post[field] !== el.value) { post[field] = el.value; actualizarCampoPost(post.id, field, el.value); }
+          if (post[field] !== el.value) post[field] = el.value;
         });
       } else {
-        el.addEventListener('change', () => { post[field] = el.value; actualizarCampoPost(post.id, field, el.value); });
+        el.addEventListener('change', () => { post[field] = el.value; });
         el.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
         });
@@ -9421,14 +9228,20 @@
     document.querySelectorAll('[data-post-detail]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openPostModal(btn.dataset.postDetail);
+        openPostModal(parseInt(btn.dataset.postDetail));
       });
     });
     document.querySelectorAll('[data-approve-lista]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        actualizarEstadoPost(btn.dataset.approveLista, 'aprobado');
-        showToast('Post aprobado');
+        const id = parseInt(btn.dataset.approveLista);
+        const p = POSTS.find(x => x.id === id);
+        if (p) {
+          p.estado = 'aprobado';
+          renderCalLista();
+          renderCalendario();
+          showToast('Post aprobado');
+        }
       });
     });
   }
@@ -9468,7 +9281,7 @@
     `).join('');
 
     document.querySelectorAll('#feedGrid [data-post-id]').forEach(el => {
-      el.addEventListener('click', () => openPostModal(el.dataset.postId));
+      el.addEventListener('click', () => openPostModal(parseInt(el.dataset.postId)));
     });
   }
 
@@ -9571,10 +9384,10 @@
 
     // Click rows → modal
     document.querySelectorAll('#perfTableBody tr').forEach(tr => {
-      tr.addEventListener('click', () => openPostModal(tr.dataset.postId));
+      tr.addEventListener('click', () => openPostModal(parseInt(tr.dataset.postId)));
     });
     document.querySelectorAll('#perfTop [data-post-id]').forEach(el => {
-      el.addEventListener('click', () => openPostModal(el.dataset.postId));
+      el.addEventListener('click', () => openPostModal(parseInt(el.dataset.postId)));
     });
   }
 
@@ -9596,7 +9409,6 @@
   function openPostModal(id) {
     const p = POSTS.find(x => x.id === id);
     if (!p) return;
-    const tareaVinc = (typeof TAREAS !== 'undefined' && Array.isArray(TAREAS)) ? TAREAS.find(t => t.postId === p.id) : null;
 
     const esPublicado = p.estado === 'publicado';
     const eng = esPublicado ? calcEngagement(p).toFixed(1) : null;
@@ -9631,16 +9443,6 @@
         <div id="fichaTablaZone"></div>
       </div>
 
-      ${currentRole !== 'client' ? `
-        <div class="modal-section">
-          <div class="modal-section-title">Tarea para el cliente</div>
-          ${tareaVinc
-            ? `<button class="btn-ghost" id="verTareaVinc" style="font-size:13px;">Ver tarea vinculada →</button>`
-            : `<button class="btn-primary" id="crearTareaPost" style="font-size:13px; padding:10px 16px;">+ Crear tarea para el cliente</button>
-               <div style="font-size:11px; color:var(--ink-mute); margin-top:6px;">Le crea a EKHOS una tarea vinculada a este post, para que sepa que tiene que grabar/aportar material.</div>`}
-        </div>
-      ` : ''}
-
       ${p.estado === 'aprobacion' && currentRole === 'client' ? `
         <div style="display: flex; gap: 8px; margin-top: 16px;">
           <button class="btn-approve" style="flex:1; padding: 10px; font-size: 13px;" data-approve-modal="${p.id}">Aprobar publicación</button>
@@ -9656,22 +9458,20 @@
     const approveBtn = modal.querySelector('[data-approve-modal]');
     if (approveBtn) {
       approveBtn.addEventListener('click', () => {
+        p.estado = 'aprobado';
         closeModal();
-        actualizarEstadoPost(p.id, 'aprobado');
+        renderCalendario();
       });
     }
     const rejectBtn = modal.querySelector('.btn-reject');
     if (rejectBtn) {
       rejectBtn.addEventListener('click', () => {
+        p.estado = 'produccion';
         closeModal();
+        renderCalendario();
         showToast('Cambios solicitados · volvió a producción', 'warn');
-        actualizarEstadoPost(p.id, 'produccion');
       });
     }
-    const crearTareaBtn = modal.querySelector('#crearTareaPost');
-    if (crearTareaBtn) crearTareaBtn.addEventListener('click', () => crearTareaDesdePost(p));
-    const verTareaBtn = modal.querySelector('#verTareaVinc');
-    if (verTareaBtn && tareaVinc) verTareaBtn.addEventListener('click', () => openModal(tareaVinc.id));
   }
 
   document.getElementById('newPostBtn').addEventListener('click', () => {
@@ -9752,7 +9552,9 @@
         }
       ],
       onSubmit: (d) => {
-        crearPost({
+        const newId = Math.max(...POSTS.map(p => p.id)) + 1;
+        POSTS.push({
+          id: newId,
           fecha: d.fecha,
           tipo: d.tipo,
           plataforma: d.plataforma,
@@ -9760,25 +9562,410 @@
           estado: d.estado,
           titulo: d.titulo,
           proyecto: d.proyecto === 'general' ? 'General' : d.proyecto,
-          color_from: d.color.from,
-          color_to: d.color.to,
-          caption: d.copy || ''
-        }).then(ok => {
-          if (ok) {
-            const pilarTxt = d.pilar ? ' · ' + d.pilar : '';
-            showToast('Post creado · ' + d.plataforma + pilarTxt);
-          }
+          from: d.color.from,
+          to: d.color.to,
+          copy: d.copy || 'Sin copy todavía.'
         });
+        renderCalendario();
+        const pilarTxt = d.pilar ? ' · ' + d.pilar : '';
+        showToast('Post creado · ' + d.plataforma + pilarTxt);
       }
     });
   });
 
+  // ═══════════════ CREADOR DE CALENDARIO (IA) ═══════════════
+  (function () {
+    const CC_GRAD = [
+      { from: '#FF82FF', to: '#2A2630' }, { from: '#F26A8D', to: '#F26A8D' },
+      { from: '#CBEEF3', to: '#1B1620' }, { from: '#FF82FF', to: '#322D3A' },
+      { from: '#D3FF99', to: '#1B1620' }
+    ];
+    const PREF = { 1: [3], 2: [2, 4], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 3, 4, 5] };
+    let ccProps = [];
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const escA = (s) => String(s == null ? '' : s).replace(/"/g, '&quot;');
+
+    function ccMesActual() {
+      const v = $('cc-mes').value; // "YYYY-MM"
+      if (v && /^\d{4}-\d{2}$/.test(v)) { const [y, m] = v.split('-').map(Number); return [y, m - 1]; }
+      const d = (typeof calCurrentDate !== 'undefined' && calCurrentDate) ? calCurrentDate : new Date();
+      return [d.getFullYear(), d.getMonth()];
+    }
+
+    function ccRefreshBrief() {
+      // Mes por defecto = el que muestra el calendario
+      const d = (typeof calCurrentDate !== 'undefined' && calCurrentDate) ? calCurrentDate : new Date();
+      if (!$('cc-mes').value) $('cc-mes').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      // Pilares del cliente actual
+      const pilares = (typeof getPilaresCurrent === 'function') ? getPilaresCurrent() : [];
+      const cont = $('cc-pilares');
+      cont.innerHTML = pilares.length
+        ? pilares.map(p => `<span class="cc-pilchip">${esc(p)}</span>`).join('')
+        : '<span class="cc-pilchip empty">Sin pilares configurados — cargalos en Configuración</span>';
+      // Prefills opcionales desde la config del cliente (si existieran)
+      try {
+        const c = (typeof CLIENTES !== 'undefined') ? CLIENTES[currentClient] : null;
+        if (c) {
+          if (c.objetivo && !$('cc-objetivo').value) $('cc-objetivo').value = c.objetivo;
+          if (c.tono && !$('cc-tono').value) $('cc-tono').value = c.tono;
+          if (c.frecuencia) $('cc-frec').value = c.frecuencia;
+        }
+      } catch (e) {}
+    }
+
+    function ccBrief() {
+      const [y, m] = ccMesActual();
+      const pilares = (typeof getPilaresCurrent === 'function') ? getPilaresCurrent() : [];
+      let cliente = 'el cliente';
+      try { cliente = (CLIENTES[currentClient] && CLIENTES[currentClient].nombre) || cliente; } catch (e) {}
+      return {
+        cliente, year: y, month: m, mes: y + '-' + String(m + 1).padStart(2, '0'),
+        objetivo: $('cc-objetivo').value.trim(),
+        tono: $('cc-tono').value.trim() || 'profesional y cercano',
+        frecuencia: Math.max(1, Math.min(7, parseInt($('cc-frec').value, 10) || 3)),
+        foco: $('cc-foco').value.trim(),
+        pilares
+      };
+    }
+
+    function ccSlots(year, month, frec, pilares) {
+      const wds = PREF[frec] || [1, 3, 5];
+      const dim = new Date(year, month + 1, 0).getDate();
+      const slots = []; let pi = 0;
+      for (let sem = 0; sem < 4; sem++) {
+        for (const wd of wds) {
+          for (let d = 1 + sem * 7; d <= Math.min(dim, (sem + 1) * 7 + 6); d++) {
+            const dt = new Date(year, month, d);
+            if (dt.getMonth() === month && dt.getDay() === wd && Math.ceil(d / 7) === sem + 1) {
+              slots.push({ fecha: `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`, pilar: pilares[pi % pilares.length] });
+              pi++; break;
+            }
+          }
+        }
+      }
+      return slots.sort((a, b) => a.fecha.localeCompare(b.fecha));
+    }
+
+    // ── Generación real vía edge function, con fallback demo ──
+    async function ccGenerar() {
+      const brief = ccBrief();
+      if (!brief.pilares.length) { showToast('Este cliente no tiene pilares configurados'); return; }
+      $('cc-results').innerHTML = `<div class="cc-loading"><div class="cc-spinner"></div><div style="font-size:13px;color:var(--ink-soft);font-weight:500">La IA está armando el mes…</div></div>`;
+      $('cc-footbar').style.display = 'none';
+      try {
+        if (!window.__sb || !window.__sb.functions) throw new Error('sin backend');
+        const { data, error } = await window.__sb.functions.invoke('generar-calendario', {
+          body: {
+            cliente: brief.cliente, objetivo: brief.objetivo, tono: brief.tono,
+            frecuencia: brief.frecuencia, canal: 'instagram',
+            pilares: brief.pilares.map(p => ({ id: p, label: p })),
+            foco: brief.foco, mes: brief.mes
+          }
+        });
+        if (error || !data || !Array.isArray(data.posts)) throw (error || new Error('respuesta vacía'));
+        ccProps = data.posts.map(p => ({
+          fecha: p.fecha, pilar: p.pilar,
+          variantes: (p.variantes || []).slice(0, 3),
+          activa: 0, seleccionado: true, notas: []
+        }));
+        ccRenderReview();
+      } catch (e) {
+        ccDeployNotice(brief);
+      }
+    }
+
+    function ccDeployNotice(brief) {
+      $('cc-results').innerHTML = `
+        <div class="cc-notice">
+          <h3>Conectá la IA para generar contenido real</h3>
+          <p>Necesito la edge function <code>generar-calendario</code> deployada en Supabase (con el secret <code>ANTHROPIC_API_KEY</code>). Mientras tanto, podés ver el flujo completo con datos de ejemplo.</p>
+          <button class="btn-ghost" id="cc-demo">Ver demo de ejemplo</button>
+        </div>`;
+      $('cc-demo').addEventListener('click', () => {
+        const slots = ccSlots(brief.year, brief.month, brief.frecuencia, brief.pilares);
+        ccProps = slots.map(s => ({ fecha: s.fecha, pilar: s.pilar, variantes: ccDemoVariantes(s.pilar, 0), activa: 0, seleccionado: true, notas: [] }));
+        ccRenderReview();
+        showToast('Modo demo · deployá la function para contenido real');
+      });
+    }
+
+    function ccDemoVariantes(pilar, seed) {
+      const forms = ['reel', 'carrusel', 'post'];
+      return [0, 1, 2].map(k => ({
+        formato: forms[(k + seed) % 3],
+        titulo: `${pilar} — idea ${k + 1 + seed}`,
+        copy: `Borrador de ejemplo para el pilar "${pilar}". Conectá la edge function para copys reales escritos por Claude.`
+      }));
+    }
+
+    function ccSemana(fecha) { return Math.ceil(parseInt(fecha.slice(8, 10), 10) / 7); }
+
+    function ccRenderReview() {
+      const cont = $('cc-results');
+      const grupos = {};
+      ccProps.forEach((p, i) => { const w = ccSemana(p.fecha); (grupos[w] = grupos[w] || []).push(i); });
+      let html = '';
+      Object.keys(grupos).sort((a, b) => a - b).forEach(w => {
+        html += `<div class="cc-week">Semana ${w}</div>`;
+        grupos[w].forEach(i => { html += ccCard(i); });
+      });
+      cont.innerHTML = html;
+      $('cc-footbar').style.display = 'flex';
+      ccCount();
+    }
+
+    function ccCard(idx) {
+      const p = ccProps[idx];
+      const v = p.variantes[p.activa] || { formato: '', titulo: '', copy: '' };
+      const dots = p.variantes.map((_, k) => `<button class="cc-dot ${k === p.activa ? 'on' : ''}" data-cc-var="${idx}:${k}" title="Opción ${k + 1}"></button>`).join('');
+      const notas = p.notas.length ? `<div class="cc-notas">${p.notas.map(n => `<span class="cc-nota">✎ ${esc(n)}</span>`).join('')}</div>` : '';
+      return `
+        <div class="cc-card ${p.seleccionado ? 'on' : ''}" id="cc-card-${idx}">
+          <div class="cc-check"><input type="checkbox" ${p.seleccionado ? 'checked' : ''} data-cc-check="${idx}"></div>
+          <div class="cc-main">
+            <div class="cc-meta">
+              <input type="date" class="cc-date" value="${p.fecha}" data-cc-date="${idx}">
+              <span class="cc-tag pilar">${esc(p.pilar)}</span>
+              <span class="cc-tag fmt">${esc(v.formato)}</span>
+              <div class="cc-varsw"><span class="cc-varlbl">Opción ${p.activa + 1}/${p.variantes.length}</span>${dots}</div>
+            </div>
+            <input class="cc-title-in" value="${escA(v.titulo)}" data-cc-title="${idx}">
+            <textarea class="cc-copy-in" data-cc-copy="${idx}">${esc(v.copy)}</textarea>
+            ${notas}
+            <div class="cc-refine">
+              <input placeholder="Pedile a la IA: 'que hable de otra cosa', 'más cercano', 'otra idea'…" data-cc-refine-in="${idx}">
+              <button data-cc-refine="${idx}">✦ Pedir</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function ccReplaceCard(idx) {
+      const el = $('cc-card-' + idx);
+      if (el) el.outerHTML = ccCard(idx);
+      ccCount();
+    }
+
+    async function ccRefine(idx) {
+      const inp = document.querySelector(`[data-cc-refine-in="${idx}"]`);
+      const txt = inp ? inp.value.trim() : '';
+      const p = ccProps[idx];
+      const el = $('cc-card-' + idx);
+      if (el) {
+        el.style.pointerEvents = 'none'; el.style.opacity = '.55';
+        const main = el.querySelector('.cc-main');
+        if (main) main.insertAdjacentHTML('beforeend', `<div class="cc-cardbusy"><div class="cc-spinner"></div> La IA está reescribiendo esta idea…</div>`);
+      }
+      try {
+        if (!window.__sb || !window.__sb.functions) throw new Error('sin backend');
+        const { data, error } = await window.__sb.functions.invoke('generar-calendario', {
+          body: { refinar: { pilar: p.pilar, tono: $('cc-tono').value.trim() || 'profesional y cercano', instruccion: txt, historial: p.notas, contexto: (p.variantes[p.activa] || {}).titulo || '' } }
+        });
+        if (error || !data || !Array.isArray(data.variantes)) throw (error || new Error('vacío'));
+        p.variantes = data.variantes.slice(0, 3);
+        p.activa = 0;
+        if (txt) p.notas.push(txt);
+        ccReplaceCard(idx);
+      } catch (e) {
+        p.variantes = ccDemoVariantes(p.pilar, p.notas.length + 1);
+        p.activa = 0;
+        if (txt) p.notas.push(txt);
+        ccReplaceCard(idx);
+        showToast('Modo demo · deployá la function para refinar con IA');
+      }
+    }
+
+    function ccCount() {
+      const n = ccProps.filter(p => p.seleccionado).length;
+      const c = $('cc-count'); if (c) c.innerHTML = `<b>${n}</b> de ${ccProps.length} seleccionadas · estado <b>Idea</b>`;
+      const b = $('cc-pasar'); if (b) { b.textContent = 'Pasar ' + n + ' al calendario'; b.style.opacity = n ? '' : '.5'; b.style.pointerEvents = n ? '' : 'none'; }
+    }
+
+    function ccPasar() {
+      const sel = ccProps.filter(p => p.seleccionado);
+      if (!sel.length) return;
+      const pilares = (typeof getPilaresCurrent === 'function') ? getPilaresCurrent() : [];
+      let nid = POSTS.length ? Math.max(...POSTS.map(p => p.id)) + 1 : 1;
+      sel.forEach(p => {
+        const v = p.variantes[p.activa]; if (!v) return;
+        const gi = Math.max(0, pilares.indexOf(p.pilar)) % CC_GRAD.length;
+        const g = CC_GRAD[gi];
+        POSTS.push({
+          id: nid++, fecha: p.fecha, tipo: v.formato || 'post', plataforma: 'instagram',
+          pilar: p.pilar || null, estado: 'idea', titulo: v.titulo || 'Sin título',
+          proyecto: p.pilar || 'General', from: g.from, to: g.to, copy: v.copy || 'Sin copy todavía.'
+        });
+      });
+      const [y, m] = ccMesActual();
+      if (typeof calCurrentDate !== 'undefined') calCurrentDate = new Date(y, m, 1);
+      renderCalendario();
+      if (typeof goTo === 'function') goTo('contenido');
+      showToast(sel.length + ' posts agregados como Idea en Contenido y Redes ✦');
+      ccProps = []; $('cc-results').innerHTML = ''; $('cc-footbar').style.display = 'none';
+    }
+
+    // ── Wiring ──
+    const gen = $('cc-generar'); if (gen) gen.addEventListener('click', ccGenerar);
+    const reg = $('cc-regen'); if (reg) reg.addEventListener('click', () => { $('cc-results').innerHTML = ''; $('cc-footbar').style.display = 'none'; ccGenerar(); });
+    const pas = $('cc-pasar'); if (pas) pas.addEventListener('click', ccPasar);
+    const navCreador = document.querySelector('.nav-item[data-tab="creador"]');
+    if (navCreador) navCreador.addEventListener('click', ccRefreshBrief);
+
+    // Delegación de eventos en las cards
+    const results = $('cc-results');
+    if (results) {
+      results.addEventListener('click', (e) => {
+        const dot = e.target.closest('[data-cc-var]'); if (dot) { const [i, k] = dot.dataset.ccVar.split(':').map(Number); ccProps[i].activa = k; ccReplaceCard(i); return; }
+        const rf = e.target.closest('[data-cc-refine]'); if (rf) { ccRefine(Number(rf.dataset.ccRefine)); return; }
+      });
+      results.addEventListener('change', (e) => {
+        const ch = e.target.closest('[data-cc-check]'); if (ch) { const i = Number(ch.dataset.ccCheck); ccProps[i].seleccionado = ch.checked; const c = $('cc-card-' + i); if (c) c.classList.toggle('on', ch.checked); ccCount(); return; }
+        const dt = e.target.closest('[data-cc-date]'); if (dt) { ccProps[Number(dt.dataset.ccDate)].fecha = dt.value; return; }
+        const ti = e.target.closest('[data-cc-title]'); if (ti) { const p = ccProps[Number(ti.dataset.ccTitle)]; if (p.variantes[p.activa]) p.variantes[p.activa].titulo = ti.value; return; }
+        const cp = e.target.closest('[data-cc-copy]'); if (cp) { const p = ccProps[Number(cp.dataset.ccCopy)]; if (p.variantes[p.activa]) p.variantes[p.activa].copy = cp.value; return; }
+      });
+      results.addEventListener('keydown', (e) => {
+        const inp = e.target.closest('[data-cc-refine-in]');
+        if (inp && e.key === 'Enter') { e.preventDefault(); ccRefine(Number(inp.dataset.ccRefineIn)); }
+      });
+    }
+
+    ccRefreshBrief();
+  })();
+
   // Render inicial
   renderCalendario();
-  if (typeof cargarPosts === 'function') cargarPosts();
 
   // ═══════════════ PAUTA ═══════════════
-  const CAMPANAS = [];
+  const CAMPANAS = [
+    {
+      id: 1, nombre: 'India 2027 — Inscripciones', plataforma: 'meta',
+      objetivo: 'conversiones', estado: 'activa',
+      fechaInicio: '2026-05-08', fechaFin: '2026-06-15',
+      presupuesto: 180000, gastado: 117200, conversiones: 21,
+      impresiones: 384000, clicks: 9420, alcance: 142800,
+      ctr: 2.45, cpc: 12.44, cpm: 305, cpl: 5581, roas: 4.8,
+      mejorAnuncio: 'reel-puna',
+      anuncios: [
+        { id: 'a1', nombre: 'Reel - Imágenes de Puna', tipo: 'reel', impresiones: 187000, clicks: 5240, conversiones: 14, ctr: 2.80, from: '#F26A8D', to: '#F26A8D', best: true },
+        { id: 'a2', nombre: 'Carrusel - 5 razones', tipo: 'carrusel', impresiones: 124000, clicks: 2810, conversiones: 5, ctr: 2.27, from: '#F26A8D', to: '#F26A8D' },
+        { id: 'a3', nombre: 'Imagen - Mapa ruta India', tipo: 'imagen', impresiones: 73000, clicks: 1370, conversiones: 2, ctr: 1.88, from: '#F26A8D', to: '#F26A8D' }
+      ],
+      audiencias: {
+        edad: [{ label: '25-34', pct: 38 }, { label: '35-44', pct: 32 }, { label: '45-54', pct: 18 }, { label: '18-24', pct: 8 }, { label: '55+', pct: 4 }],
+        genero: [{ label: 'Femenino', pct: 72 }, { label: 'Masculino', pct: 26 }, { label: 'Otro', pct: 2 }],
+        ubicacion: [{ label: 'CABA + AMBA', pct: 42 }, { label: 'Córdoba', pct: 18 }, { label: 'Rosario', pct: 12 }, { label: 'Resto país', pct: 22 }, { label: 'Exterior', pct: 6 }]
+      }
+    },
+    {
+      id: 2, nombre: 'Programa formativo — Cohorte junio', plataforma: 'meta',
+      objetivo: 'leads', estado: 'activa',
+      fechaInicio: '2026-05-01', fechaFin: '2026-05-31',
+      presupuesto: 120000, gastado: 93600, conversiones: 24,
+      impresiones: 268000, clicks: 6420, alcance: 98400,
+      ctr: 2.40, cpc: 14.58, cpm: 349, cpl: 3900, roas: null,
+      mejorAnuncio: 'video-testim',
+      anuncios: [
+        { id: 'b1', nombre: 'Video - Testimonios cohorte 2025', tipo: 'reel', impresiones: 142000, clicks: 3820, conversiones: 16, ctr: 2.69, from: '#FF82FF', to: '#1B1620', best: true },
+        { id: 'b2', nombre: 'Carrusel - Programa día a día', tipo: 'carrusel', impresiones: 84000, clicks: 1840, conversiones: 6, ctr: 2.19, from: '#FF82FF', to: '#25212B' },
+        { id: 'b3', nombre: 'Imagen - Próxima cohorte', tipo: 'imagen', impresiones: 42000, clicks: 760, conversiones: 2, ctr: 1.81, from: '#FF82FF', to: '#322D3A' }
+      ],
+      audiencias: {
+        edad: [{ label: '25-34', pct: 42 }, { label: '35-44', pct: 35 }, { label: '45-54', pct: 14 }, { label: '18-24', pct: 6 }, { label: '55+', pct: 3 }],
+        genero: [{ label: 'Femenino', pct: 78 }, { label: 'Masculino', pct: 21 }, { label: 'Otro', pct: 1 }],
+        ubicacion: [{ label: 'CABA + AMBA', pct: 48 }, { label: 'Córdoba', pct: 16 }, { label: 'Rosario', pct: 10 }, { label: 'Resto país', pct: 21 }, { label: 'Exterior', pct: 5 }]
+      }
+    },
+    {
+      id: 3, nombre: 'Ruta de la Luz — Branding', plataforma: 'google',
+      objetivo: 'alcance', estado: 'activa',
+      fechaInicio: '2026-04-15', fechaFin: '2026-06-15',
+      presupuesto: 80000, gastado: 52400, conversiones: 3,
+      impresiones: 412000, clicks: 4280, alcance: 218000,
+      ctr: 1.04, cpc: 12.24, cpm: 127, cpl: null, roas: null,
+      mejorAnuncio: 'search-1',
+      anuncios: [
+        { id: 'c1', nombre: 'Search - "ecosistemas de impacto"', tipo: 'search', impresiones: 184000, clicks: 2480, conversiones: 2, ctr: 1.35, from: '#4285F4', to: '#1A56B8', best: true },
+        { id: 'c2', nombre: 'Display - Banner Ruta de la Luz', tipo: 'display', impresiones: 168000, clicks: 1420, conversiones: 1, ctr: 0.85, from: '#34A853', to: '#1F6B33' },
+        { id: 'c3', nombre: 'Search - "regeneración Puna"', tipo: 'search', impresiones: 60000, clicks: 380, conversiones: 0, ctr: 0.63, from: '#5A7A9C', to: '#2F4A6E' }
+      ],
+      audiencias: {
+        edad: [{ label: '35-44', pct: 36 }, { label: '25-34', pct: 28 }, { label: '45-54', pct: 22 }, { label: '55+', pct: 10 }, { label: '18-24', pct: 4 }],
+        genero: [{ label: 'Femenino', pct: 64 }, { label: 'Masculino', pct: 35 }, { label: 'Otro', pct: 1 }],
+        ubicacion: [{ label: 'CABA + AMBA', pct: 38 }, { label: 'Córdoba', pct: 14 }, { label: 'Jujuy + NOA', pct: 18 }, { label: 'Resto país', pct: 24 }, { label: 'Exterior', pct: 6 }]
+      }
+    },
+    {
+      id: 4, nombre: 'Verificación P&PF — Awareness', plataforma: 'meta',
+      objetivo: 'alcance', estado: 'pausada',
+      fechaInicio: '2026-04-01', fechaFin: '2026-04-30',
+      presupuesto: 60000, gastado: 58400, conversiones: 8,
+      impresiones: 184000, clicks: 3120, alcance: 84200,
+      ctr: 1.70, cpc: 18.72, cpm: 317, cpl: 7300, roas: null,
+      mejorAnuncio: null,
+      anuncios: [], audiencias: null
+    },
+    {
+      id: 5, nombre: 'TikTok piloto — Audiencia joven', plataforma: 'tiktok',
+      objetivo: 'engagement', estado: 'finalizada',
+      fechaInicio: '2026-03-15', fechaFin: '2026-04-15',
+      presupuesto: 30000, gastado: 26980, conversiones: 4,
+      impresiones: 142000, clicks: 1820, alcance: 96400,
+      ctr: 1.28, cpc: 14.82, cpm: 190, cpl: 6745, roas: null,
+      mejorAnuncio: null,
+      anuncios: [], audiencias: null
+    },
+    {
+      id: 6, nombre: 'TikTok — Programa formativo viral', plataforma: 'tiktok',
+      objetivo: 'alcance', estado: 'activa',
+      fechaInicio: '2026-05-12', fechaFin: '2026-06-12',
+      presupuesto: 45000, gastado: 28400, conversiones: 6,
+      impresiones: 218000, clicks: 4820, alcance: 168000,
+      ctr: 2.21, cpc: 5.89, cpm: 130, cpl: 4733, roas: null,
+      mejorAnuncio: 'tk-1',
+      anuncios: [
+        { id: 'tk1', nombre: 'Video - Un día en el programa', tipo: 'video', impresiones: 124000, clicks: 3140, conversiones: 4, ctr: 2.53, from: '#FF0050', to: '#F26A8D', best: true },
+        { id: 'tk2', nombre: 'Video - POV egresada', tipo: 'video', impresiones: 64000, clicks: 1280, conversiones: 2, ctr: 2.00, from: '#00F2EA', to: '#008C86' },
+        { id: 'tk3', nombre: 'Video - Datos del impacto', tipo: 'video', impresiones: 30000, clicks: 400, conversiones: 0, ctr: 1.33, from: '#1B1620', to: '#2E2A33' }
+      ],
+      audiencias: {
+        edad: [{ label: '18-24', pct: 48 }, { label: '25-34', pct: 32 }, { label: '35-44', pct: 14 }, { label: '45-54', pct: 5 }, { label: '55+', pct: 1 }],
+        genero: [{ label: 'Femenino', pct: 68 }, { label: 'Masculino', pct: 30 }, { label: 'Otro', pct: 2 }],
+        ubicacion: [{ label: 'CABA + AMBA', pct: 36 }, { label: 'Córdoba', pct: 14 }, { label: 'Rosario', pct: 11 }, { label: 'Resto país', pct: 32 }, { label: 'Exterior', pct: 7 }]
+      }
+    },
+    {
+      id: 7, nombre: 'LinkedIn — Lead gen founders', plataforma: 'linkedin',
+      objetivo: 'leads', estado: 'activa',
+      fechaInicio: '2026-05-05', fechaFin: '2026-06-05',
+      presupuesto: 95000, gastado: 64200, conversiones: 9,
+      impresiones: 48000, clicks: 1240, alcance: 38400,
+      ctr: 2.58, cpc: 51.77, cpm: 1338, cpl: 7133, roas: 3.2,
+      mejorAnuncio: 'li-1',
+      anuncios: [
+        { id: 'li1', nombre: 'Sponsored content - Caso EKHOS', tipo: 'sponsored', impresiones: 28000, clicks: 820, conversiones: 6, ctr: 2.93, from: '#0A66C2', to: '#063D7A', best: true },
+        { id: 'li2', nombre: 'Document ad - Whitepaper P&PF', tipo: 'document', impresiones: 14000, clicks: 320, conversiones: 3, ctr: 2.29, from: '#1F4E79', to: '#0E2D49' },
+        { id: 'li3', nombre: 'Single image - Programa formativo', tipo: 'image', impresiones: 6000, clicks: 100, conversiones: 0, ctr: 1.67, from: '#5A7A9C', to: '#2F4A6E' }
+      ],
+      audiencias: {
+        edad: [{ label: '35-44', pct: 42 }, { label: '25-34', pct: 28 }, { label: '45-54', pct: 22 }, { label: '55+', pct: 7 }, { label: '18-24', pct: 1 }],
+        genero: [{ label: 'Femenino', pct: 54 }, { label: 'Masculino', pct: 45 }, { label: 'Otro', pct: 1 }],
+        ubicacion: [{ label: 'CABA + AMBA', pct: 58 }, { label: 'Córdoba', pct: 12 }, { label: 'Rosario', pct: 8 }, { label: 'Resto país', pct: 14 }, { label: 'Exterior', pct: 8 }]
+      }
+    },
+    {
+      id: 8, nombre: 'Meta — Retargeting visitas web', plataforma: 'meta',
+      objetivo: 'conversiones', estado: 'activa',
+      fechaInicio: '2026-05-18', fechaFin: '2026-06-18',
+      presupuesto: 50000, gastado: 18400, conversiones: 7,
+      impresiones: 96000, clicks: 2840, alcance: 32400,
+      ctr: 2.96, cpc: 6.48, cpm: 192, cpl: 2629, roas: 5.4,
+      mejorAnuncio: null,
+      anuncios: [], audiencias: null
+    }
+  ];
 
   const PLATAFORMA_LABEL = { meta: 'Meta', google: 'Google', tiktok: 'TikTok', linkedin: 'LinkedIn' };
   const PLATAFORMA_INICIAL = { meta: 'M', google: 'G', tiktok: 'T', linkedin: 'In' };
@@ -10412,7 +10599,7 @@
       ],
       footerInfo: 'La campaña se sincronizará con la plataforma al conectar',
       onSubmit: (d) => {
-        const newId = (CAMPANAS.length ? Math.max(...CAMPANAS.map(c => c.id)) : 0) + 1;
+        const newId = Math.max(...CAMPANAS.map(c => c.id)) + 1;
         const presup = parseInt(d.presupuesto) || 100000;
         CAMPANAS.unshift({
           id: newId,
@@ -10467,17 +10654,65 @@
     }
     // Re-render de configuraciones por cliente
     if (typeof renderModulosConfig === 'function') renderModulosConfig();
-    if (typeof renderRepFlagsConfig === 'function') renderRepFlagsConfig();
-    if (typeof renderRepAmbitoSwitch === 'function') renderRepAmbitoSwitch();
     if (typeof renderPilaresConfig === 'function') renderPilaresConfig();
     if (typeof renderEstadosConfig === 'function') renderEstadosConfig();
     if (typeof renderDriveConfig === 'function') renderDriveConfig();
   };
 
   // ═══════════════ ESTRATEGIA ═══════════════
-  const OBJETIVOS = [];
+  const OBJETIVOS = [
+    {
+      id: 1, titulo: '800 inscriptos al programa formativo en 2026',
+      desc: 'Crecer base de organizaciones que pasan por el programa. Mix orgánico + pauta + referidos.',
+      trimestre: 'Q2 2026', actual: 184, meta: 200, unidad: 'inscriptos Q2', estado: 'activo'
+    },
+    {
+      id: 2, titulo: '50 personas confirmadas viaje India 2027',
+      desc: 'Cohorte completa para el viaje inmersivo de octubre 2027. Cierre de inscripciones en septiembre 2026.',
+      trimestre: 'Q2-Q3', actual: 21, meta: 50, unidad: 'leads calificados', estado: 'activo'
+    },
+    {
+      id: 3, titulo: 'Llegar a 35K seguidores en IG con engagement >5%',
+      desc: 'No es el número solo, es la calidad de la audiencia. Engagement promedio sostenido >5% mensual.',
+      trimestre: 'Q2 2026', actual: 31240, meta: 35000, unidad: 'seguidores', estado: 'activo'
+    },
+    {
+      id: 4, titulo: 'Verificación P&PF para 5 nuevas organizaciones',
+      desc: 'Sumar 5 orgs verificadas al ecosistema People & Planet First durante Q2.',
+      trimestre: 'Q2 2026', actual: 5, meta: 5, unidad: 'organizaciones', estado: 'cumplido'
+    }
+  ];
 
-  const HIPOTESIS = [];
+  const HIPOTESIS = [
+    {
+      id: 1, titulo: 'La audiencia 35-45 responde mejor a contenido educativo que aspiracional',
+      razon: 'Los carruseles explicativos de abril tuvieron 2.4x más guardados que los reels aspiracionales del mismo período.',
+      validar: 'Comparar engagement por tipo de contenido en cohortes de edad durante mayo-junio.',
+      estado: 'probando',
+      resultado: null
+    },
+    {
+      id: 2, titulo: 'Reels documentales largos (60-90s) generan más conversión que micro-reels',
+      razon: 'Hipótesis del equipo: la audiencia de EKHOS premia profundidad. Sin datos directos todavía.',
+      validar: 'Publicar 4 reels >60s en mayo y comparar CPL e inscripciones contra el promedio de abril.',
+      estado: 'probando',
+      resultado: null
+    },
+    {
+      id: 3, titulo: 'Asociar Ruta de la Luz con India 2027 sube conversión del viaje',
+      razon: 'Personas que ya conocen Ruta entienden mejor la propuesta del viaje inmersivo. Son audiencias afines.',
+      validar: 'Campaña India 2027 segmentando a audiencia ya engaged con contenido de Ruta de la Luz.',
+      estado: 'confirmada',
+      resultado: 'CPL 38% por debajo del benchmark en audiencias engaged con Ruta. La asociación funciona.'
+    },
+    {
+      id: 4, titulo: 'Pauta en TikTok sirve para captar audiencia <30 años',
+      razon: 'Suposición inicial: TikTok nos daría audiencia más joven al menor costo.',
+      validar: 'Campaña piloto de un mes en marzo-abril.',
+      estado: 'descartada',
+      resultado: 'CPL en TikTok 2.4x más caro que en Meta. La audiencia joven no se convirtió en leads cualificados. Pausamos por ahora.'
+    }
+  ];
 
   const DECISIONES = [
     {
@@ -10594,7 +10829,7 @@
           </div>
         </div>
       `;
-    }).join('') || '<div style="grid-column:1/-1; padding:48px; text-align:center; color:var(--ink-mute); border:1px dashed var(--line); border-radius:14px;">Todavía no cargaste objetivos. Sumá el primero con el botón de arriba.</div>';
+    }).join('');
     bindEditables();
   }
 
@@ -10630,7 +10865,7 @@
           </div>
         ` : ''}
       </div>
-    `).join('') || '<div style="padding:32px; text-align:center; color:var(--ink-mute); font-style:italic;">Todavía no cargaste hipótesis.</div>';
+    `).join('');
     bindEditables();
   }
 
@@ -10771,7 +11006,7 @@
         { id: 'actual', label: 'Valor actual (opcional)', type: 'number', placeholder: '0', help: 'Si ya hay avance, anotalo. Si no, queda en 0.' }
       ],
       onSubmit: (d) => {
-        const newId = (OBJETIVOS.length ? Math.max(...OBJETIVOS.map(o => o.id)) : 0) + 1;
+        const newId = Math.max(...OBJETIVOS.map(o => o.id)) + 1;
         OBJETIVOS.unshift({
           id: newId,
           titulo: d.titulo,
@@ -10807,7 +11042,7 @@
         }
       ],
       onSubmit: (d) => {
-        const newId = (HIPOTESIS.length ? Math.max(...HIPOTESIS.map(h => h.id)) : 0) + 1;
+        const newId = Math.max(...HIPOTESIS.map(h => h.id)) + 1;
         HIPOTESIS.unshift({
           id: newId,
           titulo: d.titulo,
@@ -10960,7 +11195,152 @@
   };
 
   // ═══════════════ PROYECTOS ═══════════════
-  const PROYECTOS = [];
+  const PROYECTOS = [
+    {
+      id: 1, slug: 'ruta-luz',
+      nombre: 'Ruta de la Luz',
+      monogram: 'R',
+      desc: 'Trabajo intergeneracional en la Puna jujeña. Cuatro años recorriendo Tilcara, Humahuaca y comunidades cercanas — memoria territorial y prácticas regenerativas.',
+      estado: 'en_curso', estadoLabel: 'En curso',
+      from: '#F26A8D', to: '#F26A8D',
+      fechaInicio: '2022-03-01', fechaFinEst: null, fechaFinReal: null,
+      responsableAgencia: 'Marti', responsableCliente: 'Jessica',
+      objetivo: 'Documentar y sostener el trabajo en 8 comunidades de la Puna',
+      metaActual: 6, metaNumero: 8, metaUnidad: 'comunidades activas',
+      // Counts pulled
+      tareasCount: 3, postsCount: 8, campanasCount: 1,
+      hitos: [
+        { titulo: 'Primera expedición a Tilcara', desc: 'Encuentro inicial con líderes comunitarios. Definición de pilares del proyecto.', fecha: '2022-04-15', estado: 'completado' },
+        { titulo: 'Documental Año 1 publicado', desc: 'Pieza audiovisual de 22 minutos sobre el primer ciclo. Subido a YouTube + extracto para redes.', fecha: '2023-03-10', estado: 'completado' },
+        { titulo: 'Verificación P&PF obtenida', desc: 'El proyecto suma la verificación People & Planet First como caso emblemático.', fecha: '2024-08-20', estado: 'completado' },
+        { titulo: 'Reel cierre 4 años · Voces de la Puna', desc: 'Pieza estrella de mayo 2026. 84K views, 4.8K likes, mejor performance del trimestre.', fecha: '2026-05-12', estado: 'completado' },
+        { titulo: 'Próximo encuentro en Humahuaca', desc: 'Reunión con tres comunidades nuevas que se suman al ecosistema.', fecha: '2026-07-08', estado: 'en_curso' },
+        { titulo: 'Libro fotográfico de 5 años', desc: 'Compilación visual a publicar en marzo 2027 para celebrar el lustro.', fecha: '2027-03-15', estado: 'pendiente' }
+      ],
+      tareasLinked: [
+        { titulo: 'Mandar fotos del último encuentro en Puna', responsable: 'Jessica', tipo: 'cliente', urgencia: 'urgente' },
+        { titulo: 'Subir fotos del viaje Jujuy al drive', responsable: 'Marti', tipo: 'agencia', urgencia: 'normal', done: true },
+        { titulo: 'Firmar contrato con productora', responsable: 'Jessica', tipo: 'cliente', urgencia: 'normal', done: true }
+      ],
+      postsLinked: [
+        { titulo: 'Detrás de escena: encuentro en Tilcara', tipo: 'reel', fecha: '5 may', from: '#F26A8D', to: '#F26A8D' },
+        { titulo: 'Ruta de la Luz: las voces de la Puna', tipo: 'reel', fecha: '12 may', from: '#F26A8D', to: '#F26A8D', star: true },
+        { titulo: 'Recuperar memoria territorial', tipo: 'post', fecha: '29 may', from: '#F26A8D', to: '#F26A8D', estado: 'aprobacion' }
+      ],
+      campanasLinked: [
+        { nombre: 'Ruta de la Luz — Branding', plataforma: 'google', estado: 'activa', gastado: 52400, presupuesto: 80000, conversiones: 3, kpi: 'CPM $127' }
+      ],
+      prensa: [
+        { medio: 'Revista Anfibia', tituloArt: 'La Puna como territorio de reinvención: 4 años de Ruta de la Luz', url: '#', fecha: '2026-04-22', alcance: 28000, tipo: 'prensa' },
+        { medio: 'Conexión Tierra Podcast', tituloArt: 'Jessica Oyarbide: trabajo regenerativo desde el sur', url: '#', fecha: '2026-05-17', alcance: 12500, tipo: 'podcast' },
+        { medio: 'La Nación · Suplemento Comunidad', tituloArt: 'Cómo se construye un ecosistema de impacto en el NOA', url: '#', fecha: '2026-02-08', alcance: 84000, tipo: 'prensa' },
+        { medio: 'RTA Argentina', tituloArt: 'Mirada al norte: comunidades que sostienen su territorio', url: '#', fecha: '2025-11-14', alcance: 45000, tipo: 'tv' }
+      ]
+    },
+    {
+      id: 2, slug: 'india-2027',
+      nombre: 'Viaje India 2027',
+      monogram: 'I',
+      desc: 'Viaje inmersivo a India en octubre 2027. Encuentros con líderes regenerativos locales, visitas a comunidades y prácticas de aprendizaje profundo.',
+      estado: 'planificacion', estadoLabel: 'Planificación',
+      from: '#F26A8D', to: '#F26A8D',
+      fechaInicio: '2026-04-01', fechaFinEst: '2027-10-15', fechaFinReal: null,
+      responsableAgencia: 'Delfi', responsableCliente: 'Jessica',
+      objetivo: 'Cupo completo de 50 participantes confirmados',
+      metaActual: 21, metaNumero: 50, metaUnidad: 'leads calificados',
+      tareasCount: 2, postsCount: 3, campanasCount: 1,
+      hitos: [
+        { titulo: 'Definición de itinerario y partners locales', desc: 'Acuerdos con organizaciones en Rajasthan, Kerala y Sikkim.', fecha: '2026-03-15', estado: 'completado' },
+        { titulo: 'Lanzamiento de inscripciones', desc: 'Apertura oficial el 8 de mayo. Campaña Meta + comunicación orgánica + email.', fecha: '2026-05-08', estado: 'completado' },
+        { titulo: 'Reel adelanto del viaje', desc: 'Pieza con material de scouting + testimonios de partners. Aprobación pendiente.', fecha: '2026-05-26', estado: 'en_curso' },
+        { titulo: 'Charla abierta con embajada de India', desc: 'Evento online con representante diplomático. Mid-funnel para leads tibios.', fecha: '2026-07-12', estado: 'pendiente' },
+        { titulo: 'Cierre de inscripciones', desc: 'Deadline de confirmaciones + pago de seña.', fecha: '2026-09-30', estado: 'pendiente' },
+        { titulo: 'Viaje', desc: 'Encuentro de partida en Delhi. 12 días de inmersión.', fecha: '2027-10-04', estado: 'pendiente' }
+      ],
+      tareasLinked: [
+        { titulo: 'Editar reel campaña India 2027 (v3)', responsable: 'Marti', tipo: 'agencia', urgencia: 'urgente' },
+        { titulo: 'Aprobar copy de campaña India 2027', responsable: 'Jessica', tipo: 'cliente', urgencia: 'urgente' }
+      ],
+      postsLinked: [
+        { titulo: 'India 2027: inscripciones abiertas', tipo: 'post', fecha: '8 may', from: '#F26A8D', to: '#F26A8D' },
+        { titulo: 'Adelanto: viaje India 2027 — mirá lo que vas a vivir', tipo: 'reel', fecha: '26 may', from: '#F26A8D', to: '#F26A8D', estado: 'aprobacion' },
+        { titulo: 'Convocatoria charla embajada de India', tipo: 'post', fecha: '6 jun', from: '#F26A8D', to: '#F26A8D', estado: 'idea' }
+      ],
+      campanasLinked: [
+        { nombre: 'India 2027 — Inscripciones', plataforma: 'meta', estado: 'activa', gastado: 117200, presupuesto: 180000, conversiones: 21, kpi: 'CPL $5.581' }
+      ],
+      prensa: [
+        { medio: 'Pulso Sostenible', tituloArt: 'Tres viajes inmersivos para repensar el rol del liderazgo', url: '#', fecha: '2026-05-02', alcance: 18000, tipo: 'newsletter_externo' }
+      ]
+    },
+    {
+      id: 3, slug: 'programa-formativo',
+      nombre: 'Programa Formativo · Cohorte Junio',
+      monogram: 'P',
+      desc: 'Próxima cohorte del programa formativo de Ecosistemas de Impacto. Tres meses, 50 inscriptos esperados, mix orgánico + pauta + referidos.',
+      estado: 'en_curso', estadoLabel: 'En curso',
+      from: '#FF82FF', to: '#2A2630',
+      fechaInicio: '2026-04-15', fechaFinEst: '2026-09-15', fechaFinReal: null,
+      responsableAgencia: 'Delfi', responsableCliente: 'Virginia',
+      objetivo: 'Llenar cohorte con 50 organizaciones inscriptas',
+      metaActual: 38, metaNumero: 50, metaUnidad: 'inscripciones',
+      tareasCount: 2, postsCount: 4, campanasCount: 1,
+      hitos: [
+        { titulo: 'Definición de currícula 2026', desc: 'Actualización de contenidos, nuevos módulos sobre verificación P&PF.', fecha: '2026-03-20', estado: 'completado' },
+        { titulo: 'Lanzamiento de inscripciones cohorte junio', desc: 'Apertura el 1 de mayo con campaña Meta + orgánico + email.', fecha: '2026-05-01', estado: 'completado' },
+        { titulo: 'Cambio de naming "curso" → "programa formativo"', desc: 'Decisión estratégica documentada en bitácora del 28 abril.', fecha: '2026-05-01', estado: 'completado' },
+        { titulo: 'Cierre inscripciones', desc: 'Deadline para sumarse a la cohorte de junio.', fecha: '2026-06-10', estado: 'en_curso' },
+        { titulo: 'Encuentro inaugural de cohorte', desc: 'Bienvenida y primer módulo presencial-híbrido.', fecha: '2026-06-15', estado: 'pendiente' },
+        { titulo: 'Encuentro de cierre', desc: 'Presentación de proyectos finales por organización.', fecha: '2026-09-12', estado: 'pendiente' }
+      ],
+      tareasLinked: [
+        { titulo: 'Preparar copy newsletter junio', responsable: 'Delfi', tipo: 'agencia', urgencia: 'normal' },
+        { titulo: 'Cerrar plan trimestral con Jessica', responsable: 'Delfi', tipo: 'agencia', urgencia: 'normal' }
+      ],
+      postsLinked: [
+        { titulo: 'Ecosistemas de Impacto: 5 claves del modelo EKHOS', tipo: 'carrusel', fecha: '2 may', from: '#FF82FF', to: '#2A2630' },
+        { titulo: 'Una semana en la cohorte del programa', tipo: 'reel', fecha: '19 may', from: '#F26A8D', to: '#F26A8D' },
+        { titulo: '8 organizaciones que ya pasaron por nuestro programa', tipo: 'carrusel', fecha: '21 may', from: '#FF82FF', to: '#25212B' },
+        { titulo: 'Próxima cohorte: junio 2026', tipo: 'carrusel', fecha: '27 may', from: '#FF82FF', to: '#2A2630', estado: 'aprobado' }
+      ],
+      campanasLinked: [
+        { nombre: 'Programa formativo — Cohorte junio', plataforma: 'meta', estado: 'activa', gastado: 93600, presupuesto: 120000, conversiones: 24, kpi: 'CPL $3.900' }
+      ],
+      prensa: [
+        { medio: 'Forbes Argentina', tituloArt: 'Las 10 propuestas formativas más interesantes en sustentabilidad', url: '#', fecha: '2026-04-18', alcance: 92000, tipo: 'prensa' }
+      ]
+    },
+    {
+      id: 4, slug: 'ppf-2026',
+      nombre: 'Verificación P&PF 2026',
+      monogram: 'V',
+      desc: 'Proceso anual de verificación People & Planet First para 5 organizaciones nuevas. Documentación, auditoría y comunicación de los casos.',
+      estado: 'cerrado', estadoLabel: 'Cerrado con éxito',
+      from: '#FF82FF', to: '#25212B',
+      fechaInicio: '2026-01-15', fechaFinEst: '2026-04-30', fechaFinReal: '2026-04-25',
+      responsableAgencia: 'Marti', responsableCliente: 'Virginia',
+      objetivo: 'Sumar 5 organizaciones verificadas P&PF',
+      metaActual: 5, metaNumero: 5, metaUnidad: 'organizaciones',
+      tareasCount: 0, postsCount: 1, campanasCount: 1,
+      hitos: [
+        { titulo: 'Convocatoria abierta', desc: 'Llamado a organizaciones interesadas en la verificación.', fecha: '2026-01-20', estado: 'completado' },
+        { titulo: 'Selección de las 5 organizaciones', desc: 'Comité interno selecciona casos con mayor potencial.', fecha: '2026-02-15', estado: 'completado' },
+        { titulo: 'Proceso de auditoría', desc: 'Visitas, entrevistas y revisión documental.', fecha: '2026-03-30', estado: 'completado' },
+        { titulo: 'Verificación obtenida + ceremonia', desc: 'Las 5 organizaciones reciben su certificación.', fecha: '2026-04-25', estado: 'completado' }
+      ],
+      tareasLinked: [],
+      postsLinked: [
+        { titulo: 'Verificación People & Planet First', tipo: 'carrusel', fecha: '14 may', from: '#FF82FF', to: '#1B1620' }
+      ],
+      campanasLinked: [
+        { nombre: 'Verificación P&PF — Awareness', plataforma: 'meta', estado: 'pausada', gastado: 58400, presupuesto: 60000, conversiones: 8, kpi: 'CPL $7.300' }
+      ],
+      prensa: [
+        { medio: 'Apertura Magazine', tituloArt: 'Las 5 organizaciones que sumaron la verificación People & Planet First este año', url: '#', fecha: '2026-04-28', alcance: 34000, tipo: 'prensa' },
+        { medio: 'El Cronista · Suplemento', tituloArt: 'Cómo el sector privado argentino se mide en impacto', url: '#', fecha: '2026-05-05', alcance: 56000, tipo: 'prensa' }
+      ]
+    }
+  ];
 
   let proyectoActivo = null;
   let proyFiltro = 'todos';
@@ -11347,7 +11727,7 @@
         { id: 'metaUnidad', label: 'Unidad', type: 'text', placeholder: 'inscripciones, leads, alcance…' }
       ],
       onSubmit: (d) => {
-        const newId = (PROYECTOS.length ? Math.max(...PROYECTOS.map(p => p.id)) : 0) + 1;
+        const newId = Math.max(...PROYECTOS.map(p => p.id)) + 1;
         const monogram = d.nombre.trim().charAt(0).toUpperCase();
         const slug = d.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         const estadoLabels = { planificacion: 'Planificación', en_curso: 'En curso', pausado: 'Pausado' };
@@ -12041,43 +12421,6 @@
   drawTraficoChart();
   applyEmailProvider();
 
-  // ─── ARCHIVOS (Recursos): links/carpetas por cliente, desde Supabase ───
-  let RECURSOS = [];
-  function _mapArchivoRow(r){ return { id: r.id, nombre: r.nombre || 'Sin nombre', url: r.url || '' }; }
-  async function cargarArchivos(){
-    RECURSOS = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId) {
-        const { data, error } = await window.__sb.from('archivo')
-          .select('id, nombre, url, created_at').eq('cliente_id', clienteId).order('created_at', { ascending: true });
-        if (!error && Array.isArray(data)) RECURSOS = data.map(_mapArchivoRow);
-      }
-    } catch (e) { /* sin conexión/datos: queda vacío */ }
-    if (typeof renderArchivos === 'function') renderArchivos();
-  }
-  async function agregarRecurso(nombre, url){
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
-      const { error } = await window.__sb.from('archivo').insert({ cliente_id: clienteId, nombre: nombre || 'Sin nombre', url: url || '' });
-      if (error) { showToast('No se pudo agregar', 'warn'); return false; }
-    } catch (e) { showToast('No se pudo agregar', 'warn'); return false; }
-    await cargarArchivos();
-    return true;
-  }
-  async function quitarRecurso(id){
-    try {
-      if (window.__sb) {
-        const { error } = await window.__sb.from('archivo').delete().eq('id', id);
-        if (error) { showToast('No se pudo quitar', 'warn'); return; }
-      }
-    } catch (e) { showToast('No se pudo quitar', 'warn'); return; }
-    await cargarArchivos();
-  }
-
   // ═══════════════ ARCHIVOS ═══════════════
   const ARCHIVOS = [
     // Brand kit
@@ -12353,7 +12696,6 @@
   // ─── Reportes: datos reales desde Supabase (scope = cliente activo) ───
   let REPORTES = [];
   let _miNombre = '';
-  let _miUid = '';
 
   const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   function _estadoLabel(e){ return e==='publicado'?'Publicado':e==='en_curso'?'En curso':e==='borrador'?'Borrador':(e||''); }
@@ -12370,26 +12712,7 @@
       alcance: row.alcance||0, conversiones: row.conversiones||0, inversion: row.inversion||0, engagement: row.engagement||0,
       alcanceDelta: row.alcance_delta||0, conversionesDelta: row.conversiones_delta||0,
       inversionDelta: row.inversion_delta||0, engagementDelta: row.engagement_delta||0,
-      cierraEl: row.cierra_el || null,
-      analisis: row.analisis || '',
-      // Métricas orgánicas de IG (null = la métrica no se trajo ese mes, ≠ 0 real)
-      org: {
-        views:        row.views_org           ?? null,
-        viewsHist:    row.views_org_historias  ?? null,
-        viewsPosts:   row.views_org_posts      ?? null,
-        viewsReels:   row.views_org_reels      ?? null,
-        reach:        row.reach_org            ?? null,
-        likes:        row.likes_org            ?? null,
-        comments:     row.comments_org         ?? null,
-        saves:        row.saves_org            ?? null,
-        shares:       row.shares_org           ?? null,
-        replies:      row.replies_org          ?? null,
-        reposts:      row.reposts_org          ?? null,
-        interPosts:   row.inter_posts_org      ?? null,
-        interReels:   row.inter_reels_org      ?? null,
-        follows:      row.follows_mes          ?? null,
-        unfollows:    row.unfollows_mes        ?? null
-      }
+      cierraEl: row.cierra_el || null
     };
   }
   async function cargarReportes(){
@@ -12410,60 +12733,7 @@
     renderReportes();
     renderComparativo();
     actualizarResumenKPIs();
-    renderHighlights();
   }
-  function renderHighlights(){
-    const box = document.getElementById('highlightsList');
-    if (!box) return;
-    const r = REPORTES.find(x => x.estado === 'en_curso') || REPORTES[0] || null;
-    if (!r) { box.innerHTML = '<div style="font-size:13px;color:var(--ink-mute);line-height:1.55;padding:6px 0;">Sin highlights cargados este mes todavía.</div>'; return; }
-    const o = r.org || {};
-    const ic = {
-      up:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>',
-      heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>',
-      users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
-      play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>'
-    };
-    const item = (icon, warn, html, meta, stat) => `
-      <div class="highlight">
-        <div class="highlight-icon${warn?' warn':''}">${icon}</div>
-        <div><div class="highlight-text">${html}</div>${meta?`<div class="highlight-meta">${meta}</div>`:''}</div>
-        <div class="highlight-stat">${stat}</div>
-      </div>`;
-    const out = [];
-
-    out.push(item(ic.up, false,
-      `<strong>Alcance</strong> del mes`,
-      (r.alcanceDelta ? (r.alcanceDelta>0?'+':'')+r.alcanceDelta+'% vs mes anterior' : 'contenido orgánico'),
-      fmtKbig(r.alcance)));
-
-    out.push(item(ic.heart, false,
-      `<strong>Engagement</strong> promedio`,
-      (r.engagementDelta ? (r.engagementDelta>0?'+':'')+r.engagementDelta+'pp vs mes anterior' : 'interacciones sobre alcance'),
-      r.engagement + '%'));
-
-    if (o.follows != null || o.unfollows != null) {
-      const neto = (o.follows||0) - (o.unfollows||0);
-      out.push(item(ic.users, neto<0,
-        `Crecimiento de <strong>seguidores</strong>`,
-        `+${(o.follows||0).toLocaleString('es-AR')} nuevos · −${(o.unfollows||0).toLocaleString('es-AR')} bajas`,
-        (neto>=0?'+':'−')+Math.abs(neto).toLocaleString('es-AR')));
-    }
-
-    const fmts = [['Historias', o.viewsHist],['Publicaciones', o.viewsPosts],['Reels', o.viewsReels]].filter(x=>x[1]!=null);
-    if (fmts.length) {
-      const top = fmts.slice().sort((a,b)=>b[1]-a[1])[0];
-      const tot = fmts.reduce((s,x)=>s+x[1],0);
-      const pct = tot ? Math.round(top[1]/tot*100) : 0;
-      out.push(item(ic.play, false,
-        `<strong>${top[0]}</strong> fue tu formato más visto`,
-        `${pct}% de las reproducciones del mes`,
-        fmtKbig(top[1])));
-    }
-
-    box.innerHTML = out.join('');
-  }
-
   function poblarCompMes(){
     const s1 = document.getElementById('compMes1'), s2 = document.getElementById('compMes2');
     if (!s1 || !s2) return;
@@ -12522,7 +12792,6 @@
   }
 
   function renderReportes() {
-    if (typeof renderRepAmbitoSwitch === 'function') renderRepAmbitoSwitch();
     if (!REPORTES.length) {
       document.getElementById('reportesGrid').innerHTML =
         '<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:var(--ink-mute);border:1px dashed var(--line);border-radius:16px;background:var(--bg-elev);">'
@@ -12533,29 +12802,6 @@
     document.getElementById('reportesGrid').innerHTML = REPORTES.map(r => {
       const isEnCurso = r.estado === 'en_curso';
       const fechaPub = r.publicadoEn ? fmtFechaArc(r.publicadoEn) : null;
-      const statsOrganico = `
-              <div class="reporte-stat">
-                <div class="label">Alcance</div>
-                <div class="value">${fmtKbig(r.alcance)}</div>
-                <div class="delta ${deltaClass(r.alcanceDelta)}">${deltaIcon(r.alcanceDelta)}${r.alcanceDelta > 0 ? '+' : ''}${r.alcanceDelta}%</div>
-              </div>
-              <div class="reporte-stat">
-                <div class="label">Engagement</div>
-                <div class="value">${r.engagement}%</div>
-                <div class="delta ${deltaClass(r.engagementDelta)}">${deltaIcon(r.engagementDelta)}${r.engagementDelta > 0 ? '+' : ''}${r.engagementDelta}pp</div>
-              </div>`;
-      const statsPauta = `
-              <div class="reporte-stat">
-                <div class="label">Conversiones</div>
-                <div class="value">${r.conversiones}</div>
-                <div class="delta ${deltaClass(r.conversionesDelta)}">${deltaIcon(r.conversionesDelta)}${r.conversionesDelta > 0 ? '+' : ''}${r.conversionesDelta}</div>
-              </div>
-              <div class="reporte-stat">
-                <div class="label">Inversión</div>
-                <div class="value">${fmtARSrep(r.inversion)}</div>
-                <div class="delta ${deltaClass(r.inversionDelta, true)}">${deltaIcon(r.inversionDelta)}${r.inversionDelta > 0 ? '+' : ''}${r.inversionDelta}%</div>
-              </div>`;
-      const stats = (repAmbito === 'pauta') ? statsPauta : statsOrganico;
       return `
         <div class="reporte-card ${isEnCurso ? 'en-curso' : ''}" data-rep-id="${r.id}">
           <div class="reporte-head">
@@ -12568,13 +12814,32 @@
           </div>
           <div class="reporte-body">
             <div class="reporte-mini-stats">
-              ${stats}
+              <div class="reporte-stat">
+                <div class="label">Alcance</div>
+                <div class="value">${fmtKbig(r.alcance)}</div>
+                <div class="delta ${deltaClass(r.alcanceDelta)}">${deltaIcon(r.alcanceDelta)}${r.alcanceDelta > 0 ? '+' : ''}${r.alcanceDelta}%</div>
+              </div>
+              <div class="reporte-stat">
+                <div class="label">Conversiones</div>
+                <div class="value">${r.conversiones}</div>
+                <div class="delta ${deltaClass(r.conversionesDelta)}">${deltaIcon(r.conversionesDelta)}${r.conversionesDelta > 0 ? '+' : ''}${r.conversionesDelta}</div>
+              </div>
+              <div class="reporte-stat">
+                <div class="label">Inversión</div>
+                <div class="value">${fmtARSrep(r.inversion)}</div>
+                <div class="delta ${deltaClass(r.inversionDelta, true)}">${deltaIcon(r.inversionDelta)}${r.inversionDelta > 0 ? '+' : ''}${r.inversionDelta}%</div>
+              </div>
+              <div class="reporte-stat">
+                <div class="label">Engagement</div>
+                <div class="value">${r.engagement}%</div>
+                <div class="delta ${deltaClass(r.engagementDelta)}">${deltaIcon(r.engagementDelta)}${r.engagementDelta > 0 ? '+' : ''}${r.engagementDelta}pp</div>
+              </div>
             </div>
             <div class="reporte-foot">
               <div class="reporte-fecha">
                 ${isEnCurso
-                  ? (r.cierraEl ? `Se cierra el <strong>${r.cierraEl}</strong>` : `Mes en curso`)
-                  : (fechaPub ? `Publicado <strong>${fechaPub}</strong>` : ``)}
+                  ? `Se cierra el <strong>${r.cierraEl}</strong>`
+                  : `Publicado <strong>${fechaPub}</strong>`}
               </div>
               ${isEnCurso
                 ? `<button class="btn-download disabled" disabled>
@@ -12600,7 +12865,8 @@
     document.querySelectorAll('[data-rep-download]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        descargarReportePDF(btn.dataset.repDownload);
+        const r = REPORTES.find(x => x.id === btn.dataset.repDownload);
+        alert(`Descarga del PDF — próxima iteración 🙂\n\nReporte ${r.mesLabel} ${r.año} en formato PDF con narrativa, KPIs, highlights y gráficos.`);
       });
     });
   }
@@ -12731,7 +12997,7 @@
     ov.querySelectorAll('[data-wr-cta]').forEach(b => b.addEventListener('click', () => {
       const act = b.dataset.wrCta;
       if (act === 'full') { closeWrapped(); openReporteModal(_wrap.rid); }
-      else descargarReportePDF(_wrap.rid);
+      else alert('Descarga del PDF — próxima iteración 🙂');
     }));
     document.addEventListener('keydown', _wrapKey);
     showWrapSlide(0);
@@ -12819,29 +13085,9 @@
         <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; margin-bottom: 10px;">Resumen del mes</div>
         <div style="font-size: 13px; line-height: 1.6; color: var(--ink-soft); margin-bottom: 20px;">
           ${r.estado === 'en_curso'
-            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra ${r.cierraEl ? 'el ' + r.cierraEl : 'a fin de mes'}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
+            ? `<em>El reporte de ${r.mesLabel} se está armando automáticamente y se cierra el ${r.cierraEl}. Vas a recibir el PDF final con la narrativa, los highlights y los gráficos completos.</em>`
             : `Mes de ${r.mesLabel.toLowerCase()} cerrado con métricas sólidas. El alcance y las conversiones crecieron consistentemente vs el mes anterior, con foco en los proyectos activos (Ruta de la Luz, India 2027, Programa formativo).`}
         </div>
-
-        <!-- ░░ Reporte orgánico profundo (IG) — se llena async desde renderReporteDeep() ░░ -->
-        <div id="reporteDeep"></div>
-
-        ${currentRole === 'agency' ? `
-        <div class="rep-agency-panel">
-          <div class="rep-agency-title">Acciones de agencia</div>
-          <div class="rep-agency-estado">
-            <button class="rep-estado-btn ${r.estado==='borrador'?'active':''}" data-set-estado="borrador">Borrador</button>
-            <button class="rep-estado-btn ${r.estado==='en_curso'?'active':''}" data-set-estado="en_curso">En curso</button>
-            <button class="rep-estado-btn pub ${r.estado==='publicado'?'active':''}" data-set-estado="publicado">Publicado</button>
-          </div>
-          <div class="rep-agency-cierra">
-            <label for="repCierraInput">Se cierra el</label>
-            <input type="text" id="repCierraInput" value="${_esc(r.cierraEl||'')}" placeholder="Ej: 30 de junio">
-            <button class="btn-ghost rep-cierra-save" id="repCierraSave">Guardar</button>
-          </div>
-          <div class="rep-agency-hint">El estado define qué ve el cliente. “Publicado” lo hace visible y registra la fecha; volver a borrador la quita.</div>
-        </div>` : ''}
-
         <div style="display: flex; gap: 14px; padding: 14px; background: var(--bg); border-radius: 10px; margin-bottom: 18px;">
           <div style="flex: 1;">
             <div style="font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; margin-bottom: 3px;">Generado por</div>
@@ -12854,7 +13100,18 @@
             </div>
           ` : ''}
         </div>
-        <div id="repModalFooter">${_repFooterHTML(r)}</div>
+        <div style="display: flex; gap: 8px;">
+          ${r.estado === 'publicado'
+            ? `<button class="btn-primary" data-rep-modal-download="${r.id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Descargar PDF
+              </button>
+              <button class="btn-ghost" onclick="copyLink()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                Copiar link
+              </button>`
+            : `<div style="font-size: 12px; color: var(--ink-mute); font-style: italic; padding: 8px 0;">El PDF estará disponible cuando se cierre el mes.</div>`}
+        </div>
       </div>
     `;
     document.getElementById('modalOverlay').classList.add('active');
@@ -12862,401 +13119,8 @@
       modal.classList.remove('reporte-modal');
       closeModal();
     });
-    _bindRepFooter(r);
-    renderReporteDeep(r);
-    _bindRepAgency(r);
-  }
-
-  // ═══════════ REPORTE ORGÁNICO PROFUNDO (IG) ═══════════
-  function _rNum(n){ return (n==null) ? '—' : Number(n).toLocaleString('es-AR'); }
-  function _rPct(part, total){ if(!total) return 0; return Math.round((part/total)*1000)/10; }
-  function _has(v){ return v != null; }
-  function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
-  function _genLabel(s){ return s==='F'?'Mujeres':s==='M'?'Hombres':s==='U'?'Otro / sin dato':s; }
-
-  // Barra horizontal en CSS puro
-  function _deepBar(label, value, max, sub){
-    const pct = (max>0 && value>0) ? Math.max(3, Math.round((value/max)*100)) : 0;
-    return `
-      <div class="deep-bar-row">
-        <div class="deep-bar-label" title="${_esc(label)}">${_esc(label)}</div>
-        <div class="deep-bar-track"><div class="deep-bar-fill" style="width:${pct}%"></div></div>
-        <div class="deep-bar-val">${_rNum(value)}${sub?`<span class="deep-bar-sub">${sub}</span>`:''}</div>
-      </div>`;
-  }
-
-  // Mini-gráfico de seguidores (CSS)
-  function _deepSpark(serie){
-    const last = serie.slice(-12);
-    const vals = last.map(x=>x.val);
-    const max = Math.max(...vals, 1), min = Math.min(...vals);
-    const span = (max - min) || 1;
-    return `<div class="deep-spark">
-      <div class="deep-spark-bars">
-        ${last.map(x=>{
-          const h = Math.round(((x.val - min) / span) * 70) + 25; // 25–95%
-          return `<div class="deep-spark-bar" style="height:${h}%" title="${x.mes}: ${_rNum(x.val)}"></div>`;
-        }).join('')}
-      </div>
-      <div class="deep-spark-cap">Seguidores · últimos ${last.length} ${last.length===1?'mes':'meses'}</div>
-    </div>`;
-  }
-
-  function _buildDeepHTML(r, o, demo, segMes, segSerie, opts){
-    opts = opts || {};
-    const esAgencia = !opts.readonly && (typeof currentRole !== 'undefined') && currentRole === 'agency';
-    const palette = ['var(--accent)', '#C58BD6', '#E7B7A0', '#9BB8D8'];
-
-    // ── 01 Visualizaciones ──
-    const vmax = Math.max(o.viewsHist||0, o.viewsPosts||0, o.viewsReels||0);
-    const sec01 = (o.views!=null || vmax>0) ? `
-      <div class="deep-sec">
-        <div class="deep-sec-head"><span class="deep-sec-num">01</span> Visualizaciones</div>
-        ${_has(o.views)?`<div class="deep-big">${_rNum(o.views)}<span class="deep-big-cap">reproducciones del contenido orgánico este mes</span></div>`:''}
-        <div class="deep-bars">
-          ${_has(o.viewsHist)? _deepBar('Historias', o.viewsHist, vmax) : ''}
-          ${_has(o.viewsPosts)? _deepBar('Publicaciones', o.viewsPosts, vmax) : ''}
-          ${_has(o.viewsReels)? _deepBar('Reels', o.viewsReels, vmax) : ''}
-        </div>
-      </div>` : '';
-
-    // ── 02 Interacciones ──
-    const interKeys = [['likes','Me gusta'],['comments','Comentarios'],['saves','Guardados'],['shares','Compartidos'],['reposts','Reposts'],['replies','Respuestas']];
-    const intTot = interKeys.reduce((s,[k])=> s + (o[k]||0), 0);
-    const hayInter = interKeys.some(([k])=>_has(o[k]));
-    const ip = o.interPosts||0, ir = o.interReels||0, ipr = ip+ir;
-    const sec02 = hayInter ? `
-      <div class="deep-sec">
-        <div class="deep-sec-head"><span class="deep-sec-num">02</span> Interacciones</div>
-        <div class="deep-big">${_rNum(intTot)}<span class="deep-big-cap">interacciones totales · me gusta, comentarios, guardados y más</span></div>
-        <div class="deep-cards">
-          ${interKeys.filter(([k])=>_has(o[k])).map(([k,lbl])=>`
-            <div class="deep-card"><div class="deep-card-val">${_rNum(o[k])}</div><div class="deep-card-lbl">${lbl}</div></div>`).join('')}
-        </div>
-        ${ipr>0 ? `
-          <div class="deep-split">
-            <div class="deep-split-head">Interacciones por formato</div>
-            <div class="deep-split-bar">
-              <div class="deep-split-seg posts" style="width:${_rPct(ip,ipr)}%"></div>
-              <div class="deep-split-seg reels" style="width:${_rPct(ir,ipr)}%"></div>
-            </div>
-            <div class="deep-split-legend">
-              <span><i class="dot posts"></i>Publicaciones · ${_rNum(ip)} (${_rPct(ip,ipr)}%)</span>
-              <span><i class="dot reels"></i>Reels · ${_rNum(ir)} (${_rPct(ir,ipr)}%)</span>
-            </div>
-          </div>` : ''}
-      </div>` : '';
-
-    // ── 03 Seguidores ──
-    const fol = o.follows, unf = o.unfollows;
-    const haySeg = _has(fol) || _has(unf) || _has(segMes);
-    const neto = (_has(fol)||_has(unf)) ? ((fol||0)-(unf||0)) : null;
-    const sec03 = haySeg ? `
-      <div class="deep-sec">
-        <div class="deep-sec-head"><span class="deep-sec-num">03</span> Seguidores</div>
-        ${_has(segMes)?`<div class="deep-big">${_rNum(segMes)}<span class="deep-big-cap">seguidores al cierre del mes</span></div>`:''}
-        ${(_has(fol)||_has(unf))?`
-        <div class="deep-cards three">
-          <div class="deep-card up"><div class="deep-card-val">+${_rNum(fol||0)}</div><div class="deep-card-lbl">Nuevos seguidores</div></div>
-          <div class="deep-card down"><div class="deep-card-val">−${_rNum(unf||0)}</div><div class="deep-card-lbl">Dejaron de seguir</div></div>
-          <div class="deep-card ${neto>=0?'up':'down'}"><div class="deep-card-val">${neto>=0?'+':'−'}${_rNum(Math.abs(neto||0))}</div><div class="deep-card-lbl">Crecimiento neto</div></div>
-        </div>`:''}
-        ${segSerie.length>=2 ? _deepSpark(segSerie) : ''}
-      </div>` : '';
-
-    // ── 04 Audiencia (demografía) ──
-    const gTot = demo.genero.reduce((s,x)=>s+x.val,0);
-    let acc=0; const gSegs=[];
-    demo.genero.forEach((x,i)=>{ const p=_rPct(x.val,gTot); gSegs.push(`${palette[i%palette.length]} ${acc}% ${acc+p}%`); acc+=p; });
-    const donutBg = gSegs.length ? `conic-gradient(${gSegs.join(',')})` : 'var(--line-soft)';
-    const ageOrder = ['13-17','18-24','25-34','35-44','45-54','55-64','65+'];
-    const edad = demo.edad.slice().sort((a,b)=> ageOrder.indexOf(a.seg)-ageOrder.indexOf(b.seg));
-    const eTot = edad.reduce((s,x)=>s+x.val,0), eMax = Math.max(...edad.map(x=>x.val),1);
-    const ciudades = demo.ciudad.slice(0,6), cMax = Math.max(...ciudades.map(x=>x.val),1);
-    const hayDemo = demo.genero.length || edad.length || ciudades.length;
-    const sec04 = hayDemo ? `
-      <div class="deep-sec">
-        <div class="deep-sec-head"><span class="deep-sec-num">04</span> Audiencia</div>
-        <div class="deep-aud">
-          ${demo.genero.length?`
-            <div class="deep-aud-block">
-              <div class="deep-aud-title">Género</div>
-              <div class="deep-donut-wrap">
-                <div class="deep-donut" style="background:${donutBg}"></div>
-                <div class="deep-donut-legend">
-                  ${demo.genero.map((x,i)=>`<span><i class="dot" style="background:${palette[i%palette.length]}"></i>${_genLabel(x.seg)} · ${_rPct(x.val,gTot)}%</span>`).join('')}
-                </div>
-              </div>
-            </div>`:''}
-          ${edad.length?`
-            <div class="deep-aud-block">
-              <div class="deep-aud-title">Edad</div>
-              <div class="deep-bars tight">
-                ${edad.map(x=>_deepBar(x.seg, x.val, eMax, ' · '+_rPct(x.val,eTot)+'%')).join('')}
-              </div>
-            </div>`:''}
-        </div>
-        ${ciudades.length?`
-          <div class="deep-aud-block" style="margin-top:16px;">
-            <div class="deep-aud-title">Top ciudades</div>
-            <div class="deep-bars tight">
-              ${ciudades.map(x=>_deepBar(x.seg, x.val, cMax)).join('')}
-            </div>
-          </div>`:''}
-      </div>` : '';
-
-    // ── 05 Análisis del mes ──
-    const sec05 = `
-      <div class="deep-sec">
-        <div class="deep-sec-head"><span class="deep-sec-num">05</span> Análisis del mes</div>
-        ${esAgencia ? `
-          <textarea id="deepAnalisis" class="deep-analisis-input" placeholder="Escribí la lectura del mes para el cliente: qué funcionó, qué aprendimos y qué proponemos para el mes que viene…">${_esc(r.analisis||'')}</textarea>
-          <div class="deep-analisis-foot">
-            <span id="deepAnalisisStatus" class="deep-analisis-status"></span>
-            <button id="deepAnalisisSave" class="btn-primary deep-analisis-btn">Guardar análisis</button>
-          </div>`
-        : (r.analisis
-            ? `<div class="deep-analisis-read">${_esc(r.analisis)}</div>`
-            : `<div class="deep-analisis-empty">El análisis de este mes todavía no fue cargado por el equipo.</div>`)}
-      </div>`;
-
-    return sec01 + sec02 + sec03 + sec04 + sec05;
-  }
-
-  function _bindDeepAnalisis(r){
-    const btn = document.getElementById('deepAnalisisSave');
-    if(!btn) return;
-    btn.addEventListener('click', async () => {
-      const ta = document.getElementById('deepAnalisis');
-      const status = document.getElementById('deepAnalisisStatus');
-      const val = ta ? ta.value.trim() : '';
-      btn.disabled = true;
-      if(status){ status.textContent = 'Guardando…'; status.className = 'deep-analisis-status'; }
-      try {
-        if(window.__sb){
-          const { error } = await window.__sb.from('reporte').update({ analisis: val }).eq('id', r.id);
-          if(error) throw error;
-        }
-        r.analisis = val;
-        const idx = REPORTES.findIndex(x=>x.id===r.id);
-        if(idx>=0) REPORTES[idx].analisis = val;
-        if(status){ status.textContent = 'Guardado ✓'; status.classList.add('ok'); }
-        if(typeof showToast === 'function') showToast('Análisis del mes guardado');
-      } catch(e){
-        if(status){ status.textContent = 'No se pudo guardar'; status.classList.add('err'); }
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  }
-
-  // Guarda cambios de estado/cierre del reporte (panel de agencia)
-  async function _repUpdate(r, campos, okMsg){
-    try {
-      if (window.__sb) {
-        const { error } = await window.__sb.from('reporte').update(campos).eq('id', r.id);
-        if (error) throw error;
-      }
-      if ('estado' in campos){ r.estado = campos.estado; r.estadoLabel = _estadoLabel(campos.estado); }
-      if ('publicado_en' in campos){ r.publicadoEn = campos.publicado_en; }
-      if ('cierra_el' in campos){ r.cierraEl = campos.cierra_el; }
-      const idx = REPORTES.findIndex(x=>x.id===r.id);
-      if (idx>=0) Object.assign(REPORTES[idx], { estado: r.estado, estadoLabel: r.estadoLabel, publicadoEn: r.publicadoEn, cierraEl: r.cierraEl });
-      if (typeof refreshReportesUI === 'function') refreshReportesUI();
-      else if (typeof renderReportes === 'function') renderReportes();
-      // Refrescar el pie del modal si está abierto (botón de descarga / mensaje según estado)
-      if ('estado' in campos) {
-        const ft = document.getElementById('repModalFooter');
-        if (ft) { ft.innerHTML = _repFooterHTML(r); _bindRepFooter(r); }
-      }
-      if (typeof showToast === 'function') showToast(okMsg);
-      return true;
-    } catch(e){
-      if (typeof showToast === 'function') showToast('No se pudo guardar el cambio', 'warn');
-      return false;
-    }
-  }
-
-  function _bindRepAgency(r){
-    if (currentRole !== 'agency') return;
-    const modal = document.getElementById('modal');
-    if (!modal) return;
-    modal.querySelectorAll('[data-set-estado]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const nuevo = btn.dataset.setEstado;
-        if (nuevo === r.estado) return;
-        if (nuevo === 'publicado' && !confirm('¿Publicar este reporte? Va a quedar visible para el cliente.')) return;
-        const ok = await _repUpdate(r, {
-          estado: nuevo,
-          publicado_en: nuevo === 'publicado' ? (r.publicadoEn || new Date().toISOString().slice(0,10)) : null
-        }, 'Estado: ' + _estadoLabel(nuevo));
-        if (ok) modal.querySelectorAll('[data-set-estado]').forEach(b => b.classList.toggle('active', b.dataset.setEstado === r.estado));
-      });
-    });
-    const cb = document.getElementById('repCierraSave');
-    if (cb) cb.addEventListener('click', async () => {
-      const inp = document.getElementById('repCierraInput');
-      const val = inp ? inp.value.trim() : '';
-      await _repUpdate(r, { cierra_el: val || null }, 'Fecha de cierre guardada');
-    });
-  }
-
-  // Pie del modal de reporte (reusable: se re-renderiza al cambiar estado)
-  function _repFooterHTML(r){
-    const esAgencia = (typeof currentRole !== 'undefined') && currentRole === 'agency';
-    const puedeDescargar = (r.estado === 'publicado') || esAgencia;
-    if (puedeDescargar) {
-      return `<div style="display:flex;gap:8px;">
-        <button class="btn-primary" data-rep-pdf="${r.id}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Descargar PDF
-        </button>
-        ${r.estado === 'publicado' ? `<button class="btn-ghost" onclick="copyLink()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-          Copiar link
-        </button>` : (esAgencia ? `<span style="font-size:11px;color:var(--ink-mute);align-self:center;">Vista previa — el cliente lo ve al publicar.</span>` : '')}
-      </div>`;
-    }
-    return `<div style="font-size:12px;color:var(--ink-mute);font-style:italic;padding:8px 0;">El PDF estará disponible cuando se publique el reporte.</div>`;
-  }
-  function _bindRepFooter(r){
-    const modal = document.getElementById('modal'); if(!modal) return;
-    const btn = modal.querySelector('[data-rep-pdf]');
-    if (btn) btn.addEventListener('click', () => descargarReportePDF(r.id));
-  }
-
-  // Genera el reporte como documento imprimible → "Guardar como PDF" del navegador
-  async function descargarReportePDF(id){
-    const r = REPORTES.find(x => x.id === id);
-    if (!r) return;
-    const cli = CLIENTES[currentClient] || {};
-    const o = r.org || {};
-    if (typeof showToast === 'function') showToast('Preparando el PDF…');
-
-    const { demo, segMes, segSerie } = await _fetchDeepData(r);
-    const deepHTML = _buildDeepHTML(r, o, demo, segMes, segSerie, { readonly: true });
-
-    // Stats del hero: solo las que tienen sentido (pauta solo si hubo)
-    const heroStats = [
-      ['Alcance', fmtKbig(r.alcance)],
-      (r.conversiones ? ['Conversiones', String(r.conversiones)] : null),
-      (r.inversion ? ['Inversión', fmtARSrep(r.inversion)] : null),
-      ['Engagement', r.engagement + '%']
-    ].filter(Boolean);
-
-    const css = `
-      :root{--bg:#F7F6F9;--bg-elev:#FFFFFF;--ink:#1B1620;--ink-soft:#5B525E;--ink-mute:#938C99;--line:#ECEAF0;--line-soft:#F3F1F6;--accent:#FF82FF;--accent-soft:#FFE9FE;}
-      *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink);margin:0;padding:38px 44px;background:#fff;}
-      .pdf-head{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;}
-      .pdf-brand{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);}
-      .pdf-cli{font-size:12px;color:var(--ink-mute);margin-top:4px;letter-spacing:.04em;text-transform:uppercase;}
-      .pdf-mes{font-family:Georgia,'Times New Roman',serif;font-size:34px;font-weight:700;margin-top:6px;}
-      .pdf-hero{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:24px;}
-      .pdf-stat{flex:1;padding:16px 18px;border-right:1px solid var(--line);}
-      .pdf-stat:last-child{border-right:none;}
-      .pdf-stat span{display:block;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);font-weight:700;margin-bottom:6px;}
-      .pdf-stat b{font-size:22px;font-weight:700;}
-      .deep-sec{padding:16px 0;border-top:1px solid var(--line);break-inside:avoid;}
-      .deep-sec:first-child{border-top:none;}
-      .deep-sec-head{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);font-weight:700;margin-bottom:14px;}
-      .deep-sec-num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;}
-      .deep-big{font-size:28px;font-weight:700;line-height:1.1;margin-bottom:14px;}
-      .deep-big-cap{display:block;font-size:12px;font-weight:500;color:var(--ink-mute);margin-top:4px;}
-      .deep-bars{display:flex;flex-direction:column;gap:9px;}.deep-bars.tight{gap:7px;}
-      .deep-bar-row{display:grid;grid-template-columns:92px 1fr auto;align-items:center;gap:10px;}
-      .deep-bar-label{font-size:12px;color:var(--ink-soft);font-weight:500;}
-      .deep-bar-track{height:8px;background:var(--line-soft);border-radius:6px;overflow:hidden;}
-      .deep-bar-fill{height:100%;background:var(--accent);border-radius:6px;}
-      .deep-bar-val{font-size:12px;font-weight:600;}.deep-bar-sub{color:var(--ink-mute);font-weight:500;}
-      .deep-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-      .deep-card{padding:12px 10px;background:var(--bg);border-radius:10px;text-align:center;}
-      .deep-card-val{font-size:18px;font-weight:700;}.deep-card-lbl{font-size:11px;color:var(--ink-mute);margin-top:2px;}
-      .deep-card.up .deep-card-val{color:#1F9D6B;}.deep-card.down .deep-card-val{color:#C0392B;}
-      .deep-split{margin-top:16px;}.deep-split-head{font-size:11px;color:var(--ink-mute);font-weight:600;margin-bottom:7px;}
-      .deep-split-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--line-soft);}
-      .deep-split-seg.posts{background:var(--accent);}.deep-split-seg.reels{background:#C58BD6;}
-      .deep-split-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:12px;color:var(--ink-soft);}
-      .deep-split-legend .dot,.deep-donut-legend .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;}
-      .dot.posts{background:var(--accent);}.dot.reels{background:#C58BD6;}
-      .deep-spark{margin-top:16px;}.deep-spark-bars{display:flex;align-items:flex-end;gap:4px;height:56px;}
-      .deep-spark-bar{flex:1;background:var(--accent);opacity:.85;border-radius:3px 3px 0 0;min-height:4px;}.deep-spark-bar:last-child{opacity:1;}
-      .deep-spark-cap{font-size:11px;color:var(--ink-mute);margin-top:6px;}
-      .deep-aud{display:grid;grid-template-columns:1fr 1fr;gap:20px;}.deep-aud-block{min-width:0;}
-      .deep-aud-title{font-size:11px;color:var(--ink-mute);font-weight:600;margin-bottom:10px;}
-      .deep-donut-wrap{display:flex;align-items:center;gap:14px;}
-      .deep-donut{width:84px;height:84px;border-radius:50%;flex-shrink:0;-webkit-mask:radial-gradient(circle 23px at center,transparent 98%,#000 100%);mask:radial-gradient(circle 23px at center,transparent 98%,#000 100%);}
-      .deep-donut-legend{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink-soft);}
-      .deep-analisis-read{font-size:13px;line-height:1.6;color:var(--ink-soft);white-space:pre-wrap;}
-      .deep-analisis-empty{font-size:12px;color:var(--ink-mute);font-style:italic;}
-      .pdf-foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--ink-mute);letter-spacing:.04em;}
-      @page{margin:14mm;}
-    `;
-    const doc = `<!doctype html><html lang="es"><head><meta charset="utf-8">
-      <title>Reporte ${r.mesLabel} ${r.año} — ${_esc(cli.nombre||'')}</title><style>${css}</style></head><body>
-      <div class="pdf-head">
-        <div class="pdf-brand">CoMakers</div>
-        <div class="pdf-cli">${_esc(cli.nombre||'')} · Reporte mensual</div>
-        <div class="pdf-mes">${r.mesLabel} ${r.año}</div>
-      </div>
-      <div class="pdf-hero">
-        ${heroStats.map(([l,v]) => `<div class="pdf-stat"><span>${l}</span><b>${v}</b></div>`).join('')}
-      </div>
-      ${deepHTML}
-      <div class="pdf-foot">Generado por CoMakers · ${new Date().toLocaleDateString('es-AR')} · comakers.com.ar</div>
-    </body></html>`;
-
-    const win = window.open('', '_blank');
-    if (!win) { if (typeof showToast === 'function') showToast('Permití las ventanas emergentes para descargar el PDF', 'warn'); return; }
-    win.document.open(); win.document.write(doc); win.document.close();
-    win.focus();
-    setTimeout(() => { try { win.print(); } catch(e){} }, 400);
-  }
-
-  // Trae demografía del mes + histórico de seguidores (reusado por modal y PDF)
-  async function _fetchDeepData(r){
-    let demo = { genero: [], edad: [], ciudad: [] };
-    let segMes = null, segSerie = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId && r.mes) {
-        const mesISO = r.mes + '-01';
-        const [demoRes, evoRes] = await Promise.all([
-          window.__sb.from('reporte_demografia')
-            .select('corte,segmento,valor').eq('cliente_id', clienteId).eq('mes', mesISO),
-          window.__sb.from('evo_metrica')
-            .select('mes,valor').eq('cliente_id', clienteId).eq('plataforma','ig').eq('metrica','seguidores')
-            .order('mes', { ascending: true })
-        ]);
-        if (demoRes && !demoRes.error && Array.isArray(demoRes.data)) {
-          demoRes.data.forEach(row => { const arr = demo[row.corte]; if (arr) arr.push({ seg: row.segmento, val: row.valor||0 }); });
-          Object.values(demo).forEach(a => a.sort((x,y)=>y.val-x.val));
-        }
-        if (evoRes && !evoRes.error && Array.isArray(evoRes.data)) {
-          segSerie = evoRes.data.map(x => ({ mes: (x.mes||'').slice(0,7), val: x.valor||0 }));
-          const hit = segSerie.find(x => x.mes === r.mes);
-          segMes = hit ? hit.val : (segSerie.length ? segSerie[segSerie.length-1].val : null);
-        }
-      }
-    } catch(e){ /* sin datos: degrada y sigue */ }
-    return { demo, segMes, segSerie };
-  }
-
-  async function renderReporteDeep(r){
-    const cont = document.getElementById('reporteDeep');
-    if(!cont) return;
-    const o = r.org || {};
-
-    // ¿Hay algún dato orgánico? Si no, no mostramos nada (cliente solo-pauta o reporte viejo).
-    const hayOrg = ['views','reach','likes','comments','saves','shares','follows','unfollows','interPosts','interReels']
-      .some(k => o[k] != null);
-    if(!hayOrg){ cont.innerHTML = ''; return; }
-
-    cont.innerHTML = `<div class="deep-loading">Cargando reporte orgánico…</div>`;
-    const { demo, segMes, segSerie } = await _fetchDeepData(r);
-    cont.innerHTML = _buildDeepHTML(r, o, demo, segMes, segSerie);
-    _bindDeepAnalisis(r);
+    const dlBtn = modal.querySelector('[data-rep-modal-download]');
+    if (dlBtn) dlBtn.addEventListener('click', () => alert('Descarga del PDF — próxima iteración 🙂'));
   }
 
   // ─── Comparativo ───
@@ -13332,8 +13196,8 @@
           ]
         },
         { id: 'alcance', label: 'Alcance (personas alcanzadas)', type: 'number', required: true, placeholder: 'Ej: 127400' },
-        { id: 'conversiones', label: 'Conversiones (leads)', type: 'number', placeholder: 'Ej: 48', help: 'Dejalo vacío si el cliente es solo orgánico.' },
-        { id: 'inversion', label: 'Inversión en pauta (ARS)', type: 'number', placeholder: 'Ej: 385420', help: 'Dejalo vacío si no hubo pauta.' },
+        { id: 'conversiones', label: 'Conversiones (leads)', type: 'number', required: true, placeholder: 'Ej: 48' },
+        { id: 'inversion', label: 'Inversión en pauta (ARS)', type: 'number', required: true, placeholder: 'Ej: 385420' },
         { id: 'engagement', label: 'Engagement (%)', type: 'number', required: true, placeholder: 'Ej: 6.2', help: 'Promedio del mes. Acepta decimales.' },
         { id: 'cierra_el', label: 'Se cierra el (opcional)', type: 'text', placeholder: 'Ej: 30 de junio — solo si está en curso' }
       ],
@@ -13346,11 +13210,11 @@
         const mesKey = (d.mes || '').slice(0, 7);
         const mes = mesKey + '-01';
         const alcance = parseInt(d.alcance, 10);
-        const conversiones = parseInt(d.conversiones, 10) || 0;
-        const inversion = Math.round(parseFloat(d.inversion)) || 0;
+        const conversiones = parseInt(d.conversiones, 10);
+        const inversion = Math.round(parseFloat(d.inversion));
         const engagement = parseFloat(d.engagement);
-        if ([alcance, engagement].some(n => isNaN(n))) {
-          showToast('Revisá los números: alcance y engagement son obligatorios', 'warn'); return;
+        if ([alcance, conversiones, inversion, engagement].some(n => isNaN(n))) {
+          showToast('Revisá los números: hay algún campo inválido', 'warn'); return;
         }
 
         // Mes anterior del mismo cliente, para calcular los deltas
@@ -13425,19 +13289,7 @@
       } else if (data && data.ok) {
         const alc = (data.alcance != null) ? Number(data.alcance).toLocaleString('es-AR') : '—';
         showToast('Instagram actualizado · alcance del mes ' + alc, 'success');
-        // Guardar el punto de HOY para el gráfico diario del mes (se va completando con cada sync)
-        try {
-          const _hoy = new Date().toISOString().slice(0, 10);
-          await window.__sb.from('metrica_diaria').upsert({
-            cliente_id: clienteId,
-            fecha: _hoy,
-            alcance: (data.alcance != null) ? data.alcance : null,
-            engagement: (data.engagement != null) ? data.engagement : null,
-            conversiones: (data.conversiones != null) ? data.conversiones : null
-          }, { onConflict: 'cliente_id,fecha' });
-        } catch (e) { /* si falla el guardado diario, no rompe el resto */ }
         await cargarReportes();
-        if (typeof cargarMetricasDiarias === 'function') await cargarMetricasDiarias();
       } else {
         showToast('Respuesta inesperada de la función', 'warn');
       }
@@ -13527,8 +13379,8 @@
           <button class="btn-ghost" data-tabla-act="replace">Reemplazar</button>
           <button class="btn-ghost" data-tabla-act="clear">Borrar</button>
         </div>`;
-      z.querySelector('[data-tabla-act="replace"]').addEventListener('click', () => { p.tabla = null; actualizarCampoPost(p.id, 'tabla', null); renderFichaTabla(p); });
-      z.querySelector('[data-tabla-act="clear"]').addEventListener('click', () => { p.tabla = null; actualizarCampoPost(p.id, 'tabla', null); renderFichaTabla(p); showToast('Tabla borrada'); });
+      z.querySelector('[data-tabla-act="replace"]').addEventListener('click', () => { p.tabla = null; renderFichaTabla(p); });
+      z.querySelector('[data-tabla-act="clear"]').addEventListener('click', () => { p.tabla = null; renderFichaTabla(p); showToast('Tabla borrada'); });
     } else {
       z.innerHTML = `<div class="ficha-tabla-drop" id="fichaTablaDrop" contenteditable="true" spellcheck="false">
           <div class="ficha-tabla-drop-inner">
@@ -13541,7 +13393,7 @@
       drop.addEventListener('paste', (e) => {
         e.preventDefault();
         const rows = parseClipboardTable(e);
-        if (rows.length) { p.tabla = rowsToTableHtml(rows); actualizarCampoPost(p.id, 'tabla', p.tabla); renderFichaTabla(p); showToast('Tabla pegada'); }
+        if (rows.length) { p.tabla = rowsToTableHtml(rows); renderFichaTabla(p); showToast('Tabla pegada'); }
         else { drop.innerHTML = drop.innerHTML; showToast('No se detectó una tabla en lo que pegaste', 'warn'); }
       });
     }
@@ -13549,7 +13401,14 @@
 
 
   // ═══════════ ARCHIVOS = carpeta de Drive (override) ═══════════
-  function getRecursos() { return RECURSOS; }
+  function getRecursos() {
+    const c = CLIENTES[currentClient];
+    if (!c.recursos) c.recursos = [
+      { id: 'r_gen',   nombre: 'Carpeta general',          url: 'https://drive.google.com/drive/folders/' },
+      { id: 'r_fotos', nombre: 'Fotos · Ruta de la Luz',   url: 'https://drive.google.com/drive/folders/' }
+    ];
+    return c.recursos;
+  }
   function renderArchivos() {
     const wrap = document.getElementById('recursosWrap');
     if (!wrap) return;
@@ -13574,9 +13433,8 @@
         </div>`;
       }).join('');
       wrap.querySelectorAll('[data-rec-remove]').forEach(btn => btn.addEventListener('click', () => {
-        const rec = getRecursos().find(x => x.id === btn.dataset.recRemove);
-        quitarRecurso(btn.dataset.recRemove);
-        if (rec) showToast('"' + (rec.nombre || 'Recurso') + '" quitado');
+        const arr = getRecursos(), i = arr.findIndex(x => x.id === btn.dataset.recRemove);
+        if (i >= 0) { const rm = arr.splice(i, 1)[0]; renderArchivos(); showToast('"' + (rm.nombre || 'Recurso') + '" quitado'); }
       }));
     }
     if (typeof applyRolePermissions === 'function') applyRolePermissions();
@@ -13590,9 +13448,10 @@
       const n = document.getElementById('recAddNombre'), u = document.getElementById('recAddUrl');
       const nombre = n.value.trim(), url = u.value.trim();
       if (!nombre && !url) return;
-      agregarRecurso(nombre, url).then(ok => {
-        if (ok) { n.value = ''; u.value = ''; showToast('Recurso agregado'); }
-      });
+      getRecursos().push({ id: 'r_' + Date.now().toString(36) + Math.floor(Math.random() * 1000), nombre: nombre || 'Sin nombre', url });
+      n.value = ''; u.value = '';
+      renderArchivos();
+      showToast('Recurso agregado');
     };
     btn.addEventListener('click', add);
     const u = document.getElementById('recAddUrl');
@@ -13899,149 +13758,93 @@
   // Render inicial
   renderModulosConfig();
 
-  // ─── Reportes: ámbito Orgánico / Pauta según servicio del cliente ───
-  var repAmbito = 'organico'; // var (no let): renderReportes() corre en el init antes de esta línea
-  function ambitosCliente() {
-    const c = CLIENTES[currentClient] || {};
-    const arr = [];
-    if (c.repOrganico !== false) arr.push('organico');
-    if (c.repPauta === true) arr.push('pauta');
-    if (!arr.length) arr.push('organico');
-    return arr;
-  }
-  function renderRepAmbitoSwitch() {
-    const disponibles = ambitosCliente();
-    if (!disponibles.includes(repAmbito)) repAmbito = disponibles[0];
-    const bar = document.getElementById('repAmbitoBar');
-    if (bar) {
-      bar.style.display = disponibles.length > 1 ? '' : 'none';
-      bar.querySelectorAll('[data-rep-ambito]').forEach(btn => {
-        const a = btn.dataset.repAmbito;
-        btn.classList.toggle('hidden', !disponibles.includes(a));
-        btn.classList.toggle('active', a === repAmbito);
-      });
-    }
-    // "Actualizar desde Instagram" solo aplica al orgánico
-    const igBtn = document.getElementById('pullIgBtn');
-    if (igBtn) igBtn.style.display = (repAmbito === 'organico') ? '' : 'none';
-  }
-  document.querySelectorAll('[data-rep-ambito]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      repAmbito = btn.dataset.repAmbito;
-      renderRepAmbitoSwitch();
-      renderReportes();
-    });
-  });
-
-  // ─── Reportes que ve el cliente (Configuración · persistido en clientes) ───
-  async function actualizarRepFlags() {
-    const c = CLIENTES[currentClient];
-    if (!window.__sb || !c || !c.id) return;
-    try {
-      const { error } = await window.__sb.from('clientes').update({
-        rep_organico: c.repOrganico !== false,
-        rep_pauta: c.repPauta === true
-      }).eq('id', c.id);
-      if (error) showToast('No se guardó el cambio', 'warn');
-    } catch (e) { showToast('No se guardó el cambio', 'warn'); }
-  }
-  function renderRepFlagsConfig() {
-    const cont = document.getElementById('repFlagsGrid');
-    if (!cont) return;
-    const c = CLIENTES[currentClient] || {};
-    const rows = [
-      { key: 'repOrganico', label: 'Reporte Orgánico', desc: 'Instagram · alcance, interacciones, seguidores', on: c.repOrganico !== false },
-      { key: 'repPauta', label: 'Reporte de Pauta', desc: 'Meta / Google Ads · inversión, conversiones', on: c.repPauta === true }
-    ];
-    cont.innerHTML = rows.map(r => `
-      <div class="modulo-row ${r.on ? 'is-on' : ''}">
-        <div class="modulo-info">
-          <div class="modulo-nombre">${r.label}</div>
-          <div class="modulo-desc">${r.desc}</div>
-        </div>
-        <div class="switch ${r.on ? 'on' : ''}" data-repflag-toggle="${r.key}"></div>
-      </div>`).join('');
-    cont.querySelectorAll('[data-repflag-toggle]').forEach(sw => {
-      sw.addEventListener('click', () => {
-        const key = sw.dataset.repflagToggle;
-        const cur = (key === 'repOrganico')
-          ? (CLIENTES[currentClient].repOrganico !== false)
-          : (CLIENTES[currentClient].repPauta === true);
-        CLIENTES[currentClient][key] = !cur;
-        renderRepFlagsConfig();
-        actualizarRepFlags();
-        renderRepAmbitoSwitch();
-        showToast((!cur ? 'Activado' : 'Desactivado') + ': ' +
-          (key === 'repOrganico' ? 'Reporte Orgánico' : 'Reporte de Pauta'));
-      });
-    });
-  }
-  renderRepFlagsConfig();
-
   // ═══════════════ LLUVIA DE IDEAS ═══════════════
-  // ─── LLUVIA DE IDEAS: datos reales desde Supabase (scope = cliente activo) ───
-  let IDEAS = [];
-  const _IDEA_COL = { desc: 'descripcion', autorTipo: 'autor_tipo', postId: 'post_id' }; // resto 1:1
-  function _ideaCol(field){ return _IDEA_COL[field] || field; }
-  function _mapIdeaRow(r){
-    return {
-      id: r.id,
-      titulo: r.titulo || '',
-      desc: r.descripcion || '',
-      autor: r.autor || '',
-      autorTipo: r.autor_tipo || 'agencia',
-      plataforma: r.plataforma || '',
-      formato: r.formato || '',
-      pilar: r.pilar || '',
-      inspiracion: r.inspiracion || '',
-      estado: r.estado || 'idea',
-      postId: r.post_id || null,
-      creado_por: r.creado_por || null
-    };
-  }
-  async function cargarIdeas(){
-    IDEAS = [];
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (window.__sb && clienteId) {
-        const { data, error } = await window.__sb.from('idea')
-          .select('*').eq('cliente_id', clienteId).order('created_at', { ascending: false });
-        if (!error && Array.isArray(data)) IDEAS = data.map(_mapIdeaRow);
-      }
-    } catch (e) { /* sin conexión/datos: queda vacío */ }
-    if (typeof renderIdeas === 'function') renderIdeas();
-    if (typeof renderIdeasStats === 'function') renderIdeasStats();
-  }
-  async function crearIdea(fila){
-    try {
-      const cli = CLIENTES[currentClient];
-      const clienteId = cli && cli.id;
-      if (!window.__sb || !clienteId) { showToast('No pude identificar el cliente activo', 'warn'); return false; }
-      const { error } = await window.__sb.from('idea').insert(Object.assign({ cliente_id: clienteId }, fila));
-      if (error) { showToast('No se pudo crear la idea', 'warn'); return false; }
-    } catch (e) { showToast('No se pudo crear la idea', 'warn'); return false; }
-    await cargarIdeas();
-    return true;
-  }
-  async function actualizarIdea(id, patch){
-    try {
-      if (window.__sb) {
-        const { error } = await window.__sb.from('idea').update(patch).eq('id', id);
-        if (error) { showToast('No se guardó el cambio', 'warn'); return false; }
-      }
-    } catch (e) { showToast('No se guardó el cambio', 'warn'); return false; }
-    return true;
-  }
-  async function borrarIdea(id){
-    try {
-      if (window.__sb) {
-        const { error } = await window.__sb.from('idea').delete().eq('id', id);
-        if (error) { showToast('No se pudo borrar la idea', 'warn'); return; }
-      }
-    } catch (e) { showToast('No se pudo borrar la idea', 'warn'); return; }
-    await cargarIdeas();
-  }
+  const IDEAS = [
+    {
+      id: 1,
+      titulo: 'Serie "Voces del territorio" — entrevistas a referentes locales',
+      desc: 'Reels de 60-90s con líderes de comunidades del NOA hablando sobre su trabajo regenerativo. Estética documental, sin filtros.',
+      autor: 'Jessica', autorTipo: 'cliente',
+      fecha: '2026-05-22',
+      plataforma: 'instagram',
+      formato: 'reel',
+      pilar: 'Ruta de la Luz',
+      inspiracion: 'https://instagram.com/p/abc123',
+      estado: 'idea'
+    },
+    {
+      id: 2,
+      titulo: 'Behind the scenes del viaje a Tilcara',
+      desc: 'Mostrar el detrás de cámara del shooting de mayo: cómo se arma, equipo trabajando, momentos espontáneos. Sumaría humanidad al contenido.',
+      autor: 'Marti', autorTipo: 'agencia',
+      fecha: '2026-05-20',
+      plataforma: 'instagram',
+      formato: 'reel',
+      pilar: 'Ruta de la Luz',
+      inspiracion: '',
+      estado: 'evaluacion'
+    },
+    {
+      id: 3,
+      titulo: 'Mini-doc sobre People & Planet First',
+      desc: 'Pieza de 3-5 minutos para YouTube explicando qué es la verificación, por qué importa, y cómo se obtiene. Para founders de organizaciones.',
+      autor: 'Delfi', autorTipo: 'agencia',
+      fecha: '2026-05-18',
+      plataforma: 'youtube',
+      formato: 'reel',
+      pilar: 'Verificación P&PF',
+      inspiracion: 'https://youtu.be/example',
+      estado: 'idea'
+    },
+    {
+      id: 4,
+      titulo: 'Carrusel: "5 mitos sobre organizaciones regenerativas"',
+      desc: 'Formato listicle pero contado desde experiencia real. Cada slide con un mito y la realidad detrás.',
+      autor: 'Florencia', autorTipo: 'cliente',
+      fecha: '2026-05-15',
+      plataforma: 'linkedin',
+      formato: 'carrusel',
+      pilar: 'Educación regenerativa',
+      inspiracion: '',
+      estado: 'convertida'
+    },
+    {
+      id: 5,
+      titulo: 'Live mensual con Jessica + un invitado',
+      desc: 'Conversaciones largas en IG Live (45-60 min). Bajar el contenido a clips para reels después. Periodicidad mensual.',
+      autor: 'Virginia', autorTipo: 'cliente',
+      fecha: '2026-05-12',
+      plataforma: 'instagram',
+      formato: 'story',
+      pilar: 'Educación regenerativa',
+      inspiracion: '',
+      estado: 'evaluacion'
+    },
+    {
+      id: 6,
+      titulo: 'Calendario lunar y siembra regenerativa',
+      desc: 'Posts mensuales conectando ciclos lunares con prácticas de agricultura regenerativa. Más nicho pero conecta con la audiencia más comprometida.',
+      autor: 'Jessica', autorTipo: 'cliente',
+      fecha: '2026-05-10',
+      plataforma: 'instagram',
+      formato: 'post',
+      pilar: '',
+      inspiracion: '',
+      estado: 'descartada'
+    },
+    {
+      id: 7,
+      titulo: 'Reel: "Un día en la vida del programa formativo"',
+      desc: 'Mostrar cómo es un día real para alguien que está cursando: clases, encuentros, lectura, etc. Pieza de captación para próxima cohorte.',
+      autor: 'Marti', autorTipo: 'agencia',
+      fecha: '2026-05-08',
+      plataforma: 'tiktok',
+      formato: 'reel',
+      pilar: 'Programa formativo',
+      inspiracion: 'https://tiktok.com/@example/video/123',
+      estado: 'idea'
+    }
+  ];
 
   const IDEA_ESTADO_LABELS = {
     idea: 'Fresca',
@@ -14130,10 +13933,10 @@
     return optsArr.map(o => `<option value="${o.v}" ${o.v === (selected || '') ? 'selected' : ''}>${o.l}</option>`).join('');
   }
   function ideaEstadoOptionsHtml(selected) {
-    // "Convertida" no va acá: solo se llega vía el botón ✓ (que crea el post real).
     const opts = [
       { v: 'idea', l: 'Fresca' },
       { v: 'evaluacion', l: 'En evaluación' },
+      { v: 'convertida', l: 'Convertida' },
       { v: 'descartada', l: 'Descartada' }
     ];
     return opts.map(o => `<option value="${o.v}" ${o.v === selected ? 'selected' : ''}>${o.l}</option>`).join('');
@@ -14170,36 +13973,33 @@
       bodyHtml = visibles.map((idea, i) => {
         const numFila = IDEAS.indexOf(idea) + 1;
         const hasLink = idea.inspiracion && idea.inspiracion.startsWith('http');
-        const esMia = (currentRole === 'agency') || (idea.creado_por && idea.creado_por === _miUid);
-        const dis = esMia ? '' : 'disabled';
-        const esConvertida = idea.estado === 'convertida';
         return `
           <tr class="row-${idea.estado}" data-idea-row="${idea.id}">
             <td class="planilla-num">${String(numFila).padStart(2, '0')}</td>
             <td>
-              <select class="cell-select ${!idea.pilar ? 'empty' : ''}" data-idea-field="pilar" data-id="${idea.id}" ${dis}>
+              <select class="cell-select ${!idea.pilar ? 'empty' : ''}" data-idea-field="pilar" data-id="${idea.id}">
                 ${pilarOptionsHtml(idea.pilar)}
               </select>
             </td>
             <td>
-              <select class="cell-select ${!idea.plataforma ? 'empty' : ''}" data-idea-field="plataforma" data-id="${idea.id}" ${dis}>
+              <select class="cell-select ${!idea.plataforma ? 'empty' : ''}" data-idea-field="plataforma" data-id="${idea.id}">
                 ${platOptionsHtml(idea.plataforma)}
               </select>
             </td>
             <td>
-              <select class="cell-select ${!idea.formato ? 'empty' : ''}" data-idea-field="formato" data-id="${idea.id}" ${dis}>
+              <select class="cell-select ${!idea.formato ? 'empty' : ''}" data-idea-field="formato" data-id="${idea.id}">
                 ${formatoOptionsHtml(idea.formato)}
               </select>
             </td>
             <td>
-              <input class="cell-text" data-idea-field="titulo" data-id="${idea.id}" value="${escapeHtml(idea.titulo)}" placeholder="Idea…" ${dis}>
+              <input class="cell-text" data-idea-field="titulo" data-id="${idea.id}" value="${escapeHtml(idea.titulo)}" placeholder="Idea…">
             </td>
             <td>
-              <textarea class="cell-textarea" data-idea-field="desc" data-id="${idea.id}" placeholder="Detalle…" rows="1" ${dis}>${escapeHtml(idea.desc)}</textarea>
+              <textarea class="cell-textarea" data-idea-field="desc" data-id="${idea.id}" placeholder="Detalle…" rows="1">${escapeHtml(idea.desc)}</textarea>
             </td>
             <td>
               <div class="cell-link-wrap">
-                <input class="cell-text" data-idea-field="inspiracion" data-id="${idea.id}" value="${escapeHtml(idea.inspiracion)}" placeholder="URL de inspiración…" ${dis}>
+                <input class="cell-text" data-idea-field="inspiracion" data-id="${idea.id}" value="${escapeHtml(idea.inspiracion)}" placeholder="URL de inspiración…">
                 ${hasLink ? `<a class="cell-link-open" href="${escapeHtml(idea.inspiracion)}" target="_blank" rel="noopener" title="Abrir">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 </a>` : ''}
@@ -14207,8 +14007,8 @@
             </td>
             <td>
               <div class="cell-autor">
-                <span class="av ${idea.autorTipo}">${(idea.autor || '?').charAt(0)}</span>
-                ${escapeHtml(idea.autor)}
+                <span class="av ${idea.autorTipo}">${idea.autor.charAt(0)}</span>
+                ${idea.autor}
               </div>
             </td>
             <td>
@@ -14217,21 +14017,16 @@
                   <span class="dot"></span>
                   ${IDEA_ESTADO_LABELS[idea.estado]}
                 </span>
-                ${esConvertida ? '' : `<select class="cell-estado-select" data-idea-field="estado" data-id="${idea.id}" ${dis}>
+                <select class="cell-estado-select" data-idea-field="estado" data-id="${idea.id}">
                   ${ideaEstadoOptionsHtml(idea.estado)}
-                </select>`}
+                </select>
               </div>
             </td>
             <td class="cell-actions-cell">
               <div class="cell-actions">
-                ${(!esConvertida && idea.estado !== 'descartada') ? `
+                ${idea.estado !== 'convertida' && idea.estado !== 'descartada' ? `
                   <button class="cell-action-btn" data-agency-only data-idea-convert="${idea.id}" title="Convertir en post">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  </button>
-                ` : ''}
-                ${esMia ? `
-                  <button class="cell-action-btn danger" data-idea-delete="${idea.id}" title="Borrar idea">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   </button>
                 ` : ''}
               </div>
@@ -14278,23 +14073,23 @@
     // Inputs y textareas
     document.querySelectorAll('[data-idea-field]').forEach(el => {
       const field = el.dataset.ideaField;
-      const id = el.dataset.id; // uuid
+      const id = parseInt(el.dataset.id);
       const idea = IDEAS.find(x => x.id === id);
       if (!idea) return;
-      if (el.disabled) return; // idea ajena: no se cablea edición
 
       if (el.tagName === 'SELECT') {
         el.addEventListener('change', () => {
           idea[field] = el.value;
-          actualizarIdea(idea.id, { [_ideaCol(field)]: el.value });
           if (field === 'estado') {
-            renderIdeas();      // re-render para aplicar visual de estado
+            // Re-render para aplicar visual de estado
+            renderIdeas();
             renderIdeasStats();
           } else {
             el.classList.toggle('empty', !el.value);
           }
         });
       } else if (el.tagName === 'TEXTAREA') {
+        // Auto-resize
         const autoResize = () => {
           el.style.height = 'auto';
           el.style.height = el.scrollHeight + 'px';
@@ -14304,15 +14099,15 @@
         el.addEventListener('blur', () => {
           if (idea[field] !== el.value) {
             idea[field] = el.value;
-            actualizarIdea(idea.id, { [_ideaCol(field)]: el.value });
           }
         });
       } else {
+        // Inputs de texto
         el.addEventListener('change', () => {
           idea[field] = el.value;
-          actualizarIdea(idea.id, { [_ideaCol(field)]: el.value });
           if (field === 'inspiracion') {
-            renderIdeas(); // mostrar/ocultar el botón de "abrir"
+            // Re-render para mostrar/ocultar el botón de "abrir"
+            renderIdeas();
           }
         });
         el.addEventListener('keydown', (e) => {
@@ -14321,53 +14116,48 @@
       }
     });
 
-    // Botones convertir (agencia)
+    // Botones convertir
     document.querySelectorAll('[data-idea-convert]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        convertIdeaToPost(btn.dataset.ideaConvert);
-      });
-    });
-
-    // Botones borrar (propias / agencia)
-    document.querySelectorAll('[data-idea-delete]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.ideaDelete;
-        if (confirm('¿Borrar esta idea? No se puede deshacer.')) borrarIdea(id);
+        const id = parseInt(btn.dataset.ideaConvert);
+        convertIdeaToPost(id);
       });
     });
 
     // Botón agregar fila
     const addBtn = document.getElementById('addIdeaRowBtn');
     if (addBtn) {
-      addBtn.addEventListener('click', async () => {
-        const yo = (_miNombre || USERS[currentRole].name).split(' ')[0];
-        // Si hay un filtro que ocultaría la fila nueva, lo reseteo a "todas"
-        if (ideaFiltroActivo !== 'todas' && ideaFiltroActivo !== 'idea') {
-          ideaFiltroActivo = 'todas';
-          document.querySelectorAll('[data-idea-filter]').forEach(b =>
-            b.classList.toggle('active', b.dataset.ideaFilter === 'todas')
-          );
-        }
-        const ok = await crearIdea({
+      addBtn.addEventListener('click', () => {
+        const yo = USERS[currentRole].name.split(' ')[0];
+        const newId = IDEAS.length > 0 ? Math.max(...IDEAS.map(i => i.id)) + 1 : 1;
+        IDEAS.push({
+          id: newId,
           titulo: '',
-          descripcion: '',
+          desc: '',
           autor: yo,
-          autor_tipo: currentRole === 'client' ? 'cliente' : 'agencia',
+          autorTipo: currentRole === 'client' ? 'cliente' : 'agencia',
+          fecha: new Date().toISOString().split('T')[0],
           plataforma: '',
           formato: '',
           pilar: '',
           inspiracion: '',
           estado: 'idea'
         });
-        if (ok) {
-          // La nueva idea es la primera fila (orden created_at desc): foco ahí
-          setTimeout(() => {
-            const first = document.querySelector('[data-idea-field="titulo"]');
-            if (first && !first.disabled) first.focus();
-          }, 60);
+        // Forzar filtro "todas" o "idea" para que la nueva fila se vea
+        if (ideaFiltroActivo !== 'todas' && ideaFiltroActivo !== 'idea') {
+          ideaFiltroActivo = 'todas';
+          document.querySelectorAll('[data-idea-filter]').forEach(b =>
+            b.classList.toggle('active', b.dataset.ideaFilter === 'todas')
+          );
         }
+        renderIdeas();
+        renderIdeasStats();
+        // Focus en el campo "Idea" de la nueva fila
+        setTimeout(() => {
+          const newInput = document.querySelector(`[data-idea-field="titulo"][data-id="${newId}"]`);
+          if (newInput) newInput.focus();
+        }, 50);
       });
     }
   }
@@ -14438,7 +14228,9 @@
         }
       ],
       onSubmit: (d) => {
-        crearPost({
+        const newId = Math.max(...POSTS.map(p => p.id)) + 1;
+        POSTS.push({
+          id: newId,
           fecha: d.fecha,
           tipo: d.tipo,
           plataforma: d.plataforma,
@@ -14446,18 +14238,16 @@
           estado: d.estado,
           titulo: d.titulo,
           proyecto: 'General',
-          color_from: d.color.from,
-          color_to: d.color.to,
-          caption: d.copy || ''
-        }).then(ok => {
-          if (ok) {
-            // Persistir el estado en la base (no solo en memoria)
-            actualizarIdea(idea.id, { estado: 'convertida' }).then(() => {
-              cargarIdeas();
-              showToast('Idea convertida en post · ' + d.titulo.substring(0, 35));
-            });
-          }
+          from: d.color.from,
+          to: d.color.to,
+          copy: d.copy || 'Sin copy todavía.'
         });
+        // Marcar idea como convertida
+        idea.estado = 'convertida';
+        renderCalendario();
+        renderIdeas();
+        renderIdeasStats();
+        showToast('Idea convertida en post · ' + d.titulo.substring(0, 35));
       }
     });
   }
@@ -14506,25 +14296,27 @@
       ],
       footerInfo: 'Después la agencia puede convertirla en un post real',
       onSubmit: (d) => {
-        const yo = (_miNombre || USERS[currentRole].name).split(' ')[0];
-        crearIdea({
+        const yo = USERS[currentRole].name.split(' ')[0];
+        const newId = Math.max(...IDEAS.map(i => i.id)) + 1;
+        IDEAS.unshift({
+          id: newId,
           titulo: d.titulo,
-          descripcion: d.desc,
+          desc: d.desc,
           autor: yo,
-          autor_tipo: currentRole === 'client' ? 'cliente' : 'agencia',
+          autorTipo: currentRole === 'client' ? 'cliente' : 'agencia',
+          fecha: new Date().toISOString().split('T')[0],
           plataforma: d.plataforma || null,
-          formato: null,
           pilar: d.pilar || null,
-          inspiracion: null,
           estado: 'idea'
-        }).then(ok => {
-          if (ok) showToast('Idea agregada · ' + d.titulo.substring(0, 35));
         });
+        renderIdeas();
+        renderIdeasStats();
+        showToast('Idea agregada · ' + d.titulo.substring(0, 35));
       }
     });
   });
 
-  // Render inicial (queda vacío hasta que switchClient cargue las ideas del cliente)
+  // Render inicial
   renderIdeas();
   renderIdeasStats();
 
@@ -14535,7 +14327,6 @@
     try {
       const { data: { session } } = await window.__sb.auth.getSession();
       if (!session) return;
-      _miUid = session.user.id;
       const { data: prof } = await window.__sb.from('profiles')
         .select('tipo, agencia, super_admin, nombre').eq('id', session.user.id).maybeSingle();
       perfil = prof;
@@ -14544,7 +14335,7 @@
     // 1) Clientes accesibles (la RLS ya los filtra: el super ve todos)
     try {
       const { data: cls } = await window.__sb.from('clientes')
-        .select('id, nombre, slug, agencia, rep_organico, rep_pauta').order('nombre');
+        .select('id, nombre, slug, agencia').order('nombre');
       if (cls && cls.length) {
         const slugs = [];
         cls.forEach(c => {
@@ -14558,8 +14349,6 @@
             if (!CLIENTES[key].modulos) { CLIENTES[key].modulos = {}; MODULOS_DEF.forEach(m => { CLIENTES[key].modulos[m.slug] = true; }); }
           }
           CLIENTES[key].id = c.id;
-          CLIENTES[key].repOrganico = c.rep_organico !== false; // default true
-          CLIENTES[key].repPauta = c.rep_pauta === true;          // default false
         });
         _clientesVisibles = slugs;
         if (!slugs.includes(currentClient)) currentClient = slugs[0];
