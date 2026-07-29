@@ -9443,6 +9443,11 @@
         <div id="fichaTablaZone"></div>
       </div>
 
+      <div class="modal-section">
+        <div class="modal-section-title">Ficha de contenido</div>
+        <div id="fichaIAZone"></div>
+      </div>
+
       ${p.estado === 'aprobacion' && currentRole === 'client' ? `
         <div style="display: flex; gap: 8px; margin-top: 16px;">
           <button class="btn-approve" style="flex:1; padding: 10px; font-size: 13px;" data-approve-modal="${p.id}">Aprobar publicación</button>
@@ -9455,6 +9460,7 @@
     document.getElementById('modalClose').addEventListener('click', closeModal);
 
     renderFichaTabla(p);
+    renderFichaIA(p);
     const approveBtn = modal.querySelector('[data-approve-modal]');
     if (approveBtn) {
       approveBtn.addEventListener('click', () => {
@@ -13399,6 +13405,79 @@
     }
   }
 
+
+  // ═══════════ FICHA DE CONTENIDO CON IA (en el detalle del post) ═══════════
+  function _fichaEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function _fichaStyles() {
+    if (document.getElementById('fichaia-styles')) return;
+    const st = document.createElement('style'); st.id = 'fichaia-styles';
+    st.textContent = `
+      .fia-empty{border:1px dashed var(--line);border-radius:12px;padding:22px;text-align:center;}
+      .fia-empty p{color:var(--ink-mute);font-size:13px;margin:0 0 12px;line-height:1.5;}
+      .fia-gen{display:inline-flex;align-items:center;gap:7px;background:var(--ink);color:#fff;border:none;border-radius:10px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;}
+      .fia-gen:hover{background:#000;}
+      .fia-gen:disabled{opacity:.6;cursor:default;}
+      .fia-block{margin-bottom:15px;}
+      .fia-h{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);font-weight:700;margin-bottom:5px;}
+      .fia-txt{font-size:13px;color:var(--ink);line-height:1.5;}
+      .fia-txt.big{font-size:15px;font-weight:600;}
+      .fia-li{font-size:13px;color:var(--ink);line-height:1.5;padding-left:15px;position:relative;margin-bottom:3px;}
+      .fia-li:before{content:'▸';position:absolute;left:0;color:var(--accent);}
+      .fia-step{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);}
+      .fia-step:last-child{border-bottom:none;}
+      .fia-time{flex-shrink:0;background:var(--ink);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;height:fit-content;white-space:nowrap;}
+      .fia-chips{display:flex;flex-wrap:wrap;gap:6px;}
+      .fia-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--lime-soft,#ECFBD4);color:var(--ink);}
+      .fia-hash{color:var(--accent);font-size:13px;line-height:1.6;}
+      .fia-bar{display:flex;justify-content:flex-end;margin-bottom:10px;}
+      .fia-regen{font-size:12px;font-weight:600;color:var(--accent);background:none;border:none;cursor:pointer;}
+      .fia-regen:disabled{opacity:.6;cursor:default;}`;
+    document.head.appendChild(st);
+  }
+  async function generarFichaIA(p, btn) {
+    if (!window.__sb || !window.__sb.functions) { showToast('Sin conexión con la IA', 'warn'); return; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Generando ficha…'; }
+    const cli = (typeof CLIENTES !== 'undefined' && CLIENTES[currentClient]) ? CLIENTES[currentClient] : {};
+    try {
+      const { data, error } = await window.__sb.functions.invoke('generar-calendario', {
+        body: { ficha: { titulo: p.titulo, tipo: p.tipo || 'reel', pilar: p.pilar || p.proyecto || '', tono: cli.tono || 'profesional y cercano', cliente: cli.nombre || '', copy: p.copy || '' } }
+      });
+      if (error || !data || !data.ficha) throw (error || new Error('vacío'));
+      p._ficha = data.ficha;
+      renderFichaIA(p);
+      showToast('Ficha generada ✦');
+    } catch (e) {
+      renderFichaIA(p);
+      showToast('No se pudo generar la ficha (¿deployaste la función nueva?)', 'warn');
+    }
+  }
+  function renderFichaIA(p) {
+    const z = document.getElementById('fichaIAZone'); if (!z) return;
+    _fichaStyles();
+    const f = p._ficha || {};
+    const tiene = f && (f.descripcion || f.gancho || (f.estructura && f.estructura.length) || f.guion);
+    if (!tiene) {
+      z.innerHTML = `<div class="fia-empty"><p>Todavía no hay ficha de producción.<br>Generala con IA: gancho, estructura, material a grabar, tips, audio, copy y guión.</p><button class="fia-gen" id="fiaGen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg> Generar ficha con IA</button></div>`;
+      const b = document.getElementById('fiaGen'); if (b) b.addEventListener('click', () => generarFichaIA(p, b));
+      return;
+    }
+    const block = (h, inner) => inner ? `<div class="fia-block"><div class="fia-h">${h}</div>${inner}</div>` : '';
+    const li = (arr) => (arr && arr.length) ? arr.map(x => `<div class="fia-li">${_fichaEsc(x)}</div>`).join('') : '';
+    let html = `<div class="fia-bar"><button class="fia-regen" id="fiaRegen">✦ Regenerar ficha</button></div>`;
+    if (f.descripcion) html += block('Descripción', `<div class="fia-txt">${_fichaEsc(f.descripcion)}</div>`);
+    if (f.gancho) html += block('Gancho (0-2s)', `<div class="fia-txt big">${_fichaEsc(f.gancho.texto_pantalla || '')}</div>${f.gancho.visual ? `<div class="fia-txt" style="color:var(--ink-mute);margin-top:3px;">${_fichaEsc(f.gancho.visual)}</div>` : ''}`);
+    if (f.estructura && f.estructura.length) html += block('Estructura', f.estructura.map(s => `<div class="fia-step"><span class="fia-time">${_fichaEsc(s.tiempo || '')}</span><span class="fia-txt">${_fichaEsc(s.accion || '')}</span></div>`).join(''));
+    if (f.material_crudo) { const mc = f.material_crudo; html += block('Material a grabar (crudo)', `${li(mc.video)}${mc.audio ? `<div class="fia-li"><b>Audio:</b> ${_fichaEsc(mc.audio)}</div>` : ''}`); }
+    if (f.texto_pantalla && f.texto_pantalla.length) html += block('Texto en pantalla', li(f.texto_pantalla));
+    if (f.tips_grabacion && f.tips_grabacion.length) html += block('Tips de grabación', li(f.tips_grabacion));
+    if (f.audio) html += block('Audio', `<div class="fia-txt">${_fichaEsc(f.audio)}</div>`);
+    if (f.edicion_comakers && f.edicion_comakers.length) html += block('Qué edita CoMakers', `<div class="fia-chips">${f.edicion_comakers.map(x => `<span class="fia-chip">${_fichaEsc(x)}</span>`).join('')}</div>`);
+    if (f.copy) html += block('Copy', `<div class="fia-txt">${_fichaEsc(f.copy)}</div>`);
+    if (f.guion) html += block('Guión', `<div class="fia-txt" style="white-space:pre-wrap;">${_fichaEsc(f.guion)}</div>`);
+    if (f.hashtags && f.hashtags.length) html += block('Hashtags', `<div class="fia-hash">${f.hashtags.map(_fichaEsc).join(' ')}</div>`);
+    z.innerHTML = html;
+    const rb = document.getElementById('fiaRegen'); if (rb) rb.addEventListener('click', () => generarFichaIA(p, rb));
+  }
 
   // ═══════════ ARCHIVOS = carpeta de Drive (override) ═══════════
   function getRecursos() {
