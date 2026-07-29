@@ -14381,6 +14381,122 @@
     switchClient(currentClient);
   }
 
+  // ═══════════════ PERSISTENCIA (cliente_config + contenido) ═══════════════
+  (function () {
+    const sb = () => window.__sb;
+    if (!sb()) return;
+    const GRAD = [
+      { from: '#FF82FF', to: '#2A2630' }, { from: '#F26A8D', to: '#F26A8D' },
+      { from: '#CBEEF3', to: '#1B1620' }, { from: '#FF82FF', to: '#322D3A' }, { from: '#D3FF99', to: '#1B1620' }
+    ];
+    function gradFor(pilar) {
+      const ps = (typeof getPilaresCurrent === 'function') ? getPilaresCurrent() : [];
+      let i = ps.indexOf(pilar); if (i < 0) i = 0;
+      return GRAD[i % GRAD.length];
+    }
+    function cid() { try { return (CLIENTES[currentClient] && CLIENTES[currentClient].id) || null; } catch (e) { return null; } }
+
+    let _busy = false, _lastPosts = '__init__', _lastCfg = '__init__';
+
+    function snapPosts() {
+      try { return JSON.stringify(POSTS.map(p => ({ f: p.fecha, t: p.tipo, pl: (p.pilar || p.proyecto || null), e: p.estado, ti: p.titulo, c: p.copy, fi: p._ficha || {}, x: p.plataforma || 'instagram' }))); } catch (e) { return '__init__'; }
+    }
+    function snapCfg() {
+      try { const c = CLIENTES[currentClient] || {}; return JSON.stringify({ p: c.pilares || [], o: c.objetivo || null, t: c.tono || null, f: c.frecuencia || 3 }); } catch (e) { return '__init__'; }
+    }
+
+    async function cargarConfigs() {
+      try {
+        const { data } = await sb().from('cliente_config').select('*');
+        if (!data) return;
+        const bySlug = {};
+        Object.keys(CLIENTES).forEach(s => { if (CLIENTES[s] && CLIENTES[s].id) bySlug[CLIENTES[s].id] = s; });
+        data.forEach(r => {
+          const s = bySlug[r.cliente_id]; if (!s) return;
+          if (Array.isArray(r.pilares)) CLIENTES[s].pilares = r.pilares;
+          if (r.objetivo != null) CLIENTES[s].objetivo = r.objetivo;
+          if (r.tono != null) CLIENTES[s].tono = r.tono;
+          if (r.frecuencia != null) CLIENTES[s].frecuencia = r.frecuencia;
+        });
+        if (typeof renderPilaresConfig === 'function') renderPilaresConfig();
+      } catch (e) { }
+    }
+
+    async function cargarContenido() {
+      const c = cid(); if (!c) return;
+      _busy = true;
+      try {
+        const { data, error } = await sb().from('contenido').select('*').eq('cliente_id', c).order('fecha', { ascending: true });
+        if (!error && Array.isArray(data)) {
+          POSTS.length = 0;
+          let id = 1;
+          data.forEach(r => {
+            const g = gradFor(r.pilar);
+            POSTS.push({ id: id++, fecha: r.fecha, tipo: r.tipo || 'post', plataforma: r.plataforma || 'instagram', pilar: r.pilar || null, estado: r.estado || 'idea', titulo: r.titulo || 'Sin título', proyecto: r.pilar || 'General', from: g.from, to: g.to, copy: r.copy || '', _ficha: r.ficha || {} });
+          });
+          if (typeof renderCalendario === 'function') renderCalendario();
+        }
+      } catch (e) { }
+      _lastPosts = snapPosts();
+      _busy = false;
+    }
+
+    async function guardarContenido() {
+      const c = cid(); if (!c) return;
+      try {
+        await sb().from('contenido').delete().eq('cliente_id', c);
+        if (POSTS.length) {
+          const rows = POSTS.map(p => ({ cliente_id: c, fecha: p.fecha || null, tipo: p.tipo || 'post', pilar: p.pilar || p.proyecto || null, estado: p.estado || 'idea', titulo: p.titulo || null, copy: p.copy || null, ficha: p._ficha || {}, plataforma: p.plataforma || 'instagram' }));
+          await sb().from('contenido').insert(rows);
+        }
+        _lastPosts = snapPosts();
+      } catch (e) { }
+    }
+
+    async function guardarConfig() {
+      const c = cid(); if (!c) return;
+      const cl = CLIENTES[currentClient] || {};
+      try {
+        await sb().from('cliente_config').upsert({ cliente_id: c, pilares: cl.pilares || [], objetivo: cl.objetivo || null, tono: cl.tono || null, frecuencia: cl.frecuencia || 3, updated_at: new Date().toISOString() }, { onConflict: 'cliente_id' });
+        _lastCfg = snapCfg();
+      } catch (e) { }
+    }
+
+    // Autosave desacoplado: guarda solo lo que cambió (no toca ningún handler existente)
+    setInterval(() => {
+      if (_busy || !cid()) return;
+      if (_lastPosts !== '__init__' && snapPosts() !== _lastPosts) guardarContenido();
+      if (_lastCfg !== '__init__' && snapCfg() !== _lastCfg) guardarConfig();
+    }, 4000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'hidden' || !cid()) return;
+      if (_lastPosts !== '__init__' && snapPosts() !== _lastPosts) guardarContenido();
+      if (_lastCfg !== '__init__' && snapCfg() !== _lastCfg) guardarConfig();
+    });
+
+    // Al cambiar de cliente: flush del saliente + cargar el contenido del entrante
+    if (typeof switchClient === 'function') {
+      const _prev = switchClient;
+      switchClient = function (slug) {
+        if (!_busy && cid() && _lastPosts !== '__init__' && snapPosts() !== _lastPosts) guardarContenido();
+        _prev(slug);
+        _lastCfg = snapCfg();
+        cargarContenido();
+      };
+    }
+
+    // Arranque: esperar a que initSesion haya cargado los clientes reales (con id)
+    let _tries = 0;
+    const _wait = setInterval(async () => {
+      if (cid()) {
+        clearInterval(_wait);
+        await cargarConfigs();
+        _lastCfg = snapCfg();
+        await cargarContenido();
+      } else if (++_tries > 40) { clearInterval(_wait); }
+    }, 300);
+  })();
+
   // ═══════════════ INIT ═══════════════
   renderClientDropdown();
   applyModulosToSidebar();
