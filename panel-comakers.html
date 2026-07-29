@@ -9740,6 +9740,10 @@
             <input class="cc-title-in" value="${escA(v.titulo)}" data-cc-title="${idx}">
             <textarea class="cc-copy-in" data-cc-copy="${idx}">${esc(v.copy)}</textarea>
             ${notas}
+            ${(function () {
+              if (_ccTieneFicha(v)) { if (typeof _fichaStyles === 'function') _fichaStyles(); return `<div style="margin-top:11px;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span class="fia-h" style="margin:0;">Ficha desarrollada ✦</span><button data-cc-ficha="${idx}" style="font-size:12px;font-weight:600;color:var(--accent);background:none;border:none;cursor:pointer;">Regenerar</button></div>${ccFichaHtml(v._ficha)}</div>`; }
+              return `<div style="margin-top:10px;"><button data-cc-ficha="${idx}" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:8px 13px;border-radius:9px;background:var(--accent-soft);color:var(--ink);border:1px solid var(--accent);cursor:pointer;">✦ Desarrollar ficha completa</button></div>`;
+            })()}
             <div class="cc-refine">
               <input placeholder="Pedile a la IA: 'que hable de otra cosa', 'más cercano', 'otra idea'…" data-cc-refine-in="${idx}">
               <button data-cc-refine="${idx}">✦ Pedir</button>
@@ -9783,15 +9787,71 @@
       }
     }
 
+    function ccFichaHtml(f) {
+      const e2 = (typeof _fichaEsc === 'function') ? _fichaEsc : (s => String(s == null ? '' : s));
+      const block = (h, inner) => inner ? `<div class="fia-block"><div class="fia-h">${h}</div>${inner}</div>` : '';
+      const list = (arr) => (arr && arr.length) ? arr.map(x => `<div class="fia-li">${e2(x)}</div>`).join('') : '';
+      let html = '';
+      if (f.descripcion) html += block('Descripción', `<div class="fia-txt">${e2(f.descripcion)}</div>`);
+      if (f.gancho) html += block('Gancho (0-2s)', `<div class="fia-txt big">${e2(f.gancho.texto_pantalla || '')}</div>${f.gancho.visual ? `<div class="fia-txt" style="color:var(--ink-mute);margin-top:3px;">${e2(f.gancho.visual)}</div>` : ''}`);
+      if (f.estructura && f.estructura.length) html += block('Estructura', f.estructura.map(s => `<div class="fia-step"><span class="fia-time">${e2(s.tiempo || '')}</span><span class="fia-txt">${e2(s.accion || '')}</span></div>`).join(''));
+      if (f.material_crudo) { const mc = f.material_crudo; html += block('Material a grabar (crudo)', `${list(mc.video)}${mc.audio ? `<div class="fia-li"><b>Audio:</b> ${e2(mc.audio)}</div>` : ''}`); }
+      if (f.texto_pantalla && f.texto_pantalla.length) html += block('Texto en pantalla', list(f.texto_pantalla));
+      if (f.tips_grabacion && f.tips_grabacion.length) html += block('Tips de grabación', list(f.tips_grabacion));
+      if (f.audio) html += block('Audio', `<div class="fia-txt">${e2(f.audio)}</div>`);
+      if (f.edicion_comakers && f.edicion_comakers.length) html += block('Qué edita CoMakers', `<div class="fia-chips">${f.edicion_comakers.map(x => `<span class="fia-chip">${e2(x)}</span>`).join('')}</div>`);
+      if (f.copy) html += block('Copy', `<div class="fia-txt">${e2(f.copy)}</div>`);
+      if (f.guion) html += block('Guión', `<div class="fia-txt" style="white-space:pre-wrap;">${e2(f.guion)}</div>`);
+      if (f.hashtags && f.hashtags.length) html += block('Hashtags', `<div class="fia-hash">${f.hashtags.map(e2).join(' ')}</div>`);
+      return html;
+    }
+    function _ccTieneFicha(v) { return v && v._ficha && (v._ficha.descripcion || v._ficha.gancho || (v._ficha.estructura && v._ficha.estructura.length)); }
+    async function ccDesarrollarFicha(idx, btn) {
+      const p = ccProps[idx]; const v = p.variantes[p.activa]; if (!v) return;
+      const cli = (typeof CLIENTES !== 'undefined' && CLIENTES[currentClient]) ? CLIENTES[currentClient] : {};
+      if (btn) { btn.disabled = true; btn.textContent = 'Desarrollando ficha…'; }
+      try {
+        if (!window.__sb || !window.__sb.functions) throw new Error('sin backend');
+        const { data, error } = await window.__sb.functions.invoke('generar-calendario', {
+          body: { ficha: { titulo: v.titulo, tipo: v.formato || 'reel', pilar: p.pilar || '', tono: (cli.tono || $('cc-tono').value.trim() || 'profesional y cercano'), cliente: cli.nombre || '', copy: v.copy || '' } }
+        });
+        if (error || !data || !data.ficha) throw (error || new Error('vacío'));
+        v._ficha = data.ficha;
+        ccReplaceCard(idx);
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = '✦ Desarrollar ficha completa'; }
+        showToast('No se pudo desarrollar la ficha', 'warn');
+      }
+    }
+
     function ccCount() {
       const n = ccProps.filter(p => p.seleccionado).length;
       const c = $('cc-count'); if (c) c.innerHTML = `<b>${n}</b> de ${ccProps.length} seleccionadas · estado <b>Idea</b>`;
       const b = $('cc-pasar'); if (b) { b.textContent = 'Pasar ' + n + ' al calendario'; b.style.opacity = n ? '' : '.5'; b.style.pointerEvents = n ? '' : 'none'; }
     }
 
-    function ccPasar() {
+    async function ccPasar() {
       const sel = ccProps.filter(p => p.seleccionado);
       if (!sel.length) return;
+      const btn = $('cc-pasar');
+      const cli = (typeof CLIENTES !== 'undefined' && CLIENTES[currentClient]) ? CLIENTES[currentClient] : {};
+      // Desarrollar las fichas que falten (las que ya desarrollaste no se regeneran)
+      const faltan = sel.filter(p => !_ccTieneFicha(p.variantes[p.activa]));
+      if (faltan.length && window.__sb && window.__sb.functions) {
+        if (btn) btn.style.pointerEvents = 'none';
+        let done = 0;
+        for (const p of faltan) {
+          const v = p.variantes[p.activa]; if (!v) continue;
+          if (btn) btn.textContent = `Desarrollando fichas… ${++done}/${faltan.length}`;
+          try {
+            const { data, error } = await window.__sb.functions.invoke('generar-calendario', {
+              body: { ficha: { titulo: v.titulo, tipo: v.formato || 'reel', pilar: p.pilar || '', tono: (cli.tono || $('cc-tono').value.trim() || 'profesional y cercano'), cliente: cli.nombre || '', copy: v.copy || '' } }
+            });
+            if (!error && data && data.ficha) v._ficha = data.ficha;
+          } catch (e) { }
+        }
+        if (btn) btn.style.pointerEvents = '';
+      }
       const pilares = (typeof getPilaresCurrent === 'function') ? getPilaresCurrent() : [];
       let nid = POSTS.length ? Math.max(...POSTS.map(p => p.id)) + 1 : 1;
       sel.forEach(p => {
@@ -9801,15 +9861,18 @@
         POSTS.push({
           id: nid++, fecha: p.fecha, tipo: v.formato || 'post', plataforma: 'instagram',
           pilar: p.pilar || null, estado: 'idea', titulo: v.titulo || 'Sin título',
-          proyecto: p.pilar || 'General', from: g.from, to: g.to, copy: v.copy || 'Sin copy todavía.'
+          proyecto: p.pilar || 'General', from: g.from, to: g.to,
+          copy: (v._ficha && v._ficha.copy) ? v._ficha.copy : (v.copy || 'Sin copy todavía.'),
+          _ficha: v._ficha || {}
         });
       });
       const [y, m] = ccMesActual();
       if (typeof calCurrentDate !== 'undefined') calCurrentDate = new Date(y, m, 1);
       renderCalendario();
       if (typeof goTo === 'function') goTo('contenido');
-      showToast(sel.length + ' posts agregados como Idea en Contenido y Redes ✦');
+      showToast(sel.length + ' posts agregados como Idea (con ficha) ✦');
       ccProps = []; $('cc-results').innerHTML = ''; $('cc-footbar').style.display = 'none';
+      if (btn) btn.textContent = 'Pasar al calendario';
     }
 
     // ── Wiring ──
@@ -9825,6 +9888,7 @@
       results.addEventListener('click', (e) => {
         const dot = e.target.closest('[data-cc-var]'); if (dot) { const [i, k] = dot.dataset.ccVar.split(':').map(Number); ccProps[i].activa = k; ccReplaceCard(i); return; }
         const rf = e.target.closest('[data-cc-refine]'); if (rf) { ccRefine(Number(rf.dataset.ccRefine)); return; }
+        const fi = e.target.closest('[data-cc-ficha]'); if (fi) { ccDesarrollarFicha(Number(fi.dataset.ccFicha), fi); return; }
       });
       results.addEventListener('change', (e) => {
         const ch = e.target.closest('[data-cc-check]'); if (ch) { const i = Number(ch.dataset.ccCheck); ccProps[i].seleccionado = ch.checked; const c = $('cc-card-' + i); if (c) c.classList.toggle('on', ch.checked); ccCount(); return; }
