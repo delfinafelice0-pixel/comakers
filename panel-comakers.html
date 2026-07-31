@@ -13495,7 +13495,19 @@
       .fia-hash{color:var(--accent);font-size:13px;line-height:1.6;}
       .fia-bar{display:flex;justify-content:flex-end;margin-bottom:10px;}
       .fia-regen{font-size:12px;font-weight:600;color:var(--accent);background:none;border:none;cursor:pointer;}
-      .fia-regen:disabled{opacity:.6;cursor:default;}`;
+      .fia-regen:disabled{opacity:.6;cursor:default;}
+      .fia-in{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;color:var(--ink);background:var(--bg-elev);font-family:inherit;line-height:1.5;}
+      .fia-in:focus{outline:none;border-color:var(--accent);}
+      .fia-ta{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;color:var(--ink);background:var(--bg-elev);font-family:inherit;line-height:1.5;resize:vertical;overflow:hidden;min-height:38px;}
+      .fia-ta:focus{outline:none;border-color:var(--accent);}
+      .fia-hint{font-size:11px;color:var(--ink-mute);margin-bottom:4px;}
+      .fia-steprow{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;}
+      .fia-time-in{flex-shrink:0;width:82px;box-sizing:border-box;border:1px solid var(--line);border-radius:6px;padding:6px 7px;font-size:12px;font-weight:600;background:var(--bg-elev);color:var(--ink);}
+      .fia-time-in:focus{outline:none;border-color:var(--accent);}
+      .fia-acc-in{flex:1;}
+      .fia-del{flex-shrink:0;border:none;background:none;color:var(--ink-mute);cursor:pointer;font-size:18px;line-height:1;padding:4px 6px;}
+      .fia-del:hover{color:var(--coral);}
+      .fia-add{font-size:12px;font-weight:600;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 0;}`;
     document.head.appendChild(st);
   }
   async function generarFichaIA(p, btn) {
@@ -13515,32 +13527,53 @@
       showToast('No se pudo generar la ficha (¿deployaste la función nueva?)', 'warn');
     }
   }
+  let _fichaPost = null;
+  function _fichaSetPath(obj, path, value) {
+    const parts = path.split('.'); let o = obj;
+    for (let i = 0; i < parts.length - 1; i++) { if (o[parts[i]] == null || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; }
+    o[parts[parts.length - 1]] = value;
+  }
+  function fichaEditScalar(path, value) { if (!_fichaPost) return; _fichaPost._ficha = _fichaPost._ficha || {}; _fichaSetPath(_fichaPost._ficha, path, value); }
+  function fichaEditArray(path, value, sep) { if (!_fichaPost) return; _fichaPost._ficha = _fichaPost._ficha || {}; const arr = value.split(sep === 'ws' ? /\s+/ : /\n/).map(s => s.trim()).filter(Boolean); _fichaSetPath(_fichaPost._ficha, path, arr); }
+  function fichaEditStep(i, key, value) { if (!_fichaPost || !_fichaPost._ficha || !Array.isArray(_fichaPost._ficha.estructura) || !_fichaPost._ficha.estructura[i]) return; _fichaPost._ficha.estructura[i][key] = value; }
+  function fichaAddStep() { if (!_fichaPost) return; _fichaPost._ficha = _fichaPost._ficha || {}; if (!Array.isArray(_fichaPost._ficha.estructura)) _fichaPost._ficha.estructura = []; _fichaPost._ficha.estructura.push({ tiempo: '', accion: '' }); renderFichaIA(_fichaPost); }
+  function fichaDelStep(i) { if (!_fichaPost || !_fichaPost._ficha || !Array.isArray(_fichaPost._ficha.estructura)) return; _fichaPost._ficha.estructura.splice(i, 1); renderFichaIA(_fichaPost); }
+  function _taGrow(el) { if (!el) return; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+
   function renderFichaIA(p) {
     const z = document.getElementById('fichaIAZone'); if (!z) return;
     _fichaStyles();
+    _fichaPost = p;
     const f = p._ficha || {};
-    const tiene = f && (f.descripcion || f.gancho || (f.estructura && f.estructura.length) || f.guion);
+    const tiene = f && (f.descripcion || f.gancho || (f.estructura && f.estructura.length) || f.guion || f.copy);
     if (!tiene) {
       z.innerHTML = `<div class="fia-empty"><p>Todavía no hay ficha de producción.<br>Generala con IA: gancho, estructura, material a grabar, tips, audio, copy y guión.</p><button class="fia-gen" id="fiaGen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg> Generar ficha con IA</button></div>`;
       const b = document.getElementById('fiaGen'); if (b) b.addEventListener('click', () => generarFichaIA(p, b));
       return;
     }
-    const block = (h, inner) => inner ? `<div class="fia-block"><div class="fia-h">${h}</div>${inner}</div>` : '';
-    const li = (arr) => (arr && arr.length) ? arr.map(x => `<div class="fia-li">${_fichaEsc(x)}</div>`).join('') : '';
+    const esc = _fichaEsc;
+    const block = (h, inner) => `<div class="fia-block"><div class="fia-h">${h}</div>${inner}</div>`;
+    const ta = (path, val, ph) => `<textarea class="fia-ta" rows="2" oninput="fichaEditScalar('${path}', this.value); _taGrow(this);" placeholder="${ph || ''}">${esc(val || '')}</textarea>`;
+    const taArr = (path, arr, sep) => `<textarea class="fia-ta" rows="2" oninput="fichaEditArray('${path}', this.value, '${sep || 'nl'}'); _taGrow(this);">${esc((arr || []).join(sep === 'ws' ? ' ' : '\n'))}</textarea>`;
+    const steps = Array.isArray(f.estructura) ? f.estructura : [];
+    let stepsHtml = steps.map((s, i) => `<div class="fia-steprow"><input class="fia-time-in" value="${esc(s.tiempo || '')}" oninput="fichaEditStep(${i},'tiempo',this.value)"><textarea class="fia-ta fia-acc-in" rows="2" oninput="fichaEditStep(${i},'accion',this.value); _taGrow(this);">${esc(s.accion || '')}</textarea><button class="fia-del" title="Quitar paso" onclick="fichaDelStep(${i})">×</button></div>`).join('');
+    stepsHtml += `<button class="fia-add" onclick="fichaAddStep()">+ agregar paso</button>`;
+    const mc = f.material_crudo || {};
     let html = `<div class="fia-bar"><button class="fia-regen" id="fiaRegen">✦ Regenerar ficha</button></div>`;
-    if (f.descripcion) html += block('Descripción', `<div class="fia-txt">${_fichaEsc(f.descripcion)}</div>`);
-    if (f.gancho) html += block('Gancho (0-2s)', `<div class="fia-txt big">${_fichaEsc(f.gancho.texto_pantalla || '')}</div>${f.gancho.visual ? `<div class="fia-txt" style="color:var(--ink-mute);margin-top:3px;">${_fichaEsc(f.gancho.visual)}</div>` : ''}`);
-    if (f.estructura && f.estructura.length) html += block('Estructura', f.estructura.map(s => `<div class="fia-step"><span class="fia-time">${_fichaEsc(s.tiempo || '')}</span><span class="fia-txt">${_fichaEsc(s.accion || '')}</span></div>`).join(''));
-    if (f.material_crudo) { const mc = f.material_crudo; html += block('Material a grabar (crudo)', `${li(mc.video)}${mc.audio ? `<div class="fia-li"><b>Audio:</b> ${_fichaEsc(mc.audio)}</div>` : ''}`); }
-    if (f.texto_pantalla && f.texto_pantalla.length) html += block('Texto en pantalla', li(f.texto_pantalla));
-    if (f.tips_grabacion && f.tips_grabacion.length) html += block('Tips de grabación', li(f.tips_grabacion));
-    if (f.audio) html += block('Audio', `<div class="fia-txt">${_fichaEsc(f.audio)}</div>`);
-    if (f.edicion_comakers && f.edicion_comakers.length) html += block('Qué edita CoMakers', `<div class="fia-chips">${f.edicion_comakers.map(x => `<span class="fia-chip">${_fichaEsc(x)}</span>`).join('')}</div>`);
-    if (f.copy) html += block('Copy', `<div class="fia-txt">${_fichaEsc(f.copy)}</div>`);
-    if (f.guion) html += block('Guión', `<div class="fia-txt" style="white-space:pre-wrap;">${_fichaEsc(f.guion)}</div>`);
-    if (f.hashtags && f.hashtags.length) html += block('Hashtags', `<div class="fia-hash">${f.hashtags.map(_fichaEsc).join(' ')}</div>`);
+    html += block('Descripción', ta('descripcion', f.descripcion));
+    html += block('Gancho (0-2s)', `<div class="fia-hint">Texto en pantalla</div>${ta('gancho.texto_pantalla', (f.gancho || {}).texto_pantalla)}<div class="fia-hint" style="margin-top:6px;">Qué se ve</div>${ta('gancho.visual', (f.gancho || {}).visual)}`);
+    html += block('Estructura', stepsHtml);
+    html += block('Material a grabar (crudo)', `<div class="fia-hint">Tomas / clips — uno por línea</div>${taArr('material_crudo.video', mc.video, 'nl')}<div class="fia-hint" style="margin-top:6px;">Audio</div>${ta('material_crudo.audio', mc.audio)}`);
+    html += block('Texto en pantalla', `<div class="fia-hint">Uno por línea</div>${taArr('texto_pantalla', f.texto_pantalla, 'nl')}`);
+    html += block('Tips de grabación', `<div class="fia-hint">Uno por línea</div>${taArr('tips_grabacion', f.tips_grabacion, 'nl')}`);
+    html += block('Audio', ta('audio', f.audio));
+    html += block('Qué edita CoMakers', `<div class="fia-hint">Uno por línea</div>${taArr('edicion_comakers', f.edicion_comakers, 'nl')}`);
+    html += block('Copy', ta('copy', f.copy));
+    html += block('Guión', ta('guion', f.guion));
+    html += block('Hashtags', `<div class="fia-hint">Separados por espacio</div>${taArr('hashtags', f.hashtags, 'ws')}`);
     z.innerHTML = html;
     const rb = document.getElementById('fiaRegen'); if (rb) rb.addEventListener('click', () => generarFichaIA(p, rb));
+    z.querySelectorAll('textarea.fia-ta').forEach(_taGrow);
   }
 
   // ═══════════ ARCHIVOS = carpeta de Drive (override) ═══════════
