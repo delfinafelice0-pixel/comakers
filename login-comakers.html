@@ -166,7 +166,7 @@
 <div class="card">
   <div class="brand">
     <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
-    <div class="brand-sub">Panel de clientes</div>
+    <div class="brand-sub">Acceso al panel</div>
   </div>
 
   <h1>Iniciar sesión</h1>
@@ -192,17 +192,34 @@
 
 <script>
   // ── SUPABASE CONFIG ──────────────────────────────────
-  // Reemplazá estos valores con los de tu proyecto en Supabase
-  // (Project Settings > API)
   const SUPABASE_URL      = 'https://ggcstolnadkkqhsqpzql.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
 
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Si ya hay sesión activa, ir directo al panel
+  // ── A DÓNDE VA CADA UNO ──────────────────────────────
+  // Agencia (o super admin) → panel interno.
+  // Cliente → su panel de reportes.
+  // Si el perfil no se puede leer, cae al panel de cliente (lo más restrictivo).
+  async function irAlPanel(session) {
+    let destino = 'panel-comakers.html';
+    try {
+      const { data: perfil } = await sb
+        .from('profiles')
+        .select('tipo, super_admin')
+        .eq('id', session.user.id)
+        .single();
+      if (perfil && (perfil.tipo === 'agencia' || perfil.super_admin)) {
+        destino = 'interno.html';
+      }
+    } catch (e) { /* nos quedamos con el destino por defecto */ }
+    window.location.href = destino;
+  }
+
+  // Si ya hay sesión activa, ir directo al panel que corresponda
   sb.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = 'panel-comakers.html';
+    if (session) irAlPanel(session);
   });
 
   const form    = document.getElementById('loginForm');
@@ -229,7 +246,7 @@
     btn.disabled = true;
     btn.textContent = 'Entrando…';
 
-    const { error } = await sb.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
     if (error) {
       btn.disabled = false;
@@ -241,7 +258,7 @@
       return;
     }
 
-    window.location.href = 'panel-comakers.html';
+    await irAlPanel(data.session);
   });
 </script>
 
