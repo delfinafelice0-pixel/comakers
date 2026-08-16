@@ -348,7 +348,7 @@
   .grupo.collapsed .grupo-body { display: none; }
 
   .fila {
-    display: grid; grid-template-columns: 24px 1fr auto auto auto auto;
+    display: grid; grid-template-columns: 24px 1fr auto auto auto auto auto;
     gap: 14px; align-items: center; padding: 11px 20px;
     border-bottom: 1px solid var(--line-soft); transition: background 0.12s; cursor: pointer;
   }
@@ -402,6 +402,54 @@
   .fecha.pronto  { background: var(--lime-soft); color: var(--ink); }
 
   .ojo { width: 13px; height: 13px; color: var(--ink-mute); flex-shrink: 0; }
+
+  /* ── PROYECTOS ────────────────────────────── */
+  .nav-label-row { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 6px 10px; margin-top: 8px; }
+  .nav-label-row .nav-label { padding: 0; margin: 0; }
+  .nav-mini {
+    width: 20px; height: 20px; border-radius: 6px; color: var(--ink-mute);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .nav-mini:hover { background: var(--line-soft); color: var(--ink); }
+  .nav-mini svg { width: 13px; height: 13px; }
+
+  .nav-item.proy { gap: 8px; font-size: 13px; }
+  .proy-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .nav-item.proy .candado { width: 11px; height: 11px; margin-left: auto; color: var(--ink-mute); flex-shrink: 0; }
+  .nav-item.proy.active .candado { color: inherit; }
+  .nav-item.proy .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-item.nuevo-proy { color: var(--ink-mute); font-size: 12px; }
+  .nav-vacio { font-size: 11px; color: var(--ink-mute); padding: 2px 10px 4px; font-style: italic; }
+
+  .chip-proy {
+    font-size: 11px; color: var(--ink-soft); padding: 3px 8px 3px 6px;
+    border-radius: 12px; background: var(--line-soft); font-weight: 500;
+    white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .chip-proy .proy-dot { width: 7px; height: 7px; border-radius: 2px; }
+  .chip-proy .candado { width: 10px; height: 10px; opacity: 0.6; }
+
+  /* selector de color + miembros en el modal de proyecto */
+  .colores { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-op {
+    width: 26px; height: 26px; border-radius: 8px; cursor: pointer;
+    border: 2px solid transparent; transition: transform 0.12s;
+  }
+  .color-op:hover { transform: scale(1.08); }
+  .color-op.on { border-color: var(--ink); }
+
+  .miembros { display: flex; flex-wrap: wrap; gap: 7px; }
+  .miembro-chip {
+    display: flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: var(--bg);
+    border-radius: 20px; padding: 4px 11px 4px 4px;
+    font-size: 12px; font-weight: 500; color: var(--ink-soft);
+    transition: all 0.15s;
+  }
+  .miembro-chip:hover { border-color: var(--ink-soft); }
+  .miembro-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .miembro-chip .avatar-sm { width: 20px; height: 20px; font-size: 9px; }
+  .miembros-nota { font-size: 11px; color: var(--ink-mute); margin-top: 8px; line-height: 1.45; }
 
   /* ── CALENDARIO ───────────────────────────── */
   .calendario { display: none; grid-template-columns: 1fr 252px; gap: 14px; align-items: start; }
@@ -793,7 +841,7 @@
     .kanban.active { grid-template-columns: 1fr; }
     .columna { min-height: auto; }
     .fila { grid-template-columns: 24px 1fr auto; gap: 10px; }
-    .fila .pill, .fila .estado-pill, .fila .avatar-sm { display: none; }
+    .fila .pill, .fila .chip-proy, .fila .estado-pill, .fila .avatar-sm { display: none; }
     .campo-row { grid-template-columns: 1fr; }
   }
 </style>
@@ -810,12 +858,22 @@
     </div>
 
     <nav class="nav-group">
-      <button class="nav-item active">
+      <button class="nav-item active" id="navTablero">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
-        Tablero
+        Todo el tablero
         <span class="badge" id="navBadge" style="display:none">0</span>
       </button>
     </nav>
+
+    <div>
+      <div class="nav-label-row">
+        <div class="nav-label">Proyectos</div>
+        <button class="nav-mini" id="btnNuevoProy" title="Nuevo proyecto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+      </div>
+      <nav class="nav-group" id="navProyectos"></nav>
+    </div>
 
     <div>
       <div class="nav-label">Próximamente</div>
@@ -907,6 +965,7 @@
         <select class="sel" id="agrupar" style="display:none">
           <option value="responsable">Agrupar por persona</option>
           <option value="cliente">Agrupar por cliente</option>
+          <option value="proyecto">Agrupar por proyecto</option>
           <option value="estado">Agrupar por estado</option>
         </select>
         <div class="view-toggle">
@@ -1015,8 +1074,8 @@
       </div>
     </div>
     <div class="campo">
-      <label class="campo-label">Área / proyecto</label>
-      <input type="text" id="fProyecto" placeholder="Ej: Pauta, Producción, Contenido">
+      <label class="campo-label">Proyecto</label>
+      <select id="fProyecto"></select>
     </div>
     <div class="switch-row">
       <div class="switch-txt">
@@ -1030,6 +1089,49 @@
       <div class="der">
         <button class="btn-ghost" data-cerrar="ovForm">Cancelar</button>
         <button class="btn-primary" id="fGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL PROYECTO ═══════════ -->
+<div class="overlay" id="ovProy">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="proyTitulo">Nuevo proyecto</div>
+      <button class="modal-close" data-cerrar="ovProy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Nombre</label>
+      <input type="text" id="pNombre" placeholder="Ej: India 2027, Pauta, Contrataciones">
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Cliente</label>
+        <select id="pCliente"></select>
+      </div>
+      <div>
+        <label class="campo-label">Color</label>
+        <div class="colores" id="pColores"></div>
+      </div>
+    </div>
+    <div class="switch-row">
+      <div class="switch-txt">
+        <div class="t">Proyecto privado</div>
+        <div class="s">Solo lo ven los miembros que elijas y quien lo creó. El resto del equipo ni sabe que existe.</div>
+      </div>
+      <div class="switch" id="pPrivado"></div>
+    </div>
+    <div class="campo" id="pMiembrosWrap">
+      <label class="campo-label">Miembros</label>
+      <div class="miembros" id="pMiembros"></div>
+      <div class="miembros-nota" id="pMiembrosNota"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="pArchivar" style="display:none">Archivar proyecto</button>
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovProy">Cancelar</button>
+        <button class="btn-primary" id="pGuardar">Guardar</button>
       </div>
     </div>
   </div>
@@ -1112,9 +1214,9 @@
       <div class="prop">
         <div class="prop-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-          Área
+          Proyecto
         </div>
-        <div class="prop-val"><input type="text" id="dProyecto" placeholder="Sin área"></div>
+        <div class="prop-val"><select id="dProyecto"></select></div>
       </div>
       <div class="prop">
         <div class="prop-label">
@@ -1192,9 +1294,16 @@
   let TAREAS = [];
   let VISTA = 'tablero';
   let AGRUPAR = 'responsable';
-  let FILTRO = { texto: '', persona: '', cliente: '', mias: false, pulso: '' };
+  let FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false, pulso: '' };
+  const COLORES = {
+    magenta: '#FF82FF', lima: '#A9D96B', coral: '#F26A8D', cyan: '#7FBFCC',
+    violeta: '#A98BE0', ocre: '#DCA84E', gris: '#938C99'
+  };
+  const CANDADO = '<svg class="candado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
   let EDITANDO = null;
   let COLAPSADOS = {};
+  let PROYECTOS = [];
+  let MIEMBROS = {};  // proyecto_id → [user_id]
   let SUB_MAP = {};   // tarea_id → { total, hechas }
   let ADJ_MAP = {};   // tarea_id → cantidad de links
 
@@ -1284,6 +1393,16 @@
     const c = CLIENTES.find(x => x.id === id);
     return c ? c.nombre : '—';
   }
+  function proyectoDe(id) { return PROYECTOS.find(p => p.id === id) || null; }
+  function nombreProyecto(id) { const p = proyectoDe(id); return p ? p.nombre : null; }
+  function colorProyecto(id) { const p = proyectoDe(id); return COLORES[p && p.color] || COLORES.gris; }
+  function chipProyecto(t) {
+    const p = proyectoDe(t.proyecto_id);
+    if (!p) return '';
+    return '<span class="chip-proy"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
+         + esc(p.nombre) + (p.privado ? CANDADO : '') + '</span>';
+  }
+
   function fechaCorta(iso) {
     if (!iso) return '';
     const d = new Date(iso);
@@ -1316,7 +1435,7 @@
     const primer = (prof.nombre || prof.email || '').split(/[\s@]/)[0];
     $('#saludo').textContent = 'Hola ' + primer + ' 👋 — todo lo que el equipo tiene entre manos.';
 
-    await Promise.all([cargarPersonas(), cargarClientes()]);
+    await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos()]);
     llenarSelects();
     await cargarTareas();
   }
@@ -1330,6 +1449,17 @@
     if (ME && !PERSONAS.some(p => p.id === ME.id)) PERSONAS.unshift(ME);
   }
 
+  async function cargarProyectos() {
+    const { data, error } = await SB.from('proyecto')
+      .select('id, nombre, cliente_id, color, privado, archivado, creado_por')
+      .eq('archivado', false).order('nombre');
+    PROYECTOS = (error || !data) ? [] : data;
+
+    MIEMBROS = {};
+    const { data: ms } = await SB.from('proyecto_miembro').select('proyecto_id, user_id');
+    (ms || []).forEach(m => { (MIEMBROS[m.proyecto_id] = MIEMBROS[m.proyecto_id] || []).push(m.user_id); });
+  }
+
   async function cargarClientes() {
     const { data, error } = await SB.from('clientes').select('id, nombre').order('nombre');
     CLIENTES = (error || !data) ? [] : data;
@@ -1337,7 +1467,7 @@
 
   async function cargarTareas() {
     const { data, error } = await SB.from('tarea')
-      .select('id, titulo, descripcion, cliente_id, responsable_id, responsable, responsable_tipo, proyecto, estado, urgencia, empieza, vence, orden, visible_cliente, completada_en, comentarios, created_at')
+      .select('id, titulo, descripcion, cliente_id, responsable_id, responsable, responsable_tipo, proyecto, estado, urgencia, proyecto_id, empieza, vence, orden, visible_cliente, completada_en, comentarios, created_at')
       .order('orden', { ascending: true, nullsFirst: false });
 
     $('#cargando').style.display = 'none';
@@ -1386,6 +1516,134 @@
       + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
 
     $('#fEstado').innerHTML = ESTADOS.map(e => '<option value="' + e.id + '">' + e.label + '</option>').join('');
+
+    const opsProy = '<option value="">Sin proyecto</option>'
+      + PROYECTOS.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + (p.privado ? ' 🔒' : '') + '</option>').join('');
+    $('#fProyecto').innerHTML = opsProy;
+    $('#dProyecto').innerHTML = opsProy;
+
+    $('#pCliente').innerHTML = '<option value="">Sin cliente (interno)</option>'
+      + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+    $('#pColores').innerHTML = Object.keys(COLORES).map(k =>
+      '<button class="color-op" data-color="' + k + '" style="background:' + COLORES[k] + '" title="' + k + '"></button>').join('');
+
+    renderProyectosSidebar();
+  }
+
+  // ═══════════════ PROYECTOS ═══════════════
+  function renderProyectosSidebar() {
+    const cont = $('#navProyectos');
+    const items = PROYECTOS.map(p => {
+      const abiertas = TAREAS.filter(t => t.proyecto_id === p.id && t.estado !== 'completada').length;
+      return '<button class="nav-item proy' + (FILTRO.proyecto === p.id ? ' active' : '') + '" data-proy="' + p.id + '">' +
+               '<span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>' +
+               '<span class="nom">' + esc(p.nombre) + '</span>' +
+               (p.privado ? CANDADO : (abiertas ? '<span class="soon-tag">' + abiertas + '</span>' : '')) +
+             '</button>';
+    }).join('');
+    cont.innerHTML = (items || '<div class="nav-vacio">Todavía no hay proyectos</div>')
+      + '<button class="nav-item nuevo-proy" id="navNuevoProy">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
+          'Nuevo proyecto' +
+        '</button>';
+  }
+
+  let PROY_EDIT = null;
+  let PROY_COLOR = 'magenta';
+  let PROY_MIEMBROS = [];
+
+  function abrirProyecto(p) {
+    PROY_EDIT = p;
+    PROY_COLOR = p ? (p.color || 'magenta') : 'magenta';
+    PROY_MIEMBROS = p ? (MIEMBROS[p.id] || []).slice() : (ME ? [ME.id] : []);
+    $('#proyTitulo').textContent = p ? 'Editar proyecto' : 'Nuevo proyecto';
+    $('#pNombre').value = p ? p.nombre : '';
+    $('#pCliente').value = p ? (p.cliente_id || '') : '';
+    $('#pPrivado').classList.toggle('on', !!(p && p.privado));
+    $('#pArchivar').style.display = p ? '' : 'none';
+    pintarColores();
+    pintarMiembros();
+    abrir('ovProy');
+    setTimeout(() => $('#pNombre').focus(), 60);
+  }
+
+  function pintarColores() {
+    $$('#pColores .color-op').forEach(b => b.classList.toggle('on', b.dataset.color === PROY_COLOR));
+  }
+
+  function pintarMiembros() {
+    const privado = $('#pPrivado').classList.contains('on');
+    $('#pMiembros').innerHTML = PERSONAS.map(p => {
+      const on = PROY_MIEMBROS.indexOf(p.id) !== -1;
+      const n = p.nombre || p.email;
+      return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-miembro="' + p.id + '">' +
+               '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) +
+             '</button>';
+    }).join('');
+    $('#pMiembrosNota').textContent = privado
+      ? 'Solo estas personas van a ver el proyecto y sus tareas. Vos quedás adentro siempre por haberlo creado.'
+      : 'El proyecto es público: todo el equipo lo ve. Los miembros son solo una referencia de quién trabaja acá.';
+  }
+
+  async function guardarProyecto() {
+    const nombre = $('#pNombre').value.trim();
+    if (!nombre) { toast('Ponele un nombre al proyecto', 'warn'); $('#pNombre').focus(); return; }
+
+    const fila = {
+      nombre: nombre,
+      cliente_id: $('#pCliente').value || null,
+      color: PROY_COLOR,
+      privado: $('#pPrivado').classList.contains('on')
+    };
+
+    $('#pGuardar').disabled = true;
+    try {
+      let id;
+      if (PROY_EDIT) {
+        const { error } = await SB.from('proyecto').update(fila).eq('id', PROY_EDIT.id);
+        if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+        id = PROY_EDIT.id;
+      } else {
+        const { data, error } = await SB.from('proyecto').insert(fila).select('id').single();
+        if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+        id = data.id;
+      }
+
+      // Sincronizar miembros: borro los que sacaste, agrego los nuevos
+      const antes = (MIEMBROS[id] || []);
+      const sacar = antes.filter(u => PROY_MIEMBROS.indexOf(u) === -1);
+      const poner = PROY_MIEMBROS.filter(u => antes.indexOf(u) === -1);
+      for (let i = 0; i < sacar.length; i++) {
+        await SB.from('proyecto_miembro').delete().eq('proyecto_id', id).eq('user_id', sacar[i]);
+      }
+      if (poner.length) {
+        const { error: mErr } = await SB.from('proyecto_miembro')
+          .insert(poner.map(u => ({ proyecto_id: id, user_id: u })));
+        if (mErr) toast('Proyecto guardado, pero falló asignar miembros: ' + mErr.message, 'warn');
+      }
+
+      cerrar('ovProy');
+      toast(PROY_EDIT ? 'Proyecto actualizado' : 'Proyecto creado');
+      await cargarProyectos();
+      llenarSelects();
+      render();
+    } finally {
+      $('#pGuardar').disabled = false;
+    }
+  }
+
+  async function archivarProyecto() {
+    if (!PROY_EDIT) return;
+    const usadas = TAREAS.filter(t => t.proyecto_id === PROY_EDIT.id).length;
+    if (!confirm('¿Archivar "' + PROY_EDIT.nombre + '"?\n\nSus ' + usadas + ' tarea(s) no se borran: quedan sin proyecto en el tablero.')) return;
+    const { error } = await SB.from('proyecto').update({ archivado: true }).eq('id', PROY_EDIT.id);
+    if (error) { toast('No se pudo archivar: ' + error.message, 'warn'); return; }
+    if (FILTRO.proyecto === PROY_EDIT.id) FILTRO.proyecto = '';
+    cerrar('ovProy');
+    toast('Proyecto archivado');
+    await cargarProyectos();
+    llenarSelects();
+    await cargarTareas();
   }
 
   // ═══════════════ FILTRADO ═══════════════
@@ -1393,7 +1651,7 @@
     const q = FILTRO.texto.trim().toLowerCase();
     return TAREAS.filter(t => {
       if (q) {
-        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + (t.proyecto || '') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
+        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + (nombreProyecto(t.proyecto_id) || t.proyecto || '') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
       }
       if (FILTRO.persona === '__sin') { if (t.responsable_id) return false; }
@@ -1401,6 +1659,9 @@
 
       if (FILTRO.cliente === '__interno') { if (t.cliente_id) return false; }
       else if (FILTRO.cliente) { if (t.cliente_id !== FILTRO.cliente) return false; }
+
+      if (FILTRO.proyecto === '__sinproy') { if (t.proyecto_id) return false; }
+      else if (FILTRO.proyecto) { if (t.proyecto_id !== FILTRO.proyecto) return false; }
 
       if (FILTRO.mias && ME && t.responsable_id !== ME.id) return false;
 
@@ -1416,12 +1677,13 @@
     return (Date.now() - new Date(t.completada_en).getTime()) < 7 * 86400000;
   }
   function hayFiltro() {
-    return !!(FILTRO.texto || FILTRO.persona || FILTRO.cliente || FILTRO.mias || FILTRO.pulso);
+    return !!(FILTRO.texto || FILTRO.persona || FILTRO.cliente || FILTRO.proyecto || FILTRO.mias || FILTRO.pulso);
   }
 
   // ═══════════════ RENDER ═══════════════
   function render() {
     renderPulso();
+    renderProyectosSidebar();
     const list = visibles();
 
     $('#btnLimpiar').style.display = hayFiltro() ? '' : 'none';
@@ -1429,6 +1691,7 @@
     $('#cMias').textContent = ME ? TAREAS.filter(t => t.responsable_id === ME.id && t.estado !== 'completada').length : 0;
 
     const abiertas = TAREAS.filter(t => estaVencida(t)).length;
+    $('#navTablero').classList.toggle('active', !FILTRO.proyecto);
     const nb = $('#navBadge');
     if (abiertas > 0) { nb.style.display = ''; nb.textContent = abiertas; } else { nb.style.display = 'none'; }
 
@@ -1562,8 +1825,9 @@
       if (r.ini < isoIni) cls.push('sigue-izq');
       if (r.fin > isoFin) cls.push('sigue-der');
       const quien = nombrePersona(t.responsable_id);
+      const cp = t.proyecto_id ? 'box-shadow: inset 0 0 0 1px ' + colorProyecto(t.proyecto_id) + '55;' : '';
       return '<div class="' + cls.join(' ') + '" draggable="true" data-id="' + t.id + '" data-bar="1" ' +
-             'style="grid-column:' + p.c1 + ' / ' + (p.c2 + 1) + '; grid-row:' + (p.carril + 1) + '" ' +
+             'style="grid-column:' + p.c1 + ' / ' + (p.c2 + 1) + '; grid-row:' + (p.carril + 1) + ';' + cp + '" ' +
              'title="' + esc(t.titulo) + ' · ' + esc(rangoTxt(t)) + '">' +
                '<span class="tirador ini" draggable="true" data-tirador="ini" data-id="' + t.id + '" title="Mover el inicio"></span>' +
                '<span class="txt">' + esc(t.titulo) + '</span>' +
@@ -1698,7 +1962,7 @@
     const venc = estaVencida(t);
     return '' +
       '<div class="card-k' + (venc ? ' vencida' : '') + '" draggable="true" data-id="' + t.id + '">' +
-        '<div class="card-k-top">' + chipCliente(t) +
+        '<div class="card-k-top">' + chipCliente(t) + chipProyecto(t) +
           (t.urgencia === 'urgente' ? '<span class="estado-pill" style="background:var(--warn-soft);color:var(--ink)">urgente</span>' : '') +
         '</div>' +
         '<div class="card-k-titulo">' + esc(t.titulo) + '</div>' +
@@ -1726,6 +1990,10 @@
       } else if (AGRUPAR === 'cliente') {
         k = t.cliente_id || '__interno';
         label = nombreCliente(t.cliente_id);
+        orden = label;
+      } else if (AGRUPAR === 'proyecto') {
+        k = t.proyecto_id || '__sinproy';
+        label = nombreProyecto(t.proyecto_id) || 'Sin proyecto';
         orden = label;
       } else {
         k = t.estado || 'pendiente';
@@ -1782,7 +2050,7 @@
           '<div class="fila-titulo">' + esc(t.titulo) + (t.visible_cliente ? ' ' + OJO_SVG : '') + '</div>' +
           (t.descripcion ? '<div class="fila-desc">' + esc(t.descripcion) + '</div>' : '') +
         '</div>' +
-        chipCliente(t) +
+        chipCliente(t) + chipProyecto(t) +
         '<span class="estado-pill ' + (t.estado || 'pendiente') + '">' + esc(EST_MAP[t.estado] || t.estado) + '</span>' +
         avatarDe(t) +
         '<span class="fecha ' + f.clase + '">' + (f.txt || '—') + '</span>' +
@@ -1904,7 +2172,7 @@
     $('#fPrioridad').value = t ? (t.urgencia || 'normal') : 'normal';
     $('#fEmpieza').value = t ? (t.empieza || '') : '';
     $('#fVence').value = t ? (t.vence || '') : '';
-    $('#fProyecto').value = t ? (t.proyecto || '') : '';
+    $('#fProyecto').value = t ? (t.proyecto_id || '') : (FILTRO.proyecto && FILTRO.proyecto !== '__sinproy' ? FILTRO.proyecto : '');
     $('#fVisible').classList.toggle('on', !!(t && t.visible_cliente));
     $('#fBorrar').style.display = t ? '' : 'none';
     abrir('ovForm');
@@ -1924,7 +2192,8 @@
       responsable: respId ? nombrePersona(respId) : null,
       responsable_tipo: 'agencia',
       cliente_id: $('#fCliente').value || null,
-      proyecto: $('#fProyecto').value.trim() || null,
+      proyecto_id: $('#fProyecto').value || null,
+      proyecto: $('#fProyecto').value ? nombreProyecto($('#fProyecto').value) : null,
       estado: estado,
       urgencia: $('#fPrioridad').value,
       empieza: $('#fEmpieza').value || null,
@@ -2045,7 +2314,7 @@
     $('#dEmpieza').value = t.empieza || '';
     $('#dVence').value = t.vence || '';
     $('#dPrioridad').value = t.urgencia || 'normal';
-    $('#dProyecto').value = t.proyecto || '';
+    $('#dProyecto').value = t.proyecto_id || '';
     $('#dVisible').classList.toggle('on', !!t.visible_cliente);
     pintarVenceTag();
 
@@ -2073,9 +2342,11 @@
     const patch = {};
     patch[campo] = valor;
     if (campo === 'responsable_id') patch.responsable = valor ? nombrePersona(valor) : null;
+    if (campo === 'proyecto_id') patch.proyecto = valor ? nombreProyecto(valor) : null;
     if (campo === 'estado') patch.completada_en = (valor === 'completada') ? new Date().toISOString() : null;
 
     const respAnterior = DETALLE.responsable;
+    const proyAnterior = DETALLE.proyecto;
     const compAnterior = DETALLE.completada_en;
     Object.keys(patch).forEach(k => { DETALLE[k] = patch[k]; });
     render();
@@ -2085,6 +2356,7 @@
     if (error) {
       DETALLE[campo] = anterior;
       DETALLE.responsable = respAnterior;
+      DETALLE.proyecto = proyAnterior;
       DETALLE.completada_en = compAnterior;
       render();
       llenarDrawer(DETALLE);
@@ -2227,6 +2499,7 @@
       case 'vence':       return q + (a.valor_nuevo ? 'puso vencimiento el <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó el vencimiento');
       case 'prioridad':   return q + 'cambió la prioridad a <b>' + esc(a.valor_nuevo) + '</b>';
       case 'cliente':     return q + 'cambió el cliente a <b>' + esc(a.valor_nuevo) + '</b>';
+      case 'proyecto':    return q + 'movió al proyecto <b>' + esc(a.valor_nuevo) + '</b>';
       case 'titulo':      return q + 'renombró la tarea';
       case 'visible_cliente':
         return q + (a.valor_nuevo === 'true' ? 'la hizo <b>visible para el cliente</b>' : 'la volvió <b>interna</b>');
@@ -2309,6 +2582,7 @@
   // ═══════════════ EVENTOS ═══════════════
   $('#btnNueva').addEventListener('click', () => abrirForm(null));
   $('#btnRefrescar').addEventListener('click', cargarTareas);
+  $('#navTablero').addEventListener('click', () => { FILTRO.proyecto = ''; render(); });
   $('#fGuardar').addEventListener('click', guardar);
   $('#fBorrar').addEventListener('click', () => borrarTarea(EDITANDO));
   $('#fVisible').addEventListener('click', function () { this.classList.toggle('on'); });
@@ -2338,7 +2612,7 @@
   $('#dEmpieza').addEventListener('change', e => guardarCampo('empieza', e.target.value || null));
   $('#dVence').addEventListener('change', e => guardarCampo('vence', e.target.value || null));
   $('#dPrioridad').addEventListener('change', e => guardarCampo('urgencia', e.target.value));
-  $('#dProyecto').addEventListener('blur', e => guardarCampo('proyecto', e.target.value.trim() || null));
+  $('#dProyecto').addEventListener('change', e => guardarCampo('proyecto_id', e.target.value || null));
   $('#dVisible').addEventListener('click', function () {
     const nuevo = !this.classList.contains('on');
     this.classList.toggle('on', nuevo);
@@ -2358,6 +2632,38 @@
     if (sd) { borrarSubtarea(sd.dataset.subdel); return; }
     const ad = e.target.closest('[data-adjdel]');
     if (ad) { borrarAdjunto(ad.dataset.adjdel); return; }
+  });
+
+  // ── Proyectos ────────────────────────────────────────────────
+  $('#btnNuevoProy').addEventListener('click', () => abrirProyecto(null));
+  $('#pGuardar').addEventListener('click', guardarProyecto);
+  $('#pArchivar').addEventListener('click', archivarProyecto);
+  $('#pNombre').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); guardarProyecto(); } });
+  $('#pPrivado').addEventListener('click', function () { this.classList.toggle('on'); pintarMiembros(); });
+  $('#pColores').addEventListener('click', e => {
+    const b = e.target.closest('[data-color]');
+    if (!b) return;
+    PROY_COLOR = b.dataset.color;
+    pintarColores();
+  });
+  $('#pMiembros').addEventListener('click', e => {
+    const b = e.target.closest('[data-miembro]');
+    if (!b) return;
+    const id = b.dataset.miembro;
+    const i = PROY_MIEMBROS.indexOf(id);
+    if (i === -1) PROY_MIEMBROS.push(id); else PROY_MIEMBROS.splice(i, 1);
+    pintarMiembros();
+  });
+
+  $('#navProyectos').addEventListener('click', e => {
+    if (e.target.closest('#navNuevoProy')) { abrirProyecto(null); return; }
+    const b = e.target.closest('[data-proy]');
+    if (!b) return;
+    const id = b.dataset.proy;
+    // Segundo click sobre el mismo: entra a editarlo. Primero: filtra.
+    if (FILTRO.proyecto === id) { abrirProyecto(proyectoDe(id)); return; }
+    FILTRO.proyecto = id;
+    render();
   });
 
   $$('[data-cerrar]').forEach(b => b.addEventListener('click', () => cerrar(b.dataset.cerrar)));
@@ -2388,7 +2694,7 @@
   $('#agrupar').addEventListener('change', e => { AGRUPAR = e.target.value; COLAPSADOS = {}; render(); });
   $('#btnMias').addEventListener('click', function () { FILTRO.mias = !FILTRO.mias; this.classList.toggle('active', FILTRO.mias); render(); });
   $('#btnLimpiar').addEventListener('click', () => {
-    FILTRO = { texto: '', persona: '', cliente: '', mias: false, pulso: '' };
+    FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false, pulso: '' };
     $('#buscar').value = '';
     $('#filtroPersona').value = ''; $('#filtroPersona').classList.remove('on');
     $('#filtroCliente').value = ''; $('#filtroCliente').classList.remove('on');
