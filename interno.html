@@ -501,6 +501,143 @@
   .nuevo-com input:focus { border-color: var(--accent); }
   .nuevo-com button { background: var(--ink); color: var(--bg-elev); border-radius: var(--radius); padding: 8px 14px; font-size: 12px; font-weight: 600; }
 
+  /* ── DRAWER (panel lateral de la tarea) ───── */
+  .scrim {
+    position: fixed; inset: 0; background: rgba(26,22,32,0.26);
+    backdrop-filter: blur(2px); opacity: 0; pointer-events: none;
+    transition: opacity 0.22s; z-index: 90;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100vh; width: min(620px, 100%);
+    background: var(--bg-elev); border-left: 1px solid var(--line);
+    box-shadow: -14px 0 44px rgba(26,22,32,0.10);
+    transform: translateX(103%); transition: transform 0.26s cubic-bezier(0.16,1,0.3,1);
+    z-index: 95; display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: none; }
+  .drawer-head {
+    display: flex; align-items: center; gap: 6px;
+    padding: 13px 18px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+  }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 22px 26px 70px; }
+
+  .icon-btn {
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-mute); transition: all 0.15s;
+  }
+  .icon-btn:hover:not(:disabled) { background: var(--line-soft); color: var(--ink); }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .icon-btn:disabled { opacity: 0.25; cursor: default; }
+  .guardado { font-size: 11px; color: var(--ink-mute); opacity: 0; transition: opacity 0.2s; }
+  .guardado.on { opacity: 1; }
+  .drawer-pos { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; }
+
+  .d-titulo {
+    font-family: var(--display); font-size: 26px; font-weight: 500;
+    letter-spacing: -0.02em; line-height: 1.22; width: 100%;
+    border: 1px solid transparent; outline: none; background: transparent;
+    resize: none; overflow: hidden; padding: 5px 7px; margin: 0 -7px 2px;
+    border-radius: 8px; color: var(--ink); transition: background 0.12s;
+  }
+  .d-titulo:hover { background: var(--line-soft); }
+  .d-titulo:focus { background: var(--bg); border-color: var(--line); }
+
+  .props { display: flex; flex-direction: column; gap: 1px; margin: 12px 0 24px; }
+  .prop { display: grid; grid-template-columns: 136px 1fr; align-items: center; gap: 10px; }
+  .prop-label {
+    font-size: 12px; color: var(--ink-mute); display: flex; align-items: center; gap: 7px;
+  }
+  .prop-label svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .prop-val { display: flex; align-items: center; gap: 8px; }
+  .prop-val select, .prop-val input[type=date], .prop-val input[type=text] {
+    width: 100%; border: 1px solid transparent; background: transparent;
+    border-radius: 7px; padding: 6px 8px; font-size: 13px; font-weight: 500;
+    color: var(--ink); outline: none; font-family: inherit; cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .prop-val input[type=text] { cursor: text; }
+  .prop-val select:hover, .prop-val input:hover { background: var(--line-soft); }
+  .prop-val select:focus, .prop-val input:focus { background: var(--bg); border-color: var(--accent); cursor: auto; }
+
+  .d-sec { margin-bottom: 26px; }
+  .d-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+  .d-desc {
+    width: 100%; border: 1px solid transparent; background: transparent;
+    border-radius: 8px; padding: 9px 10px; margin: 0 -10px;
+    font-size: 13px; line-height: 1.6; color: var(--ink-soft);
+    font-family: inherit; resize: none; overflow: hidden; outline: none; min-height: 36px;
+    transition: background 0.12s;
+  }
+  .d-desc:hover { background: var(--line-soft); }
+  .d-desc:focus { background: var(--bg); border-color: var(--line); color: var(--ink); }
+  .d-desc::placeholder { color: var(--ink-mute); font-style: italic; }
+
+  /* checklist de subtareas */
+  .prog { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .prog-bar { flex: 1; height: 5px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.25s; }
+  .prog-txt { font-size: 11px; color: var(--ink-mute); font-weight: 600; white-space: nowrap; }
+  .sub-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 8px; margin: 0 -8px; border-radius: 8px; }
+  .sub-row:hover { background: var(--line-soft); }
+  .sub-row .txt { font-size: 13px; flex: 1; line-height: 1.45; }
+  .sub-row.hecha .txt { text-decoration: line-through; color: var(--ink-mute); }
+  .sub-row .check { width: 16px; height: 16px; margin-top: 1px; }
+  .sub-row .check.checked::after { font-size: 10px; }
+  .mini-del { opacity: 0; color: var(--ink-mute); font-size: 16px; line-height: 1; padding: 0 4px; flex-shrink: 0; }
+  .sub-row:hover .mini-del, .adj:hover .mini-del { opacity: 1; }
+  .mini-del:hover { color: var(--warn); }
+
+  .add-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .add-row input {
+    flex: 1; border: 1px solid var(--line); background: var(--bg); border-radius: 8px;
+    padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; min-width: 0;
+  }
+  .add-row input:focus { border-color: var(--accent); }
+  .add-row input.corto { max-width: 170px; flex: 0 1 170px; }
+  .add-row button {
+    background: var(--ink); color: var(--bg-elev); border-radius: 8px;
+    padding: 7px 12px; font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .add-row button:hover { background: var(--accent); color: var(--ink); }
+
+  /* adjuntos */
+  .adj { display: flex; align-items: center; gap: 9px; padding: 8px 10px; margin: 0 -10px; border-radius: 8px; }
+  .adj:hover { background: var(--line-soft); }
+  .adj > svg { width: 14px; height: 14px; color: var(--ink-mute); flex-shrink: 0; }
+  .adj a {
+    font-size: 13px; color: var(--ink); text-decoration: none; font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .adj a:hover { color: var(--accent); text-decoration: underline; }
+  .adj .host { font-size: 11px; color: var(--ink-mute); margin-left: auto; white-space: nowrap; padding-left: 8px; }
+
+  /* actividad */
+  .act { display: flex; gap: 9px; padding: 5px 0; font-size: 12px; color: var(--ink-soft); align-items: flex-start; }
+  .act .punto { width: 6px; height: 6px; border-radius: 50%; background: var(--line); margin-top: 6px; flex-shrink: 0; }
+  .act b { font-weight: 600; color: var(--ink); }
+  .act .cuando { color: var(--ink-mute); margin-left: auto; white-space: nowrap; padding-left: 10px; font-size: 11px; }
+  .ver-mas { font-size: 12px; color: var(--ink-mute); font-weight: 600; padding: 8px 0 0; }
+  .ver-mas:hover { color: var(--ink); }
+  .vacio-mini { font-size: 12px; color: var(--ink-mute); font-style: italic; padding: 3px 0; }
+
+  .drawer-foot { border-top: 1px solid var(--line-soft); margin-top: 8px; padding-top: 14px; }
+
+  /* botón + en la cabecera de cada columna */
+  .col-add {
+    opacity: 0; transition: opacity 0.15s; color: var(--ink-mute);
+    width: 22px; height: 22px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .columna:hover .col-add { opacity: 1; }
+  .col-add:hover { background: var(--line-soft); color: var(--ink); }
+  .col-add svg { width: 14px; height: 14px; }
+
+  /* señal de checklist en las tarjetas */
+  .mini-meta { font-size: 11px; color: var(--ink-mute); display: inline-flex; align-items: center; gap: 3px; }
+
   /* ── TOAST ───────────────────────────────── */
   .toasts { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 200; }
   .toast {
@@ -735,34 +872,131 @@
   </div>
 </div>
 
-<!-- ═══════════ MODAL DETALLE ═══════════ -->
-<div class="overlay" id="ovDet">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title" id="dTitulo">—</div>
-      <button class="modal-close" data-cerrar="ovDet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+<!-- ═══════════ DRAWER · detalle de la tarea ═══════════ -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <button class="icon-btn" id="dCerrar" title="Cerrar (Esc)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <button class="icon-btn" id="dPrev" title="Anterior (↑)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
+    <button class="icon-btn" id="dNext" title="Siguiente (↓)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </button>
+    <span class="drawer-pos" id="dPos"></span>
+    <span style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+      <span class="guardado" id="dGuardado">Guardado</span>
+      <button class="icon-btn" id="dBorrar" title="Borrar tarea">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+      </button>
+    </span>
+  </div>
+
+  <div class="drawer-body">
+    <textarea class="d-titulo" id="dTitulo" rows="1" placeholder="Título de la tarea"></textarea>
+
+    <div class="props">
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Responsable
+        </div>
+        <div class="prop-val"><select id="dResponsable"></select></div>
+      </div>
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Estado
+        </div>
+        <div class="prop-val"><select id="dEstado"></select></div>
+      </div>
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Vence
+        </div>
+        <div class="prop-val"><input type="date" id="dVence"><span class="fecha" id="dVenceTag"></span></div>
+      </div>
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          Prioridad
+        </div>
+        <div class="prop-val">
+          <select id="dPrioridad">
+            <option value="baja">Baja</option>
+            <option value="normal">Normal</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+      </div>
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
+          Cliente
+        </div>
+        <div class="prop-val"><select id="dCliente"></select></div>
+      </div>
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          Área
+        </div>
+        <div class="prop-val"><input type="text" id="dProyecto" placeholder="Sin área"></div>
+      </div>
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          Ve el cliente
+        </div>
+        <div class="prop-val"><div class="switch" id="dVisible"></div></div>
+      </div>
     </div>
-    <div class="meta-grid" id="dMeta"></div>
-    <div style="margin-bottom:18px">
-      <div class="sec-title">Detalle</div>
-      <div style="font-size:13px; line-height:1.55; color:var(--ink-soft); white-space:pre-wrap" id="dDesc">—</div>
+
+    <div class="d-sec">
+      <div class="d-sec-head"><div class="sec-title">Detalle</div></div>
+      <textarea class="d-desc" id="dDesc" rows="1" placeholder="Escribí acá qué hay que hacer, con qué material y qué se espera de vuelta…"></textarea>
     </div>
-    <div>
-      <div class="sec-title">Comentarios</div>
+
+    <div class="d-sec">
+      <div class="d-sec-head"><div class="sec-title">Checklist</div></div>
+      <div class="prog" id="dProg" style="display:none">
+        <div class="prog-bar"><div class="prog-fill" id="dProgFill" style="width:0%"></div></div>
+        <div class="prog-txt" id="dProgTxt">0 de 0</div>
+      </div>
+      <div id="dSubtareas"></div>
+      <div class="add-row">
+        <input type="text" id="dNuevaSub" placeholder="Agregar un paso…">
+      </div>
+    </div>
+
+    <div class="d-sec">
+      <div class="d-sec-head"><div class="sec-title">Links y archivos</div></div>
+      <div id="dAdjuntos"></div>
+      <div class="add-row">
+        <input type="text" id="dAdjTitulo" class="corto" placeholder="Nombre">
+        <input type="text" id="dAdjUrl" placeholder="https://…">
+        <button id="dAdjAdd">Agregar</button>
+      </div>
+    </div>
+
+    <div class="d-sec">
+      <div class="d-sec-head"><div class="sec-title">Comentarios</div></div>
       <div class="comentarios" id="dComentarios"></div>
       <div class="nuevo-com">
         <input type="text" id="dNuevoCom" placeholder="Escribir un comentario…">
         <button id="dEnviarCom">Enviar</button>
       </div>
     </div>
-    <div class="modal-foot">
-      <div class="der">
-        <button class="btn-ghost" data-cerrar="ovDet">Cerrar</button>
-        <button class="btn-primary" id="dEditar">Editar</button>
-      </div>
+
+    <div class="d-sec drawer-foot">
+      <div class="d-sec-head"><div class="sec-title">Actividad</div></div>
+      <div id="dActividad"></div>
     </div>
   </div>
-</div>
+</aside>
 
 <div class="toasts" id="toasts"></div>
 
@@ -791,6 +1025,8 @@
   let FILTRO = { texto: '', persona: '', cliente: '', mias: false, pulso: '' };
   let EDITANDO = null;
   let COLAPSADOS = {};
+  let SUB_MAP = {};   // tarea_id → { total, hechas }
+  let ADJ_MAP = {};   // tarea_id → cantidad de links
 
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
@@ -911,7 +1147,23 @@
     } else {
       TAREAS = data || [];
     }
+    await cargarExtras();
     render();
+  }
+
+  // Checklists y links de todas las tareas, en dos consultas livianas.
+  // Si todavía no corriste la migración 2, no rompe nada: quedan vacíos.
+  async function cargarExtras() {
+    SUB_MAP = {}; ADJ_MAP = {};
+    const [subs, adjs] = await Promise.all([
+      SB.from('subtarea').select('tarea_id, hecha'),
+      SB.from('adjunto_tarea').select('tarea_id')
+    ]);
+    if (subs && subs.data) subs.data.forEach(s => {
+      const m = SUB_MAP[s.tarea_id] || (SUB_MAP[s.tarea_id] = { total: 0, hechas: 0 });
+      m.total++; if (s.hecha) m.hechas++;
+    });
+    if (adjs && adjs.data) adjs.data.forEach(a => { ADJ_MAP[a.tarea_id] = (ADJ_MAP[a.tarea_id] || 0) + 1; });
   }
 
   // ═══════════════ SELECTS ═══════════════
@@ -1039,7 +1291,12 @@
         '<div class="columna" data-estado="' + e.id + '">' +
           '<div class="columna-head">' +
             '<div class="columna-titulo"><span class="dot ' + e.id + '"></span>' + e.label + '</div>' +
-            '<div class="columna-count">' + items.length + '</div>' +
+            '<div style="display:flex;align-items:center;gap:4px">' +
+              '<button class="col-add" data-nueva="' + e.id + '" title="Nueva tarea acá">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
+              '</button>' +
+              '<div class="columna-count">' + items.length + '</div>' +
+            '</div>' +
           '</div>' +
           '<div class="columna-body" data-estado="' + e.id + '">' + cards + '</div>' +
         '</div>';
@@ -1060,7 +1317,9 @@
         '<div class="card-k-bottom">' +
           '<div class="card-k-meta">' + avatarDe(t) +
             (t.visible_cliente ? OJO_SVG : '') +
-            (t.comentarios ? '<span style="font-size:11px;color:var(--ink-mute)">💬 ' + t.comentarios + '</span>' : '') +
+            (SUB_MAP[t.id] ? '<span class="mini-meta" title="Checklist">✓ ' + SUB_MAP[t.id].hechas + '/' + SUB_MAP[t.id].total + '</span>' : '') +
+            (ADJ_MAP[t.id] ? '<span class="mini-meta" title="Links">🔗 ' + ADJ_MAP[t.id] + '</span>' : '') +
+            (t.comentarios ? '<span class="mini-meta">💬 ' + t.comentarios + '</span>' : '') +
           '</div>' +
           (f.txt ? '<span class="fecha ' + f.clase + '">' + f.txt + '</span>' : '') +
         '</div>' +
@@ -1245,14 +1504,14 @@
   }
 
   // ═══════════════ FORM ═══════════════
-  function abrirForm(t) {
+  function abrirForm(t, estadoPreset) {
     EDITANDO = t;
     $('#formTitulo').textContent = t ? 'Editar tarea' : 'Nueva tarea';
     $('#fTitulo').value = t ? (t.titulo || '') : '';
     $('#fDesc').value = t ? (t.descripcion || '') : '';
     $('#fResponsable').value = t ? (t.responsable_id || '') : (ME ? ME.id : '');
     $('#fCliente').value = t ? (t.cliente_id || '') : '';
-    $('#fEstado').value = t ? (t.estado || 'pendiente') : 'pendiente';
+    $('#fEstado').value = t ? (t.estado || 'pendiente') : (estadoPreset || 'pendiente');
     $('#fPrioridad').value = t ? (t.urgencia || 'normal') : 'normal';
     $('#fVence').value = t ? (t.vence || '') : '';
     $('#fProyecto').value = t ? (t.proyecto || '') : '';
@@ -1294,9 +1553,13 @@
         const enCol = TAREAS.filter(t => t.estado === estado);
         fila.orden = enCol.length ? Math.max.apply(null, enCol.map(t => t.orden || 0)) + 1000 : Date.now() / 1000;
         if (estado === 'completada') fila.completada_en = new Date().toISOString();
-        const { error } = await SB.from('tarea').insert(fila);
+        const { data, error } = await SB.from('tarea').insert(fila).select('id').single();
         if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
         toast('Tarea creada');
+        cerrar('ovForm');
+        await cargarTareas();
+        if (data && data.id) abrirDrawer(data.id);
+        return;
       }
       cerrar('ovForm');
       await cargarTareas();
@@ -1305,39 +1568,298 @@
     }
   }
 
-  async function borrar() {
-    if (!EDITANDO) return;
-    if (!confirm('¿Borrar "' + EDITANDO.titulo + '"? No se puede deshacer.')) return;
-    const { error } = await SB.from('tarea').delete().eq('id', EDITANDO.id);
+  async function borrarTarea(t) {
+    if (!t) return;
+    if (!confirm('¿Borrar "' + t.titulo + '"? Se van también sus pasos, links y comentarios. No se puede deshacer.')) return;
+    const { error } = await SB.from('tarea').delete().eq('id', t.id);
     if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
     cerrar('ovForm');
+    cerrarDrawer();
     toast('Tarea borrada');
     await cargarTareas();
   }
 
-  // ═══════════════ DETALLE ═══════════════
+  // ═══════════════ DRAWER · detalle de la tarea ═══════════════
   let DETALLE = null;
+  let SUBS = [];        // subtareas de la tarea abierta
+  let ACT_TODO = false; // historial expandido
 
-  async function abrirDetalle(id) {
+  function autoGrow(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
+  function flashGuardado() {
+    const g = $('#dGuardado');
+    g.classList.add('on');
+    clearTimeout(g.__t);
+    g.__t = setTimeout(() => g.classList.remove('on'), 1400);
+  }
+  function idsVisibles() {
+    return $$('#kanban .card-k, #lista .fila').map(el => el.dataset.id);
+  }
+
+  async function abrirDrawer(id) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
     DETALLE = t;
-    $('#dTitulo').textContent = t.titulo;
-    $('#dDesc').textContent = t.descripcion || 'Sin detalle cargado.';
-    const f = fechaTxt(t.vence);
-    $('#dMeta').innerHTML =
-      item('Responsable', nombrePersona(t.responsable_id) || 'Sin asignar') +
-      item('Cliente', nombreCliente(t.cliente_id)) +
-      item('Estado', EST_MAP[t.estado] || t.estado) +
-      item('Vence', t.vence ? (t.vence + (f.clase === 'vencida' ? ' · atrasada' : '')) : 'Sin fecha') +
-      item('Prioridad', t.urgencia || 'normal') +
-      item('Ve el cliente', t.visible_cliente ? 'Sí' : 'No, es interna');
-    $('#dComentarios').innerHTML = '<div class="sin-com">Cargando…</div>';
-    abrir('ovDet');
-    await cargarComentarios(t);
+    ACT_TODO = false;
+    llenarDrawer(t);
+    $('#scrim').classList.add('open');
+    $('#drawer').classList.add('open');
+    $('#drawer').setAttribute('aria-hidden', 'false');
+
+    $('#dComentarios').innerHTML = '<div class="vacio-mini">Cargando…</div>';
+    $('#dSubtareas').innerHTML = '';
+    $('#dAdjuntos').innerHTML = '';
+    $('#dActividad').innerHTML = '<div class="vacio-mini">Cargando…</div>';
+    await Promise.all([
+      cargarComentarios(t),
+      cargarSubtareas(t.id),
+      cargarAdjuntos(t.id),
+      cargarActividad(t.id)
+    ]);
   }
-  function item(label, valor) {
-    return '<div class="meta-item"><div class="label">' + esc(label) + '</div><div class="value">' + esc(valor) + '</div></div>';
+
+  function cerrarDrawer() {
+    $('#scrim').classList.remove('open');
+    $('#drawer').classList.remove('open');
+    $('#drawer').setAttribute('aria-hidden', 'true');
+    DETALLE = null;
+  }
+
+  function navegar(delta) {
+    if (!DETALLE) return;
+    const ids = idsVisibles();
+    const i = ids.indexOf(DETALLE.id);
+    if (i === -1) return;
+    const j = i + delta;
+    if (j < 0 || j >= ids.length) return;
+    abrirDrawer(ids[j]);
+  }
+
+  function llenarDrawer(t) {
+    $('#dTitulo').value = t.titulo || '';
+    autoGrow($('#dTitulo'));
+    $('#dDesc').value = t.descripcion || '';
+    autoGrow($('#dDesc'));
+
+    $('#dResponsable').innerHTML = '<option value="">Sin asignar</option>'
+      + PERSONAS.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
+    $('#dResponsable').value = t.responsable_id || '';
+
+    $('#dEstado').innerHTML = ESTADOS.map(e => '<option value="' + e.id + '">' + e.label + '</option>').join('');
+    $('#dEstado').value = t.estado || 'pendiente';
+
+    $('#dCliente').innerHTML = '<option value="">Interno (sin cliente)</option>'
+      + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+    $('#dCliente').value = t.cliente_id || '';
+
+    $('#dVence').value = t.vence || '';
+    $('#dPrioridad').value = t.urgencia || 'normal';
+    $('#dProyecto').value = t.proyecto || '';
+    $('#dVisible').classList.toggle('on', !!t.visible_cliente);
+    pintarVenceTag();
+
+    const ids = idsVisibles();
+    const i = ids.indexOf(t.id);
+    $('#dPos').textContent = i >= 0 ? (i + 1) + ' de ' + ids.length : '';
+    $('#dPrev').disabled = i <= 0;
+    $('#dNext').disabled = i === -1 || i >= ids.length - 1;
+  }
+
+  function pintarVenceTag() {
+    const tag = $('#dVenceTag');
+    if (!DETALLE || !DETALLE.vence) { tag.textContent = ''; tag.className = 'fecha'; return; }
+    const f = fechaTxt(DETALLE.vence);
+    tag.textContent = f.txt;
+    tag.className = 'fecha ' + f.clase;
+  }
+
+  // ── Guardado campo por campo, sin botón ──────────────────────
+  async function guardarCampo(campo, valor) {
+    if (!DETALLE) return;
+    const anterior = DETALLE[campo];
+    if ((anterior || null) === (valor || null)) return;
+
+    const patch = {};
+    patch[campo] = valor;
+    if (campo === 'responsable_id') patch.responsable = valor ? nombrePersona(valor) : null;
+    if (campo === 'estado') patch.completada_en = (valor === 'completada') ? new Date().toISOString() : null;
+
+    const respAnterior = DETALLE.responsable;
+    const compAnterior = DETALLE.completada_en;
+    Object.keys(patch).forEach(k => { DETALLE[k] = patch[k]; });
+    render();
+    pintarVenceTag();
+
+    const { error } = await SB.from('tarea').update(patch).eq('id', DETALLE.id);
+    if (error) {
+      DETALLE[campo] = anterior;
+      DETALLE.responsable = respAnterior;
+      DETALLE.completada_en = compAnterior;
+      render();
+      llenarDrawer(DETALLE);
+      toast('No se pudo guardar: ' + error.message, 'warn');
+      return;
+    }
+    flashGuardado();
+    cargarActividad(DETALLE.id);
+  }
+
+  // ── Subtareas ────────────────────────────────────────────────
+  async function cargarSubtareas(tareaId) {
+    const { data, error } = await SB.from('subtarea')
+      .select('id, titulo, hecha, orden')
+      .eq('tarea_id', tareaId).order('orden', { ascending: true });
+    if (error) {
+      $('#dSubtareas').innerHTML = '<div class="vacio-mini">Falta correr la migración 2 (tabla subtarea).</div>';
+      $('#dProg').style.display = 'none';
+      return;
+    }
+    SUBS = data || [];
+    pintarSubtareas();
+  }
+
+  function pintarSubtareas() {
+    const hechas = SUBS.filter(s => s.hecha).length;
+    const prog = $('#dProg');
+    if (SUBS.length) {
+      prog.style.display = '';
+      $('#dProgFill').style.width = Math.round(hechas / SUBS.length * 100) + '%';
+      $('#dProgTxt').textContent = hechas + ' de ' + SUBS.length;
+    } else {
+      prog.style.display = 'none';
+    }
+    $('#dSubtareas').innerHTML = SUBS.length
+      ? SUBS.map(s =>
+          '<div class="sub-row' + (s.hecha ? ' hecha' : '') + '" data-sub="' + s.id + '">' +
+            '<div class="check' + (s.hecha ? ' checked' : '') + '" data-subcheck="' + s.id + '"></div>' +
+            '<div class="txt">' + esc(s.titulo) + '</div>' +
+            '<button class="mini-del" data-subdel="' + s.id + '" title="Borrar paso">×</button>' +
+          '</div>').join('')
+      : '<div class="vacio-mini">Sin pasos todavía. Útil para que alguien nuevo sepa exactamente qué entregar.</div>';
+  }
+
+  async function agregarSubtarea(titulo) {
+    if (!DETALLE || !titulo.trim()) return;
+    const orden = SUBS.length ? Math.max.apply(null, SUBS.map(s => s.orden || 0)) + 100 : 100;
+    const { data, error } = await SB.from('subtarea')
+      .insert({ tarea_id: DETALLE.id, titulo: titulo.trim(), orden: orden })
+      .select('id, titulo, hecha, orden').single();
+    if (error) { toast('No se pudo agregar el paso: ' + error.message, 'warn'); return; }
+    SUBS.push(data);
+    pintarSubtareas();
+    refrescarContadores();
+    flashGuardado();
+  }
+
+  async function alternarSubtarea(id) {
+    const s = SUBS.find(x => x.id === id);
+    if (!s) return;
+    s.hecha = !s.hecha;
+    pintarSubtareas();
+    const { error } = await SB.from('subtarea').update({ hecha: s.hecha }).eq('id', id);
+    if (error) { s.hecha = !s.hecha; pintarSubtareas(); toast('No se pudo actualizar: ' + error.message, 'warn'); return; }
+    refrescarContadores();
+    flashGuardado();
+  }
+
+  async function borrarSubtarea(id) {
+    const { error } = await SB.from('subtarea').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    SUBS = SUBS.filter(s => s.id !== id);
+    pintarSubtareas();
+    refrescarContadores();
+  }
+
+  // ── Adjuntos ─────────────────────────────────────────────────
+  function host(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
+  }
+  async function cargarAdjuntos(tareaId) {
+    const { data, error } = await SB.from('adjunto_tarea')
+      .select('id, titulo, url, created_at')
+      .eq('tarea_id', tareaId).order('created_at', { ascending: true });
+    if (error) { $('#dAdjuntos').innerHTML = '<div class="vacio-mini">Falta correr la migración 2 (tabla adjunto_tarea).</div>'; return; }
+    const arr = data || [];
+    $('#dAdjuntos').innerHTML = arr.length
+      ? arr.map(a =>
+          '<div class="adj">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>' +
+            '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.titulo || a.url) + '</a>' +
+            '<span class="host">' + esc(host(a.url)) + '</span>' +
+            '<button class="mini-del" data-adjdel="' + a.id + '" title="Quitar">×</button>' +
+          '</div>').join('')
+      : '<div class="vacio-mini">Sin links. Pegá acá el Drive, el Frame.io o el Figma para no buscarlo en WhatsApp.</div>';
+  }
+
+  async function agregarAdjunto() {
+    if (!DETALLE) return;
+    let url = $('#dAdjUrl').value.trim();
+    if (!url) { $('#dAdjUrl').focus(); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const titulo = $('#dAdjTitulo').value.trim() || host(url) || url;
+    const { error } = await SB.from('adjunto_tarea').insert({ tarea_id: DETALLE.id, titulo: titulo, url: url });
+    if (error) { toast('No se pudo agregar el link: ' + error.message, 'warn'); return; }
+    $('#dAdjTitulo').value = ''; $('#dAdjUrl').value = '';
+    await cargarAdjuntos(DETALLE.id);
+    refrescarContadores();
+    flashGuardado();
+  }
+
+  async function borrarAdjunto(id) {
+    const { error } = await SB.from('adjunto_tarea').delete().eq('id', id);
+    if (error) { toast('No se pudo quitar: ' + error.message, 'warn'); return; }
+    await cargarAdjuntos(DETALLE.id);
+    refrescarContadores();
+  }
+
+  // ── Actividad ────────────────────────────────────────────────
+  function hace(iso) {
+    const ms = Date.now() - new Date(iso).getTime();
+    const min = Math.floor(ms / 60000);
+    if (min < 1) return 'recién';
+    if (min < 60) return 'hace ' + min + ' min';
+    const h = Math.floor(min / 60);
+    if (h < 24) return 'hace ' + h + ' h';
+    const d = Math.floor(h / 24);
+    if (d === 1) return 'ayer';
+    if (d < 30) return 'hace ' + d + ' días';
+    return new Date(iso).toLocaleDateString('es-AR');
+  }
+
+  function textoActividad(a) {
+    const q = '<b>' + esc(a.actor_nombre || 'Alguien') + '</b> ';
+    switch (a.campo) {
+      case 'creada':      return q + 'creó la tarea';
+      case 'estado':      return q + 'movió a <b>' + esc(EST_MAP[a.valor_nuevo] || a.valor_nuevo) + '</b>';
+      case 'responsable': return q + (a.valor_nuevo ? 'asignó a <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó el responsable');
+      case 'vence':       return q + (a.valor_nuevo ? 'puso vencimiento el <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó el vencimiento');
+      case 'prioridad':   return q + 'cambió la prioridad a <b>' + esc(a.valor_nuevo) + '</b>';
+      case 'cliente':     return q + 'cambió el cliente a <b>' + esc(a.valor_nuevo) + '</b>';
+      case 'titulo':      return q + 'renombró la tarea';
+      case 'visible_cliente':
+        return q + (a.valor_nuevo === 'true' ? 'la hizo <b>visible para el cliente</b>' : 'la volvió <b>interna</b>');
+      default:            return q + 'actualizó ' + esc(a.campo);
+    }
+  }
+
+  async function cargarActividad(tareaId) {
+    const { data, error } = await SB.from('actividad_tarea')
+      .select('id, actor_nombre, campo, valor_anterior, valor_nuevo, created_at')
+      .eq('tarea_id', tareaId).order('created_at', { ascending: false });
+    if (error) { $('#dActividad').innerHTML = '<div class="vacio-mini">Falta correr la migración 2 (tabla actividad_tarea).</div>'; return; }
+    const arr = data || [];
+    if (!arr.length) { $('#dActividad').innerHTML = '<div class="vacio-mini">Sin movimientos registrados.</div>'; return; }
+    const muestra = ACT_TODO ? arr : arr.slice(0, 6);
+    $('#dActividad').innerHTML =
+      muestra.map(a => '<div class="act"><span class="punto"></span><span>' + textoActividad(a) + '</span><span class="cuando">' + hace(a.created_at) + '</span></div>').join('')
+      + (arr.length > 6 && !ACT_TODO ? '<button class="ver-mas" id="dVerMas">Ver los ' + arr.length + ' movimientos</button>' : '');
+    const vm = $('#dVerMas');
+    if (vm) vm.addEventListener('click', () => { ACT_TODO = true; cargarActividad(tareaId); });
+  }
+
+  // Recalcula los contadores de checklist/links que se ven en las tarjetas
+  async function refrescarContadores() {
+    await cargarExtras();
+    render();
   }
 
   async function cargarComentarios(t) {
@@ -1395,17 +1917,71 @@
   $('#btnNueva').addEventListener('click', () => abrirForm(null));
   $('#btnRefrescar').addEventListener('click', cargarTareas);
   $('#fGuardar').addEventListener('click', guardar);
-  $('#fBorrar').addEventListener('click', borrar);
+  $('#fBorrar').addEventListener('click', () => borrarTarea(EDITANDO));
   $('#fVisible').addEventListener('click', function () { this.classList.toggle('on'); });
-  $('#dEditar').addEventListener('click', () => { cerrar('ovDet'); abrirForm(DETALLE); });
   $('#dEnviarCom').addEventListener('click', enviarComentario);
   $('#dNuevoCom').addEventListener('keydown', e => { if (e.key === 'Enter') enviarComentario(); });
 
+  // ── Drawer: navegación y cierre ──────────────────────────────
+  $('#dCerrar').addEventListener('click', cerrarDrawer);
+  $('#scrim').addEventListener('click', cerrarDrawer);
+  $('#dPrev').addEventListener('click', () => navegar(-1));
+  $('#dNext').addEventListener('click', () => navegar(1));
+  $('#dBorrar').addEventListener('click', () => borrarTarea(DETALLE));
+
+  // ── Drawer: cada campo se guarda solo ────────────────────────
+  $('#dTitulo').addEventListener('input', e => autoGrow(e.target));
+  $('#dTitulo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+  $('#dTitulo').addEventListener('blur', e => {
+    const v = e.target.value.trim();
+    if (!v) { e.target.value = DETALLE ? DETALLE.titulo : ''; autoGrow(e.target); toast('El título no puede quedar vacío', 'warn'); return; }
+    guardarCampo('titulo', v);
+  });
+  $('#dDesc').addEventListener('input', e => autoGrow(e.target));
+  $('#dDesc').addEventListener('blur', e => guardarCampo('descripcion', e.target.value.trim() || null));
+  $('#dResponsable').addEventListener('change', e => guardarCampo('responsable_id', e.target.value || null));
+  $('#dEstado').addEventListener('change', e => guardarCampo('estado', e.target.value));
+  $('#dCliente').addEventListener('change', e => guardarCampo('cliente_id', e.target.value || null));
+  $('#dVence').addEventListener('change', e => guardarCampo('vence', e.target.value || null));
+  $('#dPrioridad').addEventListener('change', e => guardarCampo('urgencia', e.target.value));
+  $('#dProyecto').addEventListener('blur', e => guardarCampo('proyecto', e.target.value.trim() || null));
+  $('#dVisible').addEventListener('click', function () {
+    const nuevo = !this.classList.contains('on');
+    this.classList.toggle('on', nuevo);
+    guardarCampo('visible_cliente', nuevo);
+  });
+
+  // ── Drawer: checklist y links ────────────────────────────────
+  $('#dNuevaSub').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { const v = e.target.value; e.target.value = ''; agregarSubtarea(v); }
+  });
+  $('#dAdjAdd').addEventListener('click', agregarAdjunto);
+  $('#dAdjUrl').addEventListener('keydown', e => { if (e.key === 'Enter') agregarAdjunto(); });
+  $('#drawer').addEventListener('click', e => {
+    const sc = e.target.closest('[data-subcheck]');
+    if (sc) { alternarSubtarea(sc.dataset.subcheck); return; }
+    const sd = e.target.closest('[data-subdel]');
+    if (sd) { borrarSubtarea(sd.dataset.subdel); return; }
+    const ad = e.target.closest('[data-adjdel]');
+    if (ad) { borrarAdjunto(ad.dataset.adjdel); return; }
+  });
+
   $$('[data-cerrar]').forEach(b => b.addEventListener('click', () => cerrar(b.dataset.cerrar)));
   $$('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('active'); }));
+
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') $$('.overlay.active').forEach(o => o.classList.remove('active'));
-    if (e.key === 'n' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); abrirForm(null); }
+    const enCampo = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || '').toUpperCase());
+    if (e.key === 'Escape') {
+      if ($$('.overlay.active').length) { $$('.overlay.active').forEach(o => o.classList.remove('active')); return; }
+      if ($('#drawer').classList.contains('open')) { if (enCampo) e.target.blur(); cerrarDrawer(); }
+      return;
+    }
+    if (e.key === 'n' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); abrirForm(null); return; }
+    if (enCampo) return;
+    if ($('#drawer').classList.contains('open')) {
+      if (e.key === 'ArrowUp')   { e.preventDefault(); navegar(-1); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); navegar(1); }
+    }
   });
 
   let debounce;
@@ -1440,6 +2016,11 @@
 
   // Delegación: click en tarjetas, filas, checks y cabeceras de grupo
   document.addEventListener('click', e => {
+    if (e.target.closest('#drawer')) return;
+
+    const nueva = e.target.closest('[data-nueva]');
+    if (nueva) { e.stopPropagation(); abrirForm(null, nueva.dataset.nueva); return; }
+
     const check = e.target.closest('[data-check]');
     if (check) { e.stopPropagation(); alternarCompletada(check.dataset.check); return; }
 
@@ -1452,10 +2033,10 @@
     }
 
     const card = e.target.closest('.card-k');
-    if (card) { abrirDetalle(card.dataset.id); return; }
+    if (card) { abrirDrawer(card.dataset.id); return; }
 
     const fila = e.target.closest('.fila');
-    if (fila) { abrirDetalle(fila.dataset.id); return; }
+    if (fila) { abrirDrawer(fila.dataset.id); return; }
   });
 
   // Refrescar al volver a la pestaña (el tablero es compartido)
