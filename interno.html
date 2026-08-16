@@ -403,6 +403,133 @@
 
   .ojo { width: 13px; height: 13px; color: var(--ink-mute); flex-shrink: 0; }
 
+  /* ── CALENDARIO ───────────────────────────── */
+  .calendario { display: none; grid-template-columns: 1fr 252px; gap: 14px; align-items: start; }
+  .calendario.active { display: grid; }
+
+  .cal-panel {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .cal-top {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap;
+  }
+  .cal-mes {
+    font-family: var(--display); font-size: 20px; font-weight: 500;
+    letter-spacing: -0.02em; min-width: 190px;
+  }
+  .cal-mes em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .cal-nav { display: flex; gap: 2px; }
+  .btn-hoy {
+    border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px;
+    font-size: 12px; font-weight: 600; color: var(--ink-soft);
+  }
+  .btn-hoy:hover { border-color: var(--ink-soft); color: var(--ink); }
+
+  .cal-cabecera {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--line);
+  }
+  .cal-cabecera div {
+    padding: 8px 10px; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute);
+  }
+  .cal-cabecera div:nth-child(n+6) { color: var(--ink-mute); opacity: 0.65; }
+
+  .sem { position: relative; border-bottom: 1px solid var(--line-soft); }
+  .sem:last-child { border-bottom: none; }
+  .sem-dias { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .dia { border-right: 1px solid var(--line-soft); padding: 6px 8px; transition: background 0.12s; }
+  .dia:last-child { border-right: none; }
+  .dia.fuera { background: var(--bg); }
+  .dia.finde { background: rgba(203,238,243,0.16); }
+  .dia.drag-over { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--ink); }
+  .dia-num { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .dia.fuera .dia-num { color: var(--ink-mute); opacity: 0.55; }
+  .dia.hoy .dia-num {
+    background: var(--ink); color: var(--bg-elev); border-radius: 50%;
+    width: 21px; height: 21px; display: inline-flex; align-items: center; justify-content: center;
+    margin: -2px 0 0 -4px;
+  }
+
+  .sem-barras {
+    position: relative; display: grid; grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: 25px; align-content: start;
+    gap: 3px 0; padding: 27px 3px 7px; min-height: 96px; pointer-events: none;
+  }
+  .calendario.semana .sem-barras { min-height: 430px; padding-top: 32px; grid-auto-rows: 29px; }
+  .calendario.semana .sem { border-bottom: none; }
+
+  .cal-bar {
+    pointer-events: auto; position: relative;
+    height: 22px; border-radius: 6px; padding: 0 8px;
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: var(--ink);
+    background: var(--line-soft); border: 1px solid var(--line);
+    cursor: grab; overflow: hidden; white-space: nowrap;
+    margin: 0 2px; transition: filter 0.12s, box-shadow 0.12s;
+  }
+  .cal-bar:hover { filter: brightness(0.97); box-shadow: var(--shadow); }
+  .cal-bar:active { cursor: grabbing; }
+  .cal-bar.dragging { opacity: 0.4; }
+  .cal-bar .txt { overflow: hidden; text-overflow: ellipsis; }
+  .cal-bar .quien { font-weight: 500; opacity: 0.72; font-size: 10px; }
+  .cal-bar.e-backlog    { background: var(--line-soft); border-color: var(--line); color: var(--ink-soft); }
+  .cal-bar.e-pendiente  { background: #EFEDF3; border-color: #E2DEE9; }
+  .cal-bar.e-curso      { background: var(--accent-soft); border-color: #F7D3F6; }
+  .cal-bar.e-revision   { background: var(--cyan-soft); border-color: #CFE9EF; }
+  .cal-bar.e-completada { background: var(--good-soft); border-color: #DAF0BC; color: var(--ink-soft); }
+  .cal-bar.e-completada .txt { text-decoration: line-through; }
+  .cal-bar.atrasada { box-shadow: inset 3px 0 0 var(--warn); }
+  .cal-bar.sigue-izq { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; border-left-style: dashed; }
+  .cal-bar.sigue-der { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; border-right-style: dashed; }
+
+  .tirador {
+    position: absolute; top: 0; bottom: 0; width: 7px; cursor: col-resize;
+    opacity: 0; background: var(--ink); border-radius: 6px;
+  }
+  .tirador.ini { left: 0; }
+  .tirador.fin { right: 0; }
+  .cal-bar:hover .tirador { opacity: 0.16; }
+  .tirador:hover { opacity: 0.4 !important; }
+
+  .cal-mas {
+    pointer-events: auto; grid-column: 1 / 8; font-size: 11px; font-weight: 600;
+    color: var(--ink-mute); padding: 1px 10px; text-align: left;
+  }
+  .cal-mas:hover { color: var(--ink); }
+
+  /* bandeja de sin fecha */
+  .bandeja {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 14px; position: sticky; top: 20px;
+  }
+  .bandeja-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .bandeja-title { font-family: var(--display); font-size: 15px; font-weight: 500; letter-spacing: -0.01em; }
+  .bandeja-sub { font-size: 11px; color: var(--ink-mute); margin-bottom: 12px; line-height: 1.4; }
+  .bandeja-body { display: flex; flex-direction: column; gap: 7px; max-height: 62vh; overflow-y: auto; }
+  .tray-item {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+    padding: 9px 10px; cursor: grab; transition: all 0.15s;
+  }
+  .tray-item:hover { border-color: var(--ink-soft); box-shadow: var(--shadow); }
+  .tray-item.dragging { opacity: 0.4; }
+  .tray-item .t { font-size: 12px; font-weight: 600; line-height: 1.3; margin-bottom: 5px; }
+  .tray-item .m { display: flex; align-items: center; gap: 6px; }
+
+  @media (max-width: 1100px) {
+    .calendario.active { grid-template-columns: 1fr; }
+    .bandeja { position: static; }
+    .bandeja-body { max-height: 260px; }
+  }
+  @media (max-width: 900px) {
+    .cal-mes { font-size: 17px; min-width: 0; }
+    .sem-barras { min-height: 74px; padding-top: 24px; }
+    .cal-bar { font-size: 10px; padding: 0 5px; }
+    .cal-bar .quien { display: none; }
+  }
+
   /* ── VACÍO GENERAL ───────────────────────── */
   .vacio {
     background: var(--bg-elev); border: 1px dashed var(--line);
@@ -795,6 +922,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             Lista
           </button>
+          <button data-vista="calendario">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            Calendario
+          </button>
         </div>
       </div>
     </div>
@@ -802,6 +933,38 @@
     <div class="cargando" id="cargando">Cargando el tablero…</div>
     <div class="kanban" id="kanban"></div>
     <div class="lista" id="lista"></div>
+
+    <div class="calendario" id="calendario">
+      <div class="cal-panel">
+        <div class="cal-top">
+          <div class="cal-nav">
+            <button class="icon-btn" id="calPrev" title="Anterior">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button class="icon-btn" id="calNext" title="Siguiente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+          <button class="btn-hoy" id="calHoy">Hoy</button>
+          <div class="cal-mes" id="calTitulo">—</div>
+          <div class="view-toggle" style="margin-left:auto">
+            <button class="active" data-calmodo="mes">Mes</button>
+            <button data-calmodo="semana">Semana</button>
+          </div>
+        </div>
+        <div class="cal-cabecera" id="calCabecera"></div>
+        <div id="calSemanas"></div>
+      </div>
+
+      <div class="bandeja">
+        <div class="bandeja-head">
+          <div class="bandeja-title">Sin fecha</div>
+          <div class="grupo-count" id="bandejaCount">0</div>
+        </div>
+        <div class="bandeja-sub">Arrastralas a un día del calendario para agendarlas.</div>
+        <div class="bandeja-body" id="bandejaBody"></div>
+      </div>
+    </div>
     <div id="vacioWrap"></div>
   </main>
 </div>
@@ -847,13 +1010,17 @@
     </div>
     <div class="campo campo-row">
       <div>
+        <label class="campo-label">Empieza (opcional)</label>
+        <input type="date" id="fEmpieza">
+      </div>
+      <div>
         <label class="campo-label">Vence</label>
         <input type="date" id="fVence">
       </div>
-      <div>
-        <label class="campo-label">Área / proyecto</label>
-        <input type="text" id="fProyecto" placeholder="Ej: Pauta, Producción, Contenido">
-      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Área / proyecto</label>
+      <input type="text" id="fProyecto" placeholder="Ej: Pauta, Producción, Contenido">
     </div>
     <div class="switch-row">
       <div class="switch-txt">
@@ -911,6 +1078,13 @@
           Estado
         </div>
         <div class="prop-val"><select id="dEstado"></select></div>
+      </div>
+      <div class="prop">
+        <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 12 5 19 12"></polyline><line x1="12" y1="19" x2="12" y2="5"></line></svg>
+          Empieza
+        </div>
+        <div class="prop-val"><input type="date" id="dEmpieza"></div>
       </div>
       <div class="prop">
         <div class="prop-label">
@@ -1070,6 +1244,37 @@
     const dt = new Date(fechaISO + 'T00:00:00');
     return { txt: dt.getDate() + ' ' + ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][dt.getMonth()], clase: '' };
   }
+  // ── Fechas para el calendario ────────────────────────────────
+  function dDe(iso) { const p = iso.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function isoDe(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function masDias(d, n) { const x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+  function lunesDe(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dow = (x.getDay() + 6) % 7; // 0 = lunes
+    return masDias(x, -dow);
+  }
+  function difDias(a, b) { return Math.round((b - a) / 86400000); }
+
+  // Rango que ocupa una tarea. Sin fechas → null (va a la bandeja).
+  function rango(t) {
+    if (!t.empieza && !t.vence) return null;
+    let ini = t.empieza || t.vence;
+    let fin = t.vence || t.empieza;
+    if (ini > fin) { const x = ini; ini = fin; fin = x; }
+    return { ini: ini, fin: fin };
+  }
+  function rangoTxt(t) {
+    const r = rango(t);
+    if (!r) return '';
+    const M = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const a = dDe(r.ini), b = dDe(r.fin);
+    if (r.ini === r.fin) return a.getDate() + ' ' + M[a.getMonth()];
+    if (a.getMonth() === b.getMonth()) return a.getDate() + '–' + b.getDate() + ' ' + M[b.getMonth()];
+    return a.getDate() + ' ' + M[a.getMonth()] + ' – ' + b.getDate() + ' ' + M[b.getMonth()];
+  }
+
   function estaVencida(t) {
     if (t.estado === 'completada' || !t.vence) return false;
     return diasHasta(t.vence) < 0;
@@ -1136,7 +1341,7 @@
 
   async function cargarTareas() {
     const { data, error } = await SB.from('tarea')
-      .select('id, titulo, descripcion, cliente_id, responsable_id, responsable, responsable_tipo, proyecto, estado, urgencia, vence, orden, visible_cliente, completada_en, comentarios, created_at')
+      .select('id, titulo, descripcion, cliente_id, responsable_id, responsable, responsable_tipo, proyecto, estado, urgencia, empieza, vence, orden, visible_cliente, completada_en, comentarios, created_at')
       .order('orden', { ascending: true, nullsFirst: false });
 
     $('#cargando').style.display = 'none';
@@ -1235,6 +1440,7 @@
     if (TAREAS.length === 0) {
       $('#kanban').classList.remove('active');
       $('#lista').classList.remove('active');
+      $('#calendario').classList.remove('active');
       $('#vacioWrap').innerHTML =
         '<div class="vacio">' +
           '<h3>Todavía no hay ninguna tarea</h3>' +
@@ -1250,15 +1456,202 @@
     }
     $('#vacioWrap').innerHTML = '';
 
-    if (VISTA === 'tablero') {
-      $('#lista').classList.remove('active');
-      $('#kanban').classList.add('active');
-      renderKanban(list);
+    $('#kanban').classList.toggle('active', VISTA === 'tablero');
+    $('#lista').classList.toggle('active', VISTA === 'lista');
+    $('#calendario').classList.toggle('active', VISTA === 'calendario');
+
+    if (VISTA === 'tablero') renderKanban(list);
+    else if (VISTA === 'lista') renderLista(list);
+    else renderCalendario(list);
+  }
+
+  // ═══════════════ CALENDARIO ═══════════════
+  let CAL_REF = new Date();          // fecha de referencia (mes o semana a la vista)
+  let CAL_MODO = 'mes';              // 'mes' | 'semana'
+  const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  const DIAS_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const MAX_CARRILES = 4;
+
+  function renderCalendario(list) {
+    $('#calendario').classList.toggle('semana', CAL_MODO === 'semana');
+
+    const chico = window.innerWidth < 900;
+    $('#calCabecera').innerHTML = (chico ? DIAS_CORTO : DIAS).map(d => '<div>' + d + '</div>').join('');
+
+    // Semanas a dibujar
+    let semanas = [];
+    if (CAL_MODO === 'semana') {
+      semanas = [lunesDe(CAL_REF)];
+      const l = semanas[0];
+      const fin = masDias(l, 6);
+      const mesIni = MESES[l.getMonth()], mesFin = MESES[fin.getMonth()];
+      $('#calTitulo').innerHTML = l.getMonth() === fin.getMonth()
+        ? l.getDate() + ' – ' + fin.getDate() + ' de <em>' + mesFin + '</em>'
+        : l.getDate() + ' ' + mesIni + ' – ' + fin.getDate() + ' <em>' + mesFin + '</em>';
     } else {
-      $('#kanban').classList.remove('active');
-      $('#lista').classList.add('active');
-      renderLista(list);
+      const primero = new Date(CAL_REF.getFullYear(), CAL_REF.getMonth(), 1);
+      const ultimo = new Date(CAL_REF.getFullYear(), CAL_REF.getMonth() + 1, 0);
+      let cur = lunesDe(primero);
+      while (cur <= ultimo) { semanas.push(cur); cur = masDias(cur, 7); }
+      const nm = MESES[CAL_REF.getMonth()];
+      $('#calTitulo').innerHTML = nm.charAt(0).toUpperCase() + nm.slice(1) + ' <em>' + CAL_REF.getFullYear() + '</em>';
     }
+
+    const conFecha = list.filter(t => rango(t));
+    const hoy = hoyISO();
+    const mesRef = CAL_MODO === 'mes' ? CAL_REF.getMonth() : -1;
+
+    $('#calSemanas').innerHTML = semanas.map(ini => dibujarSemana(ini, conFecha, hoy, mesRef)).join('');
+
+    // Bandeja de sin fecha
+    const sin = list.filter(t => !rango(t) && t.estado !== 'completada');
+    $('#bandejaCount').textContent = sin.length;
+    $('#bandejaBody').innerHTML = sin.length
+      ? sin.map(t =>
+          '<div class="tray-item" draggable="true" data-id="' + t.id + '" data-tray="1">' +
+            '<div class="t">' + esc(t.titulo) + '</div>' +
+            '<div class="m">' + chipCliente(t) + avatarDe(t) + '</div>' +
+          '</div>').join('')
+      : '<div class="vacio-mini">Todo lo abierto tiene fecha. Bien ahí.</div>';
+
+    activarCalendario();
+  }
+
+  function dibujarSemana(iniSem, tareas, hoy, mesRef) {
+    const finSem = masDias(iniSem, 6);
+    const isoIni = isoDe(iniSem), isoFin = isoDe(finSem);
+
+    // Celdas de día (fondo + destino de drop)
+    let celdas = '';
+    for (let i = 0; i < 7; i++) {
+      const d = masDias(iniSem, i);
+      const iso = isoDe(d);
+      const cls = ['dia'];
+      if (mesRef >= 0 && d.getMonth() !== mesRef) cls.push('fuera');
+      if (i >= 5) cls.push('finde');
+      if (iso === hoy) cls.push('hoy');
+      celdas += '<div class="' + cls.join(' ') + '" data-dia="' + iso + '"><div class="dia-num">' + d.getDate() + '</div></div>';
+    }
+
+    // Tareas que tocan esta semana, ordenadas: primero las que arrancan antes y duran más
+    const dentro = tareas.map(t => ({ t: t, r: rango(t) }))
+      .filter(x => x.r.ini <= isoFin && x.r.fin >= isoIni)
+      .sort((a, b) => a.r.ini.localeCompare(b.r.ini) || b.r.fin.localeCompare(a.r.fin) || a.t.titulo.localeCompare(b.t.titulo));
+
+    // Asignación de carriles (greedy)
+    const carriles = [];
+    const puestos = [];
+    dentro.forEach(x => {
+      const c1 = Math.max(1, difDias(iniSem, dDe(x.r.ini)) + 1);
+      const c2 = Math.min(7, difDias(iniSem, dDe(x.r.fin)) + 1);
+      let carril = 0;
+      while (true) {
+        if (!carriles[carril]) carriles[carril] = [];
+        const choca = carriles[carril].some(s => !(c2 < s.a || c1 > s.b));
+        if (!choca) { carriles[carril].push({ a: c1, b: c2 }); break; }
+        carril++;
+      }
+      puestos.push({ x: x, c1: c1, c2: c2, carril: carril });
+    });
+
+    const tope = CAL_MODO === 'semana' ? 99 : MAX_CARRILES;
+    const visibles = puestos.filter(p => p.carril < tope);
+    const ocultas = puestos.length - visibles.length;
+
+    const barras = visibles.map(p => {
+      const t = p.x.t, r = p.x.r;
+      const cls = ['cal-bar', 'e-' + (t.estado || 'pendiente')];
+      if (estaVencida(t)) cls.push('atrasada');
+      if (r.ini < isoIni) cls.push('sigue-izq');
+      if (r.fin > isoFin) cls.push('sigue-der');
+      const quien = nombrePersona(t.responsable_id);
+      return '<div class="' + cls.join(' ') + '" draggable="true" data-id="' + t.id + '" data-bar="1" ' +
+             'style="grid-column:' + p.c1 + ' / ' + (p.c2 + 1) + '; grid-row:' + (p.carril + 1) + '" ' +
+             'title="' + esc(t.titulo) + ' · ' + esc(rangoTxt(t)) + '">' +
+               '<span class="tirador ini" draggable="true" data-tirador="ini" data-id="' + t.id + '" title="Mover el inicio"></span>' +
+               '<span class="txt">' + esc(t.titulo) + '</span>' +
+               (quien ? '<span class="quien">· ' + esc(quien.split(' ')[0]) + '</span>' : '') +
+               '<span class="tirador fin" draggable="true" data-tirador="fin" data-id="' + t.id + '" title="Mover el fin"></span>' +
+             '</div>';
+    }).join('');
+
+    const mas = ocultas > 0
+      ? '<button class="cal-mas" data-versemana="' + isoIni + '" style="grid-row:' + (tope + 1) + '">+ ' + ocultas + ' más esta semana</button>'
+      : '';
+
+    return '<div class="sem"><div class="sem-dias">' + celdas + '</div><div class="sem-barras">' + barras + mas + '</div></div>';
+  }
+
+  // ── Drag & drop del calendario ───────────────────────────────
+  let CAL_DRAG = null; // { id, modo: 'mover'|'ini'|'fin' }
+
+  function activarCalendario() {
+    // Barras, ítems de la bandeja y tiradores son todos draggable.
+    // El tirador está adentro de la barra: al ser él mismo draggable,
+    // el navegador lo elige a él (gana el draggable más interno) y así
+    // sabemos si el gesto es "mover el bloque" o "estirar un extremo".
+    $$('#calendario [draggable="true"]').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        e.stopPropagation();
+        CAL_DRAG = { id: el.dataset.id, modo: el.dataset.tirador || 'mover' };
+        (el.closest('.cal-bar') || el).classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', el.dataset.id); } catch (_) {}
+      });
+      el.addEventListener('dragend', () => {
+        (el.closest('.cal-bar') || el).classList.remove('dragging');
+        CAL_DRAG = null;
+      });
+    });
+
+    $$('#calendario .dia').forEach(celda => {
+      celda.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; celda.classList.add('drag-over'); });
+      celda.addEventListener('dragleave', () => celda.classList.remove('drag-over'));
+      celda.addEventListener('drop', async e => {
+        e.preventDefault();
+        celda.classList.remove('drag-over');
+        if (!CAL_DRAG) return;
+        await soltarEnDia(CAL_DRAG, celda.dataset.dia);
+        CAL_DRAG = null;
+      });
+    });
+
+  }
+
+  async function soltarEnDia(drag, iso) {
+    const t = TAREAS.find(x => x.id === drag.id);
+    if (!t) return;
+    const r = rango(t);
+    let empieza, vence;
+
+    if (!r) {                                   // venía de la bandeja
+      empieza = null; vence = iso;
+    } else if (drag.modo === 'ini') {
+      empieza = iso > r.fin ? r.fin : iso;
+      vence = r.fin;
+    } else if (drag.modo === 'fin') {
+      vence = iso < r.ini ? r.ini : iso;
+      empieza = r.ini === vence ? null : r.ini;
+    } else {                                    // mover el bloque entero
+      const largo = difDias(dDe(r.ini), dDe(r.fin));
+      empieza = largo === 0 ? null : iso;
+      vence = isoDe(masDias(dDe(iso), largo));
+    }
+    if (empieza === vence) empieza = null;
+
+    const antes = { empieza: t.empieza, vence: t.vence };
+    t.empieza = empieza; t.vence = vence;
+    render();
+
+    const { error } = await SB.from('tarea').update({ empieza: empieza, vence: vence }).eq('id', t.id);
+    if (error) {
+      t.empieza = antes.empieza; t.vence = antes.vence;
+      render();
+      toast('No se pudo mover: ' + error.message, 'warn');
+      return;
+    }
+    if (DETALLE && DETALLE.id === t.id) { llenarDrawer(t); cargarActividad(t.id); }
   }
 
   function renderPulso() {
@@ -1513,6 +1906,7 @@
     $('#fCliente').value = t ? (t.cliente_id || '') : '';
     $('#fEstado').value = t ? (t.estado || 'pendiente') : (estadoPreset || 'pendiente');
     $('#fPrioridad').value = t ? (t.urgencia || 'normal') : 'normal';
+    $('#fEmpieza').value = t ? (t.empieza || '') : '';
     $('#fVence').value = t ? (t.vence || '') : '';
     $('#fProyecto').value = t ? (t.proyecto || '') : '';
     $('#fVisible').classList.toggle('on', !!(t && t.visible_cliente));
@@ -1537,6 +1931,7 @@
       proyecto: $('#fProyecto').value.trim() || null,
       estado: estado,
       urgencia: $('#fPrioridad').value,
+      empieza: $('#fEmpieza').value || null,
       vence: $('#fVence').value || null,
       visible_cliente: $('#fVisible').classList.contains('on')
     };
@@ -1592,7 +1987,7 @@
     g.__t = setTimeout(() => g.classList.remove('on'), 1400);
   }
   function idsVisibles() {
-    return $$('#kanban .card-k, #lista .fila').map(el => el.dataset.id);
+    return $$('#kanban .card-k, #lista .fila, #calendario .cal-bar, #calendario .tray-item').map(el => el.dataset.id);
   }
 
   async function abrirDrawer(id) {
@@ -1651,6 +2046,7 @@
       + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
     $('#dCliente').value = t.cliente_id || '';
 
+    $('#dEmpieza').value = t.empieza || '';
     $('#dVence').value = t.vence || '';
     $('#dPrioridad').value = t.urgencia || 'normal';
     $('#dProyecto').value = t.proyecto || '';
@@ -1831,6 +2227,7 @@
       case 'creada':      return q + 'creó la tarea';
       case 'estado':      return q + 'movió a <b>' + esc(EST_MAP[a.valor_nuevo] || a.valor_nuevo) + '</b>';
       case 'responsable': return q + (a.valor_nuevo ? 'asignó a <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó el responsable');
+      case 'empieza':     return q + (a.valor_nuevo ? 'puso inicio el <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó la fecha de inicio');
       case 'vence':       return q + (a.valor_nuevo ? 'puso vencimiento el <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó el vencimiento');
       case 'prioridad':   return q + 'cambió la prioridad a <b>' + esc(a.valor_nuevo) + '</b>';
       case 'cliente':     return q + 'cambió el cliente a <b>' + esc(a.valor_nuevo) + '</b>';
@@ -1942,6 +2339,7 @@
   $('#dResponsable').addEventListener('change', e => guardarCampo('responsable_id', e.target.value || null));
   $('#dEstado').addEventListener('change', e => guardarCampo('estado', e.target.value));
   $('#dCliente').addEventListener('change', e => guardarCampo('cliente_id', e.target.value || null));
+  $('#dEmpieza').addEventListener('change', e => guardarCampo('empieza', e.target.value || null));
   $('#dVence').addEventListener('change', e => guardarCampo('vence', e.target.value || null));
   $('#dPrioridad').addEventListener('change', e => guardarCampo('urgencia', e.target.value));
   $('#dProyecto').addEventListener('blur', e => guardarCampo('proyecto', e.target.value.trim() || null));
@@ -2007,12 +2405,32 @@
     render();
   }));
 
-  $$('.view-toggle button').forEach(b => b.addEventListener('click', () => {
-    $$('.view-toggle button').forEach(x => x.classList.remove('active'));
+  $$('.view-toggle button[data-vista]').forEach(b => b.addEventListener('click', () => {
+    $$('.view-toggle button[data-vista]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     VISTA = b.dataset.vista;
     render();
   }));
+
+  // ── Calendario: navegación ───────────────────────────────────
+  function sincronizarCalModo() {
+    $$('[data-calmodo]').forEach(x => x.classList.toggle('active', x.dataset.calmodo === CAL_MODO));
+  }
+  function mover(paso) {
+    CAL_REF = CAL_MODO === 'semana'
+      ? masDias(CAL_REF, 7 * paso)
+      : new Date(CAL_REF.getFullYear(), CAL_REF.getMonth() + paso, 1);
+    render();
+  }
+  $('#calPrev').addEventListener('click', () => mover(-1));
+  $('#calNext').addEventListener('click', () => mover(1));
+  $('#calHoy').addEventListener('click', () => { CAL_REF = new Date(); render(); });
+  $$('[data-calmodo]').forEach(b => b.addEventListener('click', () => {
+    CAL_MODO = b.dataset.calmodo;
+    sincronizarCalModo();
+    render();
+  }));
+  window.addEventListener('resize', () => { if (VISTA === 'calendario') render(); });
 
   // Delegación: click en tarjetas, filas, checks y cabeceras de grupo
   document.addEventListener('click', e => {
@@ -2037,6 +2455,12 @@
 
     const fila = e.target.closest('.fila');
     if (fila) { abrirDrawer(fila.dataset.id); return; }
+
+    const verSem = e.target.closest('[data-versemana]');
+    if (verSem) { CAL_REF = dDe(verSem.dataset.versemana); CAL_MODO = 'semana'; sincronizarCalModo(); render(); return; }
+
+    const barra = e.target.closest('.cal-bar, .tray-item');
+    if (barra) { abrirDrawer(barra.dataset.id); return; }
   });
 
   // Refrescar al volver a la pestaña (el tablero es compartido)
