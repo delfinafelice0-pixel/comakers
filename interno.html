@@ -507,6 +507,65 @@
   }
 
 
+
+  /* ── TEXTO CON FORMATO, EMOJIS Y ARRASTRE ─── */
+  .d-tools { display: flex; gap: 2px; margin-left: auto; }
+  .d-tools .mini-btn { font-size: 13px; line-height: 1; }
+
+  .d-titulo-row { display: flex; align-items: flex-start; gap: 6px; }
+  .d-titulo-row .d-titulo { flex: 1; min-width: 0; }
+  .d-titulo-row .mini-btn { margin-top: 6px; font-size: 15px; }
+
+  .d-desc-vista {
+    font-size: 13.5px; line-height: 1.65; color: var(--ink);
+    padding: 10px 12px; margin: 0 -12px; border-radius: 8px;
+    border: 1px solid transparent; cursor: text; white-space: normal;
+  }
+  .d-desc-vista:hover { border-color: var(--line); }
+  .d-desc-vista.vacia { color: var(--ink-mute); }
+  .d-desc-vista a, .res-brief-vista a, .coment-txt a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+  .d-desc-vista a:hover, .res-brief-vista a:hover { color: var(--accent); }
+  .d-hint { font-size: 10.5px; color: var(--ink-mute); margin-top: 6px; }
+
+  .res-brief-vista {
+    font-size: 13px; line-height: 1.6; color: var(--ink); min-height: 62px;
+    padding: 9px 10px; border-radius: 8px; border: 1px solid transparent; cursor: text;
+  }
+  .res-brief-vista:hover { border-color: var(--line); }
+  .res-brief-vista.vacia { color: var(--ink-mute); }
+
+  /* Emojis */
+  .emoji-pop {
+    position: fixed; z-index: 200; background: var(--bg-elev);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px rgba(27,22,32,.16); padding: 10px 12px 12px;
+    width: 268px; display: none;
+  }
+  .emoji-pop.on { display: block; }
+  .emoji-grupo { font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+                 color: var(--ink-mute); font-weight: 600; margin: 8px 0 4px; }
+  .emoji-grupo:first-child { margin-top: 0; }
+  .emoji-fila { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; }
+  .emoji-fila button {
+    border: none; background: none; cursor: pointer; font-size: 17px;
+    line-height: 1; padding: 4px 0; border-radius: 6px;
+  }
+  .emoji-fila button:hover { background: var(--line-soft); }
+
+  /* Arrastre en la lista */
+  .fila.mov { position: relative; padding-left: 34px; }
+  .fila-mano {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 18px; cursor: grab; opacity: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-mute); transition: opacity .12s;
+  }
+  .fila.mov:hover .fila-mano { opacity: 1; }
+  .fila-mano:active { cursor: grabbing; }
+  .fila-mano svg { width: 14px; height: 14px; pointer-events: none; }
+  .fila.dragging { opacity: .4; }
+  .grupo-body.drag-over { background: var(--line-soft); }
+
   /* ── RESUMEN DEL PROYECTO ─────────────────── */
   .resumen { display: none; }
   .resumen.active { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; align-items: start; }
@@ -1265,6 +1324,33 @@
 </div>
 <div class="guardado-flot" id="guardadoFlot">Guardado</div>
 
+<!-- ═══════════ MODAL LINK ═══════════ -->
+<div class="overlay" id="ovLink">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title">Poner un link</div>
+      <button class="modal-close" data-cerrar="ovLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Palabra que se va a poder clickear</label>
+      <input type="text" id="lkTexto" placeholder="Ej: el guion">
+    </div>
+    <div class="campo">
+      <label class="campo-label">Link</label>
+      <input type="text" id="lkUrl" placeholder="https://…">
+    </div>
+    <div class="modal-foot">
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovLink">Cancelar</button>
+        <button class="btn-primary" id="lkOk">Poner el link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ EMOJIS ═══════════ -->
+<div class="emoji-pop" id="emojiPop"></div>
+
 <!-- ═══════════ MODAL FORM ═══════════ -->
 <div class="overlay" id="ovForm">
   <div class="modal">
@@ -1274,10 +1360,20 @@
     </div>
     <div class="campo">
       <label class="campo-label">Título</label>
-      <input type="text" id="fTitulo" placeholder="Ej: Editar reel de campaña">
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input type="text" id="fTitulo" placeholder="Ej: Editar reel de campaña" style="flex:1; min-width:0;">
+        <button class="mini-btn" id="fEmojiTit" title="Poner un emoji" style="font-size:15px">🙂</button>
+      </div>
     </div>
     <div class="campo">
-      <label class="campo-label">Detalle</label>
+      <label class="campo-label" style="display:flex; align-items:center;">Detalle
+        <span class="d-tools">
+          <button type="button" class="mini-btn" id="fEmojiDesc" title="Poner un emoji" style="font-size:14px">🙂</button>
+          <button type="button" class="mini-btn" id="fLinkDesc" title="Poner un link (⌘K)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          </button>
+        </span>
+      </label>
       <textarea id="fDesc" placeholder="Qué hay que hacer exactamente, con qué material, qué se espera de vuelta…"></textarea>
     </div>
     <div class="campo campo-row">
@@ -1422,7 +1518,10 @@
   </div>
 
   <div class="drawer-body">
-    <textarea class="d-titulo" id="dTitulo" rows="1" placeholder="Título de la tarea"></textarea>
+    <div class="d-titulo-row">
+      <textarea class="d-titulo" id="dTitulo" rows="1" placeholder="Título de la tarea"></textarea>
+      <button class="mini-btn" id="dEmojiTit" title="Poner un emoji">🙂</button>
+    </div>
 
     <div class="props">
       <div class="prop">
@@ -1487,8 +1586,18 @@
     </div>
 
     <div class="d-sec">
-      <div class="d-sec-head"><div class="sec-title">Detalle</div></div>
-      <textarea class="d-desc" id="dDesc" rows="1" placeholder="Escribí acá qué hay que hacer, con qué material y qué se espera de vuelta…"></textarea>
+      <div class="d-sec-head">
+        <div class="sec-title">Detalle</div>
+        <div class="d-tools">
+          <button class="mini-btn" id="dEmojiDesc" title="Poner un emoji">🙂</button>
+          <button class="mini-btn" id="dLinkDesc" title="Poner un link (⌘K)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          </button>
+        </div>
+      </div>
+      <div class="d-desc-vista" id="dDescVista"></div>
+      <textarea class="d-desc" id="dDesc" rows="1" style="display:none" placeholder="Escribí acá qué hay que hacer, con qué material y qué se espera de vuelta…"></textarea>
+      <div class="d-hint" id="dHint" style="display:none">Seleccioná una palabra y apretá ⌘K (o Ctrl+K) para convertirla en link.</div>
     </div>
 
     <div class="d-sec">
@@ -2164,6 +2273,127 @@
     else renderCalendario(list);
   }
 
+  // ═══════════════ TEXTO CON FORMATO ═══════════════
+  // Guardamos markdown mínimo en texto plano: [palabra](url).
+  // Nunca guardamos HTML escrito por el usuario: escapamos TODO
+  // primero y recién después convertimos lo que reconocemos nosotros.
+  // Así el panel del cliente puede mostrar el mismo texto sin riesgo.
+  const RE_LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+
+  function renderTexto(txt) {
+    if (!txt) return '';
+    let h = esc(txt);
+    // 1 · los links que escribimos nosotros
+    h = h.replace(RE_LINK, function (m, texto, url) {
+      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + texto + '</a>';
+    });
+    // 2 · URLs sueltas (solo si no quedaron ya adentro de un href)
+    h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, function (m, pre, url) {
+      return pre + '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+    });
+    return h.replace(/\n/g, '<br>');
+  }
+
+  // Para previews de una línea: se ve la palabra, no el markdown.
+  function textoPlano(txt) {
+    return (txt || '').replace(RE_LINK, '$1');
+  }
+
+  // Gancho para las pruebas automáticas. No expone datos ni permisos:
+  // son dos funciones puras de texto.
+  window.__panel = { renderTexto: renderTexto, textoPlano: textoPlano };
+
+  // Al clickear el botón de emoji o el de link, el campo pierde el foco.
+  // Sin esto, el editor se cerraría justo antes de que insertemos nada.
+  let TOCANDO_HERRAMIENTA = false;
+  document.addEventListener('mousedown', e => {
+    TOCANDO_HERRAMIENTA = !!(e.target.closest &&
+      e.target.closest('#emojiPop, #ovLink, .d-tools, #resEmoji, #resLink'));
+  }, true);
+
+  function insertarEn(el, txt) {
+    const i = el.selectionStart == null ? el.value.length : el.selectionStart;
+    const f = el.selectionEnd == null ? el.value.length : el.selectionEnd;
+    el.value = el.value.slice(0, i) + txt + el.value.slice(f);
+    const c = i + txt.length;
+    el.focus();
+    try { el.setSelectionRange(c, c); } catch (_) {}
+    if (el.tagName === 'TEXTAREA') autoGrow(el);
+  }
+
+  // ── Modal para poner un link ─────────────────────────────────
+  let LK_DESTINO = null, LK_INI = 0, LK_FIN = 0;
+
+  function pedirLink(el) {
+    LK_DESTINO = el;
+    LK_INI = el.selectionStart == null ? el.value.length : el.selectionStart;
+    LK_FIN = el.selectionEnd == null ? el.value.length : el.selectionEnd;
+    $('#lkTexto').value = el.value.slice(LK_INI, LK_FIN);
+    $('#lkUrl').value = '';
+    abrir('ovLink');
+    setTimeout(() => $(LK_INI === LK_FIN ? '#lkTexto' : '#lkUrl').focus(), 60);
+  }
+
+  function confirmarLink() {
+    if (!LK_DESTINO) return;
+    const texto = $('#lkTexto').value.trim();
+    let url = $('#lkUrl').value.trim();
+    if (!texto) { $('#lkTexto').focus(); return; }
+    if (!url) { $('#lkUrl').focus(); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    if (/\s/.test(url)) { toast('Ese link tiene espacios: revisalo', 'warn'); return; }
+
+    const el = LK_DESTINO;
+    const md = '[' + texto + '](' + url + ')';
+    el.value = el.value.slice(0, LK_INI) + md + el.value.slice(LK_FIN);
+    cerrar('ovLink');
+    if (el.id === 'dDesc') { entrarAEditarDesc(); guardarCampo('descripcion', el.value.trim() || null); }
+    if (el.id === 'resBrief') { entrarAEditarBrief(); guardarProyCampo('descripcion', el.value.trim() || null); }
+    const c = LK_INI + md.length;
+    el.focus();
+    try { el.setSelectionRange(c, c); } catch (_) {}
+    autoGrow(el);
+  }
+
+  // ═══════════════ EMOJIS ═══════════════
+  const EMOJIS = [
+    ['Trabajo',    ['✅','☑️','📌','📎','🗂️','📝','📅','⏰','⚠️','🚨','🔥','⭐','🎯','🔁','⏳','🚀']],
+    ['Producción', ['🎬','🎥','📸','📷','🎞️','🎙️','🎧','💡','🎨','✂️','🖥️','📱','🔊','🪄','🧩','📦']],
+    ['Pauta y plata', ['💰','💵','📈','📉','📊','🧾','💳','🏷️','🤝','🧮','🪙','🔍']],
+    ['Gente y ánimo', ['🙂','😅','🎉','👏','🙌','👀','🧠','💬','❤️','🌟','🫶','😬']],
+    ['Otros',      ['🌱','🌍','🐴','☀️','🌙','📍','🔗','🔒','🗑️','❓','☕','🍀']]
+  ];
+  let EMOJI_DESTINO = null;
+
+  function pintarEmojis() {
+    const pop = $('#emojiPop');
+    if (pop.dataset.listo) return;
+    pop.innerHTML = EMOJIS.map(g =>
+      '<div class="emoji-grupo">' + esc(g[0]) + '</div>' +
+      '<div class="emoji-fila">' + g[1].map(e => '<button type="button" data-emoji="' + e + '">' + e + '</button>').join('') + '</div>'
+    ).join('');
+    pop.dataset.listo = '1';
+  }
+
+  function abrirEmojis(boton, destino) {
+    pintarEmojis();
+    EMOJI_DESTINO = destino;
+    const pop = $('#emojiPop');
+    const r = boton.getBoundingClientRect();
+    pop.classList.add('on');
+    const alto = pop.offsetHeight, ancho = pop.offsetWidth;
+    let top = r.bottom + 6;
+    if (top + alto > window.innerHeight - 8) top = Math.max(8, r.top - alto - 6);
+    let left = Math.min(r.left, window.innerWidth - ancho - 8);
+    pop.style.top = top + 'px';
+    pop.style.left = Math.max(8, left) + 'px';
+  }
+
+  function cerrarEmojis() {
+    $('#emojiPop').classList.remove('on');
+    EMOJI_DESTINO = null;
+  }
+
   // ═══════════════ RESUMEN DEL PROYECTO ═══════════════
   // Todo lo que no es una tarea: el brief, los datos del cliente,
   // los links y el estado. Vive adentro de cada proyecto.
@@ -2276,13 +2506,31 @@
     const p = proyActivo();
     if (!p) { $('#resIzq').innerHTML = ''; $('#resDer').innerHTML = ''; return; }
 
+    // Si estás ESCRIBIENDO en la columna izquierda, no la repinto: te
+    // borraría lo que estás tipeando. Un botón con el foco no cuenta —
+    // si contara, revelar un acceso no se vería nunca.
+    const ae = document.activeElement;
+    const escribiendo = !!ae && $('#resIzq').contains(ae) &&
+      (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT' || ae.isContentEditable);
+
     // ── Columna izquierda: brief + datos + links ──────────────
+    const hayBrief = !!(p.descripcion && p.descripcion.trim());
     const brief =
       '<div class="res-card">' +
-        '<h4>Brief</h4>' +
+        '<h4>Brief' +
+          '<span class="d-tools">' +
+            '<button class="mini-btn" id="resEmoji" title="Poner un emoji">🙂</button>' +
+            '<button class="mini-btn" id="resLink" title="Poner un link (⌘K)">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>' +
+            '</button>' +
+          '</span>' +
+        '</h4>' +
         '<div class="res-sub">De qué se trata, qué acordamos, cómo hablarle. Se guarda solo.</div>' +
-        '<textarea class="res-brief" id="resBrief" placeholder="Escribí acá todo lo que el equipo tendría que saber antes de tocar este proyecto…">' +
-          esc(p.descripcion || '') + '</textarea>' +
+        '<div class="res-brief-vista' + (hayBrief ? '' : ' vacia') + '" id="resBriefVista">' +
+          (hayBrief ? renderTexto(p.descripcion)
+                    : 'Escribí acá todo lo que el equipo tendría que saber antes de tocar este proyecto…') +
+        '</div>' +
+        '<textarea class="res-brief" id="resBrief" style="display:none">' + esc(p.descripcion || '') + '</textarea>' +
       '</div>';
 
     const datos =
@@ -2321,7 +2569,7 @@
             '</div>') +
       '</div>';
 
-    $('#resIzq').innerHTML = brief + datos + links;
+    if (!escribiendo) $('#resIzq').innerHTML = brief + datos + links;
 
     // ── Columna derecha: estado + equipo + números ────────────
     const salud = p.salud || 'en_curso';
@@ -2369,8 +2617,29 @@
         '</div>' +
       '</div>';
 
+  }
+
+  function salirDeEditarBrief() {
     const ta = $('#resBrief');
-    if (ta) autoGrow(ta);
+    if (!ta) return;
+    const txt = ta.value.trim();
+    const v = $('#resBriefVista');
+    v.innerHTML = txt ? renderTexto(txt)
+      : 'Escribí acá todo lo que el equipo tendría que saber antes de tocar este proyecto…';
+    v.classList.toggle('vacia', !txt);
+    v.style.display = '';
+    ta.style.display = 'none';
+  }
+
+  function entrarAEditarBrief() {
+    const ta = $('#resBrief');
+    if (!ta) return;
+    $('#resBriefVista').style.display = 'none';
+    ta.style.display = '';
+    autoGrow(ta);
+    ta.focus();
+    const n = ta.value.length;
+    try { ta.setSelectionRange(n, n); } catch (_) {}
   }
 
   // ── Guardar el brief y el estado ─────────────────────────────
@@ -2814,7 +3083,7 @@
           (t.urgencia === 'urgente' ? '<span class="estado-pill" style="background:var(--warn-soft);color:var(--ink)">urgente</span>' : '') +
         '</div>' +
         '<div class="card-k-titulo">' + esc(t.titulo) + '</div>' +
-        (t.descripcion ? '<div class="card-k-desc">' + esc(t.descripcion) + '</div>' : '') +
+        (t.descripcion ? '<div class="card-k-desc">' + esc(textoPlano(t.descripcion)) + '</div>' : '') +
         '<div class="card-k-bottom">' +
           '<div class="card-k-meta">' + avatarDe(t) +
             (t.visible_cliente ? OJO_SVG : '') +
@@ -2846,6 +3115,7 @@
       $('#lista').innerHTML = html;
       const b = $('#btnNuevaSecLista');
       if (b) b.addEventListener('click', () => agregarSeccion(p.id));
+      activarDnDLista();
       return;
     }
 
@@ -2917,14 +3187,22 @@
     '</div>';
   }
 
+  // Adentro de un proyecto la lista respeta el orden que vos acomodaste
+  // (el mismo de `tarea_proyecto`, compartido con el tablero), no la fecha.
+  function ordenManual(items, proyId) {
+    return items.slice().sort((a, b) => ordenDe(a, proyId) - ordenDe(b, proyId));
+  }
+
   function bloqueSeccion(sec, items, sinSeccion) {
+    const p = proyActivo();
     const vencidas = items.filter(estaVencida).length;
     const abiertas = items.filter(t => !t.completada).length;
     const col = COLAPSADOS[sec.id] ? ' collapsed' : '';
+    const movible = !!p && !sinSeccion;
     return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '">' +
       cabezaGrupo(sec.nombre, vencidas, abiertas, items.length) +
-      '<div class="grupo-body">' +
-        ordenarFilas(items).map(filaHTML).join('') +
+      '<div class="grupo-body" data-col="' + esc(sec.id) + '" data-tipo="' + esc(sec.tipo || '') + '">' +
+        (p ? ordenManual(items, p.id) : ordenarFilas(items)).map(t => filaHTML(t, movible)).join('') +
         (sinSeccion ? '' :
           '<div class="fila-add">' +
             '<span class="mas">+</span>' +
@@ -2934,15 +3212,18 @@
     '</div>';
   }
 
-  function filaHTML(t) {
+  const MANO_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg>';
+
+  function filaHTML(t, movible) {
     const f = fechaTxt(t.vence);
     const done = !!t.completada;
     return '' +
-      '<div class="fila' + (done ? ' done' : '') + '" data-id="' + t.id + '">' +
+      '<div class="fila' + (done ? ' done' : '') + (movible ? ' mov' : '') + '" data-id="' + t.id + '">' +
+        (movible ? '<div class="fila-mano" title="Arrastrá para reordenar">' + MANO_SVG + '</div>' : '') +
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
         '<div class="fila-main">' +
           '<div class="fila-titulo">' + esc(t.titulo) + (t.visible_cliente ? ' ' + OJO_SVG : '') + '</div>' +
-          (t.descripcion ? '<div class="fila-desc">' + esc(t.descripcion) + '</div>' : '') +
+          (t.descripcion ? '<div class="fila-desc">' + esc(textoPlano(t.descripcion)) + '</div>' : '') +
         '</div>' +
         chipCliente(t) + chipsProyectos(t, proyActivo()) +
         '<span class="estado-pill ' + tipoDe(t) + '">' + esc(TIPO_MAP[tipoDe(t)]) + '</span>' +
@@ -2992,7 +3273,52 @@
   }
 
   function tarjetasDe(body) {
-    return Array.from(body.querySelectorAll('.card-k:not(.dragging)'));
+    return Array.from(body.querySelectorAll('.card-k:not(.dragging), .fila:not(.dragging)'));
+  }
+
+  // Mismo mecanismo que el tablero, pero sobre las filas de la lista.
+  // Solo arranca si el arrastre empezó en la manija: si no, un click
+  // en la fila abriría el detalle y arrastraría al mismo tiempo.
+  function activarDnDLista() {
+    $$('#lista .fila.mov').forEach(fila => {
+      fila.addEventListener('mousedown', e => {
+        fila.draggable = !!e.target.closest('.fila-mano');
+      });
+      fila.addEventListener('dragstart', e => {
+        if (!fila.draggable) { e.preventDefault(); return; }
+        DRAG_ID = fila.dataset.id;
+        fila.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', DRAG_ID); } catch (_) {}
+      });
+      fila.addEventListener('dragend', () => {
+        fila.classList.remove('dragging');
+        fila.draggable = false;
+        limpiarLineas();
+        DRAG_ID = null;
+      });
+    });
+
+    $$('#lista .grupo-body[data-col]').forEach(body => {
+      body.addEventListener('dragover', e => {
+        if (!DRAG_ID) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        body.classList.add('drag-over');
+        marcarLinea(body, e.clientY);
+      });
+      body.addEventListener('dragleave', e => {
+        if (!body.contains(e.relatedTarget)) body.classList.remove('drag-over');
+      });
+      body.addEventListener('drop', async e => {
+        e.preventDefault();
+        body.classList.remove('drag-over');
+        const id = DRAG_ID || (e.dataTransfer ? e.dataTransfer.getData('text/plain') : null);
+        limpiarLineas();
+        if (!id) return;
+        await soltar(id, body.dataset.col, body.dataset.tipo, body, e.clientY);
+      });
+    });
   }
   function limpiarLineas() { $$('.drop-line').forEach(l => l.remove()); }
   function marcarLinea(body, y) {
@@ -3292,7 +3618,7 @@
     $('#dTitulo').value = t.titulo || '';
     autoGrow($('#dTitulo'));
     $('#dDesc').value = t.descripcion || '';
-    autoGrow($('#dDesc'));
+    salirDeEditarDesc();
 
     $('#dResponsable').innerHTML = '<option value="">Sin asignar</option>'
       + PERSONAS.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
@@ -3315,6 +3641,32 @@
     $('#dPos').textContent = i >= 0 ? (i + 1) + ' de ' + ids.length : '';
     $('#dPrev').disabled = i <= 0;
     $('#dNext').disabled = i === -1 || i >= ids.length - 1;
+  }
+
+  // El detalle se ve renderizado (con los links andando) y se edita
+  // al clickearlo. Nunca los dos a la vez, para que no haya dudas de
+  // cuál es el texto de verdad.
+  function salirDeEditarDesc() {
+    const txt = $('#dDesc').value.trim();
+    const v = $('#dDescVista');
+    v.innerHTML = txt
+      ? renderTexto(txt)
+      : 'Escribí acá qué hay que hacer, con qué material y qué se espera de vuelta…';
+    v.classList.toggle('vacia', !txt);
+    v.style.display = '';
+    $('#dDesc').style.display = 'none';
+    $('#dHint').style.display = 'none';
+  }
+
+  function entrarAEditarDesc() {
+    const ta = $('#dDesc');
+    $('#dDescVista').style.display = 'none';
+    ta.style.display = '';
+    $('#dHint').style.display = '';
+    autoGrow(ta);
+    ta.focus();
+    const n = ta.value.length;
+    try { ta.setSelectionRange(n, n); } catch (_) {}
   }
 
   function pintarBotonFin() {
@@ -3625,7 +3977,7 @@
         '<div class="avatar-sm">' + esc(iniciales(c.autor, '')) + '</div>' +
         '<div class="body">' +
           '<div class="autor">' + esc(c.autor || 'Alguien') + '<span class="cfecha">' + fechaCorta(c.created_at) + '</span></div>' +
-          '<div class="texto">' + esc(c.texto) + '</div>' +
+          '<div class="texto coment-txt">' + renderTexto(c.texto) + '</div>' +
         '</div>' +
       '</div>').join('');
   }
@@ -3694,7 +4046,81 @@
     guardarCampo('titulo', v);
   });
   $('#dDesc').addEventListener('input', e => autoGrow(e.target));
-  $('#dDesc').addEventListener('blur', e => guardarCampo('descripcion', e.target.value.trim() || null));
+  $('#dDesc').addEventListener('blur', e => {
+    guardarCampo('descripcion', e.target.value.trim() || null);
+    if (!TOCANDO_HERRAMIENTA) salirDeEditarDesc();
+  });
+  $('#dDescVista').addEventListener('click', e => {
+    if (e.target.closest('a')) return;   // clickear un link lo abre, no edita
+    entrarAEditarDesc();
+  });
+
+  // ⌘K / Ctrl+K sobre el texto seleccionado → poner un link
+  function atajoLink(e) {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      pedirLink(e.target);
+    }
+  }
+  $('#dDesc').addEventListener('keydown', atajoLink);
+  $('#lkOk').addEventListener('click', confirmarLink);
+  $('#lkUrl').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); confirmarLink(); } });
+  $('#lkTexto').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#lkUrl').focus(); } });
+  $('#dLinkDesc').addEventListener('click', () => {
+    if ($('#dDesc').style.display === 'none') entrarAEditarDesc();
+    pedirLink($('#dDesc'));
+  });
+
+  // ── Emojis ───────────────────────────────────────────────────
+  $('#dEmojiTit').addEventListener('click', e => { e.stopPropagation(); abrirEmojis(e.currentTarget, $('#dTitulo')); });
+  $('#dEmojiDesc').addEventListener('click', e => {
+    e.stopPropagation();
+    if ($('#dDesc').style.display === 'none') entrarAEditarDesc();
+    abrirEmojis(e.currentTarget, $('#dDesc'));
+  });
+  $('#fEmojiTit').addEventListener('click', e => { e.stopPropagation(); abrirEmojis(e.currentTarget, $('#fTitulo')); });
+  $('#fEmojiDesc').addEventListener('click', e => { e.stopPropagation(); abrirEmojis(e.currentTarget, $('#fDesc')); });
+  $('#fLinkDesc').addEventListener('click', () => pedirLink($('#fDesc')));
+  $('#fDesc').addEventListener('keydown', atajoLink);
+  $('#fTitulo').addEventListener('keydown', atajoLink);
+
+  $('#emojiPop').addEventListener('click', e => {
+    const b = e.target.closest('[data-emoji]');
+    if (!b || !EMOJI_DESTINO) return;
+    const el = EMOJI_DESTINO;
+    insertarEn(el, b.dataset.emoji);
+    cerrarEmojis();
+    // Los campos del drawer guardan al salir; acá guardamos ya mismo
+    // porque el foco vuelve al campo y el blur puede tardar.
+    if (el.id === 'dTitulo') guardarCampo('titulo', el.value.trim());
+    if (el.id === 'dDesc') guardarCampo('descripcion', el.value.trim() || null);
+    if (el.id === 'resBrief') guardarProyCampo('descripcion', el.value.trim() || null);
+    el.focus();
+  });
+  document.addEventListener('mousedown', e => {
+    if (!$('#emojiPop').classList.contains('on')) return;
+    if (e.target.closest('#emojiPop') || e.target.closest('[id^=dEmoji], [id^=fEmoji], #resEmoji')) return;
+    cerrarEmojis();
+  });
+
+  // ── Brief del proyecto: misma mecánica que el detalle ─────────
+  $('#resumen').addEventListener('click', e => {
+    if (e.target.closest('#resBriefVista') && !e.target.closest('a')) { entrarAEditarBrief(); return; }
+    if (e.target.closest('#resLink')) {
+      if ($('#resBrief') && $('#resBrief').style.display === 'none') entrarAEditarBrief();
+      pedirLink($('#resBrief'));
+      return;
+    }
+    if (e.target.closest('#resEmoji')) {
+      e.stopPropagation();
+      if ($('#resBrief') && $('#resBrief').style.display === 'none') entrarAEditarBrief();
+      abrirEmojis(e.target.closest('#resEmoji'), $('#resBrief'));
+      return;
+    }
+  });
+  $('#resumen').addEventListener('keydown', e => {
+    if (e.target.id === 'resBrief') atajoLink(e);
+  });
   $('#dResponsable').addEventListener('change', e => guardarCampo('responsable_id', e.target.value || null));
   $('#dCliente').addEventListener('change', e => guardarCampo('cliente_id', e.target.value || null));
   $('#dEmpieza').addEventListener('change', e => guardarCampo('empieza', e.target.value || null));
@@ -3941,7 +4367,11 @@
   });
 
   $('#resumen').addEventListener('blur', e => {
-    if (e.target.id === 'resBrief') { guardarProyCampo('descripcion', e.target.value.trim() || null); return; }
+    if (e.target.id === 'resBrief') {
+      guardarProyCampo('descripcion', e.target.value.trim() || null);
+      if (!TOCANDO_HERRAMIENTA) salirDeEditarBrief();
+      return;
+    }
     const ce = e.target.closest ? e.target.closest('[data-datocampo]') : null;
     if (ce) guardarDato(ce.dataset.dato, ce.dataset.datocampo, ce.textContent.trim());
   }, true);
