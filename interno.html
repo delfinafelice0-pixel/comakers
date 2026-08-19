@@ -291,7 +291,7 @@
   .dot.pendiente   { background: var(--ink-mute); }
   .dot.curso       { background: var(--accent); }
   .dot.revision    { background: var(--cyan); border: 1px solid #7FBFCC; }
-  .dot.completada  { background: var(--good); }
+  .dot.listo       { background: var(--good); }
   .columna-count {
     font-size: 12px; color: var(--ink-mute); font-weight: 600;
     background: var(--line-soft); padding: 2px 8px; border-radius: 10px;
@@ -383,7 +383,7 @@
   .estado-pill.pendiente  { background: var(--line-soft); color: var(--ink-soft); }
   .estado-pill.curso      { background: var(--accent-soft); color: var(--ink); }
   .estado-pill.revision   { background: var(--cyan-soft); color: #3E7F8C; }
-  .estado-pill.completada { background: var(--good-soft); color: var(--ink); }
+  .estado-pill.listo      { background: var(--good-soft); color: var(--ink); }
 
   .avatar-sm {
     width: 24px; height: 24px; border-radius: 50%;
@@ -419,6 +419,38 @@
   .nav-item.proy.active .candado { color: inherit; }
   .nav-item.proy .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nav-item.nuevo-proy { color: var(--ink-mute); font-size: 12px; }
+  .nav-item.proy.fin { opacity: 0.5; }
+  .nav-item.proy.fin .nom { text-decoration: line-through; }
+  .nav-sub-label {
+    font-size: 9px; color: var(--ink-mute); letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 10px 10px 4px;
+  }
+  .chip-proy.fin { opacity: 0.65; }
+  .chip-proy.fin .nomp { text-decoration: line-through; }
+
+  /* botón rápido de finalizar en la tarjeta */
+  .card-k { position: relative; }
+  .card-k-fin {
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--ink-mute); background: var(--bg-elev);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: all 0.15s; color: var(--ink-mute); z-index: 2;
+  }
+  .card-k:hover .card-k-fin { opacity: 1; }
+  .card-k-fin:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .card-k-fin svg { width: 12px; height: 12px; }
+  .card-k.hecha .card-k-fin { opacity: 1; background: var(--accent); border-color: var(--accent); color: #fff; }
+  .card-k.hecha .card-k-titulo { text-decoration: line-through; color: var(--ink-mute); }
+
+  .btn-fin {
+    display: flex; align-items: center; gap: 6px; margin-left: 10px;
+    border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px;
+    font-size: 12px; font-weight: 600; color: var(--ink-soft); transition: all 0.15s;
+  }
+  .btn-fin:hover { border-color: var(--good); background: var(--good-soft); color: var(--ink); }
+  .btn-fin svg { width: 13px; height: 13px; }
+  .btn-fin.on { background: var(--good); border-color: var(--good); color: var(--ink); }
   .nav-vacio { font-size: 11px; color: var(--ink-mute); padding: 2px 10px 4px; font-style: italic; }
 
   .chip-proy {
@@ -450,6 +482,74 @@
   .miembro-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
   .miembro-chip .avatar-sm { width: 20px; height: 20px; font-size: 9px; }
   .miembros-nota { font-size: 11px; color: var(--ink-mute); margin-top: 8px; line-height: 1.45; }
+
+  /* ── CABECERA DE PROYECTO ─────────────────── */
+  .proy-header {
+    display: none; align-items: flex-start; gap: 14px; margin-bottom: 22px;
+    padding-bottom: 18px; border-bottom: 1px solid var(--line);
+  }
+  .proy-header.on { display: flex; }
+  .proy-icono { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; margin-top: 4px; }
+  .proy-info { min-width: 0; flex: 1; }
+  .proy-nombre {
+    font-family: var(--display); font-size: 30px; font-weight: 500;
+    letter-spacing: -0.025em; line-height: 1.1; display: flex; align-items: center; gap: 9px;
+  }
+  .proy-nombre .candado { width: 15px; height: 15px; color: var(--ink-mute); }
+  .proy-meta { display: flex; align-items: center; gap: 10px; margin-top: 7px; flex-wrap: wrap; font-size: 12px; color: var(--ink-mute); }
+  .proy-avatares { display: flex; }
+  .proy-avatares .avatar-sm { width: 22px; height: 22px; font-size: 9px; border: 2px solid var(--bg-elev); margin-left: -6px; }
+  .proy-avatares .avatar-sm:first-child { margin-left: 0; }
+  .proy-acciones { display: flex; gap: 8px; flex-shrink: 0; }
+  .badge-fin {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    background: var(--good-soft); color: var(--ink); padding: 3px 9px; border-radius: 20px;
+  }
+
+  /* ── SECCIONES ────────────────────────────── */
+  .sec-nombre { cursor: text; border-radius: 5px; padding: 1px 3px; margin: -1px -3px; }
+  .sec-nombre:hover { background: var(--line-soft); }
+  .sec-nombre input {
+    font-family: var(--display); font-size: 15px; font-weight: 500; letter-spacing: -0.01em;
+    border: 1px solid var(--accent); border-radius: 5px; padding: 1px 4px;
+    outline: none; background: var(--bg-elev); width: 130px; color: var(--ink);
+  }
+  .col-nueva {
+    align-self: start;
+    border: 1px dashed var(--line); border-radius: var(--radius-lg);
+    color: var(--ink-mute); font-size: 13px; font-weight: 500;
+    min-height: 60px; padding: 16px; text-align: left;
+  }
+  .col-nueva:hover { border-color: var(--ink-soft); color: var(--ink); background: rgba(255,255,255,0.4); }
+
+  .fila-add { display: flex; align-items: center; gap: 10px; padding: 9px 20px; border-top: 1px solid var(--line-soft); }
+  .fila-add .mas { color: var(--ink-mute); font-size: 15px; line-height: 1; }
+  .fila-add input {
+    flex: 1; border: none; background: none; outline: none;
+    font-family: inherit; font-size: 13px; color: var(--ink); padding: 2px 0;
+  }
+  .fila-add input::placeholder { color: var(--ink-mute); }
+  .fila-add:focus-within { background: var(--line-soft); }
+
+  /* ── PROYECTOS DE UNA TAREA (drawer) ───────── */
+  .tp-fila {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px; margin: 0 -10px;
+    border-radius: 8px;
+  }
+  .tp-fila:hover { background: var(--line-soft); }
+  .tp-fila .nomp { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .tp-fila .nomp .proy-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+  .tp-fila select {
+    margin-left: auto; border: 1px solid transparent; background: transparent;
+    border-radius: 7px; padding: 4px 7px; font-size: 12px; font-family: inherit;
+    color: var(--ink-soft); outline: none; cursor: pointer; max-width: 160px;
+  }
+  .tp-fila select:hover { background: var(--bg-elev); border-color: var(--line); }
+  .tp-fila select:focus { border-color: var(--accent); }
+  .aviso-privacidad {
+    background: var(--warn-soft); border-radius: 8px; padding: 9px 11px;
+    font-size: 11px; line-height: 1.45; color: var(--ink); margin-top: 8px;
+  }
 
   /* ── CALENDARIO ───────────────────────────── */
   .calendario { display: none; grid-template-columns: 1fr 252px; gap: 14px; align-items: start; }
@@ -908,7 +1008,7 @@
   <!-- ═══════════ MAIN ═══════════ -->
   <main class="main">
     <div class="topbar">
-      <div>
+      <div id="tituloGlobal">
         <h1>El <em>tablero</em></h1>
         <div class="greeting" id="saludo">Cargando…</div>
       </div>
@@ -918,6 +1018,18 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           Nueva tarea
         </button>
+      </div>
+    </div>
+
+    <!-- Cabecera del proyecto activo -->
+    <div class="proy-header" id="proyHeader">
+      <div class="proy-icono" id="proyIcono"></div>
+      <div class="proy-info">
+        <div class="proy-nombre" id="proyNombre"></div>
+        <div class="proy-meta" id="proyMeta"></div>
+      </div>
+      <div class="proy-acciones">
+        <button class="btn-ghost" id="proyEditar">Editar</button>
       </div>
     </div>
 
@@ -1051,8 +1163,8 @@
     </div>
     <div class="campo campo-row">
       <div>
-        <label class="campo-label">Estado</label>
-        <select id="fEstado"></select>
+        <label class="campo-label">Sección</label>
+        <select id="fSeccion"></select>
       </div>
       <div>
         <label class="campo-label">Prioridad</label>
@@ -1128,11 +1240,28 @@
       <div class="miembros-nota" id="pMiembrosNota"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn-danger" id="pArchivar" style="display:none">Archivar proyecto</button>
+      <button class="btn-danger" id="pArchivar" style="display:none">Archivar</button>
       <div class="der">
+        <button class="btn-ghost" id="pFinalizar" style="display:none">Finalizar</button>
         <button class="btn-ghost" data-cerrar="ovProy">Cancelar</button>
         <button class="btn-primary" id="pGuardar">Guardar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL FINALIZAR PROYECTO ═══════════ -->
+<div class="overlay" id="ovFin">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title" id="finTitulo">¿Finalizar el proyecto?</div>
+      <button class="modal-close" data-cerrar="ovFin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div style="font-size:13px; line-height:1.6; color:var(--ink-soft)" id="finTexto"></div>
+    <div class="modal-foot" style="flex-direction:column; align-items:stretch; gap:8px">
+      <button class="btn-primary" id="finCerrarTodo" style="justify-content:center">Finalizar y cerrar las tareas</button>
+      <button class="btn-ghost" id="finDejar" style="text-align:center">Finalizar y dejarlas abiertas</button>
+      <button class="btn-ghost" data-cerrar="ovFin" style="text-align:center; border-color:transparent">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1153,6 +1282,10 @@
     <span class="drawer-pos" id="dPos"></span>
     <span style="margin-left:auto; display:flex; align-items:center; gap:10px;">
       <span class="guardado" id="dGuardado">Guardado</span>
+      <button class="btn-fin" id="dFinalizar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span id="dFinTxt">Marcar como finalizada</span>
+      </button>
       <button class="icon-btn" id="dBorrar" title="Borrar tarea">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
       </button>
@@ -1170,13 +1303,7 @@
         </div>
         <div class="prop-val"><select id="dResponsable"></select></div>
       </div>
-      <div class="prop">
-        <div class="prop-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          Estado
-        </div>
-        <div class="prop-val"><select id="dEstado"></select></div>
-      </div>
+
       <div class="prop">
         <div class="prop-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 12 5 19 12"></polyline><line x1="12" y1="19" x2="12" y2="5"></line></svg>
@@ -1211,13 +1338,7 @@
         </div>
         <div class="prop-val"><select id="dCliente"></select></div>
       </div>
-      <div class="prop">
-        <div class="prop-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-          Proyecto
-        </div>
-        <div class="prop-val"><select id="dProyecto"></select></div>
-      </div>
+
       <div class="prop">
         <div class="prop-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -1225,6 +1346,15 @@
         </div>
         <div class="prop-val"><div class="switch" id="dVisible"></div></div>
       </div>
+    </div>
+
+    <div class="d-sec">
+      <div class="d-sec-head">
+        <div class="sec-title">Proyectos</div>
+        <select class="sel" id="dAddProy" style="font-size:12px;padding:5px 9px"></select>
+      </div>
+      <div id="dProyectos"></div>
+      <div id="dAvisoPriv"></div>
     </div>
 
     <div class="d-sec">
@@ -1278,15 +1408,23 @@
   const SB = window.__sb;
 
   // ═══════════════ ESTADO GLOBAL ═══════════════
-  const ESTADOS = [
-    { id: 'backlog',    label: 'Backlog'     },
-    { id: 'pendiente',  label: 'Por hacer'   },
-    { id: 'curso',      label: 'En curso'    },
-    { id: 'revision',   label: 'En revisión' },
-    { id: 'completada', label: 'Listo'       }
+  // Columnas del tablero global. Cuando entrás a un proyecto, las
+  // columnas son sus secciones; acá afuera son estos cuatro tipos,
+  // que es la traducción común entre proyectos con columnas distintas.
+  const TIPOS = [
+    { id: 'pendiente', label: 'Por hacer'   },
+    { id: 'curso',     label: 'En curso'    },
+    { id: 'revision',  label: 'En revisión' },
+    { id: 'listo',     label: 'Listo'       }
   ];
-  const EST_MAP = {};
-  ESTADOS.forEach(e => EST_MAP[e.id] = e.label);
+  const TIPO_MAP = {};
+  TIPOS.forEach(e => TIPO_MAP[e.id] = e.label);
+  const SECS_DEFECTO = [
+    { nombre: 'Por hacer',   tipo: 'pendiente', orden: 1000 },
+    { nombre: 'En curso',    tipo: 'curso',     orden: 2000 },
+    { nombre: 'En revisión', tipo: 'revision',  orden: 3000 },
+    { nombre: 'Listo',       tipo: 'listo',     orden: 4000 }
+  ];
 
   let ME = null;
   let PERSONAS = [];
@@ -1304,6 +1442,8 @@
   let COLAPSADOS = {};
   let PROYECTOS = [];
   let MIEMBROS = {};  // proyecto_id → [user_id]
+  let SECCIONES = []; // todas las secciones de los proyectos visibles
+  let TP = [];        // tarea_proyecto: dónde vive cada tarea y en qué sección
   let SUB_MAP = {};   // tarea_id → { total, hechas }
   let ADJ_MAP = {};   // tarea_id → cantidad de links
 
@@ -1381,7 +1521,7 @@
   }
 
   function estaVencida(t) {
-    if (t.estado === 'completada' || !t.vence) return false;
+    if (t.completada || !t.vence) return false;
     return diasHasta(t.vence) < 0;
   }
   function nombrePersona(id) {
@@ -1393,14 +1533,54 @@
     const c = CLIENTES.find(x => x.id === id);
     return c ? c.nombre : '—';
   }
+  function seccionesDe(proyId) {
+    return SECCIONES.filter(s => s.proyecto_id === proyId).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  }
+  function seccionDe(id) { return SECCIONES.find(s => s.id === id) || null; }
+  function tpDe(tareaId) { return TP.filter(x => x.tarea_id === tareaId); }
+  function tpEn(tareaId, proyId) { return TP.find(x => x.tarea_id === tareaId && x.proyecto_id === proyId) || null; }
+  function proyectosDe(t) {
+    return tpDe(t.id).map(x => proyectoDe(x.proyecto_id)).filter(Boolean);
+  }
+  // El tipo canónico de una tarea, para el tablero global.
+  function tipoDe(t) {
+    if (t.completada) return 'listo';
+    const filas = tpDe(t.id);
+    if (!filas.length) return 'pendiente';
+    const prin = filas.find(x => x.principal) || filas[0];
+    const sec = seccionDe(prin.seccion_id);
+    return (sec && sec.tipo) || 'pendiente';
+  }
+  function ordenDe(t, proyId) {
+    const x = proyId ? tpEn(t.id, proyId) : (tpDe(t.id)[0] || null);
+    return x ? (x.orden || 0) : (t.orden || 0);
+  }
+  // ¿Estamos adentro de un proyecto? (y no en el filtro "sin proyecto")
+  function proyActivo() {
+    return (FILTRO.proyecto && FILTRO.proyecto !== '__sinproy') ? proyectoDe(FILTRO.proyecto) : null;
+  }
+
   function proyectoDe(id) { return PROYECTOS.find(p => p.id === id) || null; }
   function nombreProyecto(id) { const p = proyectoDe(id); return p ? p.nombre : null; }
   function colorProyecto(id) { const p = proyectoDe(id); return COLORES[p && p.color] || COLORES.gris; }
+  function chipUnProyecto(p) {
+    const fin = !!p.finalizado_en;
+    return '<span class="chip-proy' + (fin ? ' fin' : '') + '"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
+         + (fin ? '✓ ' : '') + '<span class="nomp">' + esc(p.nombre) + '</span>' + (p.privado ? CANDADO : '') + '</span>';
+  }
+  // Dentro de un proyecto no repito su propio chip: solo muestro los otros.
+  function chipsProyectos(t, ctxProy) {
+    const ps = proyectosDe(t).filter(p => !ctxProy || p.id !== ctxProy.id);
+    if (!ps.length) return '';
+    return ps.map(chipUnProyecto).join('');
+  }
+
   function chipProyecto(t) {
     const p = proyectoDe(t.proyecto_id);
     if (!p) return '';
-    return '<span class="chip-proy"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
-         + esc(p.nombre) + (p.privado ? CANDADO : '') + '</span>';
+    const fin = !!p.finalizado_en;
+    return '<span class="chip-proy' + (fin ? ' fin' : '') + '"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
+         + (fin ? '✓ ' : '') + '<span class="nomp">' + esc(p.nombre) + '</span>' + (p.privado ? CANDADO : '') + '</span>';
   }
 
   function fechaCorta(iso) {
@@ -1451,13 +1631,21 @@
 
   async function cargarProyectos() {
     const { data, error } = await SB.from('proyecto')
-      .select('id, nombre, cliente_id, color, privado, archivado, creado_por')
+      .select('id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por')
       .eq('archivado', false).order('nombre');
     PROYECTOS = (error || !data) ? [] : data;
 
     MIEMBROS = {};
     const { data: ms } = await SB.from('proyecto_miembro').select('proyecto_id, user_id');
     (ms || []).forEach(m => { (MIEMBROS[m.proyecto_id] = MIEMBROS[m.proyecto_id] || []).push(m.user_id); });
+
+    const { data: secs } = await SB.from('seccion').select('id, proyecto_id, nombre, tipo, orden').order('orden');
+    SECCIONES = secs || [];
+  }
+
+  async function cargarTP() {
+    const { data } = await SB.from('tarea_proyecto').select('tarea_id, proyecto_id, seccion_id, orden, principal');
+    TP = data || [];
   }
 
   async function cargarClientes() {
@@ -1467,7 +1655,7 @@
 
   async function cargarTareas() {
     const { data, error } = await SB.from('tarea')
-      .select('id, titulo, descripcion, cliente_id, responsable_id, responsable, responsable_tipo, proyecto, estado, urgencia, proyecto_id, empieza, vence, orden, visible_cliente, completada_en, comentarios, created_at')
+      .select('id, titulo, descripcion, cliente_id, responsable_id, responsable, responsable_tipo, proyecto, estado, urgencia, proyecto_id, empieza, vence, orden, visible_cliente, completada, completada_en, comentarios, created_at')
       .order('orden', { ascending: true, nullsFirst: false });
 
     $('#cargando').style.display = 'none';
@@ -1485,6 +1673,7 @@
   // Checklists y links de todas las tareas, en dos consultas livianas.
   // Si todavía no corriste la migración 2, no rompe nada: quedan vacíos.
   async function cargarExtras() {
+    await cargarTP();
     SUB_MAP = {}; ADJ_MAP = {};
     const [subs, adjs] = await Promise.all([
       SB.from('subtarea').select('tarea_id, hecha'),
@@ -1515,12 +1704,9 @@
     $('#fCliente').innerHTML = '<option value="">Interno (sin cliente)</option>'
       + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
 
-    $('#fEstado').innerHTML = ESTADOS.map(e => '<option value="' + e.id + '">' + e.label + '</option>').join('');
-
     const opsProy = '<option value="">Sin proyecto</option>'
       + PROYECTOS.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + (p.privado ? ' 🔒' : '') + '</option>').join('');
     $('#fProyecto').innerHTML = opsProy;
-    $('#dProyecto').innerHTML = opsProy;
 
     $('#pCliente').innerHTML = '<option value="">Sin cliente (interno)</option>'
       + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
@@ -1528,19 +1714,38 @@
       '<button class="color-op" data-color="' + k + '" style="background:' + COLORES[k] + '" title="' + k + '"></button>').join('');
 
     renderProyectosSidebar();
+    llenarSeccionesForm();
+  }
+
+  // La sección del alta depende del proyecto elegido
+  function llenarSeccionesForm() {
+    const proy = $('#fProyecto').value;
+    const secs = proy ? seccionesDe(proy) : [];
+    $('#fSeccion').innerHTML = secs.length
+      ? secs.map(x => '<option value="' + x.id + '">' + esc(x.nombre) + '</option>').join('')
+      : '<option value="">—</option>';
+    $('#fSeccion').disabled = !secs.length;
   }
 
   // ═══════════════ PROYECTOS ═══════════════
+  function itemProyecto(p) {
+    const abiertas = TAREAS.filter(t => !t.completada && tpEn(t.id, p.id)).length;
+    const fin = !!p.finalizado_en;
+    return '<button class="nav-item proy' + (FILTRO.proyecto === p.id ? ' active' : '') + (fin ? ' fin' : '') + '" data-proy="' + p.id + '">' +
+             '<span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>' +
+             '<span class="nom">' + esc(p.nombre) + '</span>' +
+             (p.privado ? CANDADO : (!fin && abiertas ? '<span class="soon-tag">' + abiertas + '</span>' : '')) +
+           '</button>';
+  }
+
   function renderProyectosSidebar() {
     const cont = $('#navProyectos');
-    const items = PROYECTOS.map(p => {
-      const abiertas = TAREAS.filter(t => t.proyecto_id === p.id && t.estado !== 'completada').length;
-      return '<button class="nav-item proy' + (FILTRO.proyecto === p.id ? ' active' : '') + '" data-proy="' + p.id + '">' +
-               '<span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>' +
-               '<span class="nom">' + esc(p.nombre) + '</span>' +
-               (p.privado ? CANDADO : (abiertas ? '<span class="soon-tag">' + abiertas + '</span>' : '')) +
-             '</button>';
-    }).join('');
+    const activos = PROYECTOS.filter(p => !p.finalizado_en);
+    const finalizados = PROYECTOS.filter(p => p.finalizado_en);
+    let items = activos.map(itemProyecto).join('');
+    if (finalizados.length) {
+      items += '<div class="nav-sub-label">Finalizados</div>' + finalizados.map(itemProyecto).join('');
+    }
     cont.innerHTML = (items || '<div class="nav-vacio">Todavía no hay proyectos</div>')
       + '<button class="nav-item nuevo-proy" id="navNuevoProy">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
@@ -1561,6 +1766,9 @@
     $('#pCliente').value = p ? (p.cliente_id || '') : '';
     $('#pPrivado').classList.toggle('on', !!(p && p.privado));
     $('#pArchivar').style.display = p ? '' : 'none';
+    const bf = $('#pFinalizar');
+    bf.style.display = p ? '' : 'none';
+    bf.textContent = (p && p.finalizado_en) ? 'Reabrir' : 'Finalizar';
     pintarColores();
     pintarMiembros();
     abrir('ovProy');
@@ -1632,6 +1840,55 @@
     }
   }
 
+  // ── Finalizar / reabrir un proyecto ──────────────────────────
+  let FIN_PROY = null;
+
+  function pedirFinalizar() {
+    if (!PROY_EDIT) return;
+
+    // Reabrir es directo, no hay nada que preguntar
+    if (PROY_EDIT.finalizado_en) { finalizarProyecto(PROY_EDIT, null, true); return; }
+
+    const abiertas = TAREAS.filter(t => !t.completada && tpEn(t.id, PROY_EDIT.id));
+    if (!abiertas.length) { finalizarProyecto(PROY_EDIT, [], false); return; }
+
+    FIN_PROY = PROY_EDIT;
+    $('#finTitulo').textContent = '¿Finalizar "' + PROY_EDIT.nombre + '"?';
+    const n = abiertas.length, una = n === 1;
+    $('#finTexto').innerHTML = (una ? 'Le queda <b>1 tarea sin cerrar</b>. ' : 'Le quedan <b>' + n + ' tareas sin cerrar</b>. ')
+      + (una ? 'Podés darla por hecha junto con el proyecto, o dejarla abierta si todavía hay cola.'
+             : 'Podés darlas por hechas junto con el proyecto, o dejarlas abiertas si todavía hay cola.')
+      + '<div style="margin-top:10px; font-size:12px; color:var(--ink-mute)">El proyecto no desaparece: baja a “Finalizados” y lo podés reabrir cuando quieras.</div>';
+    $('#finCerrarTodo').textContent = una ? 'Finalizar y cerrar la tarea' : 'Finalizar y cerrar las ' + n + ' tareas';
+    $('#finDejar').textContent = una ? 'Finalizar y dejarla abierta' : 'Finalizar y dejarlas abiertas';
+    cerrar('ovProy');
+    abrir('ovFin');
+  }
+
+  async function finalizarProyecto(p, cerrarTareas, reabrir) {
+    const patch = { finalizado_en: reabrir ? null : new Date().toISOString() };
+    const { error } = await SB.from('proyecto').update(patch).eq('id', p.id);
+    if (error) { toast('No se pudo actualizar: ' + error.message, 'warn'); return; }
+
+    let cerradas = 0;
+    if (cerrarTareas && cerrarTareas.length) {
+      for (let i = 0; i < cerrarTareas.length; i++) {
+        const t = cerrarTareas[i];
+        const { error: e2 } = await SB.from('tarea')
+          .update({ completada: true, completada_en: new Date().toISOString() }).eq('id', t.id);
+        if (!e2) cerradas++;
+      }
+    }
+
+    cerrar('ovFin'); cerrar('ovProy');
+    toast(reabrir
+      ? 'Proyecto reabierto'
+      : 'Proyecto finalizado' + (cerradas ? ' · ' + cerradas + ' tarea' + (cerradas > 1 ? 's' : '') + ' cerrada' + (cerradas > 1 ? 's' : '') : ''));
+    await cargarProyectos();
+    llenarSelects();
+    await cargarTareas();
+  }
+
   async function archivarProyecto() {
     if (!PROY_EDIT) return;
     const usadas = TAREAS.filter(t => t.proyecto_id === PROY_EDIT.id).length;
@@ -1651,7 +1908,7 @@
     const q = FILTRO.texto.trim().toLowerCase();
     return TAREAS.filter(t => {
       if (q) {
-        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + (nombreProyecto(t.proyecto_id) || t.proyecto || '') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
+        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
       }
       if (FILTRO.persona === '__sin') { if (t.responsable_id) return false; }
@@ -1660,20 +1917,20 @@
       if (FILTRO.cliente === '__interno') { if (t.cliente_id) return false; }
       else if (FILTRO.cliente) { if (t.cliente_id !== FILTRO.cliente) return false; }
 
-      if (FILTRO.proyecto === '__sinproy') { if (t.proyecto_id) return false; }
-      else if (FILTRO.proyecto) { if (t.proyecto_id !== FILTRO.proyecto) return false; }
+      if (FILTRO.proyecto === '__sinproy') { if (tpDe(t.id).length) return false; }
+      else if (FILTRO.proyecto) { if (!tpEn(t.id, FILTRO.proyecto)) return false; }
 
       if (FILTRO.mias && ME && t.responsable_id !== ME.id) return false;
 
       if (FILTRO.pulso === 'vencidas' && !estaVencida(t)) return false;
-      if (FILTRO.pulso === 'revision' && t.estado !== 'revision') return false;
+      if (FILTRO.pulso === 'revision' && tipoDe(t) !== 'revision') return false;
       if (FILTRO.pulso === 'cerradas' && !cerradaEstaSemana(t)) return false;
 
       return true;
     });
   }
   function cerradaEstaSemana(t) {
-    if (t.estado !== 'completada' || !t.completada_en) return false;
+    if (!t.completada || !t.completada_en) return false;
     return (Date.now() - new Date(t.completada_en).getTime()) < 7 * 86400000;
   }
   function hayFiltro() {
@@ -1681,14 +1938,25 @@
   }
 
   // ═══════════════ RENDER ═══════════════
+  // La sección del alta depende del proyecto elegido
+  function llenarSeccionesForm() {
+    const proy = $('#fProyecto').value;
+    const secs = proy ? seccionesDe(proy) : [];
+    $('#fSeccion').innerHTML = secs.length
+      ? secs.map(x => '<option value="' + x.id + '">' + esc(x.nombre) + '</option>').join('')
+      : '<option value="">—</option>';
+    $('#fSeccion').disabled = !secs.length;
+  }
+
   function render() {
     renderPulso();
     renderProyectosSidebar();
+    renderProyectoHeader();
     const list = visibles();
 
     $('#btnLimpiar').style.display = hayFiltro() ? '' : 'none';
     $('#agrupar').style.display = VISTA === 'lista' ? '' : 'none';
-    $('#cMias').textContent = ME ? TAREAS.filter(t => t.responsable_id === ME.id && t.estado !== 'completada').length : 0;
+    $('#cMias').textContent = ME ? TAREAS.filter(t => t.responsable_id === ME.id && !t.completada).length : 0;
 
     const abiertas = TAREAS.filter(t => estaVencida(t)).length;
     $('#navTablero').classList.toggle('active', !FILTRO.proyecto);
@@ -1764,7 +2032,7 @@
     $('#calSemanas').innerHTML = semanas.map(ini => dibujarSemana(ini, conFecha, hoy, mesRef)).join('');
 
     // Bandeja de sin fecha
-    const sin = list.filter(t => !rango(t) && t.estado !== 'completada');
+    const sin = list.filter(t => !rango(t) && !t.completada);
     $('#bandejaCount').textContent = sin.length;
     $('#bandejaBody').innerHTML = sin.length
       ? sin.map(t =>
@@ -1820,7 +2088,7 @@
 
     const barras = visibles.map(p => {
       const t = p.x.t, r = p.x.r;
-      const cls = ['cal-bar', 'e-' + (t.estado || 'pendiente')];
+      const cls = ['cal-bar', 'e-' + (t.completada ? 'completada' : tipoDe(t))];
       if (estaVencida(t)) cls.push('atrasada');
       if (r.ini < isoIni) cls.push('sigue-izq');
       if (r.fin > isoFin) cls.push('sigue-der');
@@ -1914,9 +2182,47 @@
     if (DETALLE && DETALLE.id === t.id) { llenarDrawer(t); cargarActividad(t.id); }
   }
 
+  function renderProyectoHeader() {
+    const p = proyActivo();
+    const h = $('#proyHeader');
+    h.classList.toggle('on', !!p);
+    $('#tituloGlobal').style.display = p ? 'none' : '';
+    // El agrupador de la lista: adentro de un proyecto, por sección
+    const sel = $('#agrupar');
+    const opSec = sel.querySelector('option[value="seccion"]');
+    if (p && !opSec) {
+      const o = document.createElement('option');
+      o.value = 'seccion'; o.textContent = 'Agrupar por sección';
+      sel.insertBefore(o, sel.firstChild);
+      AGRUPAR = 'seccion'; sel.value = 'seccion';
+    } else if (!p && opSec) {
+      opSec.remove();
+      if (AGRUPAR === 'seccion') { AGRUPAR = 'responsable'; sel.value = 'responsable'; }
+    }
+    if (!p) return;
+
+    $('#proyIcono').style.background = COLORES[p.color] || COLORES.gris;
+    $('#proyNombre').innerHTML = esc(p.nombre) + (p.privado ? CANDADO : '')
+      + (p.finalizado_en ? '<span class="badge-fin">Finalizado</span>' : '');
+
+    const ids = MIEMBROS[p.id] || [];
+    const avat = ids.map(id => {
+      const n = nombrePersona(id);
+      return n ? '<div class="avatar-sm" title="' + esc(n) + '">' + esc(iniciales(n, '')) + '</div>' : '';
+    }).join('');
+    const tot = TAREAS.filter(t => tpEn(t.id, p.id)).length;
+    const abiertas = TAREAS.filter(t => !t.completada && tpEn(t.id, p.id)).length;
+
+    $('#proyMeta').innerHTML =
+      (p.cliente_id ? '<span class="pill">' + esc(nombreCliente(p.cliente_id)) + '</span>' : '<span class="pill interno">Interno</span>')
+      + '<span>' + abiertas + ' abierta' + (abiertas === 1 ? '' : 's') + ' de ' + tot + '</span>'
+      + (avat ? '<span class="proy-avatares">' + avat + '</span>' : '')
+      + (p.privado ? '<span>· Solo lo ven sus miembros</span>' : '');
+  }
+
   function renderPulso() {
     $('#pVencidas').textContent = TAREAS.filter(estaVencida).length;
-    $('#pRevision').textContent = TAREAS.filter(t => t.estado === 'revision').length;
+    $('#pRevision').textContent = TAREAS.filter(t => !t.completada && tipoDe(t) === 'revision').length;
     $('#pCerradas').textContent = TAREAS.filter(cerradaEstaSemana).length;
     $$('.pulso-card').forEach(c => c.classList.toggle('on', FILTRO.pulso === c.dataset.pulso));
   }
@@ -1932,37 +2238,75 @@
   }
   const OJO_SVG = '<svg class="ojo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
 
+  // Columnas del tablero: las secciones del proyecto activo, o los
+  // cuatro tipos canónicos si estamos en la vista global.
+  function columnasDelTablero() {
+    const p = proyActivo();
+    if (p) {
+      return seccionesDe(p.id).map(s => ({ id: s.id, label: s.nombre, tipo: s.tipo, seccion: true }));
+    }
+    return TIPOS.map(t => ({ id: t.id, label: t.label, tipo: t.id, seccion: false }));
+  }
+
   function renderKanban(list) {
+    const p = proyActivo();
+    const cols = columnasDelTablero();
     const cont = $('#kanban');
-    cont.innerHTML = ESTADOS.map(e => {
-      const items = list.filter(t => (t.estado || 'pendiente') === e.id)
-                        .sort((a, b) => (a.orden || 0) - (b.orden || 0));
-      const cards = items.length
-        ? items.map(cardHTML).join('')
-        : '<div class="empty-col">Nada acá</div>';
+
+    if (p && !cols.length) {
+      cont.innerHTML = '<div class="vacio" style="grid-column:1/-1">' +
+        '<h3>Este proyecto no tiene secciones</h3>' +
+        '<p>Las secciones son las columnas del tablero. Podés armarlas a medida de este proyecto.</p>' +
+        '<button class="btn-primary" id="secDefecto">Crear las cuatro por defecto</button></div>';
+      const bd = $('#secDefecto');
+      if (bd) bd.addEventListener('click', () => crearSeccionesDefecto(p.id));
+      return;
+    }
+
+    cont.innerHTML = cols.map(c => {
+      const items = list.filter(t => p
+            ? ((tpEn(t.id, p.id) || {}).seccion_id === c.id)
+            : (tipoDe(t) === c.id))
+          .sort((a, b) => ordenDe(a, p ? p.id : null) - ordenDe(b, p ? p.id : null));
+      const cards = items.length ? items.map(t => cardHTML(t, p)).join('') : '<div class="empty-col">Nada acá</div>';
       return '' +
-        '<div class="columna" data-estado="' + e.id + '">' +
+        '<div class="columna" data-col="' + c.id + '" data-tipo="' + c.tipo + '">' +
           '<div class="columna-head">' +
-            '<div class="columna-titulo"><span class="dot ' + e.id + '"></span>' + e.label + '</div>' +
+            '<div class="columna-titulo"><span class="dot ' + c.tipo + '"></span>' +
+              (c.seccion
+                ? '<span class="sec-nombre" data-sec="' + c.id + '" title="Doble click para renombrar">' + esc(c.label) + '</span>'
+                : esc(c.label)) +
+            '</div>' +
             '<div style="display:flex;align-items:center;gap:4px">' +
-              '<button class="col-add" data-nueva="' + e.id + '" title="Nueva tarea acá">' +
+              (c.seccion ? '<button class="col-add" data-secdel="' + c.id + '" title="Borrar sección">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' +
+              '</button>' : '') +
+              '<button class="col-add" data-nueva="' + c.id + '" title="Nueva tarea acá">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
               '</button>' +
               '<div class="columna-count">' + items.length + '</div>' +
             '</div>' +
           '</div>' +
-          '<div class="columna-body" data-estado="' + e.id + '">' + cards + '</div>' +
+          '<div class="columna-body" data-col="' + c.id + '">' + cards + '</div>' +
         '</div>';
-    }).join('');
+    }).join('')
+    + (p ? '<button class="col-nueva" id="btnNuevaSec">+ Agregar sección</button>' : '');
+
     activarDnD();
+    const bs = $('#btnNuevaSec');
+    if (bs) bs.addEventListener('click', () => agregarSeccion(p.id));
   }
 
-  function cardHTML(t) {
+  function cardHTML(t, ctxProy) {
     const f = fechaTxt(t.vence);
     const venc = estaVencida(t);
+    const hecha = !!t.completada;
     return '' +
-      '<div class="card-k' + (venc ? ' vencida' : '') + '" draggable="true" data-id="' + t.id + '">' +
-        '<div class="card-k-top">' + chipCliente(t) + chipProyecto(t) +
+      '<div class="card-k' + (venc ? ' vencida' : '') + (hecha ? ' hecha' : '') + '" draggable="true" data-id="' + t.id + '">' +
+        '<button class="card-k-fin" data-fin="' + t.id + '" title="' + (hecha ? 'Reabrir' : 'Marcar como finalizada') + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' +
+        '</button>' +
+        '<div class="card-k-top">' + chipCliente(t) + chipsProyectos(t, ctxProy) +
           (t.urgencia === 'urgente' ? '<span class="estado-pill" style="background:var(--warn-soft);color:var(--ink)">urgente</span>' : '') +
         '</div>' +
         '<div class="card-k-titulo">' + esc(t.titulo) + '</div>' +
@@ -1980,6 +2324,27 @@
   }
 
   function renderLista(list) {
+    const p = proyActivo();
+
+    // Dentro de un proyecto la lista se agrupa por sección, con una
+    // fila para agregar tarea al final de cada una — como Asana.
+    if (p && AGRUPAR === 'seccion') {
+      const secs = seccionesDe(p.id);
+      if (!secs.length) {
+        $('#lista').innerHTML = '<div class="vacio"><h3>Este proyecto no tiene secciones</h3>'
+          + '<p>Creá la primera desde el Tablero.</p></div>';
+        return;
+      }
+      const sinSec = list.filter(t => { const x = tpEn(t.id, p.id); return x && !x.seccion_id; });
+      let html = secs.map(sec => bloqueSeccion(sec, list.filter(t => (tpEn(t.id, p.id) || {}).seccion_id === sec.id))).join('');
+      if (sinSec.length) html += bloqueSeccion({ id: '__sinsec', nombre: 'Sin sección', tipo: 'pendiente' }, sinSec, true);
+      html += '<button class="btn-ghost" id="btnNuevaSecLista" style="align-self:flex-start">+ Agregar sección</button>';
+      $('#lista').innerHTML = html;
+      const b = $('#btnNuevaSecLista');
+      if (b) b.addEventListener('click', () => agregarSeccion(p.id));
+      return;
+    }
+
     const grupos = {};
     list.forEach(t => {
       let k, label, orden;
@@ -1992,13 +2357,14 @@
         label = nombreCliente(t.cliente_id);
         orden = label;
       } else if (AGRUPAR === 'proyecto') {
-        k = t.proyecto_id || '__sinproy';
-        label = nombreProyecto(t.proyecto_id) || 'Sin proyecto';
+        const ps = proyectosDe(t);
+        k = ps.length ? ps[0].id : '__sinproy';
+        label = ps.length ? ps[0].nombre : 'Sin proyecto';
         orden = label;
       } else {
-        k = t.estado || 'pendiente';
-        label = EST_MAP[k] || k;
-        orden = String(ESTADOS.findIndex(e => e.id === k)).padStart(2, '0');
+        k = tipoDe(t);
+        label = TIPO_MAP[k] || k;
+        orden = String(TIPOS.findIndex(e => e.id === k)).padStart(2, '0');
       }
       if (!grupos[k]) grupos[k] = { label: label, orden: orden, items: [] };
       grupos[k].items.push(t);
@@ -2014,35 +2380,59 @@
     $('#lista').innerHTML = claves.map(k => {
       const g = grupos[k];
       const vencidas = g.items.filter(estaVencida).length;
-      const abiertas = g.items.filter(t => t.estado !== 'completada').length;
-      // Ordenar: vencidas primero, después por fecha, después sin fecha
-      const items = g.items.slice().sort((a, b) => {
-        const av = estaVencida(a) ? 0 : 1, bv = estaVencida(b) ? 0 : 1;
-        if (av !== bv) return av - bv;
-        const ad = a.vence || '9999-12-31', bd = b.vence || '9999-12-31';
-        if (ad !== bd) return ad.localeCompare(bd);
-        return (a.orden || 0) - (b.orden || 0);
-      });
+      const abiertas = g.items.filter(t => !t.completada).length;
+      const items = ordenarFilas(g.items);
       const col = COLAPSADOS[k] ? ' collapsed' : '';
       return '' +
         '<div class="grupo' + col + '" data-grupo="' + esc(k) + '">' +
-          '<div class="grupo-head">' +
-            '<div class="grupo-head-left">' +
-              '<svg class="grupo-toggle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
-              '<div class="grupo-title">' + esc(g.label) + '</div>' +
-              (vencidas ? '<span class="grupo-badge alerta">' + vencidas + ' vencida' + (vencidas > 1 ? 's' : '') + '</span>'
-                        : '<span class="grupo-badge">' + abiertas + ' abierta' + (abiertas === 1 ? '' : 's') + '</span>') +
-            '</div>' +
-            '<div class="grupo-count">' + g.items.length + '</div>' +
-          '</div>' +
+          cabezaGrupo(g.label, vencidas, abiertas, g.items.length) +
           '<div class="grupo-body">' + items.map(filaHTML).join('') + '</div>' +
         '</div>';
     }).join('');
   }
 
+  function ordenarFilas(items) {
+    return items.slice().sort((a, b) => {
+      const av = estaVencida(a) ? 0 : 1, bv = estaVencida(b) ? 0 : 1;
+      if (av !== bv) return av - bv;
+      const ad = a.vence || '9999-12-31', bd = b.vence || '9999-12-31';
+      if (ad !== bd) return ad.localeCompare(bd);
+      return (a.orden || 0) - (b.orden || 0);
+    });
+  }
+
+  function cabezaGrupo(label, vencidas, abiertas, total) {
+    return '<div class="grupo-head">' +
+      '<div class="grupo-head-left">' +
+        '<svg class="grupo-toggle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
+        '<div class="grupo-title">' + esc(label) + '</div>' +
+        (vencidas ? '<span class="grupo-badge alerta">' + vencidas + ' vencida' + (vencidas > 1 ? 's' : '') + '</span>'
+                  : '<span class="grupo-badge">' + abiertas + ' abierta' + (abiertas === 1 ? '' : 's') + '</span>') +
+      '</div>' +
+      '<div class="grupo-count">' + total + '</div>' +
+    '</div>';
+  }
+
+  function bloqueSeccion(sec, items, sinSeccion) {
+    const vencidas = items.filter(estaVencida).length;
+    const abiertas = items.filter(t => !t.completada).length;
+    const col = COLAPSADOS[sec.id] ? ' collapsed' : '';
+    return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '">' +
+      cabezaGrupo(sec.nombre, vencidas, abiertas, items.length) +
+      '<div class="grupo-body">' +
+        ordenarFilas(items).map(filaHTML).join('') +
+        (sinSeccion ? '' :
+          '<div class="fila-add">' +
+            '<span class="mas">+</span>' +
+            '<input type="text" data-addsec="' + sec.id + '" placeholder="Agregar tarea…">' +
+          '</div>') +
+      '</div>' +
+    '</div>';
+  }
+
   function filaHTML(t) {
     const f = fechaTxt(t.vence);
-    const done = t.estado === 'completada';
+    const done = !!t.completada;
     return '' +
       '<div class="fila' + (done ? ' done' : '') + '" data-id="' + t.id + '">' +
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
@@ -2050,8 +2440,8 @@
           '<div class="fila-titulo">' + esc(t.titulo) + (t.visible_cliente ? ' ' + OJO_SVG : '') + '</div>' +
           (t.descripcion ? '<div class="fila-desc">' + esc(t.descripcion) + '</div>' : '') +
         '</div>' +
-        chipCliente(t) + chipProyecto(t) +
-        '<span class="estado-pill ' + (t.estado || 'pendiente') + '">' + esc(EST_MAP[t.estado] || t.estado) + '</span>' +
+        chipCliente(t) + chipsProyectos(t, proyActivo()) +
+        '<span class="estado-pill ' + tipoDe(t) + '">' + esc(TIPO_MAP[tipoDe(t)]) + '</span>' +
         avatarDe(t) +
         '<span class="fecha ' + f.clase + '">' + (f.txt || '—') + '</span>' +
       '</div>';
@@ -2092,7 +2482,7 @@
         const id = DRAG_ID || (e.dataTransfer ? e.dataTransfer.getData('text/plain') : null);
         limpiarLineas();
         if (!id) return;
-        await soltar(id, col.dataset.estado, body, e.clientY);
+        await soltar(id, col.dataset.col, col.dataset.tipo, body, e.clientY);
       });
     });
   }
@@ -2117,58 +2507,155 @@
     return null;
   }
 
-  async function soltar(id, estadoDestino, body, y) {
+  async function soltar(id, colId, colTipo, body, y) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
+    const p = proyActivo();
 
-    // Calcular nuevo orden entre vecinos
+    // Nuevo orden entre vecinos de la columna
     const ref = refDespuesDe(body, y);
     const cards = tarjetasDe(body);
     const idsCol = cards.map(c => c.dataset.id);
     const pos = ref ? idsCol.indexOf(ref.dataset.id) : idsCol.length;
-
-    const ordenDe = cid => {
+    const ordenCol = cid => {
       const x = TAREAS.find(z => z.id === cid);
-      return x && typeof x.orden === 'number' ? x.orden : 0;
+      return x ? ordenDe(x, p ? p.id : null) : 0;
     };
-    const antes = pos > 0 ? ordenDe(idsCol[pos - 1]) : null;
-    const despues = pos < idsCol.length ? ordenDe(idsCol[pos]) : null;
-
+    const antes = pos > 0 ? ordenCol(idsCol[pos - 1]) : null;
+    const despues = pos < idsCol.length ? ordenCol(idsCol[pos]) : null;
     let nuevoOrden;
     if (antes === null && despues === null) nuevoOrden = Date.now() / 1000;
     else if (antes === null) nuevoOrden = despues - 1000;
     else if (despues === null) nuevoOrden = antes + 1000;
     else nuevoOrden = (antes + despues) / 2;
 
-    const estadoAnterior = t.estado;
-    const ordenAnterior = t.orden;
-    const compAnterior = t.completada_en;
+    // ── Dentro de un proyecto: mover de sección ──────────────
+    if (p) {
+      const fila = tpEn(t.id, p.id);
+      if (!fila) return;
+      const secAnterior = fila.seccion_id, ordenAnterior = fila.orden;
+      fila.seccion_id = colId; fila.orden = nuevoOrden;
+      render();
+      const { error } = await SB.from('tarea_proyecto')
+        .update({ seccion_id: colId, orden: nuevoOrden })
+        .eq('tarea_id', t.id).eq('proyecto_id', p.id);
+      if (error) {
+        fila.seccion_id = secAnterior; fila.orden = ordenAnterior;
+        render(); toast('No se pudo mover: ' + error.message, 'warn');
+        return;
+      }
+      if (DETALLE && DETALLE.id === t.id) { pintarProyectosDrawer(); cargarActividad(t.id); }
+      return;
+    }
 
-    // Optimista
-    t.estado = estadoDestino;
-    t.orden = nuevoOrden;
-    if (estadoDestino === 'completada' && estadoAnterior !== 'completada') t.completada_en = new Date().toISOString();
-    if (estadoDestino !== 'completada') t.completada_en = null;
+    // ── Tablero global: las columnas son los cuatro tipos ────
+    const compAnterior = t.completada, compEnAnterior = t.completada_en;
+    const quiereListo = colTipo === 'listo';
+
+    if (t.completada !== quiereListo) {
+      t.completada = quiereListo;
+      t.completada_en = quiereListo ? new Date().toISOString() : null;
+    }
+
+    // Si tiene proyecto principal, además la muevo a una sección de ese tipo
+    const filas = tpDe(t.id);
+    const prin = filas.find(x => x.principal) || filas[0] || null;
+    let secDestino = null;
+    if (prin && !quiereListo) {
+      const cand = seccionesDe(prin.proyecto_id).filter(x => x.tipo === colTipo);
+      if (cand.length) secDestino = cand[0].id;
+    }
+    const secAnterior = prin ? prin.seccion_id : null;
+    if (secDestino && prin) prin.seccion_id = secDestino;
     render();
 
-    const patch = { estado: t.estado, orden: t.orden, completada_en: t.completada_en };
-    const { error } = await SB.from('tarea').update(patch).eq('id', id);
+    const { error } = await SB.from('tarea')
+      .update({ completada: t.completada, completada_en: t.completada_en }).eq('id', t.id);
     if (error) {
-      t.estado = estadoAnterior; t.orden = ordenAnterior; t.completada_en = compAnterior;
-      render();
-      toast('No se pudo mover: ' + error.message, 'warn');
+      t.completada = compAnterior; t.completada_en = compEnAnterior;
+      if (prin) prin.seccion_id = secAnterior;
+      render(); toast('No se pudo mover: ' + error.message, 'warn');
+      return;
     }
+    if (secDestino && prin) {
+      await SB.from('tarea_proyecto').update({ seccion_id: secDestino })
+        .eq('tarea_id', t.id).eq('proyecto_id', prin.proyecto_id);
+    }
+    if (!prin && !quiereListo && colTipo !== 'pendiente') {
+      toast('Esa tarea no está en ningún proyecto: solo puede ir a Por hacer o Listo');
+    }
+    if (DETALLE && DETALLE.id === t.id) { pintarBotonFin(); pintarProyectosDrawer(); }
+  }
+
+  // ═══════════════ SECCIONES ═══════════════
+  async function crearSeccionesDefecto(proyId) {
+    const filas = SECS_DEFECTO.map(x => ({ proyecto_id: proyId, nombre: x.nombre, tipo: x.tipo, orden: x.orden }));
+    const { error } = await SB.from('seccion').insert(filas);
+    if (error) { toast('No se pudieron crear: ' + error.message, 'warn'); return; }
+    await cargarProyectos(); render();
+  }
+
+  async function agregarSeccion(proyId) {
+    const nombre = prompt('Nombre de la sección nueva:');
+    if (!nombre || !nombre.trim()) return;
+    const secs = seccionesDe(proyId);
+    const orden = secs.length ? Math.max.apply(null, secs.map(x => x.orden || 0)) + 1000 : 1000;
+    const { error } = await SB.from('seccion')
+      .insert({ proyecto_id: proyId, nombre: nombre.trim(), tipo: 'pendiente', orden: orden });
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+    await cargarProyectos(); render();
+    toast('Sección creada');
+  }
+
+  async function renombrarSeccion(secId, nombre) {
+    const sec = seccionDe(secId);
+    if (!sec || !nombre.trim() || nombre.trim() === sec.nombre) { render(); return; }
+    const antes = sec.nombre;
+    sec.nombre = nombre.trim();
+    render();
+    const { error } = await SB.from('seccion').update({ nombre: sec.nombre }).eq('id', secId);
+    if (error) { sec.nombre = antes; render(); toast('No se pudo renombrar: ' + error.message, 'warn'); }
+  }
+
+  async function borrarSeccion(secId) {
+    const sec = seccionDe(secId);
+    if (!sec) return;
+    const dentro = TP.filter(x => x.seccion_id === secId).length;
+    if (!confirm('¿Borrar la sección "' + sec.nombre + '"?' +
+      (dentro ? '\n\nSus ' + dentro + ' tarea(s) no se borran: quedan en "Sin sección".' : ''))) return;
+    const { error } = await SB.from('seccion').delete().eq('id', secId);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    await cargarProyectos(); await cargarTareas();
+    toast('Sección borrada');
+  }
+
+  // Alta rápida desde la fila "Agregar tarea…" de una sección
+  async function altaRapida(secId, titulo) {
+    const p = proyActivo();
+    if (!p || !titulo.trim()) return;
+    const { data, error } = await SB.from('tarea')
+      .insert({ titulo: titulo.trim(), responsable_tipo: 'agencia', cliente_id: p.cliente_id || null })
+      .select('id').single();
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+    const enSec = TP.filter(x => x.seccion_id === secId);
+    const orden = enSec.length ? Math.max.apply(null, enSec.map(x => x.orden || 0)) + 1000 : 1000;
+    const { error: e2 } = await SB.from('tarea_proyecto')
+      .insert({ tarea_id: data.id, proyecto_id: p.id, seccion_id: secId, orden: orden, principal: true });
+    if (e2) toast('Tarea creada, pero no se pudo poner en la sección: ' + e2.message, 'warn');
+    await SB.from('tarea').update({ proyecto_id: p.id }).eq('id', data.id);
+    await cargarTareas();
   }
 
   // ═══════════════ FORM ═══════════════
-  function abrirForm(t, estadoPreset) {
+  function abrirForm(t, seccionPreset) {
     EDITANDO = t;
     $('#formTitulo').textContent = t ? 'Editar tarea' : 'Nueva tarea';
     $('#fTitulo').value = t ? (t.titulo || '') : '';
     $('#fDesc').value = t ? (t.descripcion || '') : '';
     $('#fResponsable').value = t ? (t.responsable_id || '') : (ME ? ME.id : '');
     $('#fCliente').value = t ? (t.cliente_id || '') : '';
-    $('#fEstado').value = t ? (t.estado || 'pendiente') : (estadoPreset || 'pendiente');
+    llenarSeccionesForm();
+    if (seccionPreset) $('#fSeccion').value = seccionPreset;
     $('#fPrioridad').value = t ? (t.urgencia || 'normal') : 'normal';
     $('#fEmpieza').value = t ? (t.empieza || '') : '';
     $('#fVence').value = t ? (t.vence || '') : '';
@@ -2184,7 +2671,8 @@
     if (!titulo) { toast('Ponele un título a la tarea', 'warn'); $('#fTitulo').focus(); return; }
 
     const respId = $('#fResponsable').value || null;
-    const estado = $('#fEstado').value;
+    const proyId = $('#fProyecto').value || null;
+    const secId = $('#fSeccion').value || null;
     const fila = {
       titulo: titulo,
       descripcion: $('#fDesc').value.trim() || null,
@@ -2192,9 +2680,8 @@
       responsable: respId ? nombrePersona(respId) : null,
       responsable_tipo: 'agencia',
       cliente_id: $('#fCliente').value || null,
-      proyecto_id: $('#fProyecto').value || null,
-      proyecto: $('#fProyecto').value ? nombreProyecto($('#fProyecto').value) : null,
-      estado: estado,
+      proyecto_id: proyId,
+      proyecto: proyId ? nombreProyecto(proyId) : null,
       urgencia: $('#fPrioridad').value,
       empieza: $('#fEmpieza').value || null,
       vence: $('#fVence').value || null,
@@ -2204,17 +2691,20 @@
     $('#fGuardar').disabled = true;
     try {
       if (EDITANDO) {
-        if (estado === 'completada' && EDITANDO.estado !== 'completada') fila.completada_en = new Date().toISOString();
-        if (estado !== 'completada') fila.completada_en = null;
         const { error } = await SB.from('tarea').update(fila).eq('id', EDITANDO.id);
         if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
         toast('Tarea actualizada');
       } else {
-        const enCol = TAREAS.filter(t => t.estado === estado);
-        fila.orden = enCol.length ? Math.max.apply(null, enCol.map(t => t.orden || 0)) + 1000 : Date.now() / 1000;
-        if (estado === 'completada') fila.completada_en = new Date().toISOString();
+        fila.orden = Date.now() / 1000;
         const { data, error } = await SB.from('tarea').insert(fila).select('id').single();
         if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+        if (proyId) {
+          const enSec = TP.filter(x => x.seccion_id === secId);
+          const ord = enSec.length ? Math.max.apply(null, enSec.map(x => x.orden || 0)) + 1000 : 1000;
+          const { error: e2 } = await SB.from('tarea_proyecto')
+            .insert({ tarea_id: data.id, proyecto_id: proyId, seccion_id: secId, orden: ord, principal: true });
+          if (e2) toast('Tarea creada, pero no entró al proyecto: ' + e2.message, 'warn');
+        }
         toast('Tarea creada');
         cerrar('ovForm');
         await cargarTareas();
@@ -2304,9 +2794,6 @@
       + PERSONAS.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
     $('#dResponsable').value = t.responsable_id || '';
 
-    $('#dEstado').innerHTML = ESTADOS.map(e => '<option value="' + e.id + '">' + e.label + '</option>').join('');
-    $('#dEstado').value = t.estado || 'pendiente';
-
     $('#dCliente').innerHTML = '<option value="">Interno (sin cliente)</option>'
       + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
     $('#dCliente').value = t.cliente_id || '';
@@ -2314,8 +2801,9 @@
     $('#dEmpieza').value = t.empieza || '';
     $('#dVence').value = t.vence || '';
     $('#dPrioridad').value = t.urgencia || 'normal';
-    $('#dProyecto').value = t.proyecto_id || '';
     $('#dVisible').classList.toggle('on', !!t.visible_cliente);
+    pintarBotonFin();
+    pintarProyectosDrawer();
     pintarVenceTag();
 
     const ids = idsVisibles();
@@ -2323,6 +2811,97 @@
     $('#dPos').textContent = i >= 0 ? (i + 1) + ' de ' + ids.length : '';
     $('#dPrev').disabled = i <= 0;
     $('#dNext').disabled = i === -1 || i >= ids.length - 1;
+  }
+
+  function pintarBotonFin() {
+    if (!DETALLE) return;
+    const hecha = !!DETALLE.completada;
+    $('#dFinalizar').classList.toggle('on', hecha);
+    $('#dFinTxt').textContent = hecha ? 'Finalizada' : 'Marcar como finalizada';
+    $('#dFinalizar').title = hecha ? 'Reabrir tarea' : 'Marcar como finalizada';
+  }
+
+  // Los proyectos donde vive la tarea, cada uno con su sección
+  function pintarProyectosDrawer() {
+    if (!DETALLE) return;
+    const filas = tpDe(DETALLE.id);
+
+    $('#dProyectos').innerHTML = filas.length ? filas.map(f => {
+      const p = proyectoDe(f.proyecto_id);
+      if (!p) return '';
+      const secs = seccionesDe(p.id);
+      return '<div class="tp-fila">' +
+          '<span class="nomp"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
+            + esc(p.nombre) + (p.privado ? CANDADO : '') + '</span>' +
+          '<select data-tpsec="' + p.id + '">' +
+            '<option value="">Sin sección</option>' +
+            secs.map(x => '<option value="' + x.id + '"' + (x.id === f.seccion_id ? ' selected' : '') + '>' + esc(x.nombre) + '</option>').join('') +
+          '</select>' +
+          '<button class="mini-del" data-tpdel="' + p.id + '" title="Sacar de este proyecto">×</button>' +
+        '</div>';
+    }).join('') : '<div class="vacio-mini">No está en ningún proyecto. Vive solo en el tablero general.</div>';
+
+    // Selector para sumarla a otro proyecto
+    const yaEsta = filas.map(f => f.proyecto_id);
+    const libres = PROYECTOS.filter(p => yaEsta.indexOf(p.id) === -1);
+    $('#dAddProy').innerHTML = '<option value="">+ Agregar a un proyecto…</option>'
+      + libres.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + (p.privado ? ' 🔒' : '') + '</option>').join('');
+    $('#dAddProy').style.display = libres.length ? '' : 'none';
+
+    // Aviso honesto: multi-proyecto puede romper la privacidad
+    const tienePrivado = filas.some(f => { const p = proyectoDe(f.proyecto_id); return p && p.privado; });
+    const tienePublico = filas.some(f => { const p = proyectoDe(f.proyecto_id); return p && !p.privado; });
+    $('#dAvisoPriv').innerHTML = (tienePrivado && tienePublico)
+      ? '<div class="aviso-privadidad aviso-privacidad">⚠️ Esta tarea está en un proyecto privado <b>y</b> en uno público. '
+        + 'Al estar en el público, la ve todo el equipo: el candado del privado ya no la protege.</div>'
+      : '';
+  }
+
+  async function agregarAProyecto(proyId) {
+    if (!DETALLE) return;
+    const p = proyectoDe(proyId);
+    const filas = tpDe(DETALLE.id);
+    const tienePrivado = filas.some(f => { const x = proyectoDe(f.proyecto_id); return x && x.privado; });
+    if (p && !p.privado && tienePrivado) {
+      if (!confirm('Esta tarea está en un proyecto privado.\n\nAl agregarla a "' + p.nombre + '" (público) va a pasar a verla todo el equipo.\n\n¿Seguro?')) {
+        $('#dAddProy').value = '';
+        return;
+      }
+    }
+    const secs = seccionesDe(proyId);
+    const { error } = await SB.from('tarea_proyecto').insert({
+      tarea_id: DETALLE.id, proyecto_id: proyId,
+      seccion_id: secs.length ? secs[0].id : null,
+      orden: Date.now() / 1000,
+      principal: filas.length === 0
+    });
+    if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
+    if (!filas.length) await SB.from('tarea').update({ proyecto_id: proyId }).eq('id', DETALLE.id);
+    await cargarExtras();
+    pintarProyectosDrawer(); render(); cargarActividad(DETALLE.id);
+    toast('Agregada a ' + (p ? p.nombre : 'el proyecto'));
+  }
+
+  async function sacarDeProyecto(proyId) {
+    if (!DETALLE) return;
+    const { error } = await SB.from('tarea_proyecto').delete()
+      .eq('tarea_id', DETALLE.id).eq('proyecto_id', proyId);
+    if (error) { toast('No se pudo sacar: ' + error.message, 'warn'); return; }
+    await cargarExtras();
+    pintarProyectosDrawer(); render(); cargarActividad(DETALLE.id);
+  }
+
+  async function moverSeccionDesdeDrawer(proyId, secId) {
+    if (!DETALLE) return;
+    const fila = tpEn(DETALLE.id, proyId);
+    if (!fila) return;
+    const antes = fila.seccion_id;
+    fila.seccion_id = secId || null;
+    render();
+    const { error } = await SB.from('tarea_proyecto').update({ seccion_id: secId || null })
+      .eq('tarea_id', DETALLE.id).eq('proyecto_id', proyId);
+    if (error) { fila.seccion_id = antes; render(); toast('No se pudo mover: ' + error.message, 'warn'); return; }
+    flashGuardado(); cargarActividad(DETALLE.id);
   }
 
   function pintarVenceTag() {
@@ -2493,7 +3072,10 @@
     const q = '<b>' + esc(a.actor_nombre || 'Alguien') + '</b> ';
     switch (a.campo) {
       case 'creada':      return q + 'creó la tarea';
-      case 'estado':      return q + 'movió a <b>' + esc(EST_MAP[a.valor_nuevo] || a.valor_nuevo) + '</b>';
+      case 'seccion':       return q + 'movió a <b>' + esc(a.valor_nuevo || 'sin sección') + '</b>';
+      case 'completada':    return q + (a.valor_nuevo === 'true' ? 'marcó la tarea como <b>finalizada</b>' : '<b>reabrió</b> la tarea');
+      case 'proyecto_alta': return q + 'agregó la tarea a <b>' + esc(a.valor_nuevo) + '</b>';
+      case 'proyecto_baja': return q + 'sacó la tarea de <b>' + esc(a.valor_anterior) + '</b>';
       case 'responsable': return q + (a.valor_nuevo ? 'asignó a <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó el responsable');
       case 'empieza':     return q + (a.valor_nuevo ? 'puso inicio el <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó la fecha de inicio');
       case 'vence':       return q + (a.valor_nuevo ? 'puso vencimiento el <b>' + esc(a.valor_nuevo) + '</b>' : 'sacó el vencimiento');
@@ -2565,14 +3147,16 @@
   async function alternarCompletada(id) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
-    const nuevo = t.estado === 'completada' ? 'pendiente' : 'completada';
-    const prev = t.estado, prevComp = t.completada_en;
-    t.estado = nuevo;
-    t.completada_en = nuevo === 'completada' ? new Date().toISOString() : null;
+    const nuevo = !t.completada;
+    const prev = t.completada, prevComp = t.completada_en;
+    t.completada = nuevo;
+    t.completada_en = nuevo ? new Date().toISOString() : null;
     render();
+    if (DETALLE && DETALLE.id === id) pintarBotonFin();
     const { error } = await SB.from('tarea')
-      .update({ estado: nuevo, completada_en: t.completada_en }).eq('id', id);
-    if (error) { t.estado = prev; t.completada_en = prevComp; render(); toast('No se pudo actualizar: ' + error.message, 'warn'); }
+      .update({ completada: nuevo, completada_en: t.completada_en }).eq('id', id);
+    if (error) { t.completada = prev; t.completada_en = prevComp; render(); toast('No se pudo actualizar: ' + error.message, 'warn'); return; }
+    if (DETALLE && DETALLE.id === id) cargarActividad(id);
   }
 
   // ═══════════════ MODALES ═══════════════
@@ -2595,6 +3179,7 @@
   $('#dPrev').addEventListener('click', () => navegar(-1));
   $('#dNext').addEventListener('click', () => navegar(1));
   $('#dBorrar').addEventListener('click', () => borrarTarea(DETALLE));
+  $('#dFinalizar').addEventListener('click', () => { if (DETALLE) alternarCompletada(DETALLE.id); });
 
   // ── Drawer: cada campo se guarda solo ────────────────────────
   $('#dTitulo').addEventListener('input', e => autoGrow(e.target));
@@ -2607,12 +3192,10 @@
   $('#dDesc').addEventListener('input', e => autoGrow(e.target));
   $('#dDesc').addEventListener('blur', e => guardarCampo('descripcion', e.target.value.trim() || null));
   $('#dResponsable').addEventListener('change', e => guardarCampo('responsable_id', e.target.value || null));
-  $('#dEstado').addEventListener('change', e => guardarCampo('estado', e.target.value));
   $('#dCliente').addEventListener('change', e => guardarCampo('cliente_id', e.target.value || null));
   $('#dEmpieza').addEventListener('change', e => guardarCampo('empieza', e.target.value || null));
   $('#dVence').addEventListener('change', e => guardarCampo('vence', e.target.value || null));
   $('#dPrioridad').addEventListener('change', e => guardarCampo('urgencia', e.target.value));
-  $('#dProyecto').addEventListener('change', e => guardarCampo('proyecto_id', e.target.value || null));
   $('#dVisible').addEventListener('click', function () {
     const nuevo = !this.classList.contains('on');
     this.classList.toggle('on', nuevo);
@@ -2638,6 +3221,15 @@
   $('#btnNuevoProy').addEventListener('click', () => abrirProyecto(null));
   $('#pGuardar').addEventListener('click', guardarProyecto);
   $('#pArchivar').addEventListener('click', archivarProyecto);
+  $('#pFinalizar').addEventListener('click', pedirFinalizar);
+  $('#finCerrarTodo').addEventListener('click', () => {
+    if (!FIN_PROY) return;
+    finalizarProyecto(FIN_PROY, TAREAS.filter(t => !t.completada && tpEn(t.id, FIN_PROY.id)), false);
+  });
+  $('#finDejar').addEventListener('click', () => {
+    if (!FIN_PROY) return;
+    finalizarProyecto(FIN_PROY, [], false);
+  });
   $('#pNombre').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); guardarProyecto(); } });
   $('#pPrivado').addEventListener('click', function () { this.classList.toggle('on'); pintarMiembros(); });
   $('#pColores').addEventListener('click', e => {
@@ -2664,6 +3256,44 @@
     if (FILTRO.proyecto === id) { abrirProyecto(proyectoDe(id)); return; }
     FILTRO.proyecto = id;
     render();
+  });
+
+  $('#proyEditar').addEventListener('click', () => { const p = proyActivo(); if (p) abrirProyecto(p); });
+  $('#fProyecto').addEventListener('change', llenarSeccionesForm);
+  $('#dAddProy').addEventListener('change', e => { if (e.target.value) agregarAProyecto(e.target.value); });
+  $('#dProyectos').addEventListener('change', e => {
+    const sel = e.target.closest('[data-tpsec]');
+    if (sel) moverSeccionDesdeDrawer(sel.dataset.tpsec, sel.value);
+  });
+  $('#dProyectos').addEventListener('click', e => {
+    const b = e.target.closest('[data-tpdel]');
+    if (b) sacarDeProyecto(b.dataset.tpdel);
+  });
+
+  // Renombrar sección con doble click en el título de la columna
+  document.addEventListener('dblclick', e => {
+    const n = e.target.closest('.sec-nombre');
+    if (!n || n.querySelector('input')) return;
+    const id = n.dataset.sec, actual = n.textContent;
+    n.innerHTML = '<input type="text" value="' + esc(actual) + '">';
+    const inp = n.querySelector('input');
+    inp.focus(); inp.select();
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); renombrarSeccion(id, inp.value); }
+      if (ev.key === 'Escape') render();
+    });
+    inp.addEventListener('blur', () => renombrarSeccion(id, inp.value));
+  });
+
+  // Alta rápida desde la fila de cada sección
+  document.addEventListener('keydown', e => {
+    const inp = e.target.closest('[data-addsec]');
+    if (!inp) return;
+    if (e.key === 'Enter') {
+      const v = inp.value; inp.value = '';
+      altaRapida(inp.dataset.addsec, v);
+    }
+    if (e.key === 'Escape') inp.blur();
   });
 
   $$('[data-cerrar]').forEach(b => b.addEventListener('click', () => cerrar(b.dataset.cerrar)));
@@ -2738,8 +3368,20 @@
   document.addEventListener('click', e => {
     if (e.target.closest('#drawer')) return;
 
+    const secdel = e.target.closest('[data-secdel]');
+    if (secdel) { e.stopPropagation(); borrarSeccion(secdel.dataset.secdel); return; }
+
     const nueva = e.target.closest('[data-nueva]');
-    if (nueva) { e.stopPropagation(); abrirForm(null, nueva.dataset.nueva); return; }
+    if (nueva) {
+      e.stopPropagation();
+      const p = proyActivo();
+      if (p) { $('#fProyecto').value = p.id; llenarSeccionesForm(); }
+      abrirForm(null, nueva.dataset.nueva);
+      return;
+    }
+
+    const fin = e.target.closest('[data-fin]');
+    if (fin) { e.stopPropagation(); alternarCompletada(fin.dataset.fin); return; }
 
     const check = e.target.closest('[data-check]');
     if (check) { e.stopPropagation(); alternarCompletada(check.dataset.check); return; }
