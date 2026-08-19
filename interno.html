@@ -506,6 +506,119 @@
     background: var(--good-soft); color: var(--ink); padding: 3px 9px; border-radius: 20px;
   }
 
+
+  /* ── RESUMEN DEL PROYECTO ─────────────────── */
+  .resumen { display: none; }
+  .resumen.active { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; align-items: start; }
+  @media (max-width: 980px) { .resumen.active { grid-template-columns: 1fr; } }
+  .res-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .res-card {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 16px 18px;
+  }
+  .res-card h4 {
+    font-family: var(--display); font-size: 15px; font-weight: 500;
+    letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px;
+  }
+  .res-sub { font-size: 11px; color: var(--ink-mute); line-height: 1.5; margin: 4px 0 12px; }
+  .res-brief {
+    width: 100%; border: 1px solid transparent; border-radius: 8px; padding: 9px 10px;
+    font-family: var(--body); font-size: 13px; line-height: 1.6; color: var(--ink);
+    background: transparent; resize: none; outline: none; min-height: 62px; display: block;
+  }
+  .res-brief:hover { border-color: var(--line); }
+  .res-brief:focus { border-color: var(--accent); }
+  .res-brief::placeholder { color: var(--ink-mute); }
+
+  .dato {
+    display: grid; grid-template-columns: 128px minmax(0,1fr) auto; gap: 10px;
+    align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .dato:last-of-type { border-bottom: none; }
+  .dato .et { font-size: 12px; color: var(--ink-soft); font-weight: 500; overflow-wrap: anywhere; }
+  .dato .va { font-size: 13px; color: var(--ink); overflow-wrap: anywhere; min-width: 0; }
+  .dato .va.tapado { letter-spacing: 2.5px; color: var(--ink-mute); font-size: 12px; }
+  .dato .va a { color: var(--ink); }
+  .dato [contenteditable] { border-radius: 5px; padding: 2px 4px; margin: -2px -4px; outline: none; }
+  .dato [contenteditable]:hover { background: var(--line-soft); }
+  .dato [contenteditable]:focus { background: var(--bg-elev); box-shadow: 0 0 0 1px var(--accent); }
+  .dato .vacio-txt { color: var(--ink-mute); }
+  .dato-acc { display: flex; gap: 2px; opacity: 0; transition: opacity .12s; }
+  .dato:hover .dato-acc, .dato:focus-within .dato-acc { opacity: 1; }
+  .dato-visto { grid-column: 2 / -1; font-size: 10.5px; color: var(--ink-mute); margin-top: -2px; }
+  .mini-btn {
+    border: none; background: none; cursor: pointer; color: var(--ink-mute);
+    padding: 4px; border-radius: 6px; font-family: var(--body); font-size: 11px;
+  }
+  .mini-btn:hover { background: var(--line-soft); color: var(--ink); }
+  .mini-btn svg { width: 14px; height: 14px; display: block; }
+  .mini-btn.del:hover { color: var(--warn); }
+  .llave { width: 12px; height: 12px; color: var(--ink-mute); flex-shrink: 0; vertical-align: -1px; }
+
+  .res-alta { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+  .res-alta input[type=text] {
+    flex: 1 1 130px; min-width: 0; border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 9px; font-family: var(--body); font-size: 12px; outline: none;
+    color: var(--ink); background: var(--bg-elev);
+  }
+  .res-alta input[type=text]:focus { border-color: var(--accent); }
+  .chk-secreto {
+    display: flex; align-items: center; gap: 5px; font-size: 11px;
+    color: var(--ink-mute); cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  .aviso-secreto {
+    background: var(--warn-soft); border-radius: 8px; padding: 9px 11px;
+    font-size: 11px; line-height: 1.5; color: var(--ink); margin-top: 14px;
+  }
+  .res-falta {
+    background: var(--warn-soft); border-radius: 8px; padding: 10px 12px;
+    font-size: 11.5px; line-height: 1.55; color: var(--ink);
+  }
+  .res-falta code { font-size: 11px; background: rgba(0,0,0,.06); padding: 1px 4px; border-radius: 4px; }
+
+  .link-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+  .link-row:last-of-type { border-bottom: none; }
+  .link-row .fav {
+    width: 22px; height: 22px; border-radius: 6px; background: var(--line-soft);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink-mute);
+  }
+  .link-row .fav svg { width: 12px; height: 12px; }
+  .link-row a {
+    font-size: 13px; color: var(--ink); text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .link-row a:hover { text-decoration: underline; }
+  .link-row .host { font-size: 11px; color: var(--ink-mute); margin-left: auto; flex-shrink: 0; }
+  .link-row .dato-acc { opacity: 0; }
+  .link-row:hover .dato-acc { opacity: 1; }
+
+  .salud-ops { display: flex; flex-wrap: wrap; gap: 6px; }
+  .salud-op {
+    border: 1px solid var(--line); background: var(--bg-elev); border-radius: 20px;
+    padding: 5px 11px; font-size: 11.5px; font-weight: 500; cursor: pointer;
+    color: var(--ink-soft); font-family: var(--body); display: flex; align-items: center; gap: 6px;
+  }
+  .salud-op:hover { border-color: var(--ink-soft); }
+  .salud-op .sd { width: 7px; height: 7px; border-radius: 50%; }
+  .salud-op.on { border-color: var(--ink); color: var(--ink); background: var(--line-soft); }
+
+  .res-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .res-num { background: var(--line-soft); border-radius: 9px; padding: 9px 10px; }
+  .res-num b { display: block; font-family: var(--display); font-size: 20px; font-weight: 500; line-height: 1.15; }
+  .res-num span { font-size: 10.5px; color: var(--ink-mute); }
+  .res-num.alerta { background: var(--warn-soft); }
+  .res-equipo { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .res-equipo .miembro-chip { cursor: default; }
+  .res-vacio { font-size: 12px; color: var(--ink-mute); padding: 4px 0; line-height: 1.5; }
+
+  .guardado-flot {
+    position: fixed; left: 50%; transform: translateX(-50%) translateY(8px); bottom: 22px;
+    background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 500;
+    padding: 7px 14px; border-radius: 20px; opacity: 0; pointer-events: none;
+    transition: opacity .18s, transform .18s; z-index: 90;
+  }
+  .guardado-flot.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   /* ── SECCIONES ────────────────────────────── */
   .sec-nombre { cursor: text; border-radius: 5px; padding: 1px 3px; margin: -1px -3px; }
   .sec-nombre:hover { background: var(--line-soft); }
@@ -931,8 +1044,10 @@
   @media (max-width: 1200px) { .kanban.active { grid-template-columns: repeat(3, minmax(210px,1fr)); } }
   @media (max-width: 900px) {
     .app { grid-template-columns: 1fr; }
-    .sidebar { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .sidebar { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 12px; min-width: 0; }
     .sidebar .nav-group { flex-direction: row; flex-wrap: wrap; }
+    .sidebar > *, .sidebar .nav-group, .sidebar .nav-item { min-width: 0; max-width: 100%; }
+    .sidebar .nav-item .nom { overflow: hidden; text-overflow: ellipsis; }
     .nav-label, .link-cliente, .nav-item.soon { display: none; }
     .sidebar-footer { margin-top: 0; border-top: none; padding-top: 0; flex-direction: row; align-items: center; }
     .main { padding: 24px 18px 56px; }
@@ -943,6 +1058,11 @@
     .fila { grid-template-columns: 24px 1fr auto; gap: 10px; }
     .fila .pill, .fila .chip-proy, .fila .estado-pill, .fila .avatar-sm { display: none; }
     .campo-row { grid-template-columns: 1fr; }
+    /* Con "Resumen" son cuatro pestañas: que puedan bajar de línea
+       en vez de estirar la grilla y generar scroll horizontal. */
+    .main { min-width: 0; }
+    .view-toggle { flex-wrap: wrap; }
+    .view-toggle button { flex: 1 1 auto; justify-content: center; }
   }
 </style>
 </head>
@@ -1073,7 +1193,7 @@
         <button class="filter-btn" id="btnMias">Mías <span class="count" id="cMias">0</span></button>
         <button class="btn-ghost" id="btnLimpiar" style="display:none">Limpiar</button>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
+      <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
         <select class="sel" id="agrupar" style="display:none">
           <option value="responsable">Agrupar por persona</option>
           <option value="cliente">Agrupar por cliente</option>
@@ -1081,6 +1201,10 @@
           <option value="estado">Agrupar por estado</option>
         </select>
         <div class="view-toggle">
+          <button data-vista="resumen" id="btnVistaResumen" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            Resumen
+          </button>
           <button class="active" data-vista="tablero">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
             Tablero
@@ -1098,6 +1222,10 @@
     </div>
 
     <div class="cargando" id="cargando">Cargando el tablero…</div>
+    <div class="resumen" id="resumen">
+      <div class="res-col" id="resIzq"></div>
+      <div class="res-col" id="resDer"></div>
+    </div>
     <div class="kanban" id="kanban"></div>
     <div class="lista" id="lista"></div>
 
@@ -1135,6 +1263,7 @@
     <div id="vacioWrap"></div>
   </main>
 </div>
+<div class="guardado-flot" id="guardadoFlot">Guardado</div>
 
 <!-- ═══════════ MODAL FORM ═══════════ -->
 <div class="overlay" id="ovForm">
@@ -1431,6 +1560,7 @@
   let CLIENTES = [];
   let TAREAS = [];
   let VISTA = 'tablero';
+  let FALTA_M8 = false;   // true si todavía no corrió migracion-interno-8-resumen.sql
   let AGRUPAR = 'responsable';
   let FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false, pulso: '' };
   const COLORES = {
@@ -1629,10 +1759,19 @@
     if (ME && !PERSONAS.some(p => p.id === ME.id)) PERSONAS.unshift(ME);
   }
 
+  const COLS_PROY = 'id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por';
+
   async function cargarProyectos() {
-    const { data, error } = await SB.from('proyecto')
-      .select('id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por')
+    // Pedimos primero las columnas del Resumen. Si todavía no corriste la
+    // migración 8, la consulta entera falla: reintentamos sin ellas en vez
+    // de quedarnos sin proyectos.
+    let { data, error } = await SB.from('proyecto')
+      .select(COLS_PROY + ', descripcion, salud')
       .eq('archivado', false).order('nombre');
+    if (error) {
+      const r = await SB.from('proyecto').select(COLS_PROY).eq('archivado', false).order('nombre');
+      if (!r.error) { data = r.data; error = null; FALTA_M8 = true; }
+    }
     if (error) { PROYECTOS = []; avisarFalla('proyectos', error); }
     else PROYECTOS = data || [];
 
@@ -1952,20 +2091,20 @@
   }
 
   // ═══════════════ RENDER ═══════════════
-  // La sección del alta depende del proyecto elegido
-  function llenarSeccionesForm() {
-    const proy = $('#fProyecto').value;
-    const secs = proy ? seccionesDe(proy) : [];
-    $('#fSeccion').innerHTML = secs.length
-      ? secs.map(x => '<option value="' + x.id + '">' + esc(x.nombre) + '</option>').join('')
-      : '<option value="">—</option>';
-    $('#fSeccion').disabled = !secs.length;
+  // Qué pestañas hay: "Resumen" solo existe adentro de un proyecto.
+  function sincronizarVista() {
+    const hayProy = !!proyActivo();
+    $('#btnVistaResumen').style.display = hayProy ? '' : 'none';
+    if (!hayProy && VISTA === 'resumen') VISTA = 'tablero';
+    $$('.view-toggle button[data-vista]').forEach(x =>
+      x.classList.toggle('active', x.dataset.vista === VISTA));
   }
 
   function render() {
     renderPulso();
     renderProyectosSidebar();
     renderProyectoHeader();
+    sincronizarVista();
     const list = visibles();
 
     $('#btnLimpiar').style.display = hayFiltro() ? '' : 'none';
@@ -1976,6 +2115,25 @@
     $('#navTablero').classList.toggle('active', !FILTRO.proyecto);
     const nb = $('#navBadge');
     if (abiertas > 0) { nb.style.display = ''; nb.textContent = abiertas; } else { nb.style.display = 'none'; }
+
+    // En el Resumen, el pulso y los filtros de tareas sobran.
+    const esRes = VISTA === 'resumen';
+    $('.pulso').style.display = esRes ? 'none' : '';
+    $('.controles-izq').style.display = esRes ? 'none' : '';
+
+    // El Resumen vive aparte: no depende de que haya tareas.
+    if (VISTA === 'resumen') {
+      $('#kanban').classList.remove('active');
+      $('#lista').classList.remove('active');
+      $('#calendario').classList.remove('active');
+      $('#resumen').classList.add('active');
+      $('#vacioWrap').innerHTML = '';
+      const pr = proyActivo();
+      if (pr && RES_PROY !== pr.id) cargarResumen(pr.id);
+      renderResumen();
+      return;
+    }
+    $('#resumen').classList.remove('active');
 
     // Tablero totalmente vacío (sin datos y sin filtros) → empty state grande
     if (TAREAS.length === 0) {
@@ -2004,6 +2162,338 @@
     if (VISTA === 'tablero') renderKanban(list);
     else if (VISTA === 'lista') renderLista(list);
     else renderCalendario(list);
+  }
+
+  // ═══════════════ RESUMEN DEL PROYECTO ═══════════════
+  // Todo lo que no es una tarea: el brief, los datos del cliente,
+  // los links y el estado. Vive adentro de cada proyecto.
+  const SALUDES = [
+    { id: 'en_curso',    label: 'En curso',    color: COLORES.lima },
+    { id: 'en_riesgo',   label: 'En riesgo',   color: COLORES.ocre },
+    { id: 'con_retraso', label: 'Con retraso', color: COLORES.coral },
+    { id: 'en_pausa',    label: 'En pausa',    color: COLORES.gris }
+  ];
+  const LLAVE = '<svg class="llave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>';
+  const OJO_MINI   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+  const OJO_TACHADO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+  const COPIAR_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+  const TACHO_SVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+  const LINK_SVG   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
+
+  let RES_DATOS = [], RES_LINKS = [], RES_VISTOS = {}, RES_PROY = null;
+  let RES_ABIERTO = {};   // dato_id → true si ya lo revelaron en esta sesión
+
+  function flashRes() {
+    const g = $('#guardadoFlot');
+    g.classList.add('on');
+    clearTimeout(g.__t);
+    g.__t = setTimeout(() => g.classList.remove('on'), 1300);
+  }
+
+  async function cargarResumen(proyId) {
+    RES_PROY = proyId;
+    RES_ABIERTO = {};
+    const [d, l] = await Promise.all([
+      SB.from('proyecto_dato').select('id, proyecto_id, etiqueta, valor, es_secreto, orden').eq('proyecto_id', proyId).order('orden'),
+      SB.from('proyecto_link').select('id, proyecto_id, titulo, url, orden').eq('proyecto_id', proyId).order('orden')
+    ]);
+    if (d.error || l.error) {
+      FALTA_M8 = true; RES_DATOS = []; RES_LINKS = []; RES_VISTOS = {};
+    } else {
+      RES_DATOS = d.data || []; RES_LINKS = l.data || []; RES_VISTOS = {};
+      if (RES_DATOS.some(x => x.es_secreto)) {
+        const v = await SB.from('dato_visto')
+          .select('dato_id, user_id, accion, created_at')
+          .eq('proyecto_id', proyId).order('created_at', { ascending: false });
+        (v.data || []).forEach(x => {
+          if (x.dato_id) (RES_VISTOS[x.dato_id] = RES_VISTOS[x.dato_id] || []).push(x);
+        });
+      }
+    }
+    if (VISTA === 'resumen') renderResumen();
+  }
+
+  function avisoMigracion() {
+    return '<div class="res-falta">Falta correr <code>migracion-interno-8-resumen.sql</code> en Supabase. ' +
+           'Hasta que la corras, el Resumen no puede guardar nada.</div>';
+  }
+
+  function vistosTxt(datoId) {
+    const v = RES_VISTOS[datoId] || [];
+    if (!v.length) return '';
+    const nombres = [];
+    v.forEach(x => {
+      const n = nombrePersona(x.user_id) || 'alguien';
+      if (nombres.length < 3 && !nombres.some(y => y.n === n)) nombres.push({ n: n, c: x.created_at });
+    });
+    return '<div class="dato-visto">Lo vieron: ' +
+      nombres.map(x => esc(x.n) + ' (' + hace(x.c) + ')').join(' · ') +
+      (v.length > nombres.length ? ' · +' + (v.length - nombres.length) : '') + '</div>';
+  }
+
+  function esUrl(v) { return /^https?:\/\//i.test(v || ''); }
+
+  function filaDato(d) {
+    const abierto = !d.es_secreto || RES_ABIERTO[d.id];
+    let valor;
+    if (!abierto) {
+      valor = '<div class="va tapado">••••••••••</div>';
+    } else if (esUrl(d.valor) && !d.es_secreto) {
+      valor = '<div class="va"><a href="' + esc(d.valor) + '" target="_blank" rel="noopener">' + esc(d.valor) + '</a></div>';
+    } else {
+      valor = '<div class="va"><span contenteditable="true" data-datocampo="valor" data-dato="' + d.id + '">' +
+              esc(d.valor || '') + '</span></div>';
+    }
+    const acc =
+      (d.es_secreto
+        ? '<button class="mini-btn" data-revelar="' + d.id + '" title="' + (abierto ? 'Ocultar' : 'Ver — queda registrado') + '">' +
+            (abierto ? OJO_TACHADO : OJO_MINI) + '</button>'
+        : '') +
+      '<button class="mini-btn" data-copiar="' + d.id + '" title="Copiar">' + COPIAR_SVG + '</button>' +
+      '<button class="mini-btn del" data-datodel="' + d.id + '" title="Borrar">' + TACHO_SVG + '</button>';
+
+    return '<div class="dato">' +
+             '<div class="et">' + (d.es_secreto ? LLAVE + ' ' : '') +
+               '<span contenteditable="true" data-datocampo="etiqueta" data-dato="' + d.id + '">' + esc(d.etiqueta) + '</span></div>' +
+             valor +
+             '<div class="dato-acc">' + acc + '</div>' +
+             (d.es_secreto && abierto ? vistosTxt(d.id) : '') +
+           '</div>';
+  }
+
+  function filaLink(l) {
+    const url = l.url || '';
+    const titulo = l.titulo || host(url) || url;
+    return '<div class="link-row">' +
+             '<div class="fav">' + LINK_SVG + '</div>' +
+             '<a href="' + esc(url) + '" target="_blank" rel="noopener" title="' + esc(url) + '">' + esc(titulo) + '</a>' +
+             '<span class="host">' + esc(host(url)) + '</span>' +
+             '<div class="dato-acc"><button class="mini-btn del" data-linkdel="' + l.id + '" title="Borrar">' + TACHO_SVG + '</button></div>' +
+           '</div>';
+  }
+
+  function renderResumen() {
+    const p = proyActivo();
+    if (!p) { $('#resIzq').innerHTML = ''; $('#resDer').innerHTML = ''; return; }
+
+    // ── Columna izquierda: brief + datos + links ──────────────
+    const brief =
+      '<div class="res-card">' +
+        '<h4>Brief</h4>' +
+        '<div class="res-sub">De qué se trata, qué acordamos, cómo hablarle. Se guarda solo.</div>' +
+        '<textarea class="res-brief" id="resBrief" placeholder="Escribí acá todo lo que el equipo tendría que saber antes de tocar este proyecto…">' +
+          esc(p.descripcion || '') + '</textarea>' +
+      '</div>';
+
+    const datos =
+      '<div class="res-card">' +
+        '<h4>Datos del cliente</h4>' +
+        '<div class="res-sub">Etiqueta y valor: contacto, CUIT, usuario de Instagram, lo que necesiten. ' +
+          'Marcá “es un acceso” para que quede tapado.</div>' +
+        (FALTA_M8 ? avisoMigracion()
+          : (RES_DATOS.length ? RES_DATOS.map(filaDato).join('')
+             : '<div class="res-vacio">Todavía no cargaste ningún dato.</div>') +
+            '<div class="res-alta">' +
+              '<input type="text" id="nuEtiqueta" placeholder="Etiqueta (ej: Instagram)">' +
+              '<input type="text" id="nuValor" placeholder="Valor">' +
+              '<label class="chk-secreto"><input type="checkbox" id="nuSecreto"> es un acceso</label>' +
+              '<button class="btn-ghost" id="nuDatoBtn">Agregar</button>' +
+            '</div>' +
+            (RES_DATOS.some(d => d.es_secreto)
+              ? '<div class="aviso-secreto"><b>Ojo con los accesos.</b> Taparlos no es cifrarlos: se guardan en texto ' +
+                'plano y cualquiera del equipo con acceso al panel puede revelarlos. Sirve para que no queden a la vista ' +
+                'en una pantalla compartida, no para guardar algo que no querés que el equipo vea. ' +
+                'Cada vez que alguien lo revela o lo copia queda registrado.</div>'
+              : '')) +
+      '</div>';
+
+    const links =
+      '<div class="res-card">' +
+        '<h4>Links y archivos</h4>' +
+        '<div class="res-sub">Drive, guion, planilla de pauta, carpeta de material.</div>' +
+        (FALTA_M8 ? avisoMigracion()
+          : (RES_LINKS.length ? RES_LINKS.map(filaLink).join('')
+             : '<div class="res-vacio">Todavía no hay links.</div>') +
+            '<div class="res-alta">' +
+              '<input type="text" id="nuLinkTitulo" placeholder="Nombre (opcional)">' +
+              '<input type="text" id="nuLinkUrl" placeholder="https://…">' +
+              '<button class="btn-ghost" id="nuLinkBtn">Agregar</button>' +
+            '</div>') +
+      '</div>';
+
+    $('#resIzq').innerHTML = brief + datos + links;
+
+    // ── Columna derecha: estado + equipo + números ────────────
+    const salud = p.salud || 'en_curso';
+    const tot = TAREAS.filter(t => tpEn(t.id, p.id));
+    const abiertas = tot.filter(t => !t.completada);
+    const vencidas = abiertas.filter(estaVencida);
+    const listas = tot.filter(t => t.completada);
+
+    const ids = MIEMBROS[p.id] || [];
+    const equipo = ids.length
+      ? '<div class="res-equipo">' + ids.map(id => {
+          const n = nombrePersona(id);
+          return n ? '<span class="miembro-chip on"><span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) + '</span>' : '';
+        }).join('') + '</div>'
+      : '<div class="res-vacio">' + (p.privado
+          ? 'Sin miembros: por ahora solo lo ve quien lo creó.'
+          : 'Sin miembros asignados. Al ser público, lo ve todo el equipo.') + '</div>';
+
+    $('#resDer').innerHTML =
+      '<div class="res-card">' +
+        '<h4>Estado</h4>' +
+        '<div class="res-sub">Cómo viene el proyecto, dicho por vos.</div>' +
+        (FALTA_M8 ? avisoMigracion() :
+          '<div class="salud-ops">' + SALUDES.map(sd =>
+            '<button class="salud-op' + (sd.id === salud ? ' on' : '') + '" data-salud="' + sd.id + '">' +
+              '<span class="sd" style="background:' + sd.color + '"></span>' + sd.label +
+            '</button>').join('') + '</div>') +
+        '<div class="res-nums">' +
+          '<div class="res-num"><b>' + abiertas.length + '</b><span>abiertas</span></div>' +
+          '<div class="res-num' + (vencidas.length ? ' alerta' : '') + '"><b>' + vencidas.length + '</b><span>vencidas</span></div>' +
+          '<div class="res-num"><b>' + listas.length + '</b><span>listas</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="res-card">' +
+        '<h4>Equipo</h4>' +
+        '<div class="res-sub">' + (p.privado ? 'Proyecto privado: solo estas personas lo ven.' : 'Proyecto abierto a todo el equipo.') + '</div>' +
+        equipo +
+        '<div class="res-alta"><button class="btn-ghost" id="resEditarProy">Editar proyecto</button></div>' +
+      '</div>' +
+      '<div class="res-card">' +
+        '<h4>Ficha</h4>' +
+        '<div class="res-sub">' +
+          (p.cliente_id ? 'Cliente: <b>' + esc(nombreCliente(p.cliente_id)) + '</b>' : 'Proyecto interno (sin cliente)') +
+          (p.finalizado_en ? '<br>Finalizado el ' + fechaCorta(p.finalizado_en.slice(0, 10)) : '') +
+        '</div>' +
+      '</div>';
+
+    const ta = $('#resBrief');
+    if (ta) autoGrow(ta);
+  }
+
+  // ── Guardar el brief y el estado ─────────────────────────────
+  async function guardarProyCampo(campo, valor) {
+    const p = proyActivo();
+    if (!p) return;
+    const anterior = p[campo];
+    if ((anterior || null) === (valor || null)) return;
+    p[campo] = valor;
+    const patch = {}; patch[campo] = valor;
+    const { error } = await SB.from('proyecto').update(patch).eq('id', p.id);
+    if (error) {
+      p[campo] = anterior;
+      toast('No se pudo guardar: ' + error.message, 'warn');
+      renderResumen();
+      return;
+    }
+    flashRes();
+  }
+
+  // ── Datos del cliente ────────────────────────────────────────
+  async function agregarDato() {
+    const p = proyActivo(); if (!p) return;
+    const et = $('#nuEtiqueta').value.trim();
+    const va = $('#nuValor').value.trim();
+    const sec = $('#nuSecreto').checked;
+    if (!et) { $('#nuEtiqueta').focus(); return; }
+    const max = RES_DATOS.reduce((m, x) => Math.max(m, x.orden || 0), 0);
+    const { data, error } = await SB.from('proyecto_dato')
+      .insert({ proyecto_id: p.id, etiqueta: et, valor: va || null, es_secreto: sec, orden: max + 1000 })
+      .select().single();
+    if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
+    RES_DATOS.push(data);
+    $('#nuEtiqueta').value = ''; $('#nuValor').value = ''; $('#nuSecreto').checked = false;
+    if (sec) RES_ABIERTO[data.id] = true;
+    renderResumen();
+    const e2 = $('#nuEtiqueta'); if (e2) e2.focus();
+    flashRes();
+  }
+
+  async function guardarDato(id, campo, valor) {
+    const d = RES_DATOS.find(x => x.id === id); if (!d) return;
+    const anterior = d[campo];
+    if ((anterior || '') === (valor || '')) return;
+    d[campo] = valor || null;
+    const patch = {}; patch[campo] = valor || null;
+    const { error } = await SB.from('proyecto_dato').update(patch).eq('id', id);
+    if (error) { d[campo] = anterior; toast('No se pudo guardar: ' + error.message, 'warn'); renderResumen(); return; }
+    flashRes();
+  }
+
+  async function borrarDato(id) {
+    const d = RES_DATOS.find(x => x.id === id); if (!d) return;
+    if (!confirm('¿Borrar "' + d.etiqueta + '"?')) return;
+    const { error } = await SB.from('proyecto_dato').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    RES_DATOS = RES_DATOS.filter(x => x.id !== id);
+    renderResumen();
+  }
+
+  // Revelar o copiar un acceso queda asentado. Si no se puede asentar,
+  // no se revela: el registro es la única garantía que tiene el dato.
+  async function registrarVisto(id, accion) {
+    const d = RES_DATOS.find(x => x.id === id);
+    const p = proyActivo();
+    if (!d || !p) return false;
+    // Guardamos también el proyecto y la etiqueta: si el dato se borra
+    // después, el registro de quién lo vio tiene que seguir existiendo.
+    const { error } = await SB.from('dato_visto').insert({
+      dato_id: id, proyecto_id: p.id, etiqueta: d.etiqueta, accion: accion
+    });
+    if (error) { toast('No se pudo registrar el acceso: ' + error.message, 'warn'); return false; }
+    (RES_VISTOS[id] = RES_VISTOS[id] || []).unshift({
+      dato_id: id, user_id: ME ? ME.id : null, accion: accion, created_at: new Date().toISOString()
+    });
+    return true;
+  }
+
+  async function alternarSecreto(id) {
+    const d = RES_DATOS.find(x => x.id === id); if (!d) return;
+    if (RES_ABIERTO[id]) { RES_ABIERTO[id] = false; renderResumen(); return; }
+    if (!await registrarVisto(id, 'revelar')) return;
+    RES_ABIERTO[id] = true;
+    renderResumen();
+  }
+
+  async function copiarDato(id) {
+    const d = RES_DATOS.find(x => x.id === id); if (!d) return;
+    if (d.es_secreto && !await registrarVisto(id, 'copiar')) return;
+    try {
+      await navigator.clipboard.writeText(d.valor || '');
+      toast('Copiado' + (d.es_secreto ? ' · queda registrado' : ''));
+    } catch (e) {
+      toast('Tu navegador no dejó copiar. Reveló el dato para que lo copies a mano.', 'warn');
+      RES_ABIERTO[id] = true;
+    }
+    renderResumen();
+  }
+
+  // ── Links ────────────────────────────────────────────────────
+  async function agregarLink() {
+    const p = proyActivo(); if (!p) return;
+    let url = $('#nuLinkUrl').value.trim();
+    if (!url) { $('#nuLinkUrl').focus(); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const titulo = $('#nuLinkTitulo').value.trim();
+    const max = RES_LINKS.reduce((m, x) => Math.max(m, x.orden || 0), 0);
+    const { data, error } = await SB.from('proyecto_link')
+      .insert({ proyecto_id: p.id, titulo: titulo || null, url: url, orden: max + 1000 })
+      .select().single();
+    if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
+    RES_LINKS.push(data);
+    $('#nuLinkTitulo').value = ''; $('#nuLinkUrl').value = '';
+    renderResumen();
+    const e2 = $('#nuLinkUrl'); if (e2) e2.focus();
+    flashRes();
+  }
+
+  async function borrarLink(id) {
+    const { error } = await SB.from('proyecto_link').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    RES_LINKS = RES_LINKS.filter(x => x.id !== id);
+    renderResumen();
   }
 
   // ═══════════════ CALENDARIO ═══════════════
@@ -3268,7 +3758,10 @@
     const id = b.dataset.proy;
     // Segundo click sobre el mismo: entra a editarlo. Primero: filtra.
     if (FILTRO.proyecto === id) { abrirProyecto(proyectoDe(id)); return; }
+    const primeraVez = !FILTRO.proyecto;
     FILTRO.proyecto = id;
+    // Al entrar a un proyecto desde la vista global, arrancamos por el Resumen.
+    if (primeraVez) VISTA = 'resumen';
     render();
   });
 
@@ -3419,6 +3912,46 @@
 
     const barra = e.target.closest('.cal-bar, .tray-item');
     if (barra) { abrirDrawer(barra.dataset.id); return; }
+  });
+
+  // ── Resumen del proyecto ─────────────────────────────────────
+  $('#resumen').addEventListener('click', e => {
+    const sd = e.target.closest('[data-salud]');
+    if (sd) { guardarProyCampo('salud', sd.dataset.salud).then(renderResumen); return; }
+
+    const rev = e.target.closest('[data-revelar]');
+    if (rev) { alternarSecreto(rev.dataset.revelar); return; }
+
+    const cop = e.target.closest('[data-copiar]');
+    if (cop) { copiarDato(cop.dataset.copiar); return; }
+
+    const dd = e.target.closest('[data-datodel]');
+    if (dd) { borrarDato(dd.dataset.datodel); return; }
+
+    const ld = e.target.closest('[data-linkdel]');
+    if (ld) { borrarLink(ld.dataset.linkdel); return; }
+
+    if (e.target.closest('#nuDatoBtn')) { agregarDato(); return; }
+    if (e.target.closest('#nuLinkBtn')) { agregarLink(); return; }
+    if (e.target.closest('#resEditarProy')) { const p = proyActivo(); if (p) abrirProyecto(p); return; }
+  });
+
+  $('#resumen').addEventListener('input', e => {
+    if (e.target.id === 'resBrief') autoGrow(e.target);
+  });
+
+  $('#resumen').addEventListener('blur', e => {
+    if (e.target.id === 'resBrief') { guardarProyCampo('descripcion', e.target.value.trim() || null); return; }
+    const ce = e.target.closest ? e.target.closest('[data-datocampo]') : null;
+    if (ce) guardarDato(ce.dataset.dato, ce.dataset.datocampo, ce.textContent.trim());
+  }, true);
+
+  $('#resumen').addEventListener('keydown', e => {
+    const ce = e.target.closest ? e.target.closest('[data-datocampo]') : null;
+    if (ce && e.key === 'Enter') { e.preventDefault(); ce.blur(); return; }
+    if (e.key !== 'Enter') return;
+    if (e.target.id === 'nuEtiqueta' || e.target.id === 'nuValor') { e.preventDefault(); agregarDato(); }
+    if (e.target.id === 'nuLinkTitulo' || e.target.id === 'nuLinkUrl') { e.preventDefault(); agregarLink(); }
   });
 
   // Refrescar al volver a la pestaña (el tablero es compartido)
