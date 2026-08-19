@@ -1633,18 +1633,32 @@
     const { data, error } = await SB.from('proyecto')
       .select('id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por')
       .eq('archivado', false).order('nombre');
-    PROYECTOS = (error || !data) ? [] : data;
+    if (error) { PROYECTOS = []; avisarFalla('proyectos', error); }
+    else PROYECTOS = data || [];
 
     MIEMBROS = {};
-    const { data: ms } = await SB.from('proyecto_miembro').select('proyecto_id, user_id');
+    const { data: ms, error: eM } = await SB.from('proyecto_miembro').select('proyecto_id, user_id');
+    if (eM) avisarFalla('miembros de proyecto', eM);
     (ms || []).forEach(m => { (MIEMBROS[m.proyecto_id] = MIEMBROS[m.proyecto_id] || []).push(m.user_id); });
 
-    const { data: secs } = await SB.from('seccion').select('id, proyecto_id, nombre, tipo, orden').order('orden');
+    const { data: secs, error: eS } = await SB.from('seccion').select('id, proyecto_id, nombre, tipo, orden').order('orden');
+    if (eS) avisarFalla('secciones', eS);
     SECCIONES = secs || [];
   }
 
+  // Si una consulta falla, que se vea. Antes quedaba una lista vacía
+  // y parecía "no hay nada" cuando en realidad era un error.
+  const YA_AVISADO = {};
+  function avisarFalla(que, error) {
+    if (YA_AVISADO[que]) return;
+    YA_AVISADO[que] = true;
+    console.error('[panel] fallo al cargar ' + que + ':', error);
+    toast('No se pudieron cargar los ' + que + ': ' + (error.message || error), 'warn');
+  }
+
   async function cargarTP() {
-    const { data } = await SB.from('tarea_proyecto').select('tarea_id, proyecto_id, seccion_id, orden, principal');
+    const { data, error } = await SB.from('tarea_proyecto').select('tarea_id, proyecto_id, seccion_id, orden, principal');
+    if (error) avisarFalla('vínculos tarea-proyecto', error);
     TP = data || [];
   }
 
