@@ -564,10 +564,13 @@
   .cliente-row {
     display: grid; grid-template-columns: minmax(0,1fr) auto auto auto;
     gap: 12px; align-items: center; padding: 12px 18px;
-    border-bottom: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft); cursor: pointer;
   }
+  .cliente-row:hover { background: var(--line-soft); }
+  .cliente-row .nombrec { font-weight: 500; }
   .cliente-row:last-child { border-bottom: none; }
   .cliente-row .nomc { font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; }
+  .cliente-row .slugc { font-size: 11px; color: var(--ink-mute); margin-top: 2px; }
   .cliente-row .nomc [contenteditable] { border-radius: 5px; padding: 2px 5px; margin: -2px -5px; outline: none; }
   .cliente-row .nomc [contenteditable]:hover { background: var(--line-soft); }
   .cliente-row .nomc [contenteditable]:focus { background: var(--bg-elev); box-shadow: 0 0 0 1px var(--accent); }
@@ -1459,6 +1462,42 @@
 </div>
 <div class="guardado-flot" id="guardadoFlot">Guardado</div>
 
+<!-- ═══════════ MODAL CLIENTE ═══════════ -->
+<div class="overlay" id="ovCliente">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div class="modal-title" id="clTitulo">Nuevo cliente</div>
+      <button class="modal-close" data-cerrar="ovCliente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Nombre del cliente</label>
+      <input type="text" id="clNombre" placeholder="Ej: San Eusebio">
+    </div>
+    <div class="campo">
+      <label class="campo-label">Agencia dueña</label>
+      <input type="text" id="clAgencia" placeholder="CoMakers">
+      <div class="res-sub" style="margin:6px 0 0">Qué agencia atiende a este cliente.</div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Personas de la agencia que lo atienden</label>
+      <div id="clPersonas" class="miembros"></div>
+      <div class="res-sub" style="margin:8px 0 0">Marcá quién de tu equipo lo va a ver en el panel de cliente.
+        Los usuarios del cliente se crean desde el panel de cliente.</div>
+    </div>
+    <div class="campo" id="clSlugWrap" style="display:none">
+      <label class="campo-label">Identificador</label>
+      <div class="res-sub" id="clSlug" style="margin:0"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="clArchivar" style="display:none">Guardar en el archivo</button>
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovCliente">Cancelar</button>
+        <button class="btn-primary" id="clGuardar">Crear cliente</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════ MODAL LINK ═══════════ -->
 <div class="overlay" id="ovLink">
   <div class="modal" style="max-width:440px">
@@ -2077,7 +2116,15 @@
   }
 
   async function cargarClientes() {
-    let { data, error } = await SB.from('clientes').select('id, nombre, activo').order('nombre');
+    // Quién de la agencia atiende a cada cliente. Es la misma tabla que
+    // usa el panel de cliente, así que lo que marques acá vale allá.
+    ACCESOS = {};
+    const acc = await SB.from('acceso_cliente').select('cliente_id, user_id');
+    (acc.data || []).forEach(a => {
+      (ACCESOS[a.cliente_id] = ACCESOS[a.cliente_id] || []).push(a.user_id);
+    });
+
+    let { data, error } = await SB.from('clientes').select('id, nombre, slug, agencia, activo').order('nombre');
     if (error) {
       const r = await SB.from('clientes').select('id, nombre').order('nombre');
       if (!r.error) { data = r.data; error = null; FALTA_M10 = true; }
@@ -2453,6 +2500,8 @@
   // ═══════════════ MÓDULOS: EQUIPO · CLIENTES · WIKI ═══════════════
   let MODULO = 'tareas';
   let SALUDO_BASE = '';
+  let ACCESOS = {};                 // cliente_id → [user_id]
+  let CL_EDIT = null, CL_PERSONAS = [];
   let EQUIPO = [];            // todo el equipo, incluidas las bajas
   let WIKI_CARPETAS = [], WIKI_PAGINAS = [], WIKI_SEL = null, WIKI_CARGADA = false;
 
@@ -2637,29 +2686,35 @@
   function renderClientes() {
     const activos = CLIENTES.filter(c => c.activo !== false);
     const guardados = CLIENTES.filter(c => c.activo === false);
-    const fila = c =>
-      '<div class="cliente-row' + (c.activo === false ? ' inactivo' : '') + '">' +
-        '<div class="nomc"><span contenteditable="true" data-ccampo="nombre" data-cliente="' + c.id + '">' +
-          esc(c.nombre || '') + '</span></div>' +
+    const fila = c => {
+      const acc = (ACCESOS[c.id] || []).length;
+      return '<div class="cliente-row' + (c.activo === false ? ' inactivo' : '') + '" data-cabrir="' + c.id + '">' +
+        '<div class="nomc"><span class="nombrec">' + esc(c.nombre || '') + '</span>' +
+          '<div class="slugc">' +
+            (c.slug ? esc(c.slug) : '⚠️ sin identificador — el panel del cliente no lo va a encontrar') +
+            (c.agencia ? ' · ' + esc(c.agencia) : '') +
+          '</div>' +
+        '</div>' +
+        '<span class="pill">' + acc + ' con acceso</span>' +
         '<span class="pill">' + proyectosDeCliente(c.id) + ' proyecto' + (proyectosDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
         '<span class="pill">' + tareasDeCliente(c.id) + ' tarea' + (tareasDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
-        '<button class="mini-btn" data-carch="' + c.id + '">' +
-          (c.activo === false ? 'Reactivar' : 'Guardar en el archivo') + '</button>' +
       '</div>';
+    };
 
     $('#modClientes').innerHTML =
-      '<div class="mod-head"><p>Los clientes que ves acá son los que aparecen en el selector de los proyectos ' +
-        'y de las tareas. Archivar uno no borra nada: deja de ofrecerse en los selectores.</p></div>' +
+      '<div class="mod-head"><p>Esta lista es <b>la misma</b> que ves en el panel de cliente: los dos leen la ' +
+        'misma tabla, así que lo que crees acá aparece allá y al revés. Debajo de cada nombre está su ' +
+        'identificador, que es lo que usa el panel del cliente para encontrarlo. ' +
+        'Archivar uno no borra nada: deja de ofrecerse en los selectores de acá.</p></div>' +
       '<div class="tabla">' +
         (activos.length ? activos.map(fila).join('')
                         : '<div class="cliente-row"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
       '</div>' +
       '<div class="invitar">' +
-        '<h4>Nuevo cliente</h4>' +
-        '<div class="fila-inv">' +
-          '<input type="text" id="nuCliente" placeholder="Ej: San Eusebio">' +
-          '<button class="btn-primary" id="nuClienteBtn">Agregar</button>' +
-        '</div>' +
+        '<h4>Sumar un cliente</h4>' +
+        '<div class="res-sub">Se crea con los mismos datos que pide el panel de cliente: agencia dueña ' +
+          'y quién del equipo lo atiende.</div>' +
+        '<div class="fila-inv"><button class="btn-primary" id="nuClienteBtn">Nuevo cliente</button></div>' +
       '</div>' +
       (guardados.length
         ? '<div class="mod-head" style="margin:22px 0 10px"><p>En el archivo.</p></div>' +
@@ -2667,18 +2722,97 @@
         : '');
   }
 
-  async function agregarCliente() {
-    const nombre = $('#nuCliente').value.trim();
-    if (!nombre) { $('#nuCliente').focus(); return; }
-    const { data, error } = await SB.from('clientes').insert({ nombre: nombre }).select().single();
-    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
-    CLIENTES.push(data);
+  // El panel del cliente identifica a cada cliente por su `slug`, no por
+  // el nombre. Si lo dejáramos vacío, el cliente nuevo existiría acá pero
+  // sería invisible del otro lado.
+  function slugDe(nombre) {
+    return (nombre || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'cliente';
+  }
+
+  function abrirCliente(c) {
+    CL_EDIT = c;
+    CL_PERSONAS = c ? (ACCESOS[c.id] || []).slice() : (ME ? [ME.id] : []);
+    $('#clTitulo').textContent = c ? 'Editar cliente' : 'Nuevo cliente';
+    $('#clNombre').value = c ? (c.nombre || '') : '';
+    $('#clAgencia').value = c ? (c.agencia || '') : (ME && ME.agencia ? ME.agencia : 'CoMakers');
+    $('#clGuardar').textContent = c ? 'Guardar' : 'Crear cliente';
+    $('#clSlugWrap').style.display = c ? '' : 'none';
+    $('#clSlug').textContent = c ? (c.slug || '⚠️ sin identificador') : '';
+    const ba = $('#clArchivar');
+    ba.style.display = c ? '' : 'none';
+    ba.textContent = (c && c.activo === false) ? 'Sacar del archivo' : 'Guardar en el archivo';
+    pintarClPersonas();
+    abrir('ovCliente');
+    setTimeout(() => $('#clNombre').focus(), 60);
+  }
+
+  function pintarClPersonas() {
+    $('#clPersonas').innerHTML = PERSONAS.map(p => {
+      const on = CL_PERSONAS.indexOf(p.id) !== -1;
+      const n = p.nombre || p.email;
+      return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-clper="' + p.id + '">' +
+               '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) +
+             '</button>';
+    }).join('');
+  }
+
+  async function guardarClienteModal() {
+    const nombre = $('#clNombre').value.trim();
+    const agencia = $('#clAgencia').value.trim() || null;
+    if (!nombre) { $('#clNombre').focus(); return; }
+
+    let id;
+    if (CL_EDIT) {
+      const { error } = await SB.from('clientes')
+        .update({ nombre: nombre, agencia: agencia }).eq('id', CL_EDIT.id);
+      if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+      CL_EDIT.nombre = nombre; CL_EDIT.agencia = agencia;
+      id = CL_EDIT.id;
+    } else {
+      const nuevo = await crearCliente(nombre, agencia);
+      if (!nuevo) return;
+      id = nuevo.id;
+    }
+
+    // Accesos: reemplazamos los de este cliente por los marcados
+    const antes = ACCESOS[id] || [];
+    const sacar = antes.filter(u => CL_PERSONAS.indexOf(u) === -1);
+    const poner = CL_PERSONAS.filter(u => antes.indexOf(u) === -1);
+    if (sacar.length) {
+      const { error } = await SB.from('acceso_cliente').delete().eq('cliente_id', id).in('user_id', sacar);
+      if (error) toast('No se pudieron sacar accesos: ' + error.message, 'warn');
+    }
+    if (poner.length) {
+      const { error } = await SB.from('acceso_cliente')
+        .upsert(poner.map(u => ({ cliente_id: id, user_id: u })), { onConflict: 'cliente_id,user_id' });
+      if (error) toast('No se pudieron dar accesos: ' + error.message, 'warn');
+    }
+    ACCESOS[id] = CL_PERSONAS.slice();
+
+    cerrar('ovCliente');
     CLIENTES.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-    $('#nuCliente').value = '';
     llenarSelects();
     render();
-    const i = $('#nuCliente'); if (i) i.focus();
     flashRes();
+  }
+
+  async function crearCliente(nombre, agencia) {
+
+    // Si el slug ya existe, probamos con -2, -3…
+    const base = slugDe(nombre);
+    const usados = CLIENTES.map(c => c.slug).filter(Boolean);
+    let slug = base, n = 2;
+    while (usados.indexOf(slug) !== -1) { slug = base + '-' + n; n++; }
+
+    const { data, error } = await SB.from('clientes')
+      .insert({ nombre: nombre, slug: slug, agencia: agencia }).select().single();
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return null; }
+    CLIENTES.push(data);
+    return data;
   }
 
   async function guardarCliente(id, campo, valor) {
@@ -5020,22 +5154,33 @@
 
   // ── Clientes ─────────────────────────────────────────────────
   $('#modClientes').addEventListener('click', e => {
-    if (e.target.closest('#nuClienteBtn')) { agregarCliente(); return; }
-    const a = e.target.closest('[data-carch]');
-    if (a) {
-      const c = CLIENTES.find(x => x.id === a.dataset.carch);
-      if (c) guardarCliente(c.id, 'activo', c.activo === false);
+    if (e.target.closest('#nuClienteBtn')) { abrirCliente(null); return; }
+    const fila = e.target.closest('[data-cabrir]');
+    if (fila) {
+      const c = CLIENTES.find(x => x.id === fila.dataset.cabrir);
+      if (c) abrirCliente(c);
     }
   });
-  $('#modClientes').addEventListener('blur', e => {
-    const ce = e.target.closest ? e.target.closest('[data-ccampo]') : null;
-    if (ce) guardarCliente(ce.dataset.cliente, ce.dataset.ccampo, ce.textContent.trim());
-  }, true);
-  $('#modClientes').addEventListener('keydown', e => {
-    if (e.key !== 'Enter') return;
-    const ce = e.target.closest ? e.target.closest('[data-ccampo]') : null;
-    if (ce) { e.preventDefault(); ce.blur(); return; }
-    if (e.target.id === 'nuCliente') { e.preventDefault(); agregarCliente(); }
+
+  $('#clPersonas').addEventListener('click', e => {
+    const b = e.target.closest('[data-clper]');
+    if (!b) return;
+    const id = b.dataset.clper;
+    const i = CL_PERSONAS.indexOf(id);
+    if (i === -1) CL_PERSONAS.push(id); else CL_PERSONAS.splice(i, 1);
+    pintarClPersonas();
+  });
+  $('#clGuardar').addEventListener('click', () => {
+    guardarClienteModal().catch(e => toast('No se pudo guardar: ' + (e.message || e), 'warn'));
+  });
+  $('#clNombre').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); guardarClienteModal(); } });
+  $('#clArchivar').addEventListener('click', async () => {
+    if (!CL_EDIT) return;
+    const archivar = CL_EDIT.activo !== false;
+    if (archivar && !confirm('¿Guardar "' + CL_EDIT.nombre + '" en el archivo?\n\n' +
+        'No se borra nada: deja de ofrecerse en los selectores de proyectos y tareas.')) return;
+    cerrar('ovCliente');
+    await guardarCliente(CL_EDIT.id, 'activo', !archivar);
   });
 
   // ── Wiki ─────────────────────────────────────────────────────
