@@ -508,6 +508,126 @@
 
 
 
+
+  /* ── EQUIPO · CLIENTES · WIKI ─────────────── */
+  .mod-head { margin-bottom: 18px; }
+  .mod-head h2 {
+    font-family: var(--display); font-size: 26px; font-weight: 500;
+    letter-spacing: -0.02em; margin-bottom: 4px;
+  }
+  .mod-head p { font-size: 12.5px; color: var(--ink-mute); line-height: 1.55; max-width: 640px; }
+
+  .tabla {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .persona {
+    display: grid; grid-template-columns: 34px minmax(0,1.6fr) minmax(0,1.4fr) 118px 108px auto;
+    gap: 14px; align-items: center; padding: 13px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .persona:last-child { border-bottom: none; }
+  .persona.baja { opacity: .55; }
+  .persona .nom { font-size: 13.5px; font-weight: 500; color: var(--ink); overflow-wrap: anywhere; }
+  .persona .nom [contenteditable] { border-radius: 5px; padding: 2px 5px; margin: -2px -5px; outline: none; }
+  .persona .nom [contenteditable]:hover { background: var(--line-soft); }
+  .persona .nom [contenteditable]:focus { background: var(--bg-elev); box-shadow: 0 0 0 1px var(--accent); }
+  .persona .mail { font-size: 12px; color: var(--ink-mute); overflow-wrap: anywhere; }
+  .persona .yo { font-size: 10px; background: var(--accent-soft); color: var(--ink);
+                 padding: 2px 7px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
+  .persona select { font-size: 12px; padding: 5px 8px; }
+  .persona .acc { display: flex; gap: 4px; justify-content: flex-end; }
+  .tag-estado {
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px;
+    background: var(--good-soft); color: var(--ink); white-space: nowrap;
+  }
+  .tag-estado.baja { background: var(--line-soft); color: var(--ink-mute); }
+  .tag-estado.pend { background: var(--accent-soft); }
+  @media (max-width: 900px) {
+    .persona { grid-template-columns: 34px 1fr auto; row-gap: 6px; }
+    .persona .mail, .persona select { grid-column: 2 / -1; }
+  }
+
+  .invitar {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 16px 18px; margin-top: 16px;
+  }
+  .invitar h4 { font-family: var(--display); font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .invitar .fila-inv { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+  .invitar input, .invitar select {
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+    font-family: var(--body); font-size: 12.5px; outline: none; color: var(--ink); background: var(--bg-elev);
+  }
+  .invitar input { flex: 1 1 180px; min-width: 0; }
+  .invitar input:focus, .invitar select:focus { border-color: var(--accent); }
+
+  .cliente-row {
+    display: grid; grid-template-columns: minmax(0,1fr) auto auto auto;
+    gap: 12px; align-items: center; padding: 12px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .cliente-row:last-child { border-bottom: none; }
+  .cliente-row .nomc { font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; }
+  .cliente-row .nomc [contenteditable] { border-radius: 5px; padding: 2px 5px; margin: -2px -5px; outline: none; }
+  .cliente-row .nomc [contenteditable]:hover { background: var(--line-soft); }
+  .cliente-row .nomc [contenteditable]:focus { background: var(--bg-elev); box-shadow: 0 0 0 1px var(--accent); }
+  .cliente-row.inactivo { opacity: .55; }
+
+  /* Wiki */
+  .wiki { display: grid; grid-template-columns: 250px minmax(0,1fr); gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .wiki { grid-template-columns: 1fr; } }
+  .wiki-lat {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 12px; position: sticky; top: 18px;
+  }
+  .wiki-carp { margin-bottom: 10px; }
+  .wiki-carp-head {
+    display: flex; align-items: center; gap: 6px; padding: 5px 6px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--ink-mute); font-weight: 600;
+  }
+  .wiki-carp-head .nomcar { flex: 1; min-width: 0; overflow-wrap: anywhere; border-radius: 4px; padding: 1px 3px; outline: none; }
+  .wiki-carp-head .nomcar:focus { background: var(--bg); box-shadow: 0 0 0 1px var(--accent); }
+  .wiki-carp-head .mini-btn { opacity: 0; }
+  .wiki-carp-head:hover .mini-btn { opacity: 1; }
+  .wiki-pag {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    border: none; background: none; text-align: left; cursor: pointer;
+    font-family: var(--body); font-size: 13px; color: var(--ink-soft);
+    padding: 7px 9px; border-radius: 8px;
+  }
+  .wiki-pag:hover { background: var(--line-soft); color: var(--ink); }
+  .wiki-pag.on { background: var(--accent-soft); color: var(--ink); font-weight: 500; }
+  .wiki-pag span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wiki-nueva {
+    border: none; background: none; cursor: pointer; font-family: var(--body);
+    font-size: 12px; color: var(--ink-mute); padding: 6px 9px; border-radius: 8px; width: 100%; text-align: left;
+  }
+  .wiki-nueva:hover { background: var(--line-soft); color: var(--ink); }
+  .wiki-doc {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 26px 30px; min-height: 380px;
+  }
+  .wiki-titulo {
+    font-family: var(--display); font-size: 28px; font-weight: 500; letter-spacing: -0.02em;
+    border: none; outline: none; width: 100%; background: transparent; color: var(--ink);
+    resize: none; overflow: hidden; font-family: var(--display);
+  }
+  .wiki-meta { font-size: 11px; color: var(--ink-mute); margin: 6px 0 18px; display: flex; align-items: center; gap: 10px; }
+  .wiki-cuerpo-vista {
+    font-size: 14px; line-height: 1.75; color: var(--ink); min-height: 220px;
+    padding: 10px 12px; margin: 0 -12px; border-radius: 8px;
+    border: 1px solid transparent; cursor: text;
+  }
+  .wiki-cuerpo-vista:hover { border-color: var(--line); }
+  .wiki-cuerpo-vista.vacia { color: var(--ink-mute); }
+  .wiki-cuerpo-vista a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+  .wiki-cuerpo {
+    width: 100%; border: 1px solid var(--accent); border-radius: 8px; padding: 10px 12px;
+    font-family: var(--body); font-size: 14px; line-height: 1.75; color: var(--ink);
+    background: transparent; resize: none; outline: none; min-height: 220px;
+  }
+
   /* ── TEXTO CON FORMATO, EMOJIS Y ARRASTRE ─── */
   .d-tools { display: flex; gap: 2px; margin-left: auto; }
   .d-tools .mini-btn { font-size: 13px; line-height: 1; }
@@ -1155,16 +1275,20 @@
     </div>
 
     <div>
-      <div class="nav-label">Próximamente</div>
+      <div class="nav-label">La agencia</div>
       <nav class="nav-group">
-        <div class="nav-item soon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
-          Equipo
-        </div>
-        <div class="nav-item soon">
+        <button class="nav-item" id="navClientes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
+          Clientes
+        </button>
+        <button class="nav-item" id="navWiki">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           Wiki
-        </div>
+        </button>
+        <button class="nav-item" id="navEquipo" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+          Equipo
+        </button>
       </nav>
     </div>
 
@@ -1212,6 +1336,7 @@
       </div>
     </div>
 
+    <div id="modTareas">
     <!-- Pulso del equipo -->
     <div class="pulso">
       <div class="pulso-card" data-pulso="vencidas">
@@ -1320,6 +1445,16 @@
       </div>
     </div>
     <div id="vacioWrap"></div>
+    </div><!-- /modTareas -->
+
+    <!-- ═══════════ EQUIPO ═══════════ -->
+    <div id="modEquipo" style="display:none"></div>
+
+    <!-- ═══════════ CLIENTES ═══════════ -->
+    <div id="modClientes" style="display:none"></div>
+
+    <!-- ═══════════ WIKI ═══════════ -->
+    <div id="modWiki" style="display:none"></div>
   </main>
 </div>
 <div class="guardado-flot" id="guardadoFlot">Guardado</div>
@@ -1670,6 +1805,7 @@
   let TAREAS = [];
   let VISTA = 'tablero';
   let FALTA_M8 = false;   // true si todavía no corrió migracion-interno-8-resumen.sql
+  let FALTA_M10 = false;  // true si todavía no corrió migracion-interno-10-equipo.sql
   let AGRUPAR = 'responsable';
   let FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false, pulso: '' };
   const COLORES = {
@@ -1764,9 +1900,14 @@
     return diasHasta(t.vence) < 0;
   }
   function nombrePersona(id) {
-    const p = PERSONAS.find(x => x.id === id);
-    return p ? (p.nombre || p.email || 'Sin nombre') : null;
+    if (!id) return null;
+    const p = EQUIPO.find(x => x.id === id) || PERSONAS.find(x => x.id === id);
+    return p ? (p.nombre || p.email) : null;
   }
+  // Los archivados no se ofrecen más, pero su nombre sigue resolviendo
+  // en las tareas y proyectos donde ya estaban.
+  function clientesVivos() { return CLIENTES.filter(c => c.activo !== false); }
+
   function nombreCliente(id) {
     if (!id) return 'Interno';
     const c = CLIENTES.find(x => x.id === id);
@@ -1835,9 +1976,14 @@
     const { data: sess } = await SB.auth.getSession();
     if (!sess || !sess.session) { window.location.replace('login-comakers.html'); return; }
 
-    const { data: prof, error: pErr } = await SB.from('profiles')
-      .select('id, email, nombre, tipo, agencia, super_admin')
+    const COLS_ME = 'id, email, nombre, tipo, agencia, super_admin';
+    let { data: prof, error: pErr } = await SB.from('profiles')
+      .select(COLS_ME + ', rol, activo')
       .eq('id', sess.session.user.id).single();
+    if (pErr) {
+      const r = await SB.from('profiles').select(COLS_ME).eq('id', sess.session.user.id).single();
+      if (!r.error) { prof = r.data; pErr = null; FALTA_M10 = true; }
+    }
 
     if (pErr || !prof) { $('#cargando').textContent = 'No pudimos leer tu perfil.'; return; }
 
@@ -1846,26 +1992,46 @@
       window.location.replace('panel-comakers.html');
       return;
     }
+    // Dada de baja: se corta acá. La base tampoco la deja leer nada,
+    // pero conviene decirlo con palabras en vez de mostrar todo vacío.
+    if (prof.activo === false) {
+      $('#cargando').innerHTML = 'Tu acceso al panel está dado de baja.<br>' +
+        'Si es un error, escribile a Delfi.';
+      $('#cargando').style.display = '';
+      return;
+    }
     ME = prof;
 
     $('#miNombre').textContent = prof.nombre || prof.email;
     $('#miAvatar').textContent = iniciales(prof.nombre, prof.email);
     $('#miRol').textContent = (prof.super_admin ? 'Super admin · ' : 'Agencia · ') + (prof.agencia || 'CoMakers');
     const primer = (prof.nombre || prof.email || '').split(/[\s@]/)[0];
-    $('#saludo').textContent = 'Hola ' + primer + ' 👋 — todo lo que el equipo tiene entre manos.';
+    SALUDO_BASE = 'Hola ' + primer + ' 👋 — todo lo que el equipo tiene entre manos.';
+    $('#saludo').textContent = SALUDO_BASE;
 
     await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos()]);
     llenarSelects();
     await cargarTareas();
   }
 
+  const COLS_PERSONA = 'id, nombre, email, tipo';
+
   async function cargarPersonas() {
-    const { data, error } = await SB.from('profiles')
-      .select('id, nombre, email, tipo')
+    // Igual que con los proyectos: si falta la migración 10, la
+    // consulta con las columnas nuevas falla entera. Reintentamos.
+    let { data, error } = await SB.from('profiles')
+      .select(COLS_PERSONA + ', rol, activo, super_admin, baja_en')
       .eq('tipo', 'agencia').order('nombre');
-    PERSONAS = (error || !data) ? [] : data;
+    if (error) {
+      const r = await SB.from('profiles').select(COLS_PERSONA).eq('tipo', 'agencia').order('nombre');
+      if (!r.error) { data = r.data; error = null; FALTA_M10 = true; }
+    }
+    EQUIPO = (error || !data) ? [] : data;
     // El propio usuario siempre tiene que estar en la lista
-    if (ME && !PERSONAS.some(p => p.id === ME.id)) PERSONAS.unshift(ME);
+    if (ME && !EQUIPO.some(p => p.id === ME.id)) EQUIPO.unshift(ME);
+    // Los selectores solo ofrecen gente activa; las bajas siguen en
+    // EQUIPO para que su nombre no desaparezca del historial.
+    PERSONAS = EQUIPO.filter(p => p.activo !== false);
   }
 
   const COLS_PROY = 'id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por';
@@ -1911,7 +2077,11 @@
   }
 
   async function cargarClientes() {
-    const { data, error } = await SB.from('clientes').select('id, nombre').order('nombre');
+    let { data, error } = await SB.from('clientes').select('id, nombre, activo').order('nombre');
+    if (error) {
+      const r = await SB.from('clientes').select('id, nombre').order('nombre');
+      if (!r.error) { data = r.data; error = null; FALTA_M10 = true; }
+    }
     CLIENTES = (error || !data) ? [] : data;
   }
 
@@ -1958,20 +2128,20 @@
     const fc = $('#filtroCliente');
     fc.innerHTML = '<option value="">Todos los clientes</option>'
       + '<option value="__interno">Interno (sin cliente)</option>'
-      + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+      + clientesVivos().map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
 
     $('#fResponsable').innerHTML = '<option value="">Sin asignar</option>'
       + PERSONAS.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
 
     $('#fCliente').innerHTML = '<option value="">Interno (sin cliente)</option>'
-      + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+      + clientesVivos().map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
 
     const opsProy = '<option value="">Sin proyecto</option>'
       + PROYECTOS.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + (p.privado ? ' 🔒' : '') + '</option>').join('');
     $('#fProyecto').innerHTML = opsProy;
 
     $('#pCliente').innerHTML = '<option value="">Sin cliente (interno)</option>'
-      + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+      + clientesVivos().map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
     $('#pColores').innerHTML = Object.keys(COLORES).map(k =>
       '<button class="color-op" data-color="' + k + '" style="background:' + COLORES[k] + '" title="' + k + '"></button>').join('');
 
@@ -2212,6 +2382,13 @@
   function render() {
     renderPulso();
     renderProyectosSidebar();
+    pintarModulos();
+    if (MODULO !== 'tareas') {
+      if (MODULO === 'equipo') renderEquipo();
+      else if (MODULO === 'clientes') renderClientes();
+      else if (MODULO === 'wiki') renderWiki();
+      return;
+    }
     renderProyectoHeader();
     sincronizarVista();
     const list = visibles();
@@ -2273,6 +2450,436 @@
     else renderCalendario(list);
   }
 
+  // ═══════════════ MÓDULOS: EQUIPO · CLIENTES · WIKI ═══════════════
+  let MODULO = 'tareas';
+  let SALUDO_BASE = '';
+  let EQUIPO = [];            // todo el equipo, incluidas las bajas
+  let WIKI_CARPETAS = [], WIKI_PAGINAS = [], WIKI_SEL = null, WIKI_CARGADA = false;
+
+  const ROLES = { socia: 'Socia', equipo: 'Equipo' };
+  let INV_AVISO = '';
+
+  function soySocia() { return !!ME && ME.rol === 'socia'; }
+
+  function cambiarModulo(m) {
+    if (m === 'equipo' && !soySocia()) return;
+    MODULO = m;
+    if (m !== 'tareas') { cerrarDrawer(); }
+    if (m === 'wiki' && !WIKI_CARGADA) cargarWiki();
+    render();
+  }
+
+  function pintarModulos() {
+    $('#modTareas').style.display  = MODULO === 'tareas'   ? '' : 'none';
+    $('#modEquipo').style.display  = MODULO === 'equipo'   ? '' : 'none';
+    $('#modClientes').style.display = MODULO === 'clientes' ? '' : 'none';
+    $('#modWiki').style.display    = MODULO === 'wiki'     ? '' : 'none';
+    $('.pulso').style.display = MODULO === 'tareas' ? '' : 'none';
+    $('.controles').style.display = MODULO === 'tareas' ? '' : 'none';
+    $('#btnNueva').style.display = MODULO === 'tareas' ? '' : 'none';
+    $('#navEquipo').style.display = soySocia() ? '' : 'none';
+    $('#navTablero').classList.toggle('active', MODULO === 'tareas' && !FILTRO.proyecto);
+    $('#navClientes').classList.toggle('active', MODULO === 'clientes');
+    $('#navWiki').classList.toggle('active', MODULO === 'wiki');
+    $('#navEquipo').classList.toggle('active', MODULO === 'equipo');
+
+    const t = $('#tituloGlobal');
+    if (MODULO === 'tareas') {
+      t.querySelector('h1').innerHTML = 'El <em>tablero</em>';
+      $('#saludo').textContent = SALUDO_BASE;
+      return;
+    }
+    t.style.display = '';
+    $('#proyHeader').classList.remove('on');
+    const H = {
+      equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
+      clientes: ['Los <em>clientes</em>', 'Los que aparecen en los proyectos y en las tareas.'],
+      wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.']
+    }[MODULO];
+    t.querySelector('h1').innerHTML = H[0];
+    $('#saludo').textContent = H[1];
+  }
+
+  // ── EQUIPO ───────────────────────────────────────────────────
+  function tareasAbiertasDe(id) {
+    return TAREAS.filter(t => t.responsable_id === id && !t.completada).length;
+  }
+
+  function filaPersona(p) {
+    const yo = ME && p.id === ME.id;
+    const baja = p.activo === false;
+    const n = p.nombre || p.email || '—';
+    const abiertas = tareasAbiertasDe(p.id);
+    return '<div class="persona' + (baja ? ' baja' : '') + '" data-persona="' + p.id + '">' +
+        '<div class="avatar-sm">' + esc(iniciales(n, p.email)) + '</div>' +
+        '<div class="nom"><span contenteditable="true" data-pcampo="nombre" data-persona="' + p.id + '">' +
+          esc(p.nombre || '') + '</span>' + (yo ? '<span class="yo">vos</span>' : '') + '</div>' +
+        '<div class="mail">' + esc(p.email || '') + '</div>' +
+        '<div>' +
+          (yo
+            ? '<span class="tag-estado">' + (ROLES[p.rol] || 'Equipo') + '</span>'
+            : '<select class="sel" data-prol="' + p.id + '">' +
+                Object.keys(ROLES).map(r => '<option value="' + r + '"' +
+                  (p.rol === r ? ' selected' : '') + '>' + ROLES[r] + '</option>').join('') +
+              '</select>') +
+        '</div>' +
+        '<div><span class="tag-estado' + (baja ? ' baja' : '') + '">' +
+          (baja ? 'Dada de baja' : abiertas + ' abierta' + (abiertas === 1 ? '' : 's')) + '</span></div>' +
+        '<div class="acc">' +
+          (yo ? '' :
+            '<button class="mini-btn" data-pbaja="' + p.id + '">' +
+              (baja ? 'Reactivar' : 'Dar de baja') + '</button>') +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderEquipo() {
+    if (!soySocia()) { $('#modEquipo').innerHTML = ''; return; }
+    const activas = EQUIPO.filter(p => p.activo !== false);
+    const bajas = EQUIPO.filter(p => p.activo === false);
+    const socias = activas.filter(p => p.rol === 'socia').length;
+
+    $('#modEquipo').innerHTML =
+      (FALTA_M10 ? '<div class="res-falta" style="margin-bottom:16px">Falta correr ' +
+        '<code>migracion-interno-10-equipo.sql</code>. Hasta que la corras, los roles y las bajas no se guardan.</div>' : '') +
+      '<div class="mod-head"><p>Las <b>socias</b> ven este módulo, invitan gente y cambian permisos. ' +
+        'El resto del <b>equipo</b> usa el panel normalmente. Hoy hay ' + socias + ' socia' + (socias === 1 ? '' : 's') + '.</p></div>' +
+      '<div class="tabla">' + activas.map(filaPersona).join('') + '</div>' +
+      (bajas.length
+        ? '<div class="mod-head" style="margin:22px 0 10px"><p>Ya no trabajan acá. No pueden entrar al panel, ' +
+            'pero su nombre sigue en las tareas que hicieron.</p></div>' +
+          '<div class="tabla">' + bajas.map(filaPersona).join('') + '</div>'
+        : '') +
+      '<div class="invitar">' +
+        '<h4>Sumar a alguien</h4>' +
+        '<div class="res-sub">Le llega un mail para poner su contraseña. Entra directo al panel.</div>' +
+        '<div class="fila-inv">' +
+          '<input type="text" id="invNombre" placeholder="Nombre y apellido">' +
+          '<input type="email" id="invEmail" placeholder="mail@ejemplo.com">' +
+          '<select class="sel" id="invRol"><option value="equipo">Equipo</option><option value="socia">Socia</option></select>' +
+          '<button class="btn-primary" id="invBtn">Invitar</button>' +
+        '</div>' +
+        '<div class="res-sub" id="invAviso" style="margin-top:10px">' + esc(INV_AVISO) + '</div>' +
+      '</div>';
+  }
+
+  async function guardarPersona(id, campo, valor) {
+    const p = EQUIPO.find(x => x.id === id);
+    if (!p) return;
+    const anterior = p[campo];
+    if ((anterior === null || anterior === undefined ? '' : anterior) === valor) return;
+    p[campo] = valor;
+    const patch = {}; patch[campo] = valor;
+    const { error } = await SB.from('profiles').update(patch).eq('id', id);
+    if (error) {
+      p[campo] = anterior;
+      toast('No se pudo guardar: ' + error.message, 'warn');
+    } else {
+      flashRes();
+    }
+    PERSONAS = EQUIPO.filter(x => x.activo !== false);
+    llenarSelects();
+    render();
+  }
+
+  async function alternarBaja(id) {
+    const p = EQUIPO.find(x => x.id === id);
+    if (!p) return;
+    const baja = p.activo === false;
+    const n = p.nombre || p.email;
+    const abiertas = tareasAbiertasDe(id);
+
+    if (!baja) {
+      let msg = '¿Dar de baja a ' + n + '?\n\nNo va a poder entrar más al panel ni desde una sesión ya abierta. ' +
+                'Su nombre sigue en todo lo que hizo.';
+      if (abiertas) msg += '\n\nOjo: le quedan ' + abiertas + ' tarea(s) abierta(s). Reasignalas antes o van a quedar sin dueño.';
+      if (!confirm(msg)) return;
+    }
+    await guardarPersona(id, 'activo', baja);
+  }
+
+  async function invitar() {
+    const nombre = $('#invNombre').value.trim();
+    const email = $('#invEmail').value.trim().toLowerCase();
+    const rol = $('#invRol').value;
+    const aviso = $('#invAviso');
+    const decir = t => { INV_AVISO = t; if ($('#invAviso')) $('#invAviso').textContent = t; };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { decir('Ese mail no parece válido.'); $('#invEmail').focus(); return; }
+    if (!SB.functions) { decir('Este navegador no pudo cargar el módulo de invitaciones.'); return; }
+
+    decir('Enviando…');
+    $('#invBtn').disabled = true;
+    try {
+      const { data, error } = await SB.functions.invoke('invitar-equipo', { body: { email, nombre, rol } });
+      const msg = (data && data.error) || (error && error.message);
+      if (msg) {
+        decir(msg.indexOf('Failed to send') !== -1 || msg.indexOf('404') !== -1
+          ? 'No encontramos la función `invitar-equipo` en Supabase. ¿La desplegaste?'
+          : msg);
+        return;
+      }
+      $('#invNombre').value = ''; $('#invEmail').value = '';
+      await cargarPersonas();
+      decir('Listo: le llegó el mail a ' + email + '.');
+      llenarSelects();
+      render();
+    } catch (e) {
+      decir('No se pudo invitar: ' + (e.message || e));
+    } finally {
+      const b = $('#invBtn'); if (b) b.disabled = false;
+    }
+  }
+
+  // ── CLIENTES ─────────────────────────────────────────────────
+  function proyectosDeCliente(id) { return PROYECTOS.filter(p => p.cliente_id === id).length; }
+  function tareasDeCliente(id) { return TAREAS.filter(t => t.cliente_id === id).length; }
+
+  function renderClientes() {
+    const activos = CLIENTES.filter(c => c.activo !== false);
+    const guardados = CLIENTES.filter(c => c.activo === false);
+    const fila = c =>
+      '<div class="cliente-row' + (c.activo === false ? ' inactivo' : '') + '">' +
+        '<div class="nomc"><span contenteditable="true" data-ccampo="nombre" data-cliente="' + c.id + '">' +
+          esc(c.nombre || '') + '</span></div>' +
+        '<span class="pill">' + proyectosDeCliente(c.id) + ' proyecto' + (proyectosDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
+        '<span class="pill">' + tareasDeCliente(c.id) + ' tarea' + (tareasDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
+        '<button class="mini-btn" data-carch="' + c.id + '">' +
+          (c.activo === false ? 'Reactivar' : 'Guardar en el archivo') + '</button>' +
+      '</div>';
+
+    $('#modClientes').innerHTML =
+      '<div class="mod-head"><p>Los clientes que ves acá son los que aparecen en el selector de los proyectos ' +
+        'y de las tareas. Archivar uno no borra nada: deja de ofrecerse en los selectores.</p></div>' +
+      '<div class="tabla">' +
+        (activos.length ? activos.map(fila).join('')
+                        : '<div class="cliente-row"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
+      '</div>' +
+      '<div class="invitar">' +
+        '<h4>Nuevo cliente</h4>' +
+        '<div class="fila-inv">' +
+          '<input type="text" id="nuCliente" placeholder="Ej: San Eusebio">' +
+          '<button class="btn-primary" id="nuClienteBtn">Agregar</button>' +
+        '</div>' +
+      '</div>' +
+      (guardados.length
+        ? '<div class="mod-head" style="margin:22px 0 10px"><p>En el archivo.</p></div>' +
+          '<div class="tabla">' + guardados.map(fila).join('') + '</div>'
+        : '');
+  }
+
+  async function agregarCliente() {
+    const nombre = $('#nuCliente').value.trim();
+    if (!nombre) { $('#nuCliente').focus(); return; }
+    const { data, error } = await SB.from('clientes').insert({ nombre: nombre }).select().single();
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+    CLIENTES.push(data);
+    CLIENTES.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    $('#nuCliente').value = '';
+    llenarSelects();
+    render();
+    const i = $('#nuCliente'); if (i) i.focus();
+    flashRes();
+  }
+
+  async function guardarCliente(id, campo, valor) {
+    const c = CLIENTES.find(x => x.id === id);
+    if (!c) return;
+    const anterior = c[campo];
+    if ((anterior === null || anterior === undefined ? '' : anterior) === valor) return;
+    c[campo] = valor;
+    const patch = {}; patch[campo] = valor;
+    const { error } = await SB.from('clientes').update(patch).eq('id', id);
+    if (error) { c[campo] = anterior; toast('No se pudo guardar: ' + error.message, 'warn'); }
+    else flashRes();
+    llenarSelects();
+    render();
+  }
+
+  // ── WIKI ─────────────────────────────────────────────────────
+  async function cargarWiki() {
+    const [c, p] = await Promise.all([
+      SB.from('wiki_carpeta').select('id, nombre, orden').order('orden'),
+      SB.from('wiki_pagina').select('id, carpeta_id, titulo, contenido, orden, actualizado_por, updated_at').order('orden')
+    ]);
+    if (c.error || p.error) { FALTA_M10 = true; WIKI_CARPETAS = []; WIKI_PAGINAS = []; }
+    else { WIKI_CARPETAS = c.data || []; WIKI_PAGINAS = p.data || []; }
+    WIKI_CARGADA = true;
+    if (!WIKI_SEL && WIKI_PAGINAS.length) WIKI_SEL = WIKI_PAGINAS[0].id;
+    if (MODULO === 'wiki') render();
+  }
+
+  function paginaActiva() { return WIKI_PAGINAS.find(p => p.id === WIKI_SEL) || null; }
+
+  function renderWiki() {
+    if (FALTA_M10) {
+      $('#modWiki').innerHTML = '<div class="res-falta">Falta correr ' +
+        '<code>migracion-interno-10-equipo.sql</code> en Supabase: la wiki todavía no existe en la base.</div>';
+      return;
+    }
+    const sueltas = WIKI_PAGINAS.filter(p => !p.carpeta_id);
+    const bloque = (car, pags) =>
+      '<div class="wiki-carp">' +
+        '<div class="wiki-carp-head">' +
+          '<span class="nomcar"' + (car ? ' contenteditable="true" data-wcar="' + car.id + '"' : '') + '>' +
+            esc(car ? car.nombre : 'Sueltas') + '</span>' +
+          (car ? '<button class="mini-btn" data-wcarnueva="' + car.id + '" title="Página nueva acá">+</button>' +
+                 '<button class="mini-btn del" data-wcardel="' + car.id + '" title="Borrar carpeta">' + TACHO_SVG + '</button>' : '') +
+        '</div>' +
+        (pags.length
+          ? pags.map(p => '<button class="wiki-pag' + (p.id === WIKI_SEL ? ' on' : '') + '" data-wpag="' + p.id + '">' +
+              '<span>' + esc(textoPlano(p.titulo)) + '</span></button>').join('')
+          : '<div class="res-vacio" style="padding:4px 9px">Vacía</div>') +
+      '</div>';
+
+    const lat =
+      '<div class="wiki-lat">' +
+        WIKI_CARPETAS.map(c => bloque(c, WIKI_PAGINAS.filter(p => p.carpeta_id === c.id))).join('') +
+        (sueltas.length ? bloque(null, sueltas) : '') +
+        '<button class="wiki-nueva" id="wikiNuevaCarpeta">+ Carpeta nueva</button>' +
+        '<button class="wiki-nueva" id="wikiNuevaPagina">+ Página nueva</button>' +
+      '</div>';
+
+    const p = paginaActiva();
+    let doc;
+    if (!p) {
+      doc = '<div class="wiki-doc"><div class="vacio"><h3>La wiki está vacía</h3>' +
+        '<p>Acá van las cosas que hoy están en la cabeza de alguien: cómo cobramos, ' +
+        'las medidas de cada formato, qué preguntar en la primera llamada.</p></div></div>';
+    } else {
+      const hay = !!(p.contenido && p.contenido.trim());
+      const quien = nombrePersona(p.actualizado_por);
+      doc =
+        '<div class="wiki-doc">' +
+          '<textarea class="wiki-titulo" id="wkTitulo" rows="1">' + esc(p.titulo || '') + '</textarea>' +
+          '<div class="wiki-meta">' +
+            (quien ? 'Última mano: ' + esc(quien) + ' · ' + hace(p.updated_at) : 'Sin cambios todavía') +
+            '<span class="d-tools">' +
+              '<button class="mini-btn" id="wkEmoji" title="Poner un emoji">🙂</button>' +
+              '<button class="mini-btn" id="wkLink" title="Poner un link (⌘K)">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>' +
+              '</button>' +
+              '<button class="mini-btn del" id="wkBorrar" title="Borrar página">' + TACHO_SVG + '</button>' +
+            '</span>' +
+          '</div>' +
+          '<div class="wiki-cuerpo-vista' + (hay ? '' : ' vacia') + '" id="wkVista">' +
+            (hay ? renderTexto(p.contenido) : 'Clickeá acá y escribí. Podés poner links con ⌘K y emojis con el botón de arriba.') +
+          '</div>' +
+          '<textarea class="wiki-cuerpo" id="wkCuerpo" style="display:none">' + esc(p.contenido || '') + '</textarea>' +
+        '</div>';
+    }
+
+    // No repintamos si estás escribiendo: te borraría el texto.
+    const ae = document.activeElement;
+    if (ae && $('#modWiki').contains(ae) &&
+        (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT' || ae.isContentEditable)) return;
+
+    $('#modWiki').innerHTML = '<div class="wiki">' + lat + doc + '</div>';
+    const ta = $('#wkTitulo'); if (ta) autoGrow(ta);
+  }
+
+  async function nuevaCarpeta() {
+    const max = WIKI_CARPETAS.reduce((m, x) => Math.max(m, x.orden || 0), 0);
+    const { data, error } = await SB.from('wiki_carpeta')
+      .insert({ nombre: 'Carpeta nueva', orden: max + 1000 }).select().single();
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+    WIKI_CARPETAS.push(data);
+    renderWiki();
+  }
+
+  async function nuevaPagina(carpetaId) {
+    const max = WIKI_PAGINAS.reduce((m, x) => Math.max(m, x.orden || 0), 0);
+    const { data, error } = await SB.from('wiki_pagina')
+      .insert({ titulo: 'Página nueva', carpeta_id: carpetaId || null, orden: max + 1000 })
+      .select().single();
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+    WIKI_PAGINAS.push(data);
+    WIKI_SEL = data.id;
+    renderWiki();
+    const t = $('#wkTitulo');
+    if (t) { t.focus(); t.setSelectionRange(0, t.value.length); }
+  }
+
+  async function guardarPagina(campo, valor) {
+    const p = paginaActiva();
+    if (!p) return;
+    const anterior = p[campo];
+    if ((anterior || '') === (valor || '')) return;
+    p[campo] = valor;
+    const patch = {}; patch[campo] = valor;
+    const { error } = await SB.from('wiki_pagina').update(patch).eq('id', p.id);
+    if (error) { p[campo] = anterior; toast('No se pudo guardar: ' + error.message, 'warn'); renderWiki(); return; }
+    p.actualizado_por = ME ? ME.id : null;
+    p.updated_at = new Date().toISOString();
+    pintarMetaWiki();
+    flashRes();
+  }
+
+  function pintarMetaWiki() {
+    const p = paginaActiva();
+    const m = $('#modWiki .wiki-meta');
+    if (!p || !m || !m.firstChild) return;
+    const quien = nombrePersona(p.actualizado_por);
+    m.firstChild.textContent = quien
+      ? 'Última mano: ' + quien + ' · ' + hace(p.updated_at)
+      : 'Sin cambios todavía';
+  }
+
+  async function borrarPagina() {
+    const p = paginaActiva();
+    if (!p) return;
+    if (!confirm('¿Borrar "' + p.titulo + '"? No se puede deshacer.')) return;
+    const { error } = await SB.from('wiki_pagina').delete().eq('id', p.id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    WIKI_PAGINAS = WIKI_PAGINAS.filter(x => x.id !== p.id);
+    WIKI_SEL = WIKI_PAGINAS.length ? WIKI_PAGINAS[0].id : null;
+    renderWiki();
+  }
+
+  async function borrarCarpeta(id) {
+    const dentro = WIKI_PAGINAS.filter(p => p.carpeta_id === id).length;
+    if (!confirm(dentro
+      ? '¿Borrar la carpeta? Sus ' + dentro + ' página(s) NO se borran: quedan sueltas.'
+      : '¿Borrar la carpeta?')) return;
+    const { error } = await SB.from('wiki_carpeta').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    WIKI_CARPETAS = WIKI_CARPETAS.filter(c => c.id !== id);
+    WIKI_PAGINAS.forEach(p => { if (p.carpeta_id === id) p.carpeta_id = null; });
+    renderWiki();
+  }
+
+  async function renombrarCarpeta(id, nombre) {
+    const c = WIKI_CARPETAS.find(x => x.id === id);
+    if (!c || c.nombre === nombre || !nombre) return;
+    const anterior = c.nombre;
+    c.nombre = nombre;
+    const { error } = await SB.from('wiki_carpeta').update({ nombre: nombre }).eq('id', id);
+    if (error) { c.nombre = anterior; toast('No se pudo guardar: ' + error.message, 'warn'); renderWiki(); return; }
+    flashRes();
+  }
+
+  function salirDeEditarWiki() {
+    const ta = $('#wkCuerpo');
+    if (!ta) return;
+    const txt = ta.value.trim();
+    const v = $('#wkVista');
+    v.innerHTML = txt ? renderTexto(txt)
+      : 'Clickeá acá y escribí. Podés poner links con ⌘K y emojis con el botón de arriba.';
+    v.classList.toggle('vacia', !txt);
+    v.style.display = '';
+    ta.style.display = 'none';
+  }
+
+  function entrarAEditarWiki() {
+    const ta = $('#wkCuerpo');
+    if (!ta) return;
+    $('#wkVista').style.display = 'none';
+    ta.style.display = '';
+    autoGrow(ta);
+    ta.focus();
+    const n = ta.value.length;
+    try { ta.setSelectionRange(n, n); } catch (_) {}
+  }
+
   // ═══════════════ TEXTO CON FORMATO ═══════════════
   // Guardamos markdown mínimo en texto plano: [palabra](url).
   // Nunca guardamos HTML escrito por el usuario: escapamos TODO
@@ -2308,7 +2915,7 @@
   let TOCANDO_HERRAMIENTA = false;
   document.addEventListener('mousedown', e => {
     TOCANDO_HERRAMIENTA = !!(e.target.closest &&
-      e.target.closest('#emojiPop, #ovLink, .d-tools, #resEmoji, #resLink'));
+      e.target.closest('#emojiPop, #ovLink, .d-tools, #resEmoji, #resLink, #wkEmoji, #wkLink'));
   }, true);
 
   function insertarEn(el, txt) {
@@ -2349,6 +2956,7 @@
     cerrar('ovLink');
     if (el.id === 'dDesc') { entrarAEditarDesc(); guardarCampo('descripcion', el.value.trim() || null); }
     if (el.id === 'resBrief') { entrarAEditarBrief(); guardarProyCampo('descripcion', el.value.trim() || null); }
+    if (el.id === 'wkCuerpo') { entrarAEditarWiki(); guardarPagina('contenido', el.value.trim() || null); }
     const c = LK_INI + md.length;
     el.focus();
     try { el.setSelectionRange(c, c); } catch (_) {}
@@ -3625,7 +4233,7 @@
     $('#dResponsable').value = t.responsable_id || '';
 
     $('#dCliente').innerHTML = '<option value="">Interno (sin cliente)</option>'
-      + CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+      + clientesVivos().map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
     $('#dCliente').value = t.cliente_id || '';
 
     $('#dEmpieza').value = t.empieza || '';
@@ -4022,7 +4630,10 @@
   // ═══════════════ EVENTOS ═══════════════
   $('#btnNueva').addEventListener('click', () => abrirForm(null));
   $('#btnRefrescar').addEventListener('click', cargarTareas);
-  $('#navTablero').addEventListener('click', () => { FILTRO.proyecto = ''; render(); });
+  $('#navTablero').addEventListener('click', () => { MODULO = 'tareas'; FILTRO.proyecto = ''; render(); });
+  $('#navClientes').addEventListener('click', () => cambiarModulo('clientes'));
+  $('#navWiki').addEventListener('click', () => cambiarModulo('wiki'));
+  $('#navEquipo').addEventListener('click', () => cambiarModulo('equipo'));
   $('#fGuardar').addEventListener('click', guardar);
   $('#fBorrar').addEventListener('click', () => borrarTarea(EDITANDO));
   $('#fVisible').addEventListener('click', function () { this.classList.toggle('on'); });
@@ -4095,6 +4706,7 @@
     if (el.id === 'dTitulo') guardarCampo('titulo', el.value.trim());
     if (el.id === 'dDesc') guardarCampo('descripcion', el.value.trim() || null);
     if (el.id === 'resBrief') guardarProyCampo('descripcion', el.value.trim() || null);
+    if (el.id === 'wkCuerpo') guardarPagina('contenido', el.value.trim() || null);
     el.focus();
   });
   document.addEventListener('mousedown', e => {
@@ -4183,8 +4795,9 @@
     if (!b) return;
     const id = b.dataset.proy;
     // Segundo click sobre el mismo: entra a editarlo. Primero: filtra.
-    if (FILTRO.proyecto === id) { abrirProyecto(proyectoDe(id)); return; }
-    const primeraVez = !FILTRO.proyecto;
+    if (FILTRO.proyecto === id && MODULO === 'tareas') { abrirProyecto(proyectoDe(id)); return; }
+    const primeraVez = !FILTRO.proyecto || MODULO !== 'tareas';
+    MODULO = 'tareas';
     FILTRO.proyecto = id;
     // Al entrar a un proyecto desde la vista global, arrancamos por el Resumen.
     if (primeraVez) VISTA = 'resumen';
@@ -4383,6 +4996,91 @@
     if (e.target.id === 'nuEtiqueta' || e.target.id === 'nuValor') { e.preventDefault(); agregarDato(); }
     if (e.target.id === 'nuLinkTitulo' || e.target.id === 'nuLinkUrl') { e.preventDefault(); agregarLink(); }
   });
+
+  // ── Equipo ───────────────────────────────────────────────────
+  $('#modEquipo').addEventListener('click', e => {
+    const b = e.target.closest('[data-pbaja]');
+    if (b) { alternarBaja(b.dataset.pbaja); return; }
+    if (e.target.closest('#invBtn')) { invitar(); return; }
+  });
+  $('#modEquipo').addEventListener('change', e => {
+    const sel = e.target.closest('[data-prol]');
+    if (sel) guardarPersona(sel.dataset.prol, 'rol', sel.value);
+  });
+  $('#modEquipo').addEventListener('blur', e => {
+    const ce = e.target.closest ? e.target.closest('[data-pcampo]') : null;
+    if (ce) guardarPersona(ce.dataset.persona, ce.dataset.pcampo, ce.textContent.trim());
+  }, true);
+  $('#modEquipo').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const ce = e.target.closest ? e.target.closest('[data-pcampo]') : null;
+    if (ce) { e.preventDefault(); ce.blur(); return; }
+    if (e.target.id === 'invNombre' || e.target.id === 'invEmail') { e.preventDefault(); invitar(); }
+  });
+
+  // ── Clientes ─────────────────────────────────────────────────
+  $('#modClientes').addEventListener('click', e => {
+    if (e.target.closest('#nuClienteBtn')) { agregarCliente(); return; }
+    const a = e.target.closest('[data-carch]');
+    if (a) {
+      const c = CLIENTES.find(x => x.id === a.dataset.carch);
+      if (c) guardarCliente(c.id, 'activo', c.activo === false);
+    }
+  });
+  $('#modClientes').addEventListener('blur', e => {
+    const ce = e.target.closest ? e.target.closest('[data-ccampo]') : null;
+    if (ce) guardarCliente(ce.dataset.cliente, ce.dataset.ccampo, ce.textContent.trim());
+  }, true);
+  $('#modClientes').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const ce = e.target.closest ? e.target.closest('[data-ccampo]') : null;
+    if (ce) { e.preventDefault(); ce.blur(); return; }
+    if (e.target.id === 'nuCliente') { e.preventDefault(); agregarCliente(); }
+  });
+
+  // ── Wiki ─────────────────────────────────────────────────────
+  $('#modWiki').addEventListener('click', e => {
+    const pag = e.target.closest('[data-wpag]');
+    if (pag) { WIKI_SEL = pag.dataset.wpag; renderWiki(); return; }
+    if (e.target.closest('#wikiNuevaCarpeta')) { nuevaCarpeta(); return; }
+    if (e.target.closest('#wikiNuevaPagina')) { nuevaPagina(null); return; }
+    const nc = e.target.closest('[data-wcarnueva]');
+    if (nc) { nuevaPagina(nc.dataset.wcarnueva); return; }
+    const dc = e.target.closest('[data-wcardel]');
+    if (dc) { borrarCarpeta(dc.dataset.wcardel); return; }
+    if (e.target.closest('#wkBorrar')) { borrarPagina(); return; }
+    if (e.target.closest('#wkLink')) {
+      if ($('#wkCuerpo') && $('#wkCuerpo').style.display === 'none') entrarAEditarWiki();
+      pedirLink($('#wkCuerpo'));
+      return;
+    }
+    if (e.target.closest('#wkEmoji')) {
+      e.stopPropagation();
+      if ($('#wkCuerpo') && $('#wkCuerpo').style.display === 'none') entrarAEditarWiki();
+      abrirEmojis(e.target.closest('#wkEmoji'), $('#wkCuerpo'));
+      return;
+    }
+    if (e.target.closest('#wkVista') && !e.target.closest('a')) { entrarAEditarWiki(); return; }
+  });
+  $('#modWiki').addEventListener('input', e => {
+    if (e.target.id === 'wkCuerpo' || e.target.id === 'wkTitulo') autoGrow(e.target);
+  });
+  $('#modWiki').addEventListener('keydown', e => {
+    if (e.target.id === 'wkCuerpo') { atajoLink(e); return; }
+    if (e.target.id === 'wkTitulo' && e.key === 'Enter') { e.preventDefault(); e.target.blur(); return; }
+    const ce = e.target.closest ? e.target.closest('[data-wcar]') : null;
+    if (ce && e.key === 'Enter') { e.preventDefault(); ce.blur(); }
+  });
+  $('#modWiki').addEventListener('blur', e => {
+    if (e.target.id === 'wkTitulo') { guardarPagina('titulo', e.target.value.trim() || 'Sin título'); renderWiki(); return; }
+    if (e.target.id === 'wkCuerpo') {
+      guardarPagina('contenido', e.target.value.trim() || null);
+      if (!TOCANDO_HERRAMIENTA) salirDeEditarWiki();
+      return;
+    }
+    const ce = e.target.closest ? e.target.closest('[data-wcar]') : null;
+    if (ce) renombrarCarpeta(ce.dataset.wcar, ce.textContent.trim());
+  }, true);
 
   // Refrescar al volver a la pestaña (el tablero es compartido)
   let ultimo = Date.now();
