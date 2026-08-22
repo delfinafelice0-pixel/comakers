@@ -509,6 +509,83 @@
 
 
 
+
+  /* ── BANDEJA · COLABORADORAS · MENCIONES ─── */
+  .nav-item .badge-nov {
+    margin-left: auto; background: var(--accent); color: var(--ink);
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px;
+  }
+  .bandeja-filtros { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .bandeja-filtros button {
+    border: 1px solid var(--line); background: var(--bg-elev); border-radius: 20px;
+    padding: 5px 12px; font-size: 12px; font-family: var(--body); cursor: pointer; color: var(--ink-soft);
+  }
+  .bandeja-filtros button.on { border-color: var(--ink); color: var(--ink); background: var(--line-soft); }
+
+  .novedad {
+    display: grid; grid-template-columns: 30px minmax(0,1fr) auto;
+    gap: 12px; align-items: start; padding: 13px 18px;
+    border-bottom: 1px solid var(--line-soft); cursor: pointer;
+  }
+  .novedad:last-child { border-bottom: none; }
+  .novedad:hover { background: var(--line-soft); }
+  .novedad.nueva { background: var(--accent-soft); }
+  .novedad.nueva:hover { background: #FFDFFD; }
+  .novedad .qué { font-size: 13.5px; color: var(--ink); line-height: 1.45; overflow-wrap: anywhere; }
+  .novedad .qué b { font-weight: 600; }
+  .novedad .sub { font-size: 12px; color: var(--ink-mute); margin-top: 3px; overflow-wrap: anywhere; }
+  .novedad .cuando { font-size: 11px; color: var(--ink-mute); white-space: nowrap; }
+  .novedad .acc { display: flex; gap: 2px; align-items: center; }
+  .novedad .mini-btn { opacity: 0; }
+  .novedad:hover .mini-btn { opacity: 1; }
+  .nov-tipo {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 9px; font-size: 14px;
+    background: var(--line-soft); flex-shrink: 0;
+  }
+  .nov-tipo.mencion { background: var(--accent-soft); }
+  .nov-tipo.asignada { background: var(--cyan); }
+  .nov-tipo.completada { background: var(--good-soft); }
+  @media (max-width: 900px) {
+    .novedad { grid-template-columns: 30px 1fr; }
+    .novedad .acc { grid-column: 2; justify-content: flex-start; }
+  }
+
+  /* Colaboradoras en el detalle */
+  .colabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .colab {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--line-soft); border-radius: 20px; padding: 3px 4px 3px 3px;
+    font-size: 12px; color: var(--ink);
+  }
+  .colab .quitar {
+    border: none; background: none; cursor: pointer; color: var(--ink-mute);
+    font-size: 14px; line-height: 1; padding: 0 5px 1px;
+  }
+  .colab .quitar:hover { color: var(--warn); }
+  .colab.fijo { opacity: .75; }
+
+  /* Menciones */
+  .mencion {
+    background: var(--accent-soft); border-radius: 5px; padding: 1px 5px;
+    font-weight: 500; color: var(--ink); white-space: nowrap;
+  }
+  .men-pop {
+    position: fixed; z-index: 210; background: var(--bg-elev);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: 0 10px 28px rgba(27,22,32,.16); padding: 5px;
+    width: 240px; max-height: 240px; overflow-y: auto; display: none;
+  }
+  .men-pop.on { display: block; }
+  .men-pop button {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    border: none; background: none; text-align: left; cursor: pointer;
+    font-family: var(--body); font-size: 13px; color: var(--ink);
+    padding: 7px 8px; border-radius: 8px;
+  }
+  .men-pop button:hover, .men-pop button.sel { background: var(--line-soft); }
+  .men-pop .vacio-men { font-size: 12px; color: var(--ink-mute); padding: 8px; }
+
   /* ── EQUIPO · CLIENTES · WIKI ─────────────── */
   .mod-head { margin-bottom: 18px; }
   .mod-head h2 {
@@ -1260,6 +1337,11 @@
     </div>
 
     <nav class="nav-group">
+      <button class="nav-item" id="navBandeja">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+        Bandeja
+        <span class="badge-nov" id="navNov" style="display:none">0</span>
+      </button>
       <button class="nav-item active" id="navTablero">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
         Todo el tablero
@@ -1450,6 +1532,9 @@
     <div id="vacioWrap"></div>
     </div><!-- /modTareas -->
 
+    <!-- ═══════════ BANDEJA ═══════════ -->
+    <div id="modBandeja" style="display:none"></div>
+
     <!-- ═══════════ EQUIPO ═══════════ -->
     <div id="modEquipo" style="display:none"></div>
 
@@ -1524,6 +1609,7 @@
 
 <!-- ═══════════ EMOJIS ═══════════ -->
 <div class="emoji-pop" id="emojiPop"></div>
+<div class="men-pop" id="menPop"></div>
 
 <!-- ═══════════ MODAL FORM ═══════════ -->
 <div class="overlay" id="ovForm">
@@ -1775,6 +1861,16 @@
     </div>
 
     <div class="d-sec">
+      <div class="d-sec-head">
+        <div class="sec-title">Colaboradoras</div>
+        <select class="sel" id="dAddColab" style="font-size:12px;padding:5px 9px;margin-left:auto"></select>
+      </div>
+      <div class="colabs" id="dColabs"></div>
+      <div class="res-sub" style="margin-top:8px">Se enteran de todo lo que pasa acá. La tarea sigue siendo
+        de su responsable: no aparece en el “Mías” de las colaboradoras.</div>
+    </div>
+
+    <div class="d-sec">
       <div class="d-sec-head"><div class="sec-title">Checklist</div></div>
       <div class="prog" id="dProg" style="display:none">
         <div class="prog-bar"><div class="prog-fill" id="dProgFill" style="width:0%"></div></div>
@@ -1845,6 +1941,7 @@
   let VISTA = 'tablero';
   let FALTA_M8 = false;   // true si todavía no corrió migracion-interno-8-resumen.sql
   let FALTA_M10 = false;  // true si todavía no corrió migracion-interno-10-equipo.sql
+  let FALTA_M11 = false;  // true si todavía no corrió migracion-interno-11-bandeja.sql
   let AGRUPAR = 'responsable';
   let FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false, pulso: '' };
   const COLORES = {
@@ -2051,6 +2148,7 @@
     await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos()]);
     llenarSelects();
     await cargarTareas();
+    cargarBandeja();
   }
 
   const COLS_PERSONA = 'id, nombre, email, tipo';
@@ -2153,6 +2251,7 @@
   // Si todavía no corriste la migración 2, no rompe nada: quedan vacíos.
   async function cargarExtras() {
     await cargarTP();
+    await cargarColabs();
     SUB_MAP = {}; ADJ_MAP = {};
     const [subs, adjs] = await Promise.all([
       SB.from('subtarea').select('tarea_id, hecha'),
@@ -2431,7 +2530,8 @@
     renderProyectosSidebar();
     pintarModulos();
     if (MODULO !== 'tareas') {
-      if (MODULO === 'equipo') renderEquipo();
+      if (MODULO === 'bandeja') renderBandeja();
+      else if (MODULO === 'equipo') renderEquipo();
       else if (MODULO === 'clientes') renderClientes();
       else if (MODULO === 'wiki') renderWiki();
       return;
@@ -2497,6 +2597,274 @@
     else renderCalendario(list);
   }
 
+  // ═══════════════ BANDEJA · COLABORADORAS · MENCIONES ═══════════════
+  let NOVEDADES = [], BAN_FILTRO = 'nuevas', BAN_CARGADA = false;
+  let COLABS = {};                 // tarea_id → [user_id]
+
+  const NOV_ICONO = {
+    asignada: '📌', comentario: '💬', mencion: '🔔',
+    colaboras: '👀', completada: '✅', reabierta: '↩️'
+  };
+  const NOV_TXT = {
+    asignada:   'te asignó',
+    comentario: 'comentó en',
+    mencion:    'te mencionó en',
+    colaboras:  'te sumó como colaboradora de',
+    completada: 'dio por terminada',
+    reabierta:  'reabrió'
+  };
+
+  async function cargarBandeja() {
+    const { data, error } = await SB.from('novedad')
+      .select('id, tarea_id, tipo, actor, actor_nombre, titulo, detalle, leida_en, archivada_en, created_at')
+      .is('archivada_en', null)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) { FALTA_M11 = true; NOVEDADES = []; }
+    else { NOVEDADES = data || []; }
+    BAN_CARGADA = true;
+    pintarBadgeNov();
+    if (MODULO === 'bandeja') renderBandeja();
+  }
+
+  function sinLeer() { return NOVEDADES.filter(n => !n.leida_en).length; }
+
+  function pintarBadgeNov() {
+    const b = $('#navNov');
+    const n = sinLeer();
+    if (n > 0) { b.style.display = ''; b.textContent = n > 99 ? '99+' : n; }
+    else b.style.display = 'none';
+  }
+
+  function renderBandeja() {
+    if (FALTA_M11) {
+      $('#modBandeja').innerHTML = '<div class="res-falta">Falta correr ' +
+        '<code>migracion-interno-11-bandeja.sql</code> en Supabase: la bandeja todavía no existe en la base.</div>';
+      return;
+    }
+    const lista = BAN_FILTRO === 'nuevas' ? NOVEDADES.filter(n => !n.leida_en) : NOVEDADES;
+    const n = sinLeer();
+
+    const filas = lista.map(x => {
+      const t = TAREAS.find(y => y.id === x.tarea_id);
+      const titulo = t ? t.titulo : (x.titulo || 'una tarea');
+      return '<div class="novedad' + (x.leida_en ? '' : ' nueva') + '" data-nov="' + x.id + '"' +
+               (x.tarea_id ? ' data-novtarea="' + x.tarea_id + '"' : '') + '>' +
+          '<div class="nov-tipo ' + esc(x.tipo) + '">' + (NOV_ICONO[x.tipo] || '•') + '</div>' +
+          '<div>' +
+            '<div class="qué"><b>' + esc(x.actor_nombre || 'Alguien') + '</b> ' +
+              (NOV_TXT[x.tipo] || x.tipo) + ' <b>' + esc(textoPlano(titulo)) + '</b>' +
+              (t && t.completada ? ' <span class="pill">cerrada</span>' : '') +
+            '</div>' +
+            (x.detalle ? '<div class="sub">' + esc(textoPlano(x.detalle)) + '</div>' : '') +
+          '</div>' +
+          '<div class="acc">' +
+            '<span class="cuando">' + hace(x.created_at) + '</span>' +
+            '<button class="mini-btn" data-novarch="' + x.id + '" title="Sacar de la bandeja">' + TACHO_SVG + '</button>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+
+    $('#modBandeja').innerHTML =
+      '<div class="bandeja-filtros">' +
+        '<button class="' + (BAN_FILTRO === 'nuevas' ? 'on' : '') + '" data-banfil="nuevas">Sin leer' +
+          (n ? ' · ' + n : '') + '</button>' +
+        '<button class="' + (BAN_FILTRO === 'todas' ? 'on' : '') + '" data-banfil="todas">Todas</button>' +
+        (n ? '<button id="banTodoLeido" style="margin-left:auto">Marcar todo como leído</button>' : '') +
+      '</div>' +
+      '<div class="tabla">' +
+        (filas || '<div class="novedad" style="cursor:default"><div class="nov-tipo">🌤️</div>' +
+          '<div><div class="qué">' +
+            (BAN_FILTRO === 'nuevas' ? 'No tenés nada sin leer.' : 'La bandeja está vacía.') +
+          '</div><div class="sub">Acá te va a llegar lo que te asignen, lo que comenten donde ' +
+          'colaborás y cuando te mencionen.</div></div><div></div></div>') +
+      '</div>';
+  }
+
+  async function marcarLeida(id) {
+    const x = NOVEDADES.find(y => y.id === id);
+    if (!x || x.leida_en) return;
+    x.leida_en = new Date().toISOString();
+    pintarBadgeNov();
+    const { error } = await SB.from('novedad').update({ leida_en: x.leida_en }).eq('id', id);
+    if (error) { x.leida_en = null; pintarBadgeNov(); toast('No se pudo marcar: ' + error.message, 'warn'); }
+  }
+
+  async function marcarTodoLeido() {
+    const ids = NOVEDADES.filter(n => !n.leida_en).map(n => n.id);
+    if (!ids.length) return;
+    const ahora = new Date().toISOString();
+    NOVEDADES.forEach(n => { if (!n.leida_en) n.leida_en = ahora; });
+    pintarBadgeNov(); renderBandeja();
+    const { error } = await SB.from('novedad').update({ leida_en: ahora }).in('id', ids);
+    if (error) { toast('No se pudo marcar todo: ' + error.message, 'warn'); cargarBandeja(); }
+  }
+
+  async function archivarNovedad(id) {
+    const i = NOVEDADES.findIndex(y => y.id === id);
+    if (i === -1) return;
+    const x = NOVEDADES[i];
+    NOVEDADES.splice(i, 1);
+    pintarBadgeNov(); renderBandeja();
+    const { error } = await SB.from('novedad')
+      .update({ archivada_en: new Date().toISOString() }).eq('id', id);
+    if (error) { NOVEDADES.splice(i, 0, x); pintarBadgeNov(); renderBandeja(); toast('No se pudo sacar: ' + error.message, 'warn'); }
+  }
+
+  // ── COLABORADORAS ────────────────────────────────────────────
+  async function cargarColabs() {
+    const { data, error } = await SB.from('tarea_colaborador').select('tarea_id, user_id, motivo');
+    if (error) { FALTA_M11 = true; COLABS = {}; return; }
+    COLABS = {};
+    (data || []).forEach(c => {
+      (COLABS[c.tarea_id] = COLABS[c.tarea_id] || []).push({ id: c.user_id, motivo: c.motivo });
+    });
+  }
+
+  const MOTIVO_TXT = { responsable: 'responsable', creo: 'la creó', comento: 'comentó', mencion: 'mencionada', agregada: '' };
+
+  function pintarColabs() {
+    if (!DETALLE) return;
+    const arr = (COLABS[DETALLE.id] || []).slice()
+      .sort((a, b) => (a.motivo === 'responsable' ? -1 : 0) - (b.motivo === 'responsable' ? -1 : 0));
+    $('#dColabs').innerHTML = arr.length
+      ? arr.map(c => {
+          const n = nombrePersona(c.id) || 'Alguien';
+          const fijo = c.motivo === 'responsable';
+          return '<span class="colab' + (fijo ? ' fijo' : '') + '" title="' +
+              esc(MOTIVO_TXT[c.motivo] || '') + '">' +
+              '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) +
+              (fijo ? '' : '<button class="quitar" data-colabdel="' + c.id + '" title="Sacar">×</button>') +
+            '</span>';
+        }).join('')
+      : '<div class="res-vacio">Nadie más está siguiendo esta tarea.</div>';
+
+    const ya = arr.map(c => c.id);
+    const libres = PERSONAS.filter(p => ya.indexOf(p.id) === -1);
+    $('#dAddColab').innerHTML = '<option value="">+ Sumar a alguien</option>'
+      + libres.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
+    $('#dAddColab').value = '';
+    $('#dAddColab').disabled = !libres.length;
+  }
+
+  async function sumarColab(userId) {
+    if (!DETALLE || !userId) return;
+    const arr = COLABS[DETALLE.id] = COLABS[DETALLE.id] || [];
+    if (arr.some(c => c.id === userId)) return;
+    arr.push({ id: userId, motivo: 'agregada' });
+    pintarColabs();
+    const { error } = await SB.from('tarea_colaborador')
+      .insert({ tarea_id: DETALLE.id, user_id: userId, motivo: 'agregada' });
+    if (error) {
+      COLABS[DETALLE.id] = arr.filter(c => c.id !== userId);
+      pintarColabs(); toast('No se pudo sumar: ' + error.message, 'warn'); return;
+    }
+    flashGuardado();
+  }
+
+  async function sacarColab(userId) {
+    if (!DETALLE) return;
+    const arr = COLABS[DETALLE.id] || [];
+    const antes = arr.slice();
+    COLABS[DETALLE.id] = arr.filter(c => c.id !== userId);
+    pintarColabs();
+    const { error } = await SB.from('tarea_colaborador')
+      .delete().eq('tarea_id', DETALLE.id).eq('user_id', userId);
+    if (error) { COLABS[DETALLE.id] = antes; pintarColabs(); toast('No se pudo sacar: ' + error.message, 'warn'); }
+  }
+
+  // ── MENCIONES ────────────────────────────────────────────────
+  // Se guardan como @[Nombre](uuid): así el texto sobrevive a un
+  // cambio de nombre y no hay que adivinar quién es "@marti".
+  let MEN_EL = null, MEN_DESDE = 0, MEN_LISTA = [], MEN_SEL = 0;
+
+  function cerrarMenciones() {
+    $('#menPop').classList.remove('on');
+    MEN_EL = null; MEN_LISTA = []; MEN_SEL = 0;
+  }
+
+  function buscarArroba(el) {
+    const pos = el.selectionStart;
+    const antes = el.value.slice(0, pos);
+    const m = antes.match(/(^|[\s(])@([^\s@\[\]()]{0,30})$/);
+    if (!m) return null;
+    return { desde: pos - m[2].length - 1, texto: m[2] };
+  }
+
+  function abrirMenciones(el) {
+    const t = buscarArroba(el);
+    if (!t) { cerrarMenciones(); return; }
+    const q = t.texto.toLowerCase();
+    MEN_LISTA = PERSONAS.filter(p => {
+      const n = (p.nombre || p.email || '').toLowerCase();
+      return !q || n.indexOf(q) !== -1;
+    }).slice(0, 8);
+    if (!MEN_LISTA.length) { cerrarMenciones(); return; }
+
+    MEN_EL = el; MEN_DESDE = t.desde; MEN_SEL = 0;
+    const pop = $('#menPop');
+    pop.innerHTML = MEN_LISTA.map((p, i) => {
+      const n = p.nombre || p.email;
+      return '<button type="button" class="' + (i === 0 ? 'sel' : '') + '" data-men="' + p.id + '">' +
+        '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) + '</button>';
+    }).join('');
+    pop.classList.add('on');
+
+    const r = el.getBoundingClientRect();
+    let top = r.bottom + 4;
+    if (top + pop.offsetHeight > window.innerHeight - 8) top = Math.max(8, r.top - pop.offsetHeight - 4);
+    pop.style.top = top + 'px';
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8)) + 'px';
+  }
+
+  function elegirMencion(userId) {
+    if (!MEN_EL) return;
+    const p = PERSONAS.find(x => x.id === userId);
+    if (!p) { cerrarMenciones(); return; }
+    const el = MEN_EL, desde = MEN_DESDE;
+    const marca = '@[' + (p.nombre || p.email) + '](' + p.id + ') ';
+    el.value = el.value.slice(0, desde) + marca + el.value.slice(el.selectionStart);
+    const c = desde + marca.length;
+    cerrarMenciones();
+    el.focus();
+    try { el.setSelectionRange(c, c); } catch (_) {}
+    if (el.tagName === 'TEXTAREA') autoGrow(el);
+  }
+
+  function tecladoMenciones(e) {
+    if (!$('#menPop').classList.contains('on') || !MEN_LISTA.length) return false;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      MEN_SEL = (MEN_SEL + (e.key === 'ArrowDown' ? 1 : MEN_LISTA.length - 1)) % MEN_LISTA.length;
+      $$('#menPop button').forEach((b, i) => b.classList.toggle('sel', i === MEN_SEL));
+      return true;
+    }
+    if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      // Frenamos el evento acá: si no, el Enter sigue viaje y el
+      // comentario se manda justo cuando estabas eligiendo a quién
+      // mencionar.
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      elegirMencion(MEN_LISTA[MEN_SEL].id);
+      return true;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      cerrarMenciones();
+      return true;
+    }
+    return false;
+  }
+
+  function montarMenciones(el) {
+    el.addEventListener('input', () => abrirMenciones(el));
+    el.addEventListener('keydown', e => { tecladoMenciones(e); }, true);
+    el.addEventListener('blur', () => setTimeout(cerrarMenciones, 150));
+  }
+
   // ═══════════════ MÓDULOS: EQUIPO · CLIENTES · WIKI ═══════════════
   let MODULO = 'tareas';
   let SALUDO_BASE = '';
@@ -2515,11 +2883,14 @@
     MODULO = m;
     if (m !== 'tareas') { cerrarDrawer(); }
     if (m === 'wiki' && !WIKI_CARGADA) cargarWiki();
+    if (m === 'bandeja' && !BAN_CARGADA) cargarBandeja();
     render();
   }
 
   function pintarModulos() {
     $('#modTareas').style.display  = MODULO === 'tareas'   ? '' : 'none';
+    $('#modBandeja').style.display = MODULO === 'bandeja'  ? '' : 'none';
+    $('#navBandeja').classList.toggle('active', MODULO === 'bandeja');
     $('#modEquipo').style.display  = MODULO === 'equipo'   ? '' : 'none';
     $('#modClientes').style.display = MODULO === 'clientes' ? '' : 'none';
     $('#modWiki').style.display    = MODULO === 'wiki'     ? '' : 'none';
@@ -2541,6 +2912,7 @@
     t.style.display = '';
     $('#proyHeader').classList.remove('on');
     const H = {
+      bandeja:  ['Tu <em>bandeja</em>', 'Lo que te asignaron, lo que comentaron donde colaborás y dónde te mencionaron.'],
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
       clientes: ['Los <em>clientes</em>', 'Los que aparecen en los proyectos y en las tareas.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.']
@@ -3020,10 +3392,20 @@
   // primero y recién después convertimos lo que reconocemos nosotros.
   // Así el panel del cliente puede mostrar el mismo texto sin riesgo.
   const RE_LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  // Las menciones se guardan como @[Nombre](uuid): sobreviven a que la
+  // persona se cambie el nombre y no hay que adivinar quién es "@marti".
+  // El id no se limita a la forma de un uuid a propósito: si algún día
+  // cambia, las menciones ya escritas se tienen que seguir viendo bien.
+  // Lo que sí excluimos es un http(s), para no comerse un link.
+  const RE_MENCION = /@\[([^\]\n]*)\]\((?!https?:)([^\s)]{1,64})\)/g;
 
   function renderTexto(txt) {
     if (!txt) return '';
     let h = esc(txt);
+    // 0 · menciones (van primero: si no, el patrón de links las parte)
+    h = h.replace(RE_MENCION, function (m, nombre) {
+      return '<span class="mencion">@' + nombre + '</span>';
+    });
     // 1 · los links que escribimos nosotros
     h = h.replace(RE_LINK, function (m, texto, url) {
       return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + texto + '</a>';
@@ -3037,7 +3419,7 @@
 
   // Para previews de una línea: se ve la palabra, no el markdown.
   function textoPlano(txt) {
-    return (txt || '').replace(RE_LINK, '$1');
+    return (txt || '').replace(RE_MENCION, '@$1').replace(RE_LINK, '$1');
   }
 
   // Gancho para las pruebas automáticas. No expone datos ni permisos:
@@ -4376,6 +4758,7 @@
     $('#dVisible').classList.toggle('on', !!t.visible_cliente);
     pintarBotonFin();
     pintarProyectosDrawer();
+    pintarColabs();
     pintarVenceTag();
 
     const ids = idsVisibles();
@@ -4739,6 +5122,8 @@
     $('#dNuevoCom').value = '';
     await cargarComentarios(DETALLE);
     await cargarTareas();
+    await cargarColabs();
+    pintarColabs();
   }
 
   // ═══════════════ TOGGLE COMPLETADA ═══════════════
@@ -4765,6 +5150,7 @@
   $('#btnNueva').addEventListener('click', () => abrirForm(null));
   $('#btnRefrescar').addEventListener('click', cargarTareas);
   $('#navTablero').addEventListener('click', () => { MODULO = 'tareas'; FILTRO.proyecto = ''; render(); });
+  $('#navBandeja').addEventListener('click', () => cambiarModulo('bandeja'));
   $('#navClientes').addEventListener('click', () => cambiarModulo('clientes'));
   $('#navWiki').addEventListener('click', () => cambiarModulo('wiki'));
   $('#navEquipo').addEventListener('click', () => cambiarModulo('equipo'));
@@ -4772,7 +5158,10 @@
   $('#fBorrar').addEventListener('click', () => borrarTarea(EDITANDO));
   $('#fVisible').addEventListener('click', function () { this.classList.toggle('on'); });
   $('#dEnviarCom').addEventListener('click', enviarComentario);
-  $('#dNuevoCom').addEventListener('keydown', e => { if (e.key === 'Enter') enviarComentario(); });
+  $('#dNuevoCom').addEventListener('keydown', e => {
+    if ($('#menPop').classList.contains('on')) return;   // estás eligiendo a quién mencionar
+    if (e.key === 'Enter') enviarComentario();
+  });
 
   // ── Drawer: navegación y cierre ──────────────────────────────
   $('#dCerrar').addEventListener('click', cerrarDrawer);
@@ -5131,6 +5520,47 @@
     if (e.target.id === 'nuLinkTitulo' || e.target.id === 'nuLinkUrl') { e.preventDefault(); agregarLink(); }
   });
 
+  // ── Bandeja ──────────────────────────────────────────────────
+  $('#modBandeja').addEventListener('click', e => {
+    const f = e.target.closest('[data-banfil]');
+    if (f) { BAN_FILTRO = f.dataset.banfil; renderBandeja(); return; }
+    if (e.target.closest('#banTodoLeido')) { marcarTodoLeido(); return; }
+    const arch = e.target.closest('[data-novarch]');
+    if (arch) { e.stopPropagation(); archivarNovedad(arch.dataset.novarch); return; }
+    const fila = e.target.closest('[data-nov]');
+    if (!fila) return;
+    marcarLeida(fila.dataset.nov);
+    const tid = fila.dataset.novtarea;
+    if (tid && TAREAS.some(t => t.id === tid)) {
+      MODULO = 'tareas';
+      render();
+      abrirDrawer(tid);
+    } else if (tid) {
+      toast('Esa tarea ya no existe o no la podés ver');
+      renderBandeja();
+    } else {
+      renderBandeja();
+    }
+  });
+
+  // ── Colaboradoras ────────────────────────────────────────────
+  $('#dAddColab').addEventListener('change', e => {
+    if (e.target.value) sumarColab(e.target.value);
+  });
+  $('#dColabs').addEventListener('click', e => {
+    const b = e.target.closest('[data-colabdel]');
+    if (b) sacarColab(b.dataset.colabdel);
+  });
+
+  // ── Menciones con @ ──────────────────────────────────────────
+  montarMenciones($('#dDesc'));
+  montarMenciones($('#dNuevoCom'));
+  montarMenciones($('#fDesc'));
+  $('#menPop').addEventListener('mousedown', e => {
+    const b = e.target.closest('[data-men]');
+    if (b) { e.preventDefault(); elegirMencion(b.dataset.men); }
+  });
+
   // ── Equipo ───────────────────────────────────────────────────
   $('#modEquipo').addEventListener('click', e => {
     const b = e.target.closest('[data-pbaja]');
@@ -5230,7 +5660,11 @@
   // Refrescar al volver a la pestaña (el tablero es compartido)
   let ultimo = Date.now();
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && Date.now() - ultimo > 20000) { ultimo = Date.now(); cargarTareas(); }
+    if (!document.hidden && Date.now() - ultimo > 20000) {
+      ultimo = Date.now();
+      cargarTareas();
+      cargarBandeja();
+    }
   });
 
   iniciar();
