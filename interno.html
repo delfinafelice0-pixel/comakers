@@ -521,6 +521,14 @@
     padding: 5px 12px; font-size: 12px; font-family: var(--body); cursor: pointer; color: var(--ink-soft);
   }
   .bandeja-filtros button.on { border-color: var(--ink); color: var(--ink); background: var(--line-soft); }
+  .bandeja-acciones { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .bandeja-acciones:empty { display: none; }
+  #modBandeja .grupo { margin-bottom: 14px; }
+  #modBandeja .grupo-head { padding-bottom: 6px; }
+  #modBandeja .grupo-body {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .novedad .mini-btn { font-size: 11px; line-height: 1; min-width: 22px; }
 
   .novedad {
     display: grid; grid-template-columns: 30px minmax(0,1fr) auto;
@@ -2598,8 +2606,10 @@
   }
 
   // ═══════════════ BANDEJA · COLABORADORAS · MENCIONES ═══════════════
-  let NOVEDADES = [], BAN_FILTRO = 'nuevas', BAN_CARGADA = false;
+  let NOVEDADES = [], BAN_FILTRO = 'nuevas', BAN_TIPO = '', BAN_CARGADA = false;
   let COLABS = {};                 // tarea_id → [user_id]
+
+  const ARCHIVAR_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>';
 
   const NOV_ICONO = {
     asignada: '📌', comentario: '💬', mencion: '🔔',
@@ -2615,11 +2625,12 @@
   };
 
   async function cargarBandeja() {
+    // Traemos también las archivadas: son pocas y así el archivo se
+    // abre al instante en vez de pedir otra vuelta a la base.
     const { data, error } = await SB.from('novedad')
       .select('id, tarea_id, tipo, actor, actor_nombre, titulo, detalle, leida_en, archivada_en, created_at')
-      .is('archivada_en', null)
       .order('created_at', { ascending: false })
-      .limit(200);
+      .limit(300);
     if (error) { FALTA_M11 = true; NOVEDADES = []; }
     else { NOVEDADES = data || []; }
     BAN_CARGADA = true;
@@ -2627,7 +2638,37 @@
     if (MODULO === 'bandeja') renderBandeja();
   }
 
-  function sinLeer() { return NOVEDADES.filter(n => !n.leida_en).length; }
+  // El contador del menú cuenta lo que está en la bandeja, no en el archivo.
+  function sinLeer() { return NOVEDADES.filter(n => !n.leida_en && !n.archivada_en).length; }
+
+  const BAN_TIPOS = [
+    { id: '',          label: 'Todo' },
+    { id: 'mencion',   label: 'Menciones' },
+    { id: 'asignada',  label: 'Asignadas' },
+    { id: 'comentario', label: 'Comentarios' }
+  ];
+
+  function novedadesVisibles() {
+    return NOVEDADES.filter(n => {
+      if (BAN_FILTRO === 'archivadas') { if (!n.archivada_en) return false; }
+      else if (n.archivada_en) return false;
+      if (BAN_FILTRO === 'nuevas' && n.leida_en) return false;
+      if (BAN_TIPO && n.tipo !== BAN_TIPO) return false;
+      return true;
+    });
+  }
+
+  // Agrupamos por día como hace Asana: sin esto, veinte novedades
+  // seguidas son una pared de texto sin referencia temporal.
+  function diaDe(iso) {
+    const d = new Date(iso), h = new Date();
+    const solo = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const dif = Math.round((solo(h) - solo(d)) / 86400000);
+    if (dif === 0) return 'Hoy';
+    if (dif === 1) return 'Ayer';
+    if (dif < 7) return DIAS[(d.getDay() + 6) % 7];
+    return d.getDate() + ' de ' + MESES[d.getMonth()];
+  }
 
   function pintarBadgeNov() {
     const b = $('#navNov');
@@ -2642,73 +2683,148 @@
         '<code>migracion-interno-11-bandeja.sql</code> en Supabase: la bandeja todavía no existe en la base.</div>';
       return;
     }
-    const lista = BAN_FILTRO === 'nuevas' ? NOVEDADES.filter(n => !n.leida_en) : NOVEDADES;
+    const lista = novedadesVisibles();
     const n = sinLeer();
+    const enArchivo = NOVEDADES.filter(x => x.archivada_en).length;
+    const leidasEnBandeja = NOVEDADES.filter(x => x.leida_en && !x.archivada_en).length;
 
-    const filas = lista.map(x => {
-      const t = TAREAS.find(y => y.id === x.tarea_id);
-      const titulo = t ? t.titulo : (x.titulo || 'una tarea');
-      return '<div class="novedad' + (x.leida_en ? '' : ' nueva') + '" data-nov="' + x.id + '"' +
-               (x.tarea_id ? ' data-novtarea="' + x.tarea_id + '"' : '') + '>' +
-          '<div class="nov-tipo ' + esc(x.tipo) + '">' + (NOV_ICONO[x.tipo] || '•') + '</div>' +
-          '<div>' +
-            '<div class="qué"><b>' + esc(x.actor_nombre || 'Alguien') + '</b> ' +
-              (NOV_TXT[x.tipo] || x.tipo) + ' <b>' + esc(textoPlano(titulo)) + '</b>' +
-              (t && t.completada ? ' <span class="pill">cerrada</span>' : '') +
-            '</div>' +
-            (x.detalle ? '<div class="sub">' + esc(textoPlano(x.detalle)) + '</div>' : '') +
-          '</div>' +
-          '<div class="acc">' +
-            '<span class="cuando">' + hace(x.created_at) + '</span>' +
-            '<button class="mini-btn" data-novarch="' + x.id + '" title="Sacar de la bandeja">' + TACHO_SVG + '</button>' +
-          '</div>' +
-        '</div>';
-    }).join('');
+    // Agrupadas por día
+    let html = '', diaActual = null;
+    lista.forEach(x => {
+      const d = diaDe(x.created_at);
+      if (d !== diaActual) {
+        if (diaActual !== null) html += '</div></div>';
+        diaActual = d;
+        html += '<div class="grupo"><div class="grupo-head" style="cursor:default">' +
+                  '<div class="grupo-head-left"><div class="grupo-title">' + esc(d) + '</div></div>' +
+                '</div><div class="grupo-body">';
+      }
+      html += filaNovedad(x);
+    });
+    if (diaActual !== null) html += '</div></div>';
 
     $('#modBandeja').innerHTML =
       '<div class="bandeja-filtros">' +
         '<button class="' + (BAN_FILTRO === 'nuevas' ? 'on' : '') + '" data-banfil="nuevas">Sin leer' +
           (n ? ' · ' + n : '') + '</button>' +
-        '<button class="' + (BAN_FILTRO === 'todas' ? 'on' : '') + '" data-banfil="todas">Todas</button>' +
-        (n ? '<button id="banTodoLeido" style="margin-left:auto">Marcar todo como leído</button>' : '') +
+        '<button class="' + (BAN_FILTRO === 'todas' ? 'on' : '') + '" data-banfil="todas">Bandeja</button>' +
+        '<button class="' + (BAN_FILTRO === 'archivadas' ? 'on' : '') + '" data-banfil="archivadas">Archivadas' +
+          (enArchivo ? ' · ' + enArchivo : '') + '</button>' +
+        '<span style="width:14px"></span>' +
+        BAN_TIPOS.map(t => '<button class="' + (BAN_TIPO === t.id ? 'on' : '') + '" data-bantipo="' +
+          t.id + '">' + t.label + '</button>').join('') +
       '</div>' +
-      '<div class="tabla">' +
-        (filas || '<div class="novedad" style="cursor:default"><div class="nov-tipo">🌤️</div>' +
-          '<div><div class="qué">' +
-            (BAN_FILTRO === 'nuevas' ? 'No tenés nada sin leer.' : 'La bandeja está vacía.') +
-          '</div><div class="sub">Acá te va a llegar lo que te asignen, lo que comenten donde ' +
-          'colaborás y cuando te mencionen.</div></div><div></div></div>') +
+      '<div class="bandeja-acciones">' +
+        (n ? '<button class="btn-ghost" id="banTodoLeido">Marcar todo como leído</button>' : '') +
+        (BAN_FILTRO !== 'archivadas' && leidasEnBandeja
+          ? '<button class="btn-ghost" id="banArchivarLeidas">Archivar lo leído · ' + leidasEnBandeja + '</button>' : '') +
+      '</div>' +
+      (html || vacioBandeja());
+  }
+
+  function vacioBandeja() {
+    const txt = BAN_FILTRO === 'archivadas'
+      ? ['El archivo está vacío.', 'Lo que saques de la bandeja queda guardado acá.']
+      : BAN_FILTRO === 'nuevas'
+        ? ['No tenés nada sin leer.', 'Cuando te asignen algo, comenten donde colaborás o te mencionen, aparece acá.']
+        : ['La bandeja está vacía.', 'Lo que archivaste sigue en “Archivadas”.'];
+    return '<div class="tabla"><div class="novedad" style="cursor:default">' +
+      '<div class="nov-tipo">🌤️</div><div><div class="qué">' + txt[0] + '</div>' +
+      '<div class="sub">' + txt[1] + '</div></div><div></div></div></div>';
+  }
+
+  function filaNovedad(x) {
+    const t = TAREAS.find(y => y.id === x.tarea_id);
+    const titulo = t ? t.titulo : (x.titulo || 'una tarea');
+    const sigo = x.tarea_id && (COLABS[x.tarea_id] || []).some(c => ME && c.id === ME.id);
+    return '<div class="novedad' + (x.leida_en ? '' : ' nueva') + '" data-nov="' + x.id + '"' +
+             (x.tarea_id ? ' data-novtarea="' + x.tarea_id + '"' : '') + '>' +
+        '<div class="nov-tipo ' + esc(x.tipo) + '">' + (NOV_ICONO[x.tipo] || '•') + '</div>' +
+        '<div>' +
+          '<div class="qué"><b>' + esc(x.actor_nombre || 'Alguien') + '</b> ' +
+            (NOV_TXT[x.tipo] || x.tipo) + ' <b>' + esc(textoPlano(titulo)) + '</b>' +
+            (t && t.completada ? ' <span class="pill">cerrada</span>' : '') +
+          '</div>' +
+          (x.detalle ? '<div class="sub">' + esc(textoPlano(x.detalle)) + '</div>' : '') +
+        '</div>' +
+        '<div class="acc">' +
+          '<span class="cuando">' + hace(x.created_at) + '</span>' +
+          '<button class="mini-btn" data-novleida="' + x.id + '" title="' +
+            (x.leida_en ? 'Marcar como no leída' : 'Marcar como leída') + '">' +
+            (x.leida_en ? '○' : '●') + '</button>' +
+          (sigo ? '<button class="mini-btn" data-novmute="' + x.tarea_id + '" ' +
+            'title="Dejar de seguir esta tarea">🔕</button>' : '') +
+          '<button class="mini-btn" data-novarch="' + x.id + '" title="' +
+            (x.archivada_en ? 'Devolver a la bandeja' : 'Archivar') + '">' +
+            (x.archivada_en ? '↩' : ARCHIVAR_SVG) + '</button>' +
+        '</div>' +
       '</div>';
   }
 
-  async function marcarLeida(id) {
+  async function marcarLeida(id, valor) {
     const x = NOVEDADES.find(y => y.id === id);
-    if (!x || x.leida_en) return;
-    x.leida_en = new Date().toISOString();
+    if (!x) return;
+    const nuevo = valor === false ? null : (x.leida_en || new Date().toISOString());
+    if (nuevo === x.leida_en) return;
+    const antes = x.leida_en;
+    x.leida_en = nuevo;
     pintarBadgeNov();
-    const { error } = await SB.from('novedad').update({ leida_en: x.leida_en }).eq('id', id);
-    if (error) { x.leida_en = null; pintarBadgeNov(); toast('No se pudo marcar: ' + error.message, 'warn'); }
+    const { error } = await SB.from('novedad').update({ leida_en: nuevo }).eq('id', id);
+    if (error) { x.leida_en = antes; pintarBadgeNov(); toast('No se pudo marcar: ' + error.message, 'warn'); }
+  }
+
+  async function archivarLeidas() {
+    const ids = NOVEDADES.filter(n => n.leida_en && !n.archivada_en).map(n => n.id);
+    if (!ids.length) return;
+    const ahora = new Date().toISOString();
+    NOVEDADES.forEach(n => { if (ids.indexOf(n.id) !== -1) n.archivada_en = ahora; });
+    pintarBadgeNov(); renderBandeja();
+    const { error } = await SB.from('novedad').update({ archivada_en: ahora }).in('id', ids);
+    if (error) { toast('No se pudo archivar: ' + error.message, 'warn'); cargarBandeja(); }
+  }
+
+  // Dejar de seguir una tarea: es la única forma de cortar el ruido de
+  // una tarea que no te interesa sin sacarte de todas.
+  async function dejarDeSeguir(tareaId) {
+    if (!ME) return;
+    const t = TAREAS.find(x => x.id === tareaId);
+    if (t && t.responsable_id === ME.id) {
+      toast('Sos la responsable de esa tarea: no podés dejar de seguirla', 'warn');
+      return;
+    }
+    const { error } = await SB.from('tarea_colaborador')
+      .delete().eq('tarea_id', tareaId).eq('user_id', ME.id);
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+    COLABS[tareaId] = (COLABS[tareaId] || []).filter(c => c.id !== ME.id);
+    toast('Listo, no te llega más nada de esa tarea');
+    renderBandeja();
   }
 
   async function marcarTodoLeido() {
-    const ids = NOVEDADES.filter(n => !n.leida_en).map(n => n.id);
+    const ids = NOVEDADES.filter(n => !n.leida_en && !n.archivada_en).map(n => n.id);
     if (!ids.length) return;
     const ahora = new Date().toISOString();
-    NOVEDADES.forEach(n => { if (!n.leida_en) n.leida_en = ahora; });
+    NOVEDADES.forEach(n => { if (!n.leida_en && !n.archivada_en) n.leida_en = ahora; });
     pintarBadgeNov(); renderBandeja();
     const { error } = await SB.from('novedad').update({ leida_en: ahora }).in('id', ids);
     if (error) { toast('No se pudo marcar todo: ' + error.message, 'warn'); cargarBandeja(); }
   }
 
   async function archivarNovedad(id) {
-    const i = NOVEDADES.findIndex(y => y.id === id);
-    if (i === -1) return;
-    const x = NOVEDADES[i];
-    NOVEDADES.splice(i, 1);
+    const x = NOVEDADES.find(y => y.id === id);
+    if (!x) return;
+    const antes = x.archivada_en;
+    x.archivada_en = antes ? null : new Date().toISOString();
+    // Archivar da por leída: si la sacaste de la bandeja, ya la viste.
+    if (x.archivada_en && !x.leida_en) x.leida_en = x.archivada_en;
     pintarBadgeNov(); renderBandeja();
     const { error } = await SB.from('novedad')
-      .update({ archivada_en: new Date().toISOString() }).eq('id', id);
-    if (error) { NOVEDADES.splice(i, 0, x); pintarBadgeNov(); renderBandeja(); toast('No se pudo sacar: ' + error.message, 'warn'); }
+      .update({ archivada_en: x.archivada_en, leida_en: x.leida_en }).eq('id', id);
+    if (error) {
+      x.archivada_en = antes;
+      pintarBadgeNov(); renderBandeja();
+      toast('No se pudo archivar: ' + error.message, 'warn');
+    }
   }
 
   // ── COLABORADORAS ────────────────────────────────────────────
@@ -5524,9 +5640,21 @@
   $('#modBandeja').addEventListener('click', e => {
     const f = e.target.closest('[data-banfil]');
     if (f) { BAN_FILTRO = f.dataset.banfil; renderBandeja(); return; }
+    const ft = e.target.closest('[data-bantipo]');
+    if (ft) { BAN_TIPO = ft.dataset.bantipo; renderBandeja(); return; }
     if (e.target.closest('#banTodoLeido')) { marcarTodoLeido(); return; }
+    if (e.target.closest('#banArchivarLeidas')) { archivarLeidas(); return; }
     const arch = e.target.closest('[data-novarch]');
     if (arch) { e.stopPropagation(); archivarNovedad(arch.dataset.novarch); return; }
+    const ml = e.target.closest('[data-novleida]');
+    if (ml) {
+      e.stopPropagation();
+      const x = NOVEDADES.find(y => y.id === ml.dataset.novleida);
+      marcarLeida(ml.dataset.novleida, !(x && x.leida_en)).then(renderBandeja);
+      return;
+    }
+    const mu = e.target.closest('[data-novmute]');
+    if (mu) { e.stopPropagation(); dejarDeSeguir(mu.dataset.novmute); return; }
     const fila = e.target.closest('[data-nov]');
     if (!fila) return;
     marcarLeida(fila.dataset.nov);
