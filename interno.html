@@ -3179,7 +3179,7 @@
       return '<div class="cliente-row' + (c.activo === false ? ' inactivo' : '') + '" data-cabrir="' + c.id + '">' +
         '<div class="nomc"><span class="nombrec">' + esc(c.nombre || '') + '</span>' +
           '<div class="slugc">' +
-            (c.slug ? esc(c.slug) : '⚠️ sin identificador — el panel del cliente no lo va a encontrar') +
+            (c.slug ? esc(c.slug) : '⚠️ sin identificador — abrilo y guardá para generarlo') +
             (c.agencia ? ' · ' + esc(c.agencia) : '') +
           '</div>' +
         '</div>' +
@@ -3229,7 +3229,9 @@
     $('#clAgencia').value = c ? (c.agencia || '') : (ME && ME.agencia ? ME.agencia : 'CoMakers');
     $('#clGuardar').textContent = c ? 'Guardar' : 'Crear cliente';
     $('#clSlugWrap').style.display = c ? '' : 'none';
-    $('#clSlug').textContent = c ? (c.slug || '⚠️ sin identificador') : '';
+    $('#clSlug').textContent = c
+      ? (c.slug || '⚠️ Sin identificador. Guardá y se genera solo (el panel de cliente lo necesita).')
+      : '';
     const ba = $('#clArchivar');
     ba.style.display = c ? '' : 'none';
     ba.textContent = (c && c.activo === false) ? 'Sacar del archivo' : 'Guardar en el archivo';
@@ -3255,10 +3257,22 @@
 
     let id;
     if (CL_EDIT) {
-      const { error } = await SB.from('clientes')
-        .update({ nombre: nombre, agencia: agencia }).eq('id', CL_EDIT.id);
+      const patch = { nombre: nombre, agencia: agencia };
+      // Si quedó sin identificador (creado con una versión vieja del
+      // panel), se lo generamos ahora: sin él, el panel de cliente no
+      // lo encuentra. El de los que ya tienen uno NO se toca: cambiarlo
+      // rompería los links que ya existan del otro lado.
+      if (!CL_EDIT.slug) {
+        const base = slugDe(nombre);
+        const usados = CLIENTES.map(c => c.slug).filter(Boolean);
+        let s2 = base, k = 2;
+        while (usados.indexOf(s2) !== -1) { s2 = base + '-' + k; k++; }
+        patch.slug = s2;
+      }
+      const { error } = await SB.from('clientes').update(patch).eq('id', CL_EDIT.id);
       if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
       CL_EDIT.nombre = nombre; CL_EDIT.agencia = agencia;
+      if (patch.slug) CL_EDIT.slug = patch.slug;
       id = CL_EDIT.id;
     } else {
       const nuevo = await crearCliente(nombre, agencia);
