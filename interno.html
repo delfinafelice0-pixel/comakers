@@ -1352,6 +1352,34 @@
   .prow .num.neg { color: var(--warn); }
   .prow .num.pos { color: #4E7C1C; }
 
+  .cols-serv {
+    grid-template-columns: minmax(0,1.15fr) minmax(0,1.5fr) 92px 108px 86px 116px 118px;
+  }
+  /* El cliente se escribe una vez y sus servicios van abajo, unidos por
+     una línea al costado. Es lo que en la planilla hacían las celdas
+     combinadas: se lee "un cliente, tres servicios", no tres clientes. */
+  .prow.g-ini { border-top: 1px solid var(--line); }
+  .prow.g-ini:first-of-type { border-top: none; }
+  .prow .cli { font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; }
+  .prow .cli .mas {
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-mute);
+    border-radius: 6px; width: 20px; height: 20px; line-height: 1; cursor: pointer;
+    font-family: var(--body); font-size: 14px; margin-left: 6px; padding: 0;
+    vertical-align: middle; opacity: 0; transition: opacity .15s;
+  }
+  .prow:hover .cli .mas, .prow .cli .mas:focus { opacity: 1; }
+  .prow .cli .mas:hover { border-color: var(--ink); color: var(--ink); }
+  .prow .cli.sigue {
+    border-left: 2px solid #D9D4E1; margin-left: 5px; padding-left: 9px;
+    min-height: 30px; align-self: stretch;
+  }
+  /* Los servicios de un mismo cliente se leen como un bloque: la línea
+     divisoria queda solo entre clientes. Si el navegador no entiende
+     :has(), se ven las rayitas de siempre y no pasa nada. */
+  .prow.cols-serv:has(+ .prow.cols-serv:not(.g-ini)) { border-bottom-color: transparent; }
+  .prow .ejec { display: flex; gap: 3px; flex-wrap: wrap; }
+  .prow .ejec .avatar-sm { width: 22px; height: 22px; font-size: 9px; }
+  .prow .ejec .sin-ejec { font-size: 11px; color: var(--warn); }
   .cols-contrato { grid-template-columns: minmax(0,2.1fr) 108px 92px minmax(0,1fr) 118px; }
   .cols-mov      { grid-template-columns: 84px minmax(0,2.2fr) minmax(0,1fr) 112px 34px; }
   .cols-cobro    { grid-template-columns: minmax(0,2fr) 96px 108px minmax(0,1.2fr) 118px; }
@@ -1417,6 +1445,9 @@
     .kpis { grid-template-columns: 1fr; }
     .cols-contrato, .cols-cobro { grid-template-columns: minmax(0,1fr) auto; }
     .cols-contrato > .oculta-mob, .cols-cobro > .oculta-mob { display: none; }
+    .cols-serv { grid-template-columns: minmax(0,1fr) minmax(0,1.2fr) auto; }
+    .cols-serv > .oculta-mob { display: none; }
+    .prow .cli .mas { opacity: 1; }
     .cols-mov { grid-template-columns: minmax(0,1fr) auto 34px; }
     .cols-mov > .oculta-mob { display: none; }
     .cols-reparto { grid-template-columns: minmax(0,1fr) repeat(2, minmax(0,1fr)); }
@@ -1662,7 +1693,8 @@
       </div>
       <div>
         <label class="campo-label">Servicio</label>
-        <input type="text" id="ctNombre" placeholder="Ej: CM, Landing, Pauta">
+        <input type="text" id="ctNombre" list="ctSugeridos" placeholder="Ej: CM, Landing, Pauta">
+        <datalist id="ctSugeridos"></datalist>
       </div>
     </div>
     <div class="campo">
@@ -1725,6 +1757,7 @@
       <button class="btn-danger" id="ctArchivar" style="display:none">Dar de baja</button>
       <div class="der">
         <button class="btn-ghost" data-cerrar="ovContrato">Cancelar</button>
+        <button class="btn-ghost" id="ctGuardarOtro">Guardar y cargar otro</button>
         <button class="btn-primary" id="ctGuardar">Guardar</button>
       </div>
     </div>
@@ -4201,12 +4234,12 @@
     const activos = CLIENTES.filter(c => c.activo !== false);
     const guardados = CLIENTES.filter(c => c.activo === false);
 
-    const delMes = CONTRATOS.filter(c => c.activo).map(c => cobroDe(c.id, PERIODO)).filter(Boolean);
+    const delMes = CONTRATOS.filter(c => c.activo !== false).map(c => cobroDe(c.id, PERIODO)).filter(Boolean);
     const aCobrar = delMes.filter(c => c.estado !== 'no_corresponde')
                           .reduce((a, c) => a + Number(c.monto || 0), 0);
     const cobrado = delMes.filter(c => c.estado === 'cobrado')
                           .reduce((a, c) => a + Number(c.monto || 0), 0);
-    const ajustes = CONTRATOS.filter(c => c.activo && tocaAjustar(c)).length;
+    const ajustes = CONTRATOS.filter(c => c.activo !== false && tocaAjustar(c)).length;
 
     const barra =
       '<div class="plata-barra">' +
@@ -4230,8 +4263,10 @@
       '</div>';
 
     const cab =
-      '<div class="prow cab cols-contrato">' +
-        '<div>Cliente y servicio</div>' +
+      '<div class="prow cab cols-serv">' +
+        '<div>Cliente</div>' +
+        '<div>Servicio</div>' +
+        '<div class="oculta-mob">Ejecuta</div>' +
         '<div class="num oculta-mob">Monto</div>' +
         '<div class="oculta-mob">Paga</div>' +
         '<div class="oculta-mob">Próximo ajuste</div>' +
@@ -4240,17 +4275,20 @@
 
     let filas = '';
     activos.forEach(cl => {
-      const cts = contratosDe(cl.id).filter(c => c.activo);
+      const cts = contratosDe(cl.id).filter(c => c.activo !== false);
       if (!cts.length) {
-        filas += '<div class="prow cols-contrato clic" data-ctnuevo="' + cl.id + '">' +
-          '<div><div class="nom">' + esc(cl.nombre) + '</div>' +
-            '<div class="sub">Sin servicio cargado — clickeá para agregarle uno</div></div>' +
+        filas += '<div class="prow cols-serv clic g-ini" data-ctnuevo="' + cl.id + '">' +
+          '<div class="cli">' + esc(cl.nombre) + '</div>' +
+          '<div><div class="sub">Sin servicio cargado — clickeá para agregarle uno</div></div>' +
+          '<div class="oculta-mob"></div>' +
           '<div class="num oculta-mob">—</div><div class="oculta-mob"></div>' +
           '<div class="oculta-mob"></div><div></div>' +
         '</div>';
         return;
       }
-      cts.forEach(ct => { filas += filaContrato(cl, ct); });
+      // El nombre del cliente se escribe una sola vez; los servicios que
+      // siguen quedan colgados de él con la línea al costado.
+      cts.forEach((ct, i) => { filas += filaContrato(cl, ct, i === 0); });
     });
 
     // Abajo, la ficha de cada cliente: quién lo atiende, su identificador
@@ -4266,7 +4304,7 @@
           '</div>' +
         '</div>' +
         '<span class="pill">' + acc + ' con acceso</span>' +
-        '<span class="pill">' + contratosDe(c.id).filter(x => x.activo).length + ' servicio(s)</span>' +
+        '<span class="pill">' + contratosDe(c.id).filter(x => x.activo !== false).length + ' servicio(s)</span>' +
         '<span class="pill">' + proyectosDeCliente(c.id) + ' proyecto' + (proyectosDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
       '</div>';
     };
@@ -4309,7 +4347,7 @@
     return Math.round(parte / total * 100) + '%';
   }
 
-  function filaContrato(cl, ct) {
+  function filaContrato(cl, ct, primera) {
     const cb = cobroDe(ct.id, PERIODO);
     const abierto = !!CONTRATO_ABIERTO[ct.id];
     const dias = ct.dia_desde
@@ -4329,16 +4367,32 @@
     else
       estado = '<button class="est pendiente" data-cbtoggle="' + cb.id + '">Pendiente</button>';
 
-    return '<div class="prow cols-contrato clic" data-ctabrir="' + ct.id + '">' +
+    // Los avatares de quién lo ejecuta. Si no hay nadie, se avisa: sin
+    // ejecutora el 85% de ese cobro no se le asigna a ninguna.
+    const ids = CONTRATO_EJ[ct.id] || [];
+    const ejec = ids.length
+      ? ids.map(id => {
+          const n = nombrePersona(id);
+          return n ? '<div class="avatar-sm" title="' + esc(n) + '">' + esc(iniciales(n, '')) + '</div>' : '';
+        }).join('')
+      : '<span class="sin-ejec">nadie</span>';
+
+    return '<div class="prow cols-serv clic' + (primera ? ' g-ini' : '') + '" data-ctabrir="' + ct.id + '">' +
+        '<div class="cli' + (primera ? '' : ' sigue') + '">' +
+          (primera
+            ? esc(cl.nombre) + '<button class="mas" data-ctnuevo="' + cl.id + '" title="Sumarle otro servicio">+</button>'
+            : '') +
+        '</div>' +
         '<div>' +
-          '<div class="nom">' + esc(cl.nombre) + ' · ' + esc(ct.nombre) + '</div>' +
+          '<div class="nom">' + esc(ct.nombre) + '</div>' +
           '<div class="sub">' +
             (ct.tipo === 'cuotas'
               ? 'En ' + (ct.cuotas_total || '?') + ' cuotas' + (cb && cb.cuota_n ? ' · cuota ' + cb.cuota_n + '/' + ct.cuotas_total : '')
               : 'Mensual') +
-            (ct.detalle ? ' — ' + esc(textoPlano(ct.detalle).slice(0, 70)) : '') +
+            (ct.detalle ? ' — ' + esc(textoPlano(ct.detalle).slice(0, 60)) : '') +
           '</div>' +
         '</div>' +
+        '<div class="ejec oculta-mob">' + ejec + '</div>' +
         '<div class="num oculta-mob">' + plata(ct.monto) + '</div>' +
         '<div class="oculta-mob">' + esc(dias) + '</div>' +
         '<div class="oculta-mob">' +
@@ -4667,6 +4721,10 @@
     $('#ctNotas').value = ct ? (ct.notas || '') : '';
     $('#ctArchivar').style.display = ct ? '' : 'none';
     $('#ctArchivar').textContent = (ct && ct.activo === false) ? 'Reactivar' : 'Dar de baja';
+    // Cargar el segundo y el tercer servicio de un cliente es lo que más
+    // se repite: el botón solo aparece cuando estás creando.
+    $('#ctGuardarOtro').style.display = ct ? 'none' : '';
+    llenarSugerenciasServicio();
     pintarCuotas(); pintarEjecutan();
     abrir('ovContrato');
     setTimeout(() => $('#ctNombre').focus(), 60);
@@ -4688,7 +4746,17 @@
     return v === '' || v === null ? null : Number(v);
   }
 
-  async function guardarContrato() {
+  // Los servicios que ya usás, para no tener que escribir "CM" cada vez
+  // ni terminar con "CM", "cm" y "Community" siendo lo mismo.
+  const SERVICIOS_BASE = ['CM', 'Pauta', 'Landing', 'Web', 'Producción',
+                          'Consultoría', 'Fee mensual', 'Branding'];
+  function llenarSugerenciasServicio() {
+    const usados = CONTRATOS.map(c => c.nombre).filter(Boolean);
+    const todos = SERVICIOS_BASE.concat(usados).filter((v, i, a) => a.indexOf(v) === i);
+    $('#ctSugeridos').innerHTML = todos.map(v => '<option value="' + esc(v) + '">').join('');
+  }
+
+  async function guardarContrato(seguir) {
     const nombre = $('#ctNombre').value.trim();
     const cliente = $('#ctCliente').value;
     if (!cliente) { toast('Elegí un cliente', 'warn'); return; }
@@ -4732,9 +4800,22 @@
         await SB.from('contrato_ejecutora').insert(poner.map(u => ({ contrato_id: id, user_id: u })));
       }
 
-      cerrar('ovContrato');
       toast(CT_EDIT ? 'Servicio actualizado' : 'Servicio creado');
       await refrescarPlata();
+
+      if (seguir && !CT_EDIT) {
+        // Queda el mismo cliente y las mismas ejecutoras: lo que cambia
+        // de un servicio al otro es el nombre y el monto.
+        CT_EDIT = null;
+        $('#ctNombre').value = '';
+        $('#ctDetalle').value = '';
+        $('#ctMonto').value = '';
+        $('#ctNotas').value = '';
+        llenarSugerenciasServicio();
+        $('#ctNombre').focus();
+      } else {
+        cerrar('ovContrato');
+      }
     } finally { $('#ctGuardar').disabled = false; }
   }
 
@@ -7116,7 +7197,10 @@
     pintarEjecutan();
   });
   $('#ctGuardar').addEventListener('click', () => {
-    guardarContrato().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+    guardarContrato(false).catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  });
+  $('#ctGuardarOtro').addEventListener('click', () => {
+    guardarContrato(true).catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
   });
   $('#ctArchivar').addEventListener('click', () => {
     archivarContrato().catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
