@@ -153,6 +153,18 @@
   .btn:hover { opacity: 0.88; }
   .btn:disabled { opacity: 0.5; cursor: default; }
 
+  .link-flojo {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; color: var(--ink-mute);
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .link-flojo:hover { color: var(--ink); }
+  .fila-olvide { display: flex; justify-content: flex-end; margin-top: -6px; }
+  .aviso-ok {
+    background: #ECFBD4; border-radius: 10px; padding: 11px 13px;
+    font-size: 13px; line-height: 1.5; margin-top: 14px;
+  }
+
   .footer-note {
     font-size: 12px;
     color: var(--ink-mute);
@@ -182,9 +194,28 @@
       <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
     </div>
 
+    <div class="fila-olvide">
+      <button type="button" class="link-flojo" id="olvide">¿Olvidaste tu contraseña?</button>
+    </div>
+
     <div class="error-msg" id="errorMsg">Email o contraseña incorrectos. Intentá de nuevo.</div>
+    <div class="aviso-ok" id="avisoOk" style="display:none"></div>
 
     <button type="submit" class="btn" id="submitBtn">Entrar</button>
+  </form>
+
+  <!-- Cuando volvés del mail de recuperación -->
+  <form id="nuevaForm" novalidate style="display:none">
+    <div class="field">
+      <label for="pass1">Contraseña nueva</label>
+      <input type="password" id="pass1" placeholder="Al menos 8 caracteres" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label for="pass2">Repetila</label>
+      <input type="password" id="pass2" placeholder="••••••••" autocomplete="new-password">
+    </div>
+    <div class="error-msg" id="errorNueva"></div>
+    <button type="submit" class="btn" id="btnNueva">Guardar y entrar</button>
   </form>
 
   <p class="footer-note">¿Problemas para entrar? Escribile a Delfi.</p>
@@ -217,10 +248,24 @@
     window.location.href = destino;
   }
 
-  // Si ya hay sesión activa, ir directo al panel que corresponda
-  sb.auth.getSession().then(({ data: { session } }) => {
-    if (session) irAlPanel(session);
-  });
+  // ── ¿VENIMOS DEL MAIL DE RECUPERACIÓN? ───────────────
+  // Supabase manda el token en el # de la URL. Si es de tipo recovery,
+  // NO entramos al panel: mostramos el formulario para poner una nueva.
+  const hash = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+  const esRecuperacion = hash.get('type') === 'recovery';
+
+  if (esRecuperacion) {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('nuevaForm').style.display = '';
+    document.querySelector('h1').textContent = 'Elegí una contraseña nueva';
+    document.querySelector('.subtitle').textContent =
+      'La anterior no la puede ver nadie, ni nosotras. Poné una nueva y entrás directo.';
+  } else {
+    // Si ya hay sesión activa, ir directo al panel que corresponda
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) irAlPanel(session);
+    });
+  }
 
   const form    = document.getElementById('loginForm');
   const emailEl = document.getElementById('email');
@@ -259,6 +304,79 @@
     }
 
     await irAlPanel(data.session);
+  });
+
+  // ── OLVIDÉ MI CONTRASEÑA ─────────────────────────────
+  const avisoOk = document.getElementById('avisoOk');
+
+  document.getElementById('olvide').addEventListener('click', async () => {
+    const email = emailEl.value.trim();
+    errEl.classList.remove('visible');
+    avisoOk.style.display = 'none';
+
+    if (!email) {
+      errEl.textContent = 'Escribí tu email arriba y volvé a apretar.';
+      errEl.classList.add('visible');
+      emailEl.focus();
+      return;
+    }
+
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+
+    // A propósito decimos lo mismo haya o no una cuenta con ese mail:
+    // si dijéramos "ese mail no existe", cualquiera podría averiguar
+    // quién tiene cuenta probando direcciones.
+    if (error && /rate|limit|seconds/i.test(error.message)) {
+      errEl.textContent = 'Esperá un momento antes de pedir otro mail.';
+      errEl.classList.add('visible');
+      return;
+    }
+    avisoOk.textContent = 'Listo. Si hay una cuenta con ese mail, te llega un link para ' +
+      'poner una contraseña nueva. Revisá también el correo no deseado.';
+    avisoOk.style.display = '';
+  });
+
+  // ── PONER LA CONTRASEÑA NUEVA ────────────────────────
+  const nuevaForm = document.getElementById('nuevaForm');
+  const errNueva  = document.getElementById('errorNueva');
+  const btnNueva  = document.getElementById('btnNueva');
+
+  nuevaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errNueva.classList.remove('visible');
+    const p1 = document.getElementById('pass1').value;
+    const p2 = document.getElementById('pass2').value;
+
+    if (p1.length < 8) {
+      errNueva.textContent = 'Tiene que tener al menos 8 caracteres.';
+      errNueva.classList.add('visible');
+      return;
+    }
+    if (p1 !== p2) {
+      errNueva.textContent = 'Las dos no coinciden.';
+      errNueva.classList.add('visible');
+      return;
+    }
+
+    btnNueva.disabled = true;
+    btnNueva.textContent = 'Guardando…';
+
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) {
+      btnNueva.disabled = false;
+      btnNueva.textContent = 'Guardar y entrar';
+      errNueva.textContent = /expired|invalid/i.test(error.message)
+        ? 'Ese link ya venció. Pedí uno nuevo desde "¿Olvidaste tu contraseña?".'
+        : 'No se pudo guardar: ' + error.message;
+      errNueva.classList.add('visible');
+      return;
+    }
+
+    const { data } = await sb.auth.getSession();
+    if (data && data.session) await irAlPanel(data.session);
+    else window.location.href = window.location.pathname;
   });
 </script>
 
