@@ -717,7 +717,19 @@
   }
 
   /* ── TEXTO CON FORMATO, EMOJIS Y ARRASTRE ─── */
-  .d-tools { display: flex; gap: 2px; margin-left: auto; }
+  .d-tools { display: flex; gap: 2px; margin-left: auto; align-items: center; }
+  .mini-btn.fmt { min-width: 22px; font-size: 12px; font-family: var(--body); }
+  .mini-btn.fmt b, .mini-btn.fmt i, .mini-btn.fmt u, .mini-btn.fmt s { font-size: 12px; }
+  .d-desc-vista ul, .d-desc-vista ol,
+  .res-brief-vista ul, .res-brief-vista ol,
+  .wiki-cuerpo-vista ul, .wiki-cuerpo-vista ol,
+  .coment-txt ul, .coment-txt ol { margin: 6px 0 6px 20px; padding: 0; }
+  .d-desc-vista li, .res-brief-vista li,
+  .wiki-cuerpo-vista li, .coment-txt li { margin: 2px 0; }
+  .d-desc-vista u, .res-brief-vista u, .wiki-cuerpo-vista u, .coment-txt u {
+    text-decoration-color: var(--accent); text-underline-offset: 2px;
+  }
+  .d-desc-vista s, .res-brief-vista s, .wiki-cuerpo-vista s, .coment-txt s { color: var(--ink-mute); }
   .d-tools .mini-btn { font-size: 13px; line-height: 1; }
 
   .d-titulo-row { display: flex; align-items: flex-start; gap: 6px; }
@@ -1856,7 +1868,13 @@
     <div class="d-sec">
       <div class="d-sec-head">
         <div class="sec-title">Detalle</div>
-        <div class="d-tools">
+        <div class="d-tools" id="dToolsDesc">
+          <button class="mini-btn fmt" data-fmt="**" title="Negrita (⌘B)"><b>B</b></button>
+          <button class="mini-btn fmt" data-fmt="*" title="Cursiva (⌘I)"><i>i</i></button>
+          <button class="mini-btn fmt" data-fmt="__" title="Subrayado (⌘U)"><u>U</u></button>
+          <button class="mini-btn fmt" data-fmt="~~" title="Tachado"><s>S</s></button>
+          <button class="mini-btn fmt" data-lista="" title="Lista">•—</button>
+          <button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>
           <button class="mini-btn" id="dEmojiDesc" title="Poner un emoji">🙂</button>
           <button class="mini-btn" id="dLinkDesc" title="Poner un link (⌘K)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -1865,7 +1883,7 @@
       </div>
       <div class="d-desc-vista" id="dDescVista"></div>
       <textarea class="d-desc" id="dDesc" rows="1" style="display:none" placeholder="Escribí acá qué hay que hacer, con qué material y qué se espera de vuelta…"></textarea>
-      <div class="d-hint" id="dHint" style="display:none">Seleccioná una palabra y apretá ⌘K (o Ctrl+K) para convertirla en link.</div>
+      <div class="d-hint" id="dHint" style="display:none">Seleccioná texto y usá los botones de arriba, o ⌘B negrita · ⌘I cursiva · ⌘U subrayado · ⌘K link.</div>
     </div>
 
     <div class="d-sec">
@@ -3389,7 +3407,7 @@
           '<textarea class="wiki-titulo" id="wkTitulo" rows="1">' + esc(p.titulo || '') + '</textarea>' +
           '<div class="wiki-meta">' +
             (quien ? 'Última mano: ' + esc(quien) + ' · ' + hace(p.updated_at) : 'Sin cambios todavía') +
-            '<span class="d-tools">' +
+            '<span class="d-tools">' + BARRA_FORMATO +
               '<button class="mini-btn" id="wkEmoji" title="Poner un emoji">🙂</button>' +
               '<button class="mini-btn" id="wkLink" title="Poner un link (⌘K)">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>' +
@@ -3529,27 +3547,69 @@
   // Lo que sí excluimos es un http(s), para no comerse un link.
   const RE_MENCION = /@\[([^\]\n]*)\]\((?!https?:)([^\s)]{1,64})\)/g;
 
+  // Marcas de formato. Son las de siempre (markdown) salvo el subrayado:
+  // markdown no tiene, así que usamos __texto__ (que en markdown sería
+  // negrita, pero acá la negrita es ** y no se pisan).
+  const FORMATO = [
+    { re: /\*\*([^\n*]+)\*\*/g,  a: '<strong>', z: '</strong>' },
+    { re: /__([^\n_]+)__/g,      a: '<u>',      z: '</u>' },
+    { re: /~~([^\n~]+)~~/g,      a: '<s>',      z: '</s>' },
+    { re: /(^|[^*])\*([^\n*]+)\*(?!\*)/g, a: '<em>', z: '</em>', pre: true }
+  ];
+
   function renderTexto(txt) {
     if (!txt) return '';
-    let h = esc(txt);
-    // 0 · menciones (van primero: si no, el patrón de links las parte)
-    h = h.replace(RE_MENCION, function (m, nombre) {
-      return '<span class="mencion">@' + nombre + '</span>';
+    let h = esc(String(txt).replace(/\u0000/g, ''));
+
+    // Guardamos menciones y links aparte antes de tocar el formato: si no,
+    // una URL con __ adentro rompería su propio atributo href.
+    const piezas = [];
+    const guardar = html => '\u0000' + (piezas.push(html) - 1) + '\u0000';
+
+    h = h.replace(RE_MENCION, (m, nombre) => guardar('<span class="mencion">@' + nombre + '</span>'));
+    h = h.replace(RE_LINK, (m, texto, url) =>
+      guardar('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + texto + '</a>'));
+    h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (m, pre, url) =>
+      pre + guardar('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>'));
+
+    FORMATO.forEach(f => {
+      h = f.pre
+        ? h.replace(f.re, (m, antes, dentro) => antes + f.a + dentro + f.z)
+        : h.replace(f.re, (m, dentro) => f.a + dentro + f.z);
     });
-    // 1 · los links que escribimos nosotros
-    h = h.replace(RE_LINK, function (m, texto, url) {
-      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + texto + '</a>';
+
+    // Listas: líneas que arrancan con "- " o "1. "
+    const lineas = h.split('\n');
+    let salida = '', lista = null;
+    const cerrar = () => { if (lista) { salida += '</' + lista + '>'; lista = null; } };
+    lineas.forEach((l, i) => {
+      const vin = l.match(/^\s*[-•]\s+(.*)$/);
+      const num = l.match(/^\s*\d+[.)]\s+(.*)$/);
+      if (vin || num) {
+        const quiero = vin ? 'ul' : 'ol';
+        if (lista !== quiero) { cerrar(); lista = quiero; salida += '<' + quiero + '>'; }
+        salida += '<li>' + (vin ? vin[1] : num[1]) + '</li>';
+      } else {
+        cerrar();
+        salida += l + (i < lineas.length - 1 ? '<br>' : '');
+      }
     });
-    // 2 · URLs sueltas (solo si no quedaron ya adentro de un href)
-    h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, function (m, pre, url) {
-      return pre + '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
-    });
-    return h.replace(/\n/g, '<br>');
+    cerrar();
+
+    return salida.replace(/\u0000(\d+)\u0000/g, (m, i) => piezas[+i]);
   }
 
   // Para previews de una línea: se ve la palabra, no el markdown.
   function textoPlano(txt) {
-    return (txt || '').replace(RE_MENCION, '@$1').replace(RE_LINK, '$1');
+    return (txt || '')
+      .replace(RE_MENCION, '@$1')
+      .replace(RE_LINK, '$1')
+      .replace(/\*\*([^\n*]+)\*\*/g, '$1')
+      .replace(/__([^\n_]+)__/g, '$1')
+      .replace(/~~([^\n~]+)~~/g, '$1')
+      .replace(/(^|[^*])\*([^\n*]+)\*(?!\*)/g, '$1$2')
+      .replace(/^\s*[-•]\s+/gm, '')
+      .replace(/^\s*\d+[.)]\s+/gm, '');
   }
 
   // Gancho para las pruebas automáticas. No expone datos ni permisos:
@@ -3573,6 +3633,81 @@
     try { el.setSelectionRange(c, c); } catch (_) {}
     if (el.tagName === 'TEXTAREA') autoGrow(el);
   }
+
+  // ── Negrita, cursiva, subrayado, tachado y listas ────────────
+  // Si el texto ya está envuelto, el botón lo desenvuelve: el mismo
+  // atajo prende y apaga, como en cualquier editor.
+  function envolver(el, marca) {
+    if (!el) return;
+    let i = el.selectionStart, f = el.selectionEnd;
+    const v = el.value;
+    if (i === f) {
+      // Sin selección, agarramos la palabra donde está el cursor
+      while (i > 0 && !/\s/.test(v[i - 1])) i--;
+      while (f < v.length && !/\s/.test(v[f])) f++;
+      if (i === f) return;
+    }
+    const sel = v.slice(i, f);
+    const n = marca.length;
+    const yaEsta = v.slice(i - n, i) === marca && v.slice(f, f + n) === marca;
+    const dentro = sel.startsWith(marca) && sel.endsWith(marca) && sel.length > n * 2;
+
+    let nuevo, ini, fin;
+    if (yaEsta) {
+      nuevo = v.slice(0, i - n) + sel + v.slice(f + n);
+      ini = i - n; fin = f - n;
+    } else if (dentro) {
+      const limpio = sel.slice(n, -n);
+      nuevo = v.slice(0, i) + limpio + v.slice(f);
+      ini = i; fin = i + limpio.length;
+    } else {
+      nuevo = v.slice(0, i) + marca + sel + marca + v.slice(f);
+      ini = i + n; fin = f + n;
+    }
+    el.value = nuevo;
+    el.focus();
+    try { el.setSelectionRange(ini, fin); } catch (_) {}
+    if (el.tagName === 'TEXTAREA') autoGrow(el);
+    guardarCampoDe(el);
+  }
+
+  function listar(el, orden) {
+    if (!el) return;
+    const v = el.value;
+    let i = v.lastIndexOf('\n', el.selectionStart - 1) + 1;
+    let f = v.indexOf('\n', el.selectionEnd);
+    if (f === -1) f = v.length;
+    const lineas = v.slice(i, f).split('\n');
+    const yaEsta = lineas.every(l => !l.trim() ||
+      (orden ? /^\s*\d+[.)]\s/.test(l) : /^\s*[-•]\s/.test(l)));
+    const nuevas = lineas.map((l, k) => {
+      const limpia = l.replace(/^\s*(?:[-•]|\d+[.)])\s+/, '');
+      if (yaEsta) return limpia;
+      return (orden ? (k + 1) + '. ' : '- ') + limpia;
+    });
+    el.value = v.slice(0, i) + nuevas.join('\n') + v.slice(f);
+    el.focus();
+    try { el.setSelectionRange(i, i + nuevas.join('\n').length); } catch (_) {}
+    if (el.tagName === 'TEXTAREA') autoGrow(el);
+    guardarCampoDe(el);
+  }
+
+  // Cada campo se guarda donde corresponde
+  function guardarCampoDe(el) {
+    if (!el) return;
+    if (el.id === 'dDesc') guardarCampo('descripcion', el.value.trim() || null);
+    if (el.id === 'resBrief') guardarProyCampo('descripcion', el.value.trim() || null);
+    if (el.id === 'wkCuerpo') guardarPagina('contenido', el.value.trim() || null);
+  }
+
+  // La barra de formato, igual en todos lados
+  const BARRA_FORMATO =
+    '<button class="mini-btn fmt" data-fmt="**" title="Negrita (⌘B)"><b>B</b></button>' +
+    '<button class="mini-btn fmt" data-fmt="*" title="Cursiva (⌘I)"><i>i</i></button>' +
+    '<button class="mini-btn fmt" data-fmt="__" title="Subrayado (⌘U)"><u>U</u></button>' +
+    '<button class="mini-btn fmt" data-fmt="~~" title="Tachado"><s>S</s></button>' +
+    '<button class="mini-btn fmt" data-lista="" title="Lista">•—</button>' +
+    '<button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>';
 
   // ── Modal para poner un link ─────────────────────────────────
   let LK_DESTINO = null, LK_INI = 0, LK_FIN = 0;
@@ -3772,7 +3907,7 @@
     const brief =
       '<div class="res-card">' +
         '<h4>Brief' +
-          '<span class="d-tools">' +
+          '<span class="d-tools">' + BARRA_FORMATO +
             '<button class="mini-btn" id="resEmoji" title="Poner un emoji">🙂</button>' +
             '<button class="mini-btn" id="resLink" title="Poner un link (⌘K)">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>' +
@@ -5321,10 +5456,12 @@
 
   // ⌘K / Ctrl+K sobre el texto seleccionado → poner un link
   function atajoLink(e) {
-    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
-      e.preventDefault();
-      pedirLink(e.target);
-    }
+    if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+    const k = (e.key || '').toLowerCase();
+    if (k === 'k') { e.preventDefault(); pedirLink(e.target); return; }
+    if (k === 'b') { e.preventDefault(); envolver(e.target, '**'); return; }
+    if (k === 'i') { e.preventDefault(); envolver(e.target, '*'); return; }
+    if (k === 'u') { e.preventDefault(); envolver(e.target, '__'); return; }
   }
   $('#dDesc').addEventListener('keydown', atajoLink);
   $('#lkOk').addEventListener('click', confirmarLink);
@@ -5334,6 +5471,36 @@
     if ($('#dDesc').style.display === 'none') entrarAEditarDesc();
     pedirLink($('#dDesc'));
   });
+
+  // ── Barra de formato (detalle, brief y wiki) ─────────────────
+  // El campo sobre el que actúa es el que está en modo edición dentro
+  // del mismo bloque que el botón.
+  function campoDeLaBarra(boton) {
+    if (boton.closest('#dToolsDesc')) {
+      if ($('#dDesc').style.display === 'none') entrarAEditarDesc();
+      return $('#dDesc');
+    }
+    if (boton.closest('#resumen')) {
+      if ($('#resBrief') && $('#resBrief').style.display === 'none') entrarAEditarBrief();
+      return $('#resBrief');
+    }
+    if (boton.closest('#modWiki')) {
+      if ($('#wkCuerpo') && $('#wkCuerpo').style.display === 'none') entrarAEditarWiki();
+      return $('#wkCuerpo');
+    }
+    return null;
+  }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.mini-btn.fmt');
+    if (!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const el = campoDeLaBarra(b);
+    if (!el) return;
+    if (b.hasAttribute('data-lista')) listar(el, b.dataset.lista === '1');
+    else envolver(el, b.dataset.fmt);
+  }, true);
 
   // ── Emojis ───────────────────────────────────────────────────
   $('#dEmojiTit').addEventListener('click', e => { e.stopPropagation(); abrirEmojis(e.currentTarget, $('#dTitulo')); });
