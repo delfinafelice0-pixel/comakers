@@ -187,35 +187,6 @@
   }
   .btn-ghost:hover { border-color: var(--ink-soft); color: var(--ink); }
 
-  /* ── PULSO (3 métricas de control) ───────────── */
-  .pulso { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
-  .pulso-card {
-    background: var(--bg-elev); border: 1px solid var(--line);
-    border-radius: var(--radius-lg); padding: 16px 18px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-  }
-  .pulso-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--ink-soft); }
-  .pulso-card.on { border-color: var(--ink); background: var(--ink); color: var(--bg-elev); }
-  .pulso-card.on .pulso-label, .pulso-card.on .pulso-sub { color: rgba(255,255,255,0.6); }
-  .pulso-label {
-    font-size: 11px; color: var(--ink-mute); letter-spacing: 0.08em;
-    text-transform: uppercase; font-weight: 600;
-  }
-  .pulso-value {
-    font-family: var(--display); font-size: 34px; font-weight: 500;
-    letter-spacing: -0.03em; line-height: 1; margin-top: 6px;
-  }
-  .pulso-sub { font-size: 11px; color: var(--ink-mute); margin-top: 5px; }
-  .pulso-icon {
-    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .pulso-icon svg { width: 17px; height: 17px; }
-  .pulso-icon.rojo { background: var(--warn-soft); color: var(--warn); }
-  .pulso-icon.magenta { background: var(--accent-soft); color: var(--accent); }
-  .pulso-icon.lima { background: var(--lime-soft); color: #6D9B2E; }
-
   /* ── CONTROLES ───────────────────────────── */
   .controles {
     display: flex; align-items: center; justify-content: space-between;
@@ -871,16 +842,6 @@
   .link-row .dato-acc { opacity: 0; }
   .link-row:hover .dato-acc { opacity: 1; }
 
-  .salud-ops { display: flex; flex-wrap: wrap; gap: 6px; }
-  .salud-op {
-    border: 1px solid var(--line); background: var(--bg-elev); border-radius: 20px;
-    padding: 5px 11px; font-size: 11.5px; font-weight: 500; cursor: pointer;
-    color: var(--ink-soft); font-family: var(--body); display: flex; align-items: center; gap: 6px;
-  }
-  .salud-op:hover { border-color: var(--ink-soft); }
-  .salud-op .sd { width: 7px; height: 7px; border-radius: 50%; }
-  .salud-op.on { border-color: var(--ink); color: var(--ink); background: var(--line-soft); }
-
   .res-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
   .res-num { background: var(--line-soft); border-radius: 9px; padding: 9px 10px; }
   .res-num b { display: block; font-family: var(--display); font-size: 20px; font-weight: 500; line-height: 1.15; }
@@ -1110,7 +1071,7 @@
     font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em;
     text-transform: uppercase; font-weight: 600; margin-bottom: 5px; display: block;
   }
-  .campo input[type=text], .campo input[type=date], .campo select, .campo textarea {
+  .campo input[type=text], .campo input[type=date], .campo input[type=number], .campo select, .campo textarea {
     width: 100%; border: 1px solid var(--line); background: var(--bg);
     border-radius: var(--radius); padding: 9px 12px; font-size: 13px;
     color: var(--ink); outline: none; transition: border-color 0.15s;
@@ -1319,6 +1280,150 @@
   /* ── CARGANDO ─────────────────────────────── */
   .cargando { padding: 60px; text-align: center; color: var(--ink-mute); font-size: 13px; }
 
+  /* ── PLATA: clientes con contrato y contabilidad ──────────── */
+  .plata-barra {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .plata-barra .der { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .mes-nav {
+    display: flex; align-items: center; gap: 2px;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px;
+  }
+  .mes-nav button {
+    border: none; background: none; cursor: pointer; font-family: var(--body);
+    color: var(--ink-soft); border-radius: 999px; padding: 5px 9px; font-size: 13px;
+  }
+  .mes-nav button:hover { background: var(--line-soft); color: var(--ink); }
+  .mes-nav .mes-txt {
+    font-size: 12.5px; font-weight: 600; color: var(--ink);
+    padding: 0 8px; min-width: 118px; text-align: center; text-transform: capitalize;
+  }
+
+  .plata-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 18px; }
+  .plata-tabs button {
+    border: 1px solid transparent; background: none; cursor: pointer;
+    font-family: var(--body); font-size: 13px; font-weight: 500; color: var(--ink-mute);
+    padding: 7px 13px; border-radius: 999px; display: flex; align-items: center; gap: 7px;
+  }
+  .plata-tabs button:hover { color: var(--ink); background: var(--line-soft); }
+  .plata-tabs button.on { background: var(--ink); color: var(--bg-elev); }
+  .plata-tabs .cuenta {
+    font-size: 11px; background: var(--line-soft); color: var(--ink-soft);
+    border-radius: 999px; padding: 1px 7px; font-weight: 600;
+  }
+  .plata-tabs button.on .cuenta { background: rgba(255,255,255,0.22); color: #fff; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .kpi {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 15px 17px;
+  }
+  .kpi .k-lbl {
+    font-size: 10.5px; color: var(--ink-mute); letter-spacing: 0.08em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .kpi .k-val {
+    font-family: var(--display); font-size: 27px; font-weight: 500;
+    letter-spacing: -0.03em; line-height: 1.1; margin-top: 7px;
+    overflow-wrap: anywhere;
+  }
+  .kpi .k-sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 5px; }
+  .kpi.verde .k-val { color: #4E7C1C; }
+  .kpi.rojo  .k-val { color: var(--warn); }
+
+  /* Filas de plata: contratos, cobros y movimientos comparten estilo */
+  .prow {
+    display: grid; gap: 12px; align-items: center;
+    padding: 11px 16px; border-bottom: 1px solid var(--line-soft);
+    font-size: 13px;
+  }
+  .prow:last-child { border-bottom: none; }
+  .prow.cab {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--ink-mute); font-weight: 600; background: var(--line-soft);
+  }
+  .prow.clic { cursor: pointer; }
+  .prow.clic:hover { background: var(--line-soft); }
+  .prow .nom { font-weight: 500; overflow-wrap: anywhere; }
+  .prow .sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 2px; overflow-wrap: anywhere; }
+  .prow .num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .prow .num.neg { color: var(--warn); }
+  .prow .num.pos { color: #4E7C1C; }
+
+  .cols-contrato { grid-template-columns: minmax(0,2.1fr) 108px 92px minmax(0,1fr) 118px; }
+  .cols-mov      { grid-template-columns: 84px minmax(0,2.2fr) minmax(0,1fr) 112px 34px; }
+  .cols-cobro    { grid-template-columns: minmax(0,2fr) 96px 108px minmax(0,1.2fr) 118px; }
+
+  .est {
+    display: inline-flex; align-items: center; gap: 5px; border-radius: 999px;
+    padding: 3px 10px; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    border: 1px solid transparent; cursor: pointer; font-family: var(--body);
+  }
+  .est.cobrado   { background: var(--good-soft); color: #4E7C1C; border-color: #CFEBA6; }
+  .est.pendiente { background: var(--bg-elev); color: var(--ink-soft); border-color: var(--line); }
+  .est.vencido   { background: var(--warn-soft); color: var(--warn); border-color: #F6C7D4; }
+  .est.nocorr    { background: var(--line-soft); color: var(--ink-mute); border-color: var(--line); }
+  .est.aviso     { background: var(--warn-soft); color: var(--warn); border-color: #F6C7D4; }
+
+  .det-contrato {
+    padding: 16px 18px 18px; background: var(--line-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .det-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  .det-campo .dl {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--ink-mute); font-weight: 600; margin-bottom: 3px;
+  }
+  .det-campo .dv { font-size: 13px; color: var(--ink); overflow-wrap: anywhere; }
+  .det-acc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+  .det-hist { margin-top: 16px; }
+  .det-hist h5 {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--ink-mute); font-weight: 600; margin-bottom: 7px;
+  }
+  .hist-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hist-chip {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 9px; font-size: 11.5px; min-width: 84px;
+  }
+  .hist-chip .hm { color: var(--ink-mute); font-size: 10.5px; text-transform: capitalize; }
+  .hist-chip .hv { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .hist-chip.ok { border-color: #CFEBA6; background: var(--good-soft); }
+  .hist-chip.no { border-color: #F6C7D4; background: var(--warn-soft); }
+
+  /* Gráfico de ingresos vs egresos, dibujado a mano en SVG */
+  .grafico {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 18px; margin-bottom: 18px;
+  }
+  .grafico h4 { font-family: var(--display); font-size: 17px; font-weight: 500; }
+  .grafico .res-sub { margin-bottom: 14px; }
+  .grafico svg { width: 100%; height: 220px; display: block; overflow: visible; }
+  .g-eje { stroke: var(--line); stroke-width: 1; }
+  .g-txt { font-size: 10px; fill: var(--ink-mute); font-family: var(--body); }
+  .g-in  { fill: #B9E88F; }
+  .g-eg  { fill: #F5A8BE; }
+  .g-leyenda { display: flex; gap: 16px; margin-top: 12px; font-size: 11.5px; color: var(--ink-soft); }
+  .g-leyenda span { display: flex; align-items: center; gap: 6px; }
+  .g-punto { width: 10px; height: 10px; border-radius: 3px; }
+
+  .reparto-tabla { margin-bottom: 18px; }
+  .cols-reparto { grid-template-columns: minmax(0,1.4fr) repeat(4, minmax(0,1fr)); }
+
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: 1fr; }
+    .cols-contrato, .cols-cobro { grid-template-columns: minmax(0,1fr) auto; }
+    .cols-contrato > .oculta-mob, .cols-cobro > .oculta-mob { display: none; }
+    .cols-mov { grid-template-columns: minmax(0,1fr) auto 34px; }
+    .cols-mov > .oculta-mob { display: none; }
+    .cols-reparto { grid-template-columns: minmax(0,1fr) repeat(2, minmax(0,1fr)); }
+    .cols-reparto > .oculta-mob { display: none; }
+    .prow.cab { display: none; }
+  }
+
   /* ── RESPONSIVE ───────────────────────────── */
   @media (max-width: 1200px) { .kanban.active { grid-template-columns: repeat(3, minmax(210px,1fr)); } }
   @media (max-width: 900px) {
@@ -1331,7 +1436,6 @@
     .sidebar-footer { margin-top: 0; border-top: none; padding-top: 0; flex-direction: row; align-items: center; }
     .main { padding: 24px 18px 56px; }
     .topbar h1 { font-size: 30px; }
-    .pulso { grid-template-columns: 1fr; }
     .kanban.active { grid-template-columns: 1fr; }
     .columna { min-height: auto; }
     .fila { grid-template-columns: 24px 1fr auto; gap: 10px; }
@@ -1385,6 +1489,10 @@
         <button class="nav-item" id="navClientes">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
           Clientes
+        </button>
+        <button class="nav-item" id="navPlata" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          Contabilidad
         </button>
         <button class="nav-item" id="navWiki">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
@@ -1442,34 +1550,6 @@
     </div>
 
     <div id="modTareas">
-    <!-- Pulso del equipo -->
-    <div class="pulso">
-      <div class="pulso-card" data-pulso="vencidas">
-        <div>
-          <div class="pulso-label">Vencidas</div>
-          <div class="pulso-value" id="pVencidas">0</div>
-          <div class="pulso-sub">Pasaron su fecha y siguen abiertas</div>
-        </div>
-        <div class="pulso-icon rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
-      </div>
-      <div class="pulso-card" data-pulso="revision">
-        <div>
-          <div class="pulso-label">Esperando tu ok</div>
-          <div class="pulso-value" id="pRevision">0</div>
-          <div class="pulso-sub">Entregadas, falta que las revises</div>
-        </div>
-        <div class="pulso-icon magenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
-      </div>
-      <div class="pulso-card" data-pulso="cerradas">
-        <div>
-          <div class="pulso-label">Cerradas · 7 días</div>
-          <div class="pulso-value" id="pCerradas">0</div>
-          <div class="pulso-sub">Lo que el equipo entregó esta semana</div>
-        </div>
-        <div class="pulso-icon lima"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
-      </div>
-    </div>
-
     <!-- Controles -->
     <div class="controles">
       <div class="controles-izq">
@@ -1504,7 +1584,7 @@
           </button>
           <button data-vista="calendario">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            Calendario
+            Calendario de la muerta
           </button>
         </div>
       </div>
@@ -1561,10 +1641,252 @@
     <!-- ═══════════ CLIENTES ═══════════ -->
     <div id="modClientes" style="display:none"></div>
 
+    <!-- ═══════════ CONTABILIDAD ═══════════ -->
+    <div id="modPlata" style="display:none"></div>
+
     <!-- ═══════════ WIKI ═══════════ -->
     <div id="modWiki" style="display:none"></div>
   </main>
 </div>
+<!-- ═══════════ MODAL SERVICIO CONTRATADO ═══════════ -->
+<div class="overlay" id="ovContrato">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="ctTitulo">Nuevo servicio</div>
+      <button class="modal-close" data-cerrar="ovContrato"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Cliente</label>
+        <select id="ctCliente"></select>
+      </div>
+      <div>
+        <label class="campo-label">Servicio</label>
+        <input type="text" id="ctNombre" placeholder="Ej: CM, Landing, Pauta">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Qué incluye</label>
+      <textarea id="ctDetalle" placeholder="4 posteos y 8 historias por mes, una producción presencial, informe mensual…"></textarea>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Monto</label>
+        <input type="number" id="ctMonto" step="0.01" min="0" placeholder="250000">
+      </div>
+      <div>
+        <label class="campo-label">Tipo</label>
+        <select id="ctTipo">
+          <option value="mensual">Mensual</option>
+          <option value="cuotas">En cuotas</option>
+        </select>
+      </div>
+    </div>
+    <div class="campo campo-row" id="ctCuotasWrap" style="display:none">
+      <div>
+        <label class="campo-label">Cuántas cuotas</label>
+        <input type="number" id="ctCuotas" min="1" step="1" placeholder="3">
+      </div>
+      <div>
+        <label class="campo-label">Primera cuota</label>
+        <input type="date" id="ctCuotaDesde">
+      </div>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Paga entre el día</label>
+        <input type="number" id="ctDiaDesde" min="1" max="31" step="1" placeholder="1">
+      </div>
+      <div>
+        <label class="campo-label">y el día</label>
+        <input type="number" id="ctDiaHasta" min="1" max="31" step="1" placeholder="10">
+      </div>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Próximo ajuste</label>
+        <input type="date" id="ctProxAjuste">
+      </div>
+      <div>
+        <label class="campo-label">% que le proponemos</label>
+        <input type="number" id="ctAjustePct" step="0.1" placeholder="15">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Quién lo ejecuta</label>
+      <div class="miembros" id="ctEjecutan"></div>
+      <div class="miembros-nota">De acá sale el reparto: el 85% se divide en partes iguales entre quienes lo ejecutan.</div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Notas</label>
+      <textarea id="ctNotas" placeholder="Lo que haga falta recordar de este servicio."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="ctArchivar" style="display:none">Dar de baja</button>
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovContrato">Cancelar</button>
+        <button class="btn-primary" id="ctGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL APLICAR AJUSTE ═══════════ -->
+<div class="overlay" id="ovAjuste">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div class="modal-title">Ajustar el monto</div>
+      <button class="modal-close" data-cerrar="ovAjuste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="res-sub" id="ajQuien" style="margin-bottom:14px"></div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Monto de hoy</label>
+        <input type="text" id="ajActual" disabled>
+      </div>
+      <div>
+        <label class="campo-label">Aumento %</label>
+        <input type="number" id="ajPct" step="0.1">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Monto nuevo</label>
+      <input type="number" id="ajNuevo" step="0.01" min="0">
+    </div>
+    <div class="campo">
+      <label class="campo-label">Cuándo vuelve a ajustarse</label>
+      <input type="date" id="ajProximo">
+    </div>
+    <div class="res-sub">El cobro de este mes, si todavía está pendiente, se actualiza al monto nuevo. Los que ya cobraste no se tocan.</div>
+    <div class="modal-foot">
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovAjuste">Cancelar</button>
+        <button class="btn-primary" id="ajGuardar">Aplicar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL COBRO DEL MES ═══════════ -->
+<div class="overlay" id="ovCobro">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="cbTitulo">Cobro</div>
+      <button class="modal-close" data-cerrar="ovCobro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Estado</label>
+        <select id="cbEstado">
+          <option value="pendiente">Pendiente</option>
+          <option value="cobrado">Cobrado</option>
+          <option value="no_corresponde">No corresponde este mes</option>
+        </select>
+      </div>
+      <div>
+        <label class="campo-label">Fecha de cobro</label>
+        <input type="date" id="cbFecha">
+      </div>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Monto</label>
+        <input type="number" id="cbMonto" step="0.01" min="0">
+      </div>
+      <div>
+        <label class="campo-label">N° de factura</label>
+        <input type="text" id="cbFactNro" placeholder="0001-00001234">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Link a la factura</label>
+      <input type="text" id="cbFactUrl" placeholder="https://…">
+    </div>
+    <div class="campo">
+      <label class="campo-label">Quién lo ejecuta este mes</label>
+      <div class="miembros" id="cbEjecutan"></div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Pagos a colaboradoras de este cobro</label>
+      <div class="tabla" id="cbPagos" style="margin-bottom:8px"></div>
+      <div class="fila-inv">
+        <input type="text" id="cbPagoQuien" placeholder="A quién (ej: Karin)" style="flex:1; min-width:0;">
+        <input type="number" id="cbPagoMonto" step="0.01" min="0" placeholder="50000" style="width:120px">
+        <button class="btn-ghost" id="cbPagoAdd">Agregar</button>
+      </div>
+      <div class="miembros-nota">Bajan el monto neto antes de repartir, igual que en la planilla.</div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Notas</label>
+      <textarea id="cbNotas"></textarea>
+    </div>
+    <div class="modal-foot">
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovCobro">Cancelar</button>
+        <button class="btn-primary" id="cbGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL MOVIMIENTO ═══════════ -->
+<div class="overlay" id="ovMov">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div class="modal-title" id="mvTitulo">Nuevo movimiento</div>
+      <button class="modal-close" data-cerrar="ovMov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Tipo</label>
+        <select id="mvTipo">
+          <option value="egreso">Egreso (sale plata)</option>
+          <option value="ingreso">Ingreso (entra plata)</option>
+        </select>
+      </div>
+      <div>
+        <label class="campo-label">Fecha</label>
+        <input type="date" id="mvFecha">
+      </div>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Categoría</label>
+        <select id="mvCategoria"></select>
+      </div>
+      <div>
+        <label class="campo-label">Monto</label>
+        <input type="number" id="mvMonto" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Concepto</label>
+      <input type="text" id="mvConcepto" placeholder="Ej: Suscripción Meta Business Suite">
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Cliente (opcional)</label>
+        <select id="mvCliente"></select>
+      </div>
+      <div>
+        <label class="campo-label">N° de factura</label>
+        <input type="text" id="mvFactNro">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Link al comprobante</label>
+      <input type="text" id="mvFactUrl" placeholder="https://…">
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="mvBorrar" style="display:none">Borrar</button>
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovMov">Cancelar</button>
+        <button class="btn-primary" id="mvGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="guardado-flot" id="guardadoFlot">Guardado</div>
 
 <!-- ═══════════ MODAL CLIENTE ═══════════ -->
@@ -1732,15 +2054,8 @@
         <div class="colores" id="pColores"></div>
       </div>
     </div>
-    <div class="switch-row">
-      <div class="switch-txt">
-        <div class="t">Proyecto privado</div>
-        <div class="s">Solo lo ven los miembros que elijas y quien lo creó. El resto del equipo ni sabe que existe.</div>
-      </div>
-      <div class="switch" id="pPrivado"></div>
-    </div>
     <div class="campo" id="pMiembrosWrap">
-      <label class="campo-label">Miembros</label>
+      <label class="campo-label">Quiénes lo ven</label>
       <div class="miembros" id="pMiembros"></div>
       <div class="miembros-nota" id="pMiembrosNota"></div>
     </div>
@@ -1969,12 +2284,11 @@
   let FALTA_M10 = false;  // true si todavía no corrió migracion-interno-10-equipo.sql
   let FALTA_M11 = false;  // true si todavía no corrió migracion-interno-11-bandeja.sql
   let AGRUPAR = 'responsable';
-  let FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false, pulso: '' };
+  let FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false };
   const COLORES = {
     magenta: '#FF82FF', lima: '#A9D96B', coral: '#F26A8D', cyan: '#7FBFCC',
     violeta: '#A98BE0', ocre: '#DCA84E', gris: '#938C99'
   };
-  const CANDADO = '<svg class="candado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
   let EDITANDO = null;
   let COLAPSADOS = {};
   let PROYECTOS = [];
@@ -2108,7 +2422,7 @@
   function chipUnProyecto(p) {
     const fin = !!p.finalizado_en;
     return '<span class="chip-proy' + (fin ? ' fin' : '') + '"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
-         + (fin ? '✓ ' : '') + '<span class="nomp">' + esc(p.nombre) + '</span>' + (p.privado ? CANDADO : '') + '</span>';
+         + (fin ? '✓ ' : '') + '<span class="nomp">' + esc(p.nombre) + '</span></span>';
   }
   // Dentro de un proyecto no repito su propio chip: solo muestro los otros.
   function chipsProyectos(t, ctxProy) {
@@ -2122,7 +2436,7 @@
     if (!p) return '';
     const fin = !!p.finalizado_en;
     return '<span class="chip-proy' + (fin ? ' fin' : '') + '"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
-         + (fin ? '✓ ' : '') + '<span class="nomp">' + esc(p.nombre) + '</span>' + (p.privado ? CANDADO : '') + '</span>';
+         + (fin ? '✓ ' : '') + '<span class="nomp">' + esc(p.nombre) + '</span></span>';
   }
 
   function fechaCorta(iso) {
@@ -2172,6 +2486,7 @@
     $('#saludo').textContent = SALUDO_BASE;
 
     await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos()]);
+    await cargarPlata();
     llenarSelects();
     await cargarTareas();
     cargarBandeja();
@@ -2309,7 +2624,7 @@
       + clientesVivos().map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
 
     const opsProy = '<option value="">Sin proyecto</option>'
-      + PROYECTOS.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + (p.privado ? ' 🔒' : '') + '</option>').join('');
+      + PROYECTOS.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + '</option>').join('');
     $('#fProyecto').innerHTML = opsProy;
 
     $('#pCliente').innerHTML = '<option value="">Sin cliente (interno)</option>'
@@ -2338,7 +2653,7 @@
     return '<button class="nav-item proy' + (FILTRO.proyecto === p.id ? ' active' : '') + (fin ? ' fin' : '') + '" data-proy="' + p.id + '">' +
              '<span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>' +
              '<span class="nom">' + esc(p.nombre) + '</span>' +
-             (p.privado ? CANDADO : (!fin && abiertas ? '<span class="soon-tag">' + abiertas + '</span>' : '')) +
+             (!fin && abiertas ? '<span class="soon-tag">' + abiertas + '</span>' : '') +
            '</button>';
   }
 
@@ -2368,7 +2683,6 @@
     $('#proyTitulo').textContent = p ? 'Editar proyecto' : 'Nuevo proyecto';
     $('#pNombre').value = p ? p.nombre : '';
     $('#pCliente').value = p ? (p.cliente_id || '') : '';
-    $('#pPrivado').classList.toggle('on', !!(p && p.privado));
     $('#pArchivar').style.display = p ? '' : 'none';
     const bf = $('#pFinalizar');
     bf.style.display = p ? '' : 'none';
@@ -2384,7 +2698,6 @@
   }
 
   function pintarMiembros() {
-    const privado = $('#pPrivado').classList.contains('on');
     $('#pMiembros').innerHTML = PERSONAS.map(p => {
       const on = PROY_MIEMBROS.indexOf(p.id) !== -1;
       const n = p.nombre || p.email;
@@ -2392,9 +2705,9 @@
                '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) +
              '</button>';
     }).join('');
-    $('#pMiembrosNota').textContent = privado
-      ? 'Solo estas personas van a ver el proyecto y sus tareas. Vos quedás adentro siempre por haberlo creado.'
-      : 'El proyecto es público: todo el equipo lo ve. Los miembros son solo una referencia de quién trabaja acá.';
+    $('#pMiembrosNota').textContent =
+      'Todos los proyectos son privados: solo estas personas ven el proyecto y sus tareas. '
+      + 'Vos quedás adentro siempre por haberlo creado.';
   }
 
   async function guardarProyecto() {
@@ -2405,8 +2718,12 @@
       nombre: nombre,
       cliente_id: $('#pCliente').value || null,
       color: PROY_COLOR,
-      privado: $('#pPrivado').classList.contains('on')
+      privado: true
     };
+
+    // Quien crea el proyecto entra siempre como miembro. Así "creador"
+    // y "miembro" son lo mismo y ningún proyecto queda sin dueño visible.
+    if (!PROY_EDIT && ME && PROY_MIEMBROS.indexOf(ME.id) === -1) PROY_MIEMBROS.push(ME.id);
 
     $('#pGuardar').disabled = true;
     try {
@@ -2526,19 +2843,12 @@
 
       if (FILTRO.mias && ME && t.responsable_id !== ME.id) return false;
 
-      if (FILTRO.pulso === 'vencidas' && !estaVencida(t)) return false;
-      if (FILTRO.pulso === 'revision' && tipoDe(t) !== 'revision') return false;
-      if (FILTRO.pulso === 'cerradas' && !cerradaEstaSemana(t)) return false;
 
       return true;
     });
   }
-  function cerradaEstaSemana(t) {
-    if (!t.completada || !t.completada_en) return false;
-    return (Date.now() - new Date(t.completada_en).getTime()) < 7 * 86400000;
-  }
   function hayFiltro() {
-    return !!(FILTRO.texto || FILTRO.persona || FILTRO.cliente || FILTRO.proyecto || FILTRO.mias || FILTRO.pulso);
+    return !!(FILTRO.texto || FILTRO.persona || FILTRO.cliente || FILTRO.proyecto || FILTRO.mias);
   }
 
   // ═══════════════ RENDER ═══════════════
@@ -2552,13 +2862,13 @@
   }
 
   function render() {
-    renderPulso();
     renderProyectosSidebar();
     pintarModulos();
     if (MODULO !== 'tareas') {
       if (MODULO === 'bandeja') renderBandeja();
       else if (MODULO === 'equipo') renderEquipo();
       else if (MODULO === 'clientes') renderClientes();
+      else if (MODULO === 'plata') renderPlata();
       else if (MODULO === 'wiki') renderWiki();
       return;
     }
@@ -2575,9 +2885,8 @@
     const nb = $('#navBadge');
     if (abiertas > 0) { nb.style.display = ''; nb.textContent = abiertas; } else { nb.style.display = 'none'; }
 
-    // En el Resumen, el pulso y los filtros de tareas sobran.
+    // En el Resumen, los filtros de tareas sobran.
     const esRes = VISTA === 'resumen';
-    $('.pulso').style.display = esRes ? 'none' : '';
     $('.controles-izq').style.display = esRes ? 'none' : '';
 
     // El Resumen vive aparte: no depende de que haya tareas.
@@ -3013,7 +3322,10 @@
   function soySocia() { return !!ME && ME.rol === 'socia'; }
 
   function cambiarModulo(m) {
-    if (m === 'equipo' && !soySocia()) return;
+    // Equipo, Clientes y Contabilidad son de las socias. Esto es la
+    // cortesía de no mostrar un botón que no lleva a ningún lado: el
+    // permiso de verdad está en la base.
+    if ((m === 'equipo' || m === 'clientes' || m === 'plata') && !soySocia()) return;
     MODULO = m;
     if (m !== 'tareas') { cerrarDrawer(); }
     if (m === 'wiki' && !WIKI_CARGADA) cargarWiki();
@@ -3027,14 +3339,17 @@
     $('#navBandeja').classList.toggle('active', MODULO === 'bandeja');
     $('#modEquipo').style.display  = MODULO === 'equipo'   ? '' : 'none';
     $('#modClientes').style.display = MODULO === 'clientes' ? '' : 'none';
+    $('#modPlata').style.display   = MODULO === 'plata'    ? '' : 'none';
     $('#modWiki').style.display    = MODULO === 'wiki'     ? '' : 'none';
-    $('.pulso').style.display = MODULO === 'tareas' ? '' : 'none';
     $('.controles').style.display = MODULO === 'tareas' ? '' : 'none';
     $('#btnNueva').style.display = MODULO === 'tareas' ? '' : 'none';
     $('#navEquipo').style.display = soySocia() ? '' : 'none';
+    $('#navClientes').style.display = soySocia() ? '' : 'none';
+    $('#navPlata').style.display  = soySocia() ? '' : 'none';
     $('#navTablero').classList.toggle('active', MODULO === 'tareas' && !FILTRO.proyecto);
     $('#navClientes').classList.toggle('active', MODULO === 'clientes');
     $('#navWiki').classList.toggle('active', MODULO === 'wiki');
+    $('#navPlata').classList.toggle('active', MODULO === 'plata');
     $('#navEquipo').classList.toggle('active', MODULO === 'equipo');
 
     const t = $('#tituloGlobal');
@@ -3048,7 +3363,8 @@
     const H = {
       bandeja:  ['Tu <em>bandeja</em>', 'Lo que te asignaron, lo que comentaron donde colaborás y dónde te mencionaron.'],
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
-      clientes: ['Los <em>clientes</em>', 'Los que aparecen en los proyectos y en las tareas.'],
+      clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
+      plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.']
     }[MODULO];
     t.querySelector('h1').innerHTML = H[0];
@@ -3188,45 +3504,6 @@
   // ── CLIENTES ─────────────────────────────────────────────────
   function proyectosDeCliente(id) { return PROYECTOS.filter(p => p.cliente_id === id).length; }
   function tareasDeCliente(id) { return TAREAS.filter(t => t.cliente_id === id).length; }
-
-  function renderClientes() {
-    const activos = CLIENTES.filter(c => c.activo !== false);
-    const guardados = CLIENTES.filter(c => c.activo === false);
-    const fila = c => {
-      const acc = (ACCESOS[c.id] || []).length;
-      return '<div class="cliente-row' + (c.activo === false ? ' inactivo' : '') + '" data-cabrir="' + c.id + '">' +
-        '<div class="nomc"><span class="nombrec">' + esc(c.nombre || '') + '</span>' +
-          '<div class="slugc">' +
-            (c.slug ? esc(c.slug) : '⚠️ sin identificador — abrilo y guardá para generarlo') +
-            (c.agencia ? ' · ' + esc(c.agencia) : '') +
-          '</div>' +
-        '</div>' +
-        '<span class="pill">' + acc + ' con acceso</span>' +
-        '<span class="pill">' + proyectosDeCliente(c.id) + ' proyecto' + (proyectosDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
-        '<span class="pill">' + tareasDeCliente(c.id) + ' tarea' + (tareasDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
-      '</div>';
-    };
-
-    $('#modClientes').innerHTML =
-      '<div class="mod-head"><p>Esta lista es <b>la misma</b> que ves en el panel de cliente: los dos leen la ' +
-        'misma tabla, así que lo que crees acá aparece allá y al revés. Debajo de cada nombre está su ' +
-        'identificador, que es lo que usa el panel del cliente para encontrarlo. ' +
-        'Archivar uno no borra nada: deja de ofrecerse en los selectores de acá.</p></div>' +
-      '<div class="tabla">' +
-        (activos.length ? activos.map(fila).join('')
-                        : '<div class="cliente-row"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
-      '</div>' +
-      '<div class="invitar">' +
-        '<h4>Sumar un cliente</h4>' +
-        '<div class="res-sub">Se crea con los mismos datos que pide el panel de cliente: agencia dueña ' +
-          'y quién del equipo lo atiende.</div>' +
-        '<div class="fila-inv"><button class="btn-primary" id="nuClienteBtn">Nuevo cliente</button></div>' +
-      '</div>' +
-      (guardados.length
-        ? '<div class="mod-head" style="margin:22px 0 10px"><p>En el archivo.</p></div>' +
-          '<div class="tabla">' + guardados.map(fila).join('') + '</div>'
-        : '');
-  }
 
   // El panel del cliente identifica a cada cliente por su `slug`, no por
   // el nombre. Si lo dejáramos vacío, el cliente nuevo existiría acá pero
@@ -3783,15 +4060,926 @@
     EMOJI_DESTINO = null;
   }
 
+  // ═══════════════ LA PLATA ═══════════════
+  // Contratos, cobros, movimientos y reparto. Todo esto lo ven solo
+  // las socias, y no porque lo escondamos en la pantalla: la base
+  // tiene un permiso `es_socia()` en cada una de estas tablas.
+  let CONTRATOS = [], CONTRATO_EJ = {}, COBROS = [], COBRO_EJ = {};
+  let MOVIMIENTOS = [], REPARTO = null, SOCIA_PCT = {};
+  let FALTA_M14 = false, PLATA_CARGADA = false;
+  let PERIODO = primerDelMes(new Date());
+  let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
+  let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
+  let CONTRATO_ABIERTO = {};
+
+  const CATEGORIAS = ['Cobro a cliente', 'Colaboradoras', 'Sueldos', 'Herramientas',
+                      'Pauta', 'Producción', 'Impuestos', 'Banco', 'Oficina', 'Otros'];
+
+  // ── Fechas y plata ───────────────────────────────────────────
+  function primerDelMes(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-01';
+  }
+  function mesDe(iso) { return (iso || '').slice(0, 7); }
+  function sumarMeses(iso, n) {
+    const [a, m] = iso.split('-').map(Number);
+    const t = new Date(a, m - 1 + n, 1);
+    return primerDelMes(t);
+  }
+  // MESES ya está declarado más abajo, con el calendario. Lo reuso.
+  function mesLargo(iso) {
+    const [a, m] = iso.split('-').map(Number);
+    return MESES[m - 1] + ' ' + a;
+  }
+  function mesCorto(iso) {
+    const [a, m] = iso.split('-').map(Number);
+    return MESES[m - 1].slice(0, 3) + ' ' + String(a).slice(2);
+  }
+  function hoyISO() { return new Date().toISOString().slice(0, 10); }
+
+  const FMT_PLATA = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
+  function plata(n) {
+    const v = Number(n || 0);
+    return (v < 0 ? '-$' : '$') + FMT_PLATA.format(Math.abs(Math.round(v)));
+  }
+  function fechaDia(iso) {
+    if (!iso) return '';
+    const [a, m, d] = iso.slice(0, 10).split('-');
+    return d + '/' + m + '/' + String(a).slice(2);
+  }
+
+  // ── Carga ────────────────────────────────────────────────────
+  async function cargarPlata() {
+    if (!soySocia()) { PLATA_CARGADA = true; return; }
+
+    const r = await SB.from('contrato').select('*').order('nombre');
+    if (r.error) {
+      // Sin la migración 14 estas tablas no existen todavía. No es un
+      // error del panel: es que falta correrla.
+      FALTA_M14 = true; PLATA_CARGADA = true;
+      CONTRATOS = []; COBROS = []; MOVIMIENTOS = [];
+      return;
+    }
+    CONTRATOS = r.data || [];
+
+    // El 1° de cada mes se arman solos los cobros del mes. La base
+    // tiene un `unique (contrato_id, periodo)`, así que abrir el panel
+    // quince veces no duplica nada.
+    try { await SB.rpc('generar_cobros'); } catch (e) { /* sin drama */ }
+    try { await SB.rpc('avisar_ajustes'); } catch (e) { /* sin drama */ }
+
+    const [cb, ce, ct, mv, rp, sp] = await Promise.all([
+      SB.from('cobro').select('*').order('periodo', { ascending: false }),
+      SB.from('cobro_ejecutora').select('cobro_id, user_id'),
+      SB.from('contrato_ejecutora').select('contrato_id, user_id'),
+      SB.from('movimiento').select('*').order('fecha', { ascending: false }),
+      SB.from('reparto').select('*').limit(1),
+      SB.from('socia_reparto').select('user_id, pct')
+    ]);
+    COBROS = cb.data || [];
+    MOVIMIENTOS = mv.data || [];
+    REPARTO = (rp.data && rp.data[0]) || { pct_ejecutora: 85, pct_socias: 5, pct_fondo: 10 };
+
+    COBRO_EJ = {}; (ce.data || []).forEach(x => {
+      (COBRO_EJ[x.cobro_id] = COBRO_EJ[x.cobro_id] || []).push(x.user_id);
+    });
+    CONTRATO_EJ = {}; (ct.data || []).forEach(x => {
+      (CONTRATO_EJ[x.contrato_id] = CONTRATO_EJ[x.contrato_id] || []).push(x.user_id);
+    });
+    SOCIA_PCT = {}; (sp.data || []).forEach(x => { SOCIA_PCT[x.user_id] = Number(x.pct); });
+
+    PLATA_CARGADA = true;
+  }
+
+  function avisoM14() {
+    return '<div class="res-falta">Falta correr <code>migracion-interno-14-plata.sql</code> en Supabase. ' +
+           'Hasta que la corras, esta parte no tiene dónde guardar nada.</div>';
+  }
+
+  // ── Consultas sobre los datos cargados ───────────────────────
+  function contratosDe(clienteId) { return CONTRATOS.filter(c => c.cliente_id === clienteId); }
+  function contratoDe(id) { return CONTRATOS.find(c => c.id === id) || null; }
+  function cobroDe(contratoId, periodo) {
+    return COBROS.find(c => c.contrato_id === contratoId && mesDe(c.periodo) === mesDe(periodo)) || null;
+  }
+  function egresosDeCobro(cobroId) {
+    return MOVIMIENTOS.filter(m => m.cobro_id === cobroId && m.tipo === 'egreso');
+  }
+  function netoDeCobro(cb) {
+    return Number(cb.monto || 0) - egresosDeCobro(cb.id).reduce((a, m) => a + Number(m.monto || 0), 0);
+  }
+  function tocaAjustar(ct, periodo) {
+    if (!ct.proximo_ajuste) return false;
+    return mesDe(ct.proximo_ajuste) <= mesDe(periodo || PERIODO);
+  }
+  function cobroVencido(cb, ct) {
+    if (!cb || cb.estado !== 'pendiente') return false;
+    const limite = ct && ct.dia_hasta ? ct.dia_hasta : 10;
+    const fin = new Date(cb.periodo.slice(0, 4), Number(cb.periodo.slice(5, 7)) - 1, limite);
+    return new Date() > fin;
+  }
+
+  // El reparto de un cobro, con los números de la tabla `reparto`.
+  // Sale igual que la hoja Dist: el 85% se divide en partes iguales
+  // entre quienes ejecutan, el 5% se reparte 45-30-25 y el 10% al fondo.
+  function repartoDe(cb) {
+    const neto = netoDeCobro(cb);
+    const ejec = (COBRO_EJ[cb.id] || []).filter(u => PERSONAS.some(p => p.id === u));
+    const parteEjec = neto * Number(REPARTO.pct_ejecutora) / 100;
+    const parteSoc  = neto * Number(REPARTO.pct_socias) / 100;
+    const fondo     = neto * Number(REPARTO.pct_fondo) / 100;
+    const porPersona = {};
+    if (ejec.length) ejec.forEach(u => { porPersona[u] = (porPersona[u] || 0) + parteEjec / ejec.length; });
+    Object.keys(SOCIA_PCT).forEach(u => {
+      porPersona[u] = (porPersona[u] || 0) + parteSoc * SOCIA_PCT[u] / 100;
+    });
+    return { neto: neto, fondo: fondo, personas: porPersona, sinEjecutora: !ejec.length };
+  }
+
+  // ═══════════════ MÓDULO CLIENTES ═══════════════
+  function renderClientes() {
+    if (!soySocia()) { $('#modClientes').innerHTML = ''; return; }
+    const activos = CLIENTES.filter(c => c.activo !== false);
+    const guardados = CLIENTES.filter(c => c.activo === false);
+
+    const delMes = CONTRATOS.filter(c => c.activo).map(c => cobroDe(c.id, PERIODO)).filter(Boolean);
+    const aCobrar = delMes.filter(c => c.estado !== 'no_corresponde')
+                          .reduce((a, c) => a + Number(c.monto || 0), 0);
+    const cobrado = delMes.filter(c => c.estado === 'cobrado')
+                          .reduce((a, c) => a + Number(c.monto || 0), 0);
+    const ajustes = CONTRATOS.filter(c => c.activo && tocaAjustar(c)).length;
+
+    const barra =
+      '<div class="plata-barra">' +
+        '<div class="mes-nav">' +
+          '<button data-mes="-1" title="Mes anterior">‹</button>' +
+          '<span class="mes-txt">' + mesLargo(PERIODO) + '</span>' +
+          '<button data-mes="1" title="Mes siguiente">›</button>' +
+          '<button data-mes="0" title="Volver a este mes">Hoy</button>' +
+        '</div>' +
+        '<div class="der">' +
+          '<button class="btn-primary" id="nuContratoBtn">Nuevo servicio</button>' +
+        '</div>' +
+      '</div>';
+
+    const kpis = FALTA_M14 ? '' :
+      '<div class="kpis">' +
+        kpi('A cobrar este mes', plata(aCobrar), delMes.length + ' servicio' + (delMes.length === 1 ? '' : 's'), '') +
+        kpi('Cobrado', plata(cobrado), pct(cobrado, aCobrar) + ' de lo del mes', 'verde') +
+        kpi('Falta cobrar', plata(aCobrar - cobrado), (delMes.filter(c => c.estado === 'pendiente').length) + ' pendiente(s)', aCobrar - cobrado > 0 ? 'rojo' : '') +
+        kpi('Ajustes que tocan', String(ajustes), ajustes ? 'Miralos abajo, en rojo' : 'Ninguno este mes', ajustes ? 'rojo' : '') +
+      '</div>';
+
+    const cab =
+      '<div class="prow cab cols-contrato">' +
+        '<div>Cliente y servicio</div>' +
+        '<div class="num oculta-mob">Monto</div>' +
+        '<div class="oculta-mob">Paga</div>' +
+        '<div class="oculta-mob">Próximo ajuste</div>' +
+        '<div>' + mesCorto(PERIODO) + '</div>' +
+      '</div>';
+
+    let filas = '';
+    activos.forEach(cl => {
+      const cts = contratosDe(cl.id).filter(c => c.activo);
+      if (!cts.length) {
+        filas += '<div class="prow cols-contrato clic" data-ctnuevo="' + cl.id + '">' +
+          '<div><div class="nom">' + esc(cl.nombre) + '</div>' +
+            '<div class="sub">Sin servicio cargado — clickeá para agregarle uno</div></div>' +
+          '<div class="num oculta-mob">—</div><div class="oculta-mob"></div>' +
+          '<div class="oculta-mob"></div><div></div>' +
+        '</div>';
+        return;
+      }
+      cts.forEach(ct => { filas += filaContrato(cl, ct); });
+    });
+
+    // Abajo, la ficha de cada cliente: quién lo atiende, su identificador
+    // y el alta. Es la misma tabla que usa el panel de cliente, así que
+    // esto sigue siendo el lugar donde se dan de alta y de baja.
+    const fichaCliente = c => {
+      const acc = (ACCESOS[c.id] || []).length;
+      return '<div class="cliente-row' + (c.activo === false ? ' inactivo' : '') + '" data-cabrir="' + c.id + '">' +
+        '<div class="nomc"><span class="nombrec">' + esc(c.nombre || '') + '</span>' +
+          '<div class="slugc">' +
+            (c.slug ? esc(c.slug) : '⚠️ sin identificador — abrilo y guardá para generarlo') +
+            (c.agencia ? ' · ' + esc(c.agencia) : '') +
+          '</div>' +
+        '</div>' +
+        '<span class="pill">' + acc + ' con acceso</span>' +
+        '<span class="pill">' + contratosDe(c.id).filter(x => x.activo).length + ' servicio(s)</span>' +
+        '<span class="pill">' + proyectosDeCliente(c.id) + ' proyecto' + (proyectosDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
+      '</div>';
+    };
+
+    $('#modClientes').innerHTML =
+      barra +
+      (FALTA_M14 ? '<div style="margin-bottom:16px">' + avisoM14() + '</div>' : '') +
+      kpis +
+      '<div class="tabla">' + cab +
+        (filas || '<div class="prow"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
+      '</div>' +
+      '<div class="mod-head" style="margin:26px 0 10px"><p>La ficha de cada cliente. Esta lista es ' +
+        '<b>la misma</b> que ve el panel de cliente: los dos leen la misma tabla. Debajo del nombre está ' +
+        'su identificador, que es lo que usa el otro panel para encontrarlo.</p></div>' +
+      '<div class="tabla">' +
+        (activos.length ? activos.map(fichaCliente).join('')
+                        : '<div class="cliente-row"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
+      '</div>' +
+      '<div class="invitar">' +
+        '<h4>Sumar un cliente</h4>' +
+        '<div class="res-sub">Se crea con los mismos datos que pide el panel de cliente: agencia dueña ' +
+          'y quién del equipo lo atiende.</div>' +
+        '<div class="fila-inv"><button class="btn-primary" id="nuClienteBtn">Nuevo cliente</button></div>' +
+      '</div>' +
+      (guardados.length
+        ? '<div class="mod-head" style="margin:22px 0 10px"><p>En el archivo. No se les generan cobros.</p></div>' +
+          '<div class="tabla">' + guardados.map(fichaCliente).join('') + '</div>'
+        : '');
+  }
+
+  function kpi(lbl, val, sub, clase) {
+    return '<div class="kpi ' + (clase || '') + '">' +
+      '<div class="k-lbl">' + esc(lbl) + '</div>' +
+      '<div class="k-val">' + esc(val) + '</div>' +
+      '<div class="k-sub">' + esc(sub) + '</div>' +
+    '</div>';
+  }
+  function pct(parte, total) {
+    if (!total) return '0%';
+    return Math.round(parte / total * 100) + '%';
+  }
+
+  function filaContrato(cl, ct) {
+    const cb = cobroDe(ct.id, PERIODO);
+    const abierto = !!CONTRATO_ABIERTO[ct.id];
+    const dias = ct.dia_desde
+      ? (ct.dia_hasta && ct.dia_hasta !== ct.dia_desde ? ct.dia_desde + ' al ' + ct.dia_hasta : 'el ' + ct.dia_desde)
+      : '—';
+    const aj = tocaAjustar(ct);
+
+    let estado;
+    if (FALTA_M14) estado = '<span class="est nocorr">—</span>';
+    else if (!cb) estado = '<span class="est nocorr">sin cobro</span>';
+    else if (cb.estado === 'cobrado')
+      estado = '<button class="est cobrado" data-cbtoggle="' + cb.id + '">✅ Cobrado</button>';
+    else if (cb.estado === 'no_corresponde')
+      estado = '<button class="est nocorr" data-cbtoggle="' + cb.id + '">No corresponde</button>';
+    else if (cobroVencido(cb, ct))
+      estado = '<button class="est vencido" data-cbtoggle="' + cb.id + '">⏳ Atrasado</button>';
+    else
+      estado = '<button class="est pendiente" data-cbtoggle="' + cb.id + '">Pendiente</button>';
+
+    return '<div class="prow cols-contrato clic" data-ctabrir="' + ct.id + '">' +
+        '<div>' +
+          '<div class="nom">' + esc(cl.nombre) + ' · ' + esc(ct.nombre) + '</div>' +
+          '<div class="sub">' +
+            (ct.tipo === 'cuotas'
+              ? 'En ' + (ct.cuotas_total || '?') + ' cuotas' + (cb && cb.cuota_n ? ' · cuota ' + cb.cuota_n + '/' + ct.cuotas_total : '')
+              : 'Mensual') +
+            (ct.detalle ? ' — ' + esc(textoPlano(ct.detalle).slice(0, 70)) : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="num oculta-mob">' + plata(ct.monto) + '</div>' +
+        '<div class="oculta-mob">' + esc(dias) + '</div>' +
+        '<div class="oculta-mob">' +
+          (ct.proximo_ajuste
+            ? (aj ? '<button class="est aviso" data-ctajustar="' + ct.id + '" title="Ajustar el monto">🔴 ' + fechaDia(ct.proximo_ajuste) + '</button>'
+                  : fechaDia(ct.proximo_ajuste))
+            : '<span style="color:var(--ink-mute)">sin fecha</span>') +
+        '</div>' +
+        '<div>' + estado + '</div>' +
+      '</div>' +
+      (abierto ? detalleContrato(cl, ct, cb) : '');
+  }
+
+  function detalleContrato(cl, ct, cb) {
+    // Los últimos seis meses de este servicio, para ver de un vistazo
+    // si viene pagando o si se está atrasando siempre.
+    let chips = '';
+    for (let i = 5; i >= 0; i--) {
+      const per = sumarMeses(PERIODO, -i);
+      const c = cobroDe(ct.id, per);
+      const clase = !c ? '' : (c.estado === 'cobrado' ? ' ok' : (c.estado === 'pendiente' ? ' no' : ''));
+      chips += '<div class="hist-chip' + clase + '">' +
+        '<div class="hm">' + mesCorto(per) + '</div>' +
+        '<div class="hv">' + (c ? plata(c.monto) : '—') + '</div>' +
+      '</div>';
+    }
+    const ejec = (CONTRATO_EJ[ct.id] || []).map(nombrePersona).filter(Boolean).join(', ');
+
+    return '<div class="det-contrato">' +
+      '<div class="det-grid">' +
+        campoDet('Qué incluye', ct.detalle ? renderTexto(ct.detalle) : '<span style="color:var(--ink-mute)">Sin detalle cargado.</span>', true) +
+        campoDet('Monto', plata(ct.monto)) +
+        campoDet('Tipo', ct.tipo === 'cuotas' ? (ct.cuotas_total || '?') + ' cuotas desde ' + (ct.cuota_desde ? fechaDia(ct.cuota_desde) : '?') : 'Mensual') +
+        campoDet('Último ajuste', ct.ultimo_ajuste ? fechaDia(ct.ultimo_ajuste) : '—') +
+        campoDet('Próximo ajuste', ct.proximo_ajuste ? fechaDia(ct.proximo_ajuste) + (ct.ajuste_pct ? ' · propuesta +' + ct.ajuste_pct + '%' : '') : 'Sin fecha') +
+        campoDet('Ejecuta', ejec || '<span style="color:var(--ink-mute)">Nadie asignado — el reparto no se puede calcular.</span>', true) +
+        (ct.notas ? campoDet('Notas', renderTexto(ct.notas), true) : '') +
+      '</div>' +
+      '<div class="det-hist"><h5>Últimos seis meses</h5><div class="hist-chips">' + chips + '</div></div>' +
+      '<div class="det-acc">' +
+        '<button class="btn-ghost" data-cteditar="' + ct.id + '">Editar servicio</button>' +
+        (cb ? '<button class="btn-ghost" data-cbabrir="' + cb.id + '">Ver el cobro de ' + mesCorto(PERIODO) + '</button>' : '') +
+        '<button class="btn-primary" data-ctajustar="' + ct.id + '">Ajustar el monto</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function campoDet(lbl, val, ancho) {
+    return '<div class="det-campo"' + (ancho ? ' style="grid-column:1/-1"' : '') + '>' +
+      '<div class="dl">' + esc(lbl) + '</div><div class="dv">' + val + '</div></div>';
+  }
+
+  // ═══════════════ MÓDULO CONTABILIDAD ═══════════════
+  function rangoActual() {
+    // Devuelve [desdeISO, hastaISO] según la pestaña de arriba.
+    const hoy = new Date();
+    const esteMes = primerDelMes(hoy);
+    if (PL_RANGO === 'mes')    return [esteMes, sumarMeses(esteMes, 1)];
+    if (PL_RANGO === 'pasado') return [sumarMeses(esteMes, -1), esteMes];
+    if (PL_RANGO === '3m')     return [sumarMeses(esteMes, -2), sumarMeses(esteMes, 1)];
+    return [sumarMeses(esteMes, -11), sumarMeses(esteMes, 1)];
+  }
+  function enRango(iso, r) { return iso >= r[0] && iso < r[1]; }
+
+  function renderPlata() {
+    if (!soySocia()) { $('#modPlata').innerHTML = ''; return; }
+    if (FALTA_M14) { $('#modPlata').innerHTML = avisoM14(); return; }
+
+    const r = rangoActual();
+    const movs = MOVIMIENTOS.filter(m => enRango(m.fecha, r));
+    const pendientes = COBROS.filter(c => c.estado === 'pendiente');
+
+    const tabs =
+      '<div class="plata-barra">' +
+        '<div class="plata-tabs">' +
+          tabBtn('movimientos', 'Movimientos', movs.length) +
+          tabBtn('dashboard', 'Dashboard', null) +
+          tabBtn('facturas', 'Facturas', null) +
+          tabBtn('pendientes', 'Pendientes', pendientes.length) +
+        '</div>' +
+        '<div class="der">' +
+          '<div class="mes-nav">' +
+            rangoBtn('mes', 'Este mes') + rangoBtn('pasado', 'Mes pasado') +
+            rangoBtn('3m', '3 meses') + rangoBtn('12m', '12 meses') +
+          '</div>' +
+          '<button class="btn-primary" id="nuMovBtn">Nuevo movimiento</button>' +
+        '</div>' +
+      '</div>';
+
+    const cuerpo =
+      PLATA_TAB === 'movimientos' ? vistaMovimientos(movs)
+      : PLATA_TAB === 'facturas'   ? vistaFacturas(r)
+      : PLATA_TAB === 'pendientes' ? vistaPendientes(pendientes)
+      : vistaDashboard(movs, r);
+
+    $('#modPlata').innerHTML = tabs + cuerpo;
+  }
+
+  function tabBtn(id, txt, cuenta) {
+    return '<button data-pltab="' + id + '"' + (PLATA_TAB === id ? ' class="on"' : '') + '>' + txt +
+      (cuenta !== null && cuenta !== undefined ? '<span class="cuenta">' + cuenta + '</span>' : '') + '</button>';
+  }
+  function rangoBtn(id, txt) {
+    return '<button data-plrango="' + id + '"' + (PL_RANGO === id ? ' style="background:var(--line-soft);color:var(--ink);font-weight:600"' : '') + '>' + txt + '</button>';
+  }
+
+  function vistaDashboard(movs, r) {
+    const ingresos = movs.filter(m => m.tipo === 'ingreso').reduce((a, m) => a + Number(m.monto), 0);
+    const egresos  = movs.filter(m => m.tipo === 'egreso').reduce((a, m) => a + Number(m.monto), 0);
+    const porCobrar = COBROS.filter(c => c.estado === 'pendiente' && enRango(c.periodo, r))
+                            .reduce((a, c) => a + Number(c.monto || 0), 0);
+
+    const kpis = '<div class="kpis">' +
+      kpi('Saldo del período', plata(ingresos - egresos), 'Lo que entró menos lo que salió', ingresos - egresos >= 0 ? 'verde' : 'rojo') +
+      kpi('Ingresos', plata(ingresos), movs.filter(m => m.tipo === 'ingreso').length + ' movimiento(s)', 'verde') +
+      kpi('Egresos', plata(egresos), movs.filter(m => m.tipo === 'egreso').length + ' movimiento(s)', 'rojo') +
+      kpi('Por cobrar', plata(porCobrar), 'Cobros pendientes del período', porCobrar ? 'rojo' : '') +
+    '</div>';
+
+    return kpis + graficoMeses() + tablaReparto(r) + tablaCategorias(movs);
+  }
+
+  // Gráfico dibujado a mano en SVG: doce meses, dos barras por mes.
+  // Sin librerías: son cuatro cuentas y no vale traer 90 KB para esto.
+  function graficoMeses() {
+    const base = primerDelMes(new Date());
+    const meses = [];
+    for (let i = 11; i >= 0; i--) {
+      const per = sumarMeses(base, -i);
+      const inn = MOVIMIENTOS.filter(m => m.tipo === 'ingreso' && mesDe(m.fecha) === mesDe(per))
+                             .reduce((a, m) => a + Number(m.monto), 0);
+      const eg = MOVIMIENTOS.filter(m => m.tipo === 'egreso' && mesDe(m.fecha) === mesDe(per))
+                            .reduce((a, m) => a + Number(m.monto), 0);
+      meses.push({ per: per, inn: inn, eg: eg });
+    }
+    const max = Math.max(1, ...meses.map(m => Math.max(m.inn, m.eg)));
+    const W = 1000, H = 200, pad = 26;
+    const ancho = (W - pad) / meses.length;
+    const barra = Math.min(16, ancho / 2.8);
+
+    let barras = '', etiquetas = '';
+    meses.forEach((m, i) => {
+      const x = pad + i * ancho + ancho / 2;
+      const hi = (m.inn / max) * (H - 24);
+      const he = (m.eg / max) * (H - 24);
+      barras += '<rect class="g-in" x="' + (x - barra - 2) + '" y="' + (H - hi) + '" width="' + barra + '" height="' + hi + '" rx="3"><title>' + mesCorto(m.per) + ': ' + plata(m.inn) + ' de ingresos</title></rect>';
+      barras += '<rect class="g-eg" x="' + (x + 2) + '" y="' + (H - he) + '" width="' + barra + '" height="' + he + '" rx="3"><title>' + mesCorto(m.per) + ': ' + plata(m.eg) + ' de egresos</title></rect>';
+      etiquetas += '<text class="g-txt" x="' + x + '" y="' + (H + 14) + '" text-anchor="middle">' + mesCorto(m.per).split(' ')[0] + '</text>';
+    });
+
+    return '<div class="grafico">' +
+      '<h4>Ingresos vs egresos</h4>' +
+      '<div class="res-sub">Últimos doce meses. El techo del gráfico es ' + plata(max) + '.</div>' +
+      '<svg viewBox="0 0 ' + W + ' ' + (H + 22) + '" preserveAspectRatio="none">' +
+        '<line class="g-eje" x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '"></line>' +
+        barras + etiquetas +
+      '</svg>' +
+      '<div class="g-leyenda">' +
+        '<span><i class="g-punto" style="background:#B9E88F"></i> Ingresos</span>' +
+        '<span><i class="g-punto" style="background:#F5A8BE"></i> Egresos</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function tablaReparto(r) {
+    const cobrados = COBROS.filter(c => c.estado === 'cobrado' && enRango(c.periodo, r));
+    if (!cobrados.length) {
+      return '<div class="grafico reparto-tabla"><h4>Reparto</h4>' +
+        '<div class="res-sub">Todavía no hay nada cobrado en este período. ' +
+        'Cuando marques un cobro, acá aparece cuánto le toca a cada una.</div></div>';
+    }
+    const tot = {}; let fondo = 0, neto = 0, sinEjec = 0;
+    cobrados.forEach(cb => {
+      const r2 = repartoDe(cb);
+      neto += r2.neto; fondo += r2.fondo;
+      if (r2.sinEjecutora) sinEjec++;
+      Object.keys(r2.personas).forEach(u => { tot[u] = (tot[u] || 0) + r2.personas[u]; });
+    });
+
+    const socias = PERSONAS.filter(p => p.rol === 'socia');
+    const filas = socias.map(p =>
+      '<div class="prow cols-reparto">' +
+        '<div><div class="nom">' + esc(p.nombre || p.email) + '</div>' +
+          '<div class="sub oculta-mob">' + (SOCIA_PCT[p.id] || 0) + '% del pozo de socias</div></div>' +
+        '<div class="num" style="grid-column:span 4">' + plata(tot[p.id] || 0) + '</div>' +
+      '</div>').join('');
+
+    return '<div class="grafico reparto-tabla">' +
+      '<h4>Reparto del período</h4>' +
+      '<div class="res-sub">' +
+        REPARTO.pct_ejecutora + '% para quien ejecuta · ' + REPARTO.pct_socias + '% al pozo de socias · ' +
+        REPARTO.pct_fondo + '% al fondo. Calculado sobre <b>' + plata(neto) + '</b> netos ' +
+        '(lo cobrado menos lo que se les pagó a colaboradoras).' +
+      '</div>' +
+      '<div class="tabla">' + filas +
+        '<div class="prow cols-reparto" style="background:var(--line-soft)">' +
+          '<div><div class="nom">Fondo de la agencia</div></div>' +
+          '<div class="num" style="grid-column:span 4">' + plata(fondo) + '</div>' +
+        '</div>' +
+      '</div>' +
+      (sinEjec ? '<div class="res-falta" style="margin-top:12px">' + sinEjec +
+        ' cobro(s) no tienen a nadie marcado como ejecutora, así que ese 85% no se le asignó a ninguna. ' +
+        'Se arregla desde el servicio o desde el cobro.</div>' : '') +
+    '</div>';
+  }
+
+  function tablaCategorias(movs) {
+    const egs = movs.filter(m => m.tipo === 'egreso');
+    if (!egs.length) return '';
+    const porCat = {};
+    egs.forEach(m => { const c = m.categoria || 'Sin categoría'; porCat[c] = (porCat[c] || 0) + Number(m.monto); });
+    const total = egs.reduce((a, m) => a + Number(m.monto), 0);
+    const orden = Object.keys(porCat).sort((a, b) => porCat[b] - porCat[a]);
+    return '<div class="grafico"><h4>En qué se fue la plata</h4>' +
+      '<div class="res-sub">Egresos del período, por categoría.</div>' +
+      '<div class="tabla">' + orden.map(c =>
+        '<div class="prow" style="grid-template-columns:minmax(0,1fr) 80px 120px">' +
+          '<div class="nom">' + esc(c) + '</div>' +
+          '<div class="num" style="color:var(--ink-mute)">' + pct(porCat[c], total) + '</div>' +
+          '<div class="num">' + plata(porCat[c]) + '</div>' +
+        '</div>').join('') + '</div></div>';
+  }
+
+  function vistaMovimientos(movs) {
+    if (!movs.length) {
+      return '<div class="tabla"><div class="prow"><div class="res-vacio">' +
+        'No hay movimientos en este período. Los cobros que marques como cobrados entran solos.' +
+        '</div></div></div>';
+    }
+    const cab = '<div class="prow cab cols-mov"><div class="oculta-mob">Fecha</div><div>Concepto</div>' +
+      '<div class="oculta-mob">Categoría</div><div class="num">Monto</div><div></div></div>';
+    return '<div class="tabla">' + cab + movs.map(m =>
+      '<div class="prow cols-mov clic" data-mvabrir="' + m.id + '">' +
+        '<div class="oculta-mob" style="color:var(--ink-mute)">' + fechaDia(m.fecha) + '</div>' +
+        '<div><div class="nom">' + esc(m.concepto) + '</div>' +
+          (m.cliente_id ? '<div class="sub">' + esc(nombreCliente(m.cliente_id)) + '</div>' : '') +
+          (m.cobro_id ? '<div class="sub">Sale de un cobro</div>' : '') +
+        '</div>' +
+        '<div class="oculta-mob" style="color:var(--ink-mute)">' + esc(m.categoria || '—') + '</div>' +
+        '<div class="num ' + (m.tipo === 'ingreso' ? 'pos' : 'neg') + '">' +
+          (m.tipo === 'ingreso' ? '+' : '−') + plata(m.monto).replace('$', '$') + '</div>' +
+        '<div style="color:var(--ink-mute)">' + (m.factura_url ? '📎' : '') + '</div>' +
+      '</div>').join('') + '</div>';
+  }
+
+  function vistaFacturas(r) {
+    const cobrados = COBROS.filter(c => c.estado === 'cobrado' && enRango(c.periodo, r));
+    const sinFactura = cobrados.filter(c => !c.factura_nro);
+    const cab = '<div class="prow cab cols-cobro"><div>Cliente y servicio</div><div class="oculta-mob">Mes</div>' +
+      '<div class="num oculta-mob">Monto</div><div class="oculta-mob">Factura</div><div></div></div>';
+
+    const fila = c => {
+      const ct = contratoDe(c.contrato_id);
+      return '<div class="prow cols-cobro clic" data-cbabrir="' + c.id + '">' +
+        '<div><div class="nom">' + esc(nombreCliente(c.cliente_id)) + ' · ' + esc(ct ? ct.nombre : '—') + '</div>' +
+          '<div class="sub">' + (c.fecha_cobro ? 'Cobrado el ' + fechaDia(c.fecha_cobro) : 'Sin fecha de cobro') + '</div></div>' +
+        '<div class="oculta-mob" style="color:var(--ink-mute)">' + mesCorto(c.periodo) + '</div>' +
+        '<div class="num oculta-mob">' + plata(c.monto) + '</div>' +
+        '<div class="oculta-mob">' + (c.factura_nro ? esc(c.factura_nro) : '<span style="color:var(--warn)">falta</span>') + '</div>' +
+        '<div>' + (c.factura_url
+          ? '<a href="' + esc(c.factura_url) + '" target="_blank" rel="noopener noreferrer" data-nopropagar="1">Ver</a>'
+          : '') + '</div>' +
+      '</div>';
+    };
+
+    return (sinFactura.length
+      ? '<div class="mod-head"><p>Hay <b>' + sinFactura.length + '</b> cobro(s) sin número de factura. ' +
+        'Clickeá uno y cargale el número y el link.</p></div>' : '') +
+      '<div class="tabla">' + cab +
+        (cobrados.length ? cobrados.map(fila).join('')
+          : '<div class="prow"><div class="res-vacio">Nada cobrado en este período.</div></div>') +
+      '</div>';
+  }
+
+  function vistaPendientes(pend) {
+    const orden = pend.slice().sort((a, b) => a.periodo < b.periodo ? -1 : 1);
+    const total = orden.reduce((a, c) => a + Number(c.monto || 0), 0);
+    const cab = '<div class="prow cab cols-cobro"><div>Cliente y servicio</div><div class="oculta-mob">Mes</div>' +
+      '<div class="num oculta-mob">Monto</div><div class="oculta-mob">Paga</div><div></div></div>';
+
+    return '<div class="mod-head"><p>Todo lo que falta cobrar, del mes más viejo al más nuevo. ' +
+        'Suman <b>' + plata(total) + '</b>.</p></div>' +
+      '<div class="tabla">' + cab +
+        (orden.length ? orden.map(c => {
+          const ct = contratoDe(c.contrato_id);
+          const atrasado = cobroVencido(c, ct);
+          return '<div class="prow cols-cobro clic" data-cbabrir="' + c.id + '">' +
+            '<div><div class="nom">' + esc(nombreCliente(c.cliente_id)) + ' · ' + esc(ct ? ct.nombre : '—') + '</div>' +
+              '<div class="sub">' + mesLargo(c.periodo) + '</div></div>' +
+            '<div class="oculta-mob" style="color:var(--ink-mute)">' + mesCorto(c.periodo) + '</div>' +
+            '<div class="num oculta-mob">' + plata(c.monto) + '</div>' +
+            '<div class="oculta-mob">' + (ct && ct.dia_desde ? 'del ' + ct.dia_desde + ' al ' + (ct.dia_hasta || ct.dia_desde) : '—') + '</div>' +
+            '<div>' + (atrasado ? '<span class="est vencido">⏳ Atrasado</span>' : '<span class="est pendiente">Pendiente</span>') + '</div>' +
+          '</div>';
+        }).join('')
+        : '<div class="prow"><div class="res-vacio">No queda nada pendiente. Raro y hermoso.</div></div>') +
+      '</div>';
+  }
+
+  // ═══════════════ GUARDAR ═══════════════
+  async function refrescarPlata() {
+    PLATA_CARGADA = false;
+    await cargarPlata();
+    render();
+  }
+
+  // ── Servicio contratado ──────────────────────────────────────
+  function abrirContrato(ct, clienteId) {
+    if (FALTA_M14) { toast('Primero corré migracion-interno-14-plata.sql', 'warn'); return; }
+    CT_EDIT = ct;
+    CT_EJECUTAN = ct ? (CONTRATO_EJ[ct.id] || []).slice() : (ME ? [ME.id] : []);
+    $('#ctTitulo').textContent = ct ? 'Editar servicio' : 'Nuevo servicio';
+    $('#ctCliente').innerHTML = CLIENTES.filter(c => c.activo !== false)
+      .map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+    $('#ctCliente').value = ct ? ct.cliente_id : (clienteId || '');
+    $('#ctNombre').value = ct ? ct.nombre : '';
+    $('#ctDetalle').value = ct ? (ct.detalle || '') : '';
+    $('#ctMonto').value = ct ? ct.monto : '';
+    $('#ctTipo').value = ct ? ct.tipo : 'mensual';
+    $('#ctCuotas').value = ct ? (ct.cuotas_total || '') : '';
+    $('#ctCuotaDesde').value = ct ? (ct.cuota_desde || '') : '';
+    $('#ctDiaDesde').value = ct ? (ct.dia_desde || '') : 1;
+    $('#ctDiaHasta').value = ct ? (ct.dia_hasta || '') : 10;
+    $('#ctProxAjuste').value = ct ? (ct.proximo_ajuste || '') : '';
+    $('#ctAjustePct').value = ct ? (ct.ajuste_pct || '') : '';
+    $('#ctNotas').value = ct ? (ct.notas || '') : '';
+    $('#ctArchivar').style.display = ct ? '' : 'none';
+    $('#ctArchivar').textContent = (ct && ct.activo === false) ? 'Reactivar' : 'Dar de baja';
+    pintarCuotas(); pintarEjecutan();
+    abrir('ovContrato');
+    setTimeout(() => $('#ctNombre').focus(), 60);
+  }
+  function pintarCuotas() {
+    $('#ctCuotasWrap').style.display = $('#ctTipo').value === 'cuotas' ? '' : 'none';
+  }
+  function pintarEjecutan() {
+    $('#ctEjecutan').innerHTML = PERSONAS.map(p => {
+      const on = CT_EJECUTAN.indexOf(p.id) !== -1;
+      const n = p.nombre || p.email;
+      return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-ctej="' + p.id + '">' +
+        '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) + '</button>';
+    }).join('');
+  }
+
+  function numOrNull(sel) {
+    const v = $(sel).value;
+    return v === '' || v === null ? null : Number(v);
+  }
+
+  async function guardarContrato() {
+    const nombre = $('#ctNombre').value.trim();
+    const cliente = $('#ctCliente').value;
+    if (!cliente) { toast('Elegí un cliente', 'warn'); return; }
+    if (!nombre) { toast('Ponele nombre al servicio', 'warn'); $('#ctNombre').focus(); return; }
+
+    const fila = {
+      cliente_id: cliente,
+      nombre: nombre,
+      detalle: $('#ctDetalle').value.trim() || null,
+      monto: numOrNull('#ctMonto') || 0,
+      tipo: $('#ctTipo').value,
+      cuotas_total: $('#ctTipo').value === 'cuotas' ? numOrNull('#ctCuotas') : null,
+      cuota_desde: $('#ctTipo').value === 'cuotas' ? ($('#ctCuotaDesde').value || null) : null,
+      dia_desde: numOrNull('#ctDiaDesde'),
+      dia_hasta: numOrNull('#ctDiaHasta'),
+      proximo_ajuste: $('#ctProxAjuste').value || null,
+      ajuste_pct: numOrNull('#ctAjustePct'),
+      notas: $('#ctNotas').value.trim() || null
+    };
+
+    $('#ctGuardar').disabled = true;
+    try {
+      let id;
+      if (CT_EDIT) {
+        const { error } = await SB.from('contrato').update(fila).eq('id', CT_EDIT.id);
+        if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+        id = CT_EDIT.id;
+      } else {
+        const { data, error } = await SB.from('contrato').insert(fila).select('id').single();
+        if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+        id = data.id;
+      }
+
+      const antes = CONTRATO_EJ[id] || [];
+      const sacar = antes.filter(u => CT_EJECUTAN.indexOf(u) === -1);
+      const poner = CT_EJECUTAN.filter(u => antes.indexOf(u) === -1);
+      for (let i = 0; i < sacar.length; i++) {
+        await SB.from('contrato_ejecutora').delete().eq('contrato_id', id).eq('user_id', sacar[i]);
+      }
+      if (poner.length) {
+        await SB.from('contrato_ejecutora').insert(poner.map(u => ({ contrato_id: id, user_id: u })));
+      }
+
+      cerrar('ovContrato');
+      toast(CT_EDIT ? 'Servicio actualizado' : 'Servicio creado');
+      await refrescarPlata();
+    } finally { $('#ctGuardar').disabled = false; }
+  }
+
+  async function archivarContrato() {
+    if (!CT_EDIT) return;
+    const dar = CT_EDIT.activo !== false;
+    if (dar && !confirm('Dar de baja "' + CT_EDIT.nombre + '".\n\nDeja de generar cobros. Lo ya cobrado no se toca.\n\n¿Seguro?')) return;
+    const { error } = await SB.from('contrato').update({ activo: !dar }).eq('id', CT_EDIT.id);
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+    cerrar('ovContrato');
+    toast(dar ? 'Servicio dado de baja' : 'Servicio reactivado');
+    await refrescarPlata();
+  }
+
+  // ── Ajuste ───────────────────────────────────────────────────
+  let AJ_CT = null;
+  function abrirAjuste(ct) {
+    AJ_CT = ct;
+    $('#ajQuien').textContent = nombreCliente(ct.cliente_id) + ' · ' + ct.nombre;
+    $('#ajActual').value = plata(ct.monto);
+    $('#ajPct').value = ct.ajuste_pct || '';
+    $('#ajNuevo').value = ct.ajuste_pct
+      ? Math.round(Number(ct.monto) * (1 + Number(ct.ajuste_pct) / 100))
+      : Math.round(Number(ct.monto));
+    $('#ajProximo').value = sumarMeses(ct.proximo_ajuste || primerDelMes(new Date()), 6);
+    abrir('ovAjuste');
+    setTimeout(() => $('#ajNuevo').focus(), 60);
+  }
+
+  async function guardarAjuste() {
+    if (!AJ_CT) return;
+    const nuevo = numOrNull('#ajNuevo');
+    if (!nuevo || nuevo <= 0) { toast('Poné el monto nuevo', 'warn'); return; }
+
+    const patch = {
+      monto: nuevo,
+      ajuste_pct: numOrNull('#ajPct'),
+      ultimo_ajuste: hoyISO(),
+      proximo_ajuste: $('#ajProximo').value || null
+    };
+    const { error } = await SB.from('contrato').update(patch).eq('id', AJ_CT.id);
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+
+    // El cobro de este mes, si sigue pendiente, se actualiza. Los que
+    // ya cobraste NO: esos ya son un hecho, no una expectativa.
+    const cb = cobroDe(AJ_CT.id, PERIODO);
+    if (cb && cb.estado === 'pendiente') {
+      await SB.from('cobro').update({ monto: nuevo }).eq('id', cb.id);
+    }
+    cerrar('ovAjuste');
+    toast('Monto ajustado a ' + plata(nuevo));
+    await refrescarPlata();
+  }
+
+  // ── Cobro ────────────────────────────────────────────────────
+  function abrirCobro(cb) {
+    CB_EDIT = cb;
+    CB_EJECUTAN = (COBRO_EJ[cb.id] || []).slice();
+    const ct = contratoDe(cb.contrato_id);
+    $('#cbTitulo').textContent = nombreCliente(cb.cliente_id) + ' · ' + (ct ? ct.nombre : '') + ' · ' + mesLargo(cb.periodo);
+    $('#cbEstado').value = cb.estado;
+    $('#cbFecha').value = cb.fecha_cobro || '';
+    $('#cbMonto').value = cb.monto;
+    $('#cbFactNro').value = cb.factura_nro || '';
+    $('#cbFactUrl').value = cb.factura_url || '';
+    $('#cbNotas').value = cb.notas || '';
+    $('#cbPagoQuien').value = ''; $('#cbPagoMonto').value = '';
+    pintarCbEjecutan(); pintarPagos();
+    abrir('ovCobro');
+  }
+  function pintarCbEjecutan() {
+    $('#cbEjecutan').innerHTML = PERSONAS.map(p => {
+      const on = CB_EJECUTAN.indexOf(p.id) !== -1;
+      const n = p.nombre || p.email;
+      return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-cbej="' + p.id + '">' +
+        '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) + '</button>';
+    }).join('');
+  }
+  function pintarPagos() {
+    if (!CB_EDIT) return;
+    const pagos = egresosDeCobro(CB_EDIT.id);
+    const neto = netoDeCobro(CB_EDIT);
+    $('#cbPagos').innerHTML = (pagos.length
+      ? pagos.map(m => '<div class="prow" style="grid-template-columns:minmax(0,1fr) 110px 34px">' +
+          '<div class="nom">' + esc(m.concepto) + '</div>' +
+          '<div class="num neg">−' + plata(m.monto) + '</div>' +
+          '<div><button class="mini-btn" data-cbpagodel="' + m.id + '" title="Borrar">✕</button></div>' +
+        '</div>').join('')
+      : '<div class="prow"><div class="res-vacio">Sin pagos a colaboradoras.</div></div>') +
+      '<div class="prow" style="background:var(--line-soft); grid-template-columns:minmax(0,1fr) 110px 34px">' +
+        '<div class="nom">Neto a repartir</div><div class="num">' + plata(neto) + '</div><div></div>' +
+      '</div>';
+  }
+
+  async function agregarPagoColab() {
+    if (!CB_EDIT) return;
+    const quien = $('#cbPagoQuien').value.trim();
+    const monto = numOrNull('#cbPagoMonto');
+    if (!quien || !monto) { toast('Poné a quién y cuánto', 'warn'); return; }
+    const { error } = await SB.from('movimiento').insert({
+      fecha: CB_EDIT.fecha_cobro || hoyISO(),
+      tipo: 'egreso', categoria: 'Colaboradoras',
+      concepto: 'Pago ' + quien,
+      monto: monto, cliente_id: CB_EDIT.cliente_id, cobro_id: CB_EDIT.id
+    });
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+    $('#cbPagoQuien').value = ''; $('#cbPagoMonto').value = '';
+    await cargarPlata();
+    CB_EDIT = COBROS.find(c => c.id === CB_EDIT.id) || CB_EDIT;
+    pintarPagos(); render();
+  }
+
+  async function borrarPagoColab(id) {
+    const { error } = await SB.from('movimiento').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    await cargarPlata();
+    pintarPagos(); render();
+  }
+
+  // Marcar cobrado deja el ingreso en Contabilidad. Destildarlo lo saca.
+  // Es una sola fila por cobro: no se puede sumar dos veces.
+  async function sincronizarIngreso(cb) {
+    const ct = contratoDe(cb.contrato_id);
+    const ya = MOVIMIENTOS.find(m => m.cobro_id === cb.id && m.tipo === 'ingreso');
+    if (cb.estado !== 'cobrado') {
+      if (ya) await SB.from('movimiento').delete().eq('id', ya.id);
+      return;
+    }
+    const fila = {
+      fecha: cb.fecha_cobro || hoyISO(),
+      tipo: 'ingreso', categoria: 'Cobro a cliente',
+      concepto: nombreCliente(cb.cliente_id) + ' · ' + (ct ? ct.nombre : 'servicio') + ' · ' + mesCorto(cb.periodo),
+      monto: cb.monto, cliente_id: cb.cliente_id, cobro_id: cb.id,
+      factura_nro: cb.factura_nro || null, factura_url: cb.factura_url || null
+    };
+    if (ya) await SB.from('movimiento').update(fila).eq('id', ya.id);
+    else await SB.from('movimiento').insert(fila);
+  }
+
+  async function guardarCobro() {
+    if (!CB_EDIT) return;
+    const estado = $('#cbEstado').value;
+    const patch = {
+      estado: estado,
+      fecha_cobro: estado === 'cobrado' ? ($('#cbFecha').value || hoyISO()) : ($('#cbFecha').value || null),
+      monto: numOrNull('#cbMonto') || 0,
+      factura_nro: $('#cbFactNro').value.trim() || null,
+      factura_url: $('#cbFactUrl').value.trim() || null,
+      notas: $('#cbNotas').value.trim() || null
+    };
+    const { error } = await SB.from('cobro').update(patch).eq('id', CB_EDIT.id);
+    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+
+    const antes = COBRO_EJ[CB_EDIT.id] || [];
+    const sacar = antes.filter(u => CB_EJECUTAN.indexOf(u) === -1);
+    const poner = CB_EJECUTAN.filter(u => antes.indexOf(u) === -1);
+    for (let i = 0; i < sacar.length; i++) {
+      await SB.from('cobro_ejecutora').delete().eq('cobro_id', CB_EDIT.id).eq('user_id', sacar[i]);
+    }
+    if (poner.length) {
+      await SB.from('cobro_ejecutora').insert(poner.map(u => ({ cobro_id: CB_EDIT.id, user_id: u })));
+    }
+
+    await sincronizarIngreso(Object.assign({}, CB_EDIT, patch));
+    cerrar('ovCobro');
+    toast('Cobro guardado');
+    await refrescarPlata();
+  }
+
+  // El click rápido desde la tabla: pendiente → cobrado → pendiente.
+  async function alternarCobro(id) {
+    const cb = COBROS.find(c => c.id === id);
+    if (!cb) return;
+    const nuevo = cb.estado === 'cobrado' ? 'pendiente' : 'cobrado';
+    const patch = { estado: nuevo, fecha_cobro: nuevo === 'cobrado' ? hoyISO() : null };
+    const { error } = await SB.from('cobro').update(patch).eq('id', id);
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+    await sincronizarIngreso(Object.assign({}, cb, patch));
+    await refrescarPlata();
+  }
+
+  // ── Movimiento suelto ────────────────────────────────────────
+  function abrirMov(m) {
+    if (FALTA_M14) { toast('Primero corré migracion-interno-14-plata.sql', 'warn'); return; }
+    if (m && m.cobro_id) {
+      toast('Este movimiento sale de un cobro: editalo desde ahí', 'warn');
+      return;
+    }
+    MV_EDIT = m || null;
+    $('#mvTitulo').textContent = m ? 'Editar movimiento' : 'Nuevo movimiento';
+    $('#mvTipo').value = m ? m.tipo : 'egreso';
+    $('#mvFecha').value = m ? m.fecha : hoyISO();
+    $('#mvCategoria').innerHTML = CATEGORIAS.map(c =>
+      '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
+    $('#mvCategoria').value = m ? (m.categoria || 'Otros') : 'Herramientas';
+    $('#mvMonto').value = m ? m.monto : '';
+    $('#mvConcepto').value = m ? m.concepto : '';
+    $('#mvCliente').innerHTML = '<option value="">Sin cliente</option>' +
+      CLIENTES.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+    $('#mvCliente').value = m ? (m.cliente_id || '') : '';
+    $('#mvFactNro').value = m ? (m.factura_nro || '') : '';
+    $('#mvFactUrl').value = m ? (m.factura_url || '') : '';
+    $('#mvBorrar').style.display = m ? '' : 'none';
+    abrir('ovMov');
+    setTimeout(() => $('#mvConcepto').focus(), 60);
+  }
+
+  async function guardarMov() {
+    const concepto = $('#mvConcepto').value.trim();
+    const monto = numOrNull('#mvMonto');
+    if (!concepto) { toast('Poné un concepto', 'warn'); $('#mvConcepto').focus(); return; }
+    if (!monto || monto <= 0) { toast('Poné el monto', 'warn'); $('#mvMonto').focus(); return; }
+
+    const fila = {
+      fecha: $('#mvFecha').value || hoyISO(),
+      tipo: $('#mvTipo').value,
+      categoria: $('#mvCategoria').value,
+      concepto: concepto,
+      monto: monto,
+      cliente_id: $('#mvCliente').value || null,
+      factura_nro: $('#mvFactNro').value.trim() || null,
+      factura_url: $('#mvFactUrl').value.trim() || null
+    };
+    const { error } = MV_EDIT
+      ? await SB.from('movimiento').update(fila).eq('id', MV_EDIT.id)
+      : await SB.from('movimiento').insert(fila);
+    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+    cerrar('ovMov');
+    toast('Movimiento guardado');
+    await refrescarPlata();
+  }
+
+  async function borrarMov() {
+    if (!MV_EDIT) return;
+    if (!confirm('Borrar "' + MV_EDIT.concepto + '".\n\n¿Seguro?')) return;
+    const { error } = await SB.from('movimiento').delete().eq('id', MV_EDIT.id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    cerrar('ovMov');
+    toast('Movimiento borrado');
+    await refrescarPlata();
+  }
+
   // ═══════════════ RESUMEN DEL PROYECTO ═══════════════
   // Todo lo que no es una tarea: el brief, los datos del cliente,
   // los links y el estado. Vive adentro de cada proyecto.
-  const SALUDES = [
-    { id: 'en_curso',    label: 'En curso',    color: COLORES.lima },
-    { id: 'en_riesgo',   label: 'En riesgo',   color: COLORES.ocre },
-    { id: 'con_retraso', label: 'Con retraso', color: COLORES.coral },
-    { id: 'en_pausa',    label: 'En pausa',    color: COLORES.gris }
-  ];
   const LLAVE = '<svg class="llave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>';
   const OJO_MINI   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
   const OJO_TACHADO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
@@ -3960,8 +5148,7 @@
 
     if (!escribiendo) $('#resIzq').innerHTML = brief + datos + links;
 
-    // ── Columna derecha: estado + equipo + números ────────────
-    const salud = p.salud || 'en_curso';
+    // ── Columna derecha: números + equipo + ficha ─────────────
     const tot = TAREAS.filter(t => tpEn(t.id, p.id));
     const abiertas = tot.filter(t => !t.completada);
     const vencidas = abiertas.filter(estaVencida);
@@ -3973,19 +5160,11 @@
           const n = nombrePersona(id);
           return n ? '<span class="miembro-chip on"><span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) + '</span>' : '';
         }).join('') + '</div>'
-      : '<div class="res-vacio">' + (p.privado
-          ? 'Sin miembros: por ahora solo lo ve quien lo creó.'
-          : 'Sin miembros asignados. Al ser público, lo ve todo el equipo.') + '</div>';
+      : '<div class="res-vacio">Sin miembros: por ahora solo lo ve quien lo creó.</div>';
 
     $('#resDer').innerHTML =
       '<div class="res-card">' +
         '<h4>Estado</h4>' +
-        '<div class="res-sub">Cómo viene el proyecto, dicho por vos.</div>' +
-        (FALTA_M8 ? avisoMigracion() :
-          '<div class="salud-ops">' + SALUDES.map(sd =>
-            '<button class="salud-op' + (sd.id === salud ? ' on' : '') + '" data-salud="' + sd.id + '">' +
-              '<span class="sd" style="background:' + sd.color + '"></span>' + sd.label +
-            '</button>').join('') + '</div>') +
         '<div class="res-nums">' +
           '<div class="res-num"><b>' + abiertas.length + '</b><span>abiertas</span></div>' +
           '<div class="res-num' + (vencidas.length ? ' alerta' : '') + '"><b>' + vencidas.length + '</b><span>vencidas</span></div>' +
@@ -3994,7 +5173,7 @@
       '</div>' +
       '<div class="res-card">' +
         '<h4>Equipo</h4>' +
-        '<div class="res-sub">' + (p.privado ? 'Proyecto privado: solo estas personas lo ven.' : 'Proyecto abierto a todo el equipo.') + '</div>' +
+        '<div class="res-sub">Solo estas personas ven el proyecto y sus tareas.</div>' +
         equipo +
         '<div class="res-alta"><button class="btn-ghost" id="resEditarProy">Editar proyecto</button></div>' +
       '</div>' +
@@ -4364,7 +5543,7 @@
     if (!p) return;
 
     $('#proyIcono').style.background = COLORES[p.color] || COLORES.gris;
-    $('#proyNombre').innerHTML = esc(p.nombre) + (p.privado ? CANDADO : '')
+    $('#proyNombre').innerHTML = esc(p.nombre)
       + (p.finalizado_en ? '<span class="badge-fin">Finalizado</span>' : '');
 
     const ids = MIEMBROS[p.id] || [];
@@ -4379,14 +5558,7 @@
       (p.cliente_id ? '<span class="pill">' + esc(nombreCliente(p.cliente_id)) + '</span>' : '<span class="pill interno">Interno</span>')
       + '<span>' + abiertas + ' abierta' + (abiertas === 1 ? '' : 's') + ' de ' + tot + '</span>'
       + (avat ? '<span class="proy-avatares">' + avat + '</span>' : '')
-      + (p.privado ? '<span>· Solo lo ven sus miembros</span>' : '');
-  }
-
-  function renderPulso() {
-    $('#pVencidas').textContent = TAREAS.filter(estaVencida).length;
-    $('#pRevision').textContent = TAREAS.filter(t => !t.completada && tipoDe(t) === 'revision').length;
-    $('#pCerradas').textContent = TAREAS.filter(cerradaEstaSemana).length;
-    $$('.pulso-card').forEach(c => c.classList.toggle('on', FILTRO.pulso === c.dataset.pulso));
+      + '<span>· Solo lo ven sus miembros</span>';
   }
 
   function chipCliente(t) {
@@ -5078,7 +6250,7 @@
       const secs = seccionesDe(p.id);
       return '<div class="tp-fila">' +
           '<span class="nomp"><span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>'
-            + esc(p.nombre) + (p.privado ? CANDADO : '') + '</span>' +
+            + esc(p.nombre) + '</span>' +
           '<select data-tpsec="' + p.id + '">' +
             '<option value="">Sin sección</option>' +
             secs.map(x => '<option value="' + x.id + '"' + (x.id === f.seccion_id ? ' selected' : '') + '>' + esc(x.nombre) + '</option>').join('') +
@@ -5091,15 +6263,14 @@
     const yaEsta = filas.map(f => f.proyecto_id);
     const libres = PROYECTOS.filter(p => yaEsta.indexOf(p.id) === -1);
     $('#dAddProy').innerHTML = '<option value="">+ Agregar a un proyecto…</option>'
-      + libres.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + (p.privado ? ' 🔒' : '') + '</option>').join('');
+      + libres.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + '</option>').join('');
     $('#dAddProy').style.display = libres.length ? '' : 'none';
 
-    // Aviso honesto: multi-proyecto puede romper la privacidad
-    const tienePrivado = filas.some(f => { const p = proyectoDe(f.proyecto_id); return p && p.privado; });
-    const tienePublico = filas.some(f => { const p = proyectoDe(f.proyecto_id); return p && !p.privado; });
-    $('#dAvisoPriv').innerHTML = (tienePrivado && tienePublico)
-      ? '<div class="aviso-privadidad aviso-privacidad">⚠️ Esta tarea está en un proyecto privado <b>y</b> en uno público. '
-        + 'Al estar en el público, la ve todo el equipo: el candado del privado ya no la protege.</div>'
+    // Aviso honesto: una tarea en varios proyectos la ve cualquiera
+    // que integre ALGUNO de ellos. La suma de miembros, no la intersección.
+    $('#dAvisoPriv').innerHTML = filas.length > 1
+      ? '<div class="aviso-privadidad aviso-privacidad">⚠️ Esta tarea está en ' + filas.length + ' proyectos. '
+        + 'La ve cualquiera que integre <b>alguno</b> de ellos, no solo quien esté en todos.</div>'
       : '';
   }
 
@@ -5107,9 +6278,9 @@
     if (!DETALLE) return;
     const p = proyectoDe(proyId);
     const filas = tpDe(DETALLE.id);
-    const tienePrivado = filas.some(f => { const x = proyectoDe(f.proyecto_id); return x && x.privado; });
-    if (p && !p.privado && tienePrivado) {
-      if (!confirm('Esta tarea está en un proyecto privado.\n\nAl agregarla a "' + p.nombre + '" (público) va a pasar a verla todo el equipo.\n\n¿Seguro?')) {
+    // Sumar un proyecto suma su gente: la tarea pasa a verse desde los dos.
+    if (p && filas.length) {
+      if (!confirm('Esta tarea ya está en otro proyecto.\n\nAl agregarla a "' + p.nombre + '" también la va a ver quien integre ese proyecto.\n\n¿Seguro?')) {
         $('#dAddProy').value = '';
         return;
       }
@@ -5593,7 +6764,6 @@
     finalizarProyecto(FIN_PROY, [], false);
   });
   $('#pNombre').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); guardarProyecto(); } });
-  $('#pPrivado').addEventListener('click', function () { this.classList.toggle('on'); pintarMiembros(); });
   $('#pColores').addEventListener('click', e => {
     const b = e.target.closest('[data-color]');
     if (!b) return;
@@ -5690,18 +6860,13 @@
   $('#agrupar').addEventListener('change', e => { AGRUPAR = e.target.value; COLAPSADOS = {}; render(); });
   $('#btnMias').addEventListener('click', function () { FILTRO.mias = !FILTRO.mias; this.classList.toggle('active', FILTRO.mias); render(); });
   $('#btnLimpiar').addEventListener('click', () => {
-    FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false, pulso: '' };
+    FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false };
     $('#buscar').value = '';
     $('#filtroPersona').value = ''; $('#filtroPersona').classList.remove('on');
     $('#filtroCliente').value = ''; $('#filtroCliente').classList.remove('on');
     $('#btnMias').classList.remove('active');
     render();
   });
-
-  $$('.pulso-card').forEach(c => c.addEventListener('click', () => {
-    FILTRO.pulso = FILTRO.pulso === c.dataset.pulso ? '' : c.dataset.pulso;
-    render();
-  }));
 
   $$('.view-toggle button[data-vista]').forEach(b => b.addEventListener('click', () => {
     $$('.view-toggle button[data-vista]').forEach(x => x.classList.remove('active'));
@@ -5775,9 +6940,6 @@
 
   // ── Resumen del proyecto ─────────────────────────────────────
   $('#resumen').addEventListener('click', e => {
-    const sd = e.target.closest('[data-salud]');
-    if (sd) { guardarProyCampo('salud', sd.dataset.salud).then(renderResumen); return; }
-
     const rev = e.target.closest('[data-revelar]');
     if (rev) { alternarSecreto(rev.dataset.revelar); return; }
 
@@ -5892,6 +7054,118 @@
   });
 
   // ── Clientes ─────────────────────────────────────────────────
+  // ── Eventos de la plata ──────────────────────────────────────
+  $('#navPlata').addEventListener('click', () => cambiarModulo('plata'));
+
+  $('#modClientes').addEventListener('click', e => {
+    const mes = e.target.closest('[data-mes]');
+    if (mes) {
+      const n = Number(mes.dataset.mes);
+      PERIODO = n === 0 ? primerDelMes(new Date()) : sumarMeses(PERIODO, n);
+      renderClientes();
+      return;
+    }
+    if (e.target.closest('#nuContratoBtn')) { abrirContrato(null, null); return; }
+
+    const nue = e.target.closest('[data-ctnuevo]');
+    if (nue) { abrirContrato(null, nue.dataset.ctnuevo); return; }
+
+    const tog = e.target.closest('[data-cbtoggle]');
+    if (tog) { e.stopPropagation(); alternarCobro(tog.dataset.cbtoggle); return; }
+
+    const ed = e.target.closest('[data-cteditar]');
+    if (ed) { e.stopPropagation(); abrirContrato(contratoDe(ed.dataset.cteditar)); return; }
+
+    const aj = e.target.closest('[data-ctajustar]');
+    if (aj) { e.stopPropagation(); abrirAjuste(contratoDe(aj.dataset.ctajustar)); return; }
+
+    const vc = e.target.closest('[data-cbabrir]');
+    if (vc) { e.stopPropagation(); const c = COBROS.find(x => x.id === vc.dataset.cbabrir); if (c) abrirCobro(c); return; }
+
+    const ab = e.target.closest('[data-ctabrir]');
+    if (ab) {
+      const id = ab.dataset.ctabrir;
+      CONTRATO_ABIERTO[id] = !CONTRATO_ABIERTO[id];
+      renderClientes();
+      return;
+    }
+  });
+
+  $('#modPlata').addEventListener('click', e => {
+    const t = e.target.closest('[data-pltab]');
+    if (t) { PLATA_TAB = t.dataset.pltab; renderPlata(); return; }
+    const r = e.target.closest('[data-plrango]');
+    if (r) { PL_RANGO = r.dataset.plrango; renderPlata(); return; }
+    if (e.target.closest('#nuMovBtn')) { abrirMov(null); return; }
+    if (e.target.closest('[data-nopropagar]')) return;
+
+    const cb = e.target.closest('[data-cbabrir]');
+    if (cb) { const c = COBROS.find(x => x.id === cb.dataset.cbabrir); if (c) abrirCobro(c); return; }
+
+    const mv = e.target.closest('[data-mvabrir]');
+    if (mv) { abrirMov(MOVIMIENTOS.find(x => x.id === mv.dataset.mvabrir)); return; }
+  });
+
+  // Modal servicio
+  $('#ctTipo').addEventListener('change', pintarCuotas);
+  $('#ctEjecutan').addEventListener('click', e => {
+    const b = e.target.closest('[data-ctej]');
+    if (!b) return;
+    const i = CT_EJECUTAN.indexOf(b.dataset.ctej);
+    if (i === -1) CT_EJECUTAN.push(b.dataset.ctej); else CT_EJECUTAN.splice(i, 1);
+    pintarEjecutan();
+  });
+  $('#ctGuardar').addEventListener('click', () => {
+    guardarContrato().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  });
+  $('#ctArchivar').addEventListener('click', () => {
+    archivarContrato().catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+  });
+
+  // Modal ajuste: el % y el monto nuevo se siguen el uno al otro
+  $('#ajPct').addEventListener('input', () => {
+    if (!AJ_CT) return;
+    const p = numOrNull('#ajPct');
+    if (p === null) return;
+    $('#ajNuevo').value = Math.round(Number(AJ_CT.monto) * (1 + p / 100));
+  });
+  $('#ajNuevo').addEventListener('input', () => {
+    if (!AJ_CT || !Number(AJ_CT.monto)) return;
+    const n = numOrNull('#ajNuevo');
+    if (n === null) return;
+    $('#ajPct').value = Math.round((n / Number(AJ_CT.monto) - 1) * 1000) / 10;
+  });
+  $('#ajGuardar').addEventListener('click', () => {
+    guardarAjuste().catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+  });
+
+  // Modal cobro
+  $('#cbEjecutan').addEventListener('click', e => {
+    const b = e.target.closest('[data-cbej]');
+    if (!b) return;
+    const i = CB_EJECUTAN.indexOf(b.dataset.cbej);
+    if (i === -1) CB_EJECUTAN.push(b.dataset.cbej); else CB_EJECUTAN.splice(i, 1);
+    pintarCbEjecutan();
+  });
+  $('#cbPagoAdd').addEventListener('click', () => {
+    agregarPagoColab().catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+  });
+  $('#cbPagos').addEventListener('click', e => {
+    const d = e.target.closest('[data-cbpagodel]');
+    if (d) borrarPagoColab(d.dataset.cbpagodel);
+  });
+  $('#cbGuardar').addEventListener('click', () => {
+    guardarCobro().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  });
+
+  // Modal movimiento
+  $('#mvGuardar').addEventListener('click', () => {
+    guardarMov().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  });
+  $('#mvBorrar').addEventListener('click', () => {
+    borrarMov().catch(err => toast('No se pudo borrar: ' + (err.message || err), 'warn'));
+  });
+
   $('#modClientes').addEventListener('click', e => {
     if (e.target.closest('#nuClienteBtn')) { abrirCliente(null); return; }
     const fila = e.target.closest('[data-cabrir]');
