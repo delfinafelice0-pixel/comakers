@@ -1821,7 +1821,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 19:24</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 19:42</div>
     </div>
   </aside>
 
@@ -6686,13 +6686,32 @@
     g.__t = setTimeout(() => g.classList.remove('on'), 1300);
   }
 
-  async function cargarResumen(proyId) {
-    RES_PROY = proyId;
-    RES_ABIERTO = {};
-    const [d, l] = await Promise.all([
+  function pedirResumen(proyId) {
+    return Promise.all([
       SB.from('proyecto_dato').select('id, proyecto_id, etiqueta, valor, es_secreto, orden').eq('proyecto_id', proyId).order('orden'),
       SB.from('proyecto_link').select('id, proyecto_id, titulo, url, orden').eq('proyecto_id', proyId).order('orden')
     ]);
+  }
+
+  async function cargarResumen(proyId) {
+    RES_PROY = proyId;
+    RES_ABIERTO = {};
+    // Esto arranca en falso SIEMPRE. Antes no: una sola consulta que
+    // fallaba dejaba el cartel de "falta la migración 8" prendido para
+    // el resto de la sesión, aunque el problema hubiera durado un
+    // segundo. Es lo que te pasó: corriste migraciones, Supabase
+    // recargó su caché de tablas, una consulta cayó justo ahí, y el
+    // panel se quedó repitiendo que faltaba una migración ya corrida.
+    FALTA_M8 = false; ERROR_RES = null;
+
+    let [d, l] = await pedirResumen(proyId);
+    // Un solo reintento: si fue un tropezón, se resuelve solo y no te
+    // enterás. Si es de verdad, falla las dos veces y ahí sí avisamos.
+    if (d.error || l.error) {
+      await new Promise(r => setTimeout(r, 400));
+      const r2 = await pedirResumen(proyId);
+      if (!r2[0].error && !r2[1].error) { d = r2[0]; l = r2[1]; }
+    }
     if (d.error || l.error) {
       // Ojo con esto: antes acá decía siempre "falta la migración 8", y
       // eso es mentira salvo que la tabla no exista. Un permiso mal
