@@ -1821,7 +1821,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 18:35</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 18:40</div>
     </div>
   </aside>
 
@@ -5528,6 +5528,19 @@
         '</div>' +
       '</div>';
 
+    // Si hay servicios cargados de clientes que esta persona no puede
+    // LEER, la tabla los perdería en silencio: se recorre `clientes`,
+    // no `contrato`. Antes que desaparezcan sin decir nada, se avisa.
+    const ciegos = [...new Set(CONTRATOS
+      .filter(c => c.activo !== false && !CLIENTES.some(x => x.id === c.cliente_id))
+      .map(c => c.cliente_id))];
+    const avisoCiegos = ciegos.length
+      ? '<div class="res-falta" style="margin-bottom:16px">Hay <b>' + ciegos.length +
+        ' cliente(s)</b> con servicios cargados que tu usuario no puede ver. ' +
+        'Es un permiso de la base, no un dato que falte: corré ' +
+        '<code>migracion-interno-19-clientes-para-todas.sql</code>.</div>'
+      : '';
+
     const kpis = FALTA_M14 ? '' :
       '<div class="kpis" id="clKpis">' +
         kpi('A cobrar este mes', plata(aCobrar), delMes.length + ' servicio' + (delMes.length === 1 ? '' : 's'), '') +
@@ -5586,6 +5599,7 @@
     $('#modClientes').innerHTML =
       barra +
       (FALTA_M14 ? '<div style="margin-bottom:16px">' + avisoM14() + '</div>' : '') +
+      avisoCiegos +
       kpis +
       '<div class="cel-ayuda">Se escribe encima, como una planilla: tocá una celda y escribí. ' +
         '<kbd>Enter</kbd> baja · <kbd>Tab</kbd> va al costado · <kbd>Esc</kbd> cancela.</div>' +
