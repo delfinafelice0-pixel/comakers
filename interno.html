@@ -162,7 +162,10 @@
   .link-cliente svg { width: 12px; height: 12px; }
 
   /* ── MAIN ───────────────────────────────── */
-  .main { padding: 32px 40px 64px; max-width: 1600px; }
+  /* min-width:0 para que una tabla ancha scrollee ADENTRO en vez de
+     empujar todo el layout a la derecha (el 1fr de la grilla crece
+     con el contenido si no se lo frena). */
+  .main { padding: 32px 40px 64px; max-width: 1600px; min-width: 0; }
   .topbar {
     display: flex; align-items: flex-end; justify-content: space-between;
     margin-bottom: 24px; gap: 24px; flex-wrap: wrap;
@@ -1513,14 +1516,65 @@
 
   .reparto-tabla { margin-bottom: 18px; }
   .cols-reparto { grid-template-columns: minmax(0,1.4fr) repeat(4, minmax(0,1fr)); }
-  .cols-trab  { grid-template-columns: 92px minmax(0,1fr) minmax(0,1.7fr) minmax(0,1.2fr) 110px 108px 34px; }
-  .cols-colab { grid-template-columns: minmax(0,1.4fr) 80px 118px 118px 118px 150px; }
-  .cols-socia { grid-template-columns: minmax(0,1.4fr) repeat(3, 130px) 110px; }
+  /* ── DISTRIBUCIÓN ─────────────────────────────────────────── */
+  /* La grilla de Trabajos es calcada de la hoja Dist_Ago: tiene una
+     columna por colaboradora, así que no entra en una pantalla. En vez
+     de achicar la letra hasta que no se lea, scrollea al costado y la
+     primera columna (el cliente) queda pegada. */
+  .tabla-ancha { overflow-x: auto; max-width: 100%; padding-bottom: 4px; }
+  .tabla-ancha .tabla { overflow: visible; border-radius: var(--radius-lg); }
+  .dist-row { gap: 10px; }
+  .dist-row > div:first-child {
+    position: sticky; left: 0; z-index: 2;
+    background: var(--bg-elev); margin: -6px 0; padding: 6px 0;
+  }
+  .prow.cab.dist-row > div:first-child { background: var(--line-soft); margin: -5px 0; padding: 5px 0; }
+  .dist-row.apagada { opacity: .5; }
+  .prow.totales {
+    background: var(--line-soft); font-weight: 600;
+    border-top: 1px solid var(--line); border-bottom: none;
+  }
+  .prow.totales > div:first-child { background: var(--line-soft); }
+
+  /* La celda «Pago Ludmi»: un botón que no parece un botón hasta que
+     lo tocás. Vacía muestra un + al pasar por encima. */
+  .pago-cel {
+    width: 100%; text-align: right; border: 1px solid transparent;
+    background: none; border-radius: 5px; padding: 2px 5px; cursor: pointer;
+    font-family: var(--body); font-size: 13px; color: var(--ink);
+    font-variant-numeric: tabular-nums; min-height: 22px;
+  }
+  .pago-cel:hover { border-color: var(--ink-soft); background: var(--bg); }
+  .pago-cel.con { font-weight: 500; }
+  .pago-cel i { font-style: normal; font-size: 10px; color: var(--ink-mute); margin-left: 4px; }
+  .pago-cel .mas { color: transparent; }
+  .prow:hover .pago-cel .mas { color: var(--ink-mute); }
+
+  /* El cliente y el servicio comparten la primera celda: el servicio
+     va al costado, chiquito, como en la tabla de Clientes. */
+  .dist-row .celda-serv { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
+  .dist-row .celda-serv .sub {
+    margin-top: 0; flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .cols-pago {
+    grid-template-columns: minmax(140px,1.4fr) 96px 122px 116px 88px 116px 88px 116px 116px 108px;
+  }
+  .cols-pago .nom .sub { display: block; }
+  .cols-td { grid-template-columns: minmax(0,1fr) 130px 108px 34px; }
+  .td-inp {
+    width: 100%; border: 1px solid var(--line); border-radius: 7px;
+    padding: 5px 8px; font-family: var(--body); font-size: 12.5px;
+    color: var(--ink); background: var(--bg);
+  }
+  .td-inp:focus { outline: none; border-color: var(--ink); }
+  .td-inp.num { text-align: right; font-variant-numeric: tabular-nums; }
   @media (max-width: 900px) {
-    .cols-trab  { grid-template-columns: minmax(0,1fr) 100px 34px; }
-    .cols-colab { grid-template-columns: minmax(0,1fr) 100px 100px; }
-    .cols-socia { grid-template-columns: minmax(0,1fr) 110px 100px; }
-    .cols-trab > .oculta-mob, .cols-colab > .oculta-mob, .cols-socia > .oculta-mob { display: none; }
+    .cols-pago { grid-template-columns: minmax(0,1fr) 96px 96px 92px; }
+    .cols-pago > .oculta-mob { display: none; }
+    .cols-td { grid-template-columns: minmax(0,1fr) 92px 30px; }
+    .cols-td > div:nth-child(2) { display: none; }
   }
 
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
@@ -1679,7 +1733,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 15:46</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 16:32</div>
     </div>
   </aside>
 
@@ -2064,13 +2118,17 @@
     <div class="campo campo-row">
       <div>
         <label class="campo-label">Quién lo hizo</label>
-        <input type="text" id="trQuien" list="trSugeridas" placeholder="Karin, Ludmi, Pauli…">
-        <datalist id="trSugeridas"></datalist>
+        <select id="trQuien"></select>
       </div>
       <div>
         <label class="campo-label">Fecha</label>
         <input type="date" id="trFecha">
       </div>
+    </div>
+    <div class="campo" id="trOtraWrap" style="display:none">
+      <label class="campo-label">Nombre de la persona</label>
+      <input type="text" id="trOtra" placeholder="Ej: Pauli">
+      <div class="res-sub">Si no está en Equipo queda cargada por nombre. Cuando le crees la cuenta, se juntan solas.</div>
     </div>
     <div class="campo">
       <label class="campo-label">Qué hizo</label>
@@ -2086,14 +2144,7 @@
         <input type="number" id="trMonto" step="0.01" min="0">
       </div>
     </div>
-    <div class="switch-row">
-      <div class="switch-txt">
-        <div class="t">Ya se le pagó</div>
-        <div class="s">Si todavía no, queda en «Falta» y lo ves en la pestaña Colaboradoras.</div>
-      </div>
-      <div class="switch" id="trPagado"></div>
-    </div>
-    <div class="res-sub">Al colgarlo de un cobro, el monto baja el neto de ese cobro antes del reparto — igual que en la planilla.</div>
+    <div class="res-sub">Al colgarlo de un cobro, el monto baja el neto de ese cobro antes del reparto — igual que en la planilla. Cuándo se le paga se lleva en la pestaña Pagos.</div>
     <div class="modal-foot">
       <div class="der">
         <button class="btn-ghost" data-cerrar="ovTrabajo">Cancelar</button>
@@ -2103,36 +2154,37 @@
   </div>
 </div>
 
-<!-- ═══════════ MODAL PAGO A UNA SOCIA ═══════════ -->
-<div class="overlay" id="ovPagoSocia">
-  <div class="modal" style="max-width:440px">
+<!-- ═══════════ MODAL DETALLE DE UNA CELDA «PAGO …» ═══════════ -->
+<div class="overlay" id="ovTrabDet">
+  <div class="modal" style="max-width:600px">
     <div class="modal-head">
-      <div class="modal-title">Registrar un pago</div>
-      <button class="modal-close" data-cerrar="ovPagoSocia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      <div class="modal-title" id="tdTitulo">Detalle</div>
+      <button class="modal-close" data-tdcerrar><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
-    <div class="res-sub" style="margin-bottom:14px">Se registra contra <b id="psMes"></b>. Podés cargar varios pagos del mismo mes (las quincenas, por ejemplo).</div>
-    <div class="campo campo-row">
+    <div class="res-sub" id="tdSub" style="margin-bottom:14px"></div>
+    <div id="tdLista"></div>
+    <div class="campo campo-row" style="margin-top:16px">
       <div>
-        <label class="campo-label">A quién</label>
-        <select id="psQuien"></select>
+        <label class="campo-label">Qué hizo</label>
+        <input type="text" id="tdQue" placeholder="Ej: edición de 4 reels">
       </div>
       <div>
         <label class="campo-label">Cuánto</label>
-        <input type="number" id="psMonto" step="0.01" min="0">
+        <input type="number" id="tdMonto" step="0.01" min="0">
       </div>
     </div>
-    <div class="campo">
-      <label class="campo-label">Fecha del pago</label>
-      <input type="date" id="psFecha">
-    </div>
-    <div class="campo">
-      <label class="campo-label">Nota</label>
-      <input type="text" id="psNotas" placeholder="Ej: primera quincena">
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Fecha</label>
+        <input type="date" id="tdFecha">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn-primary" id="tdAgregar" style="width:100%">Agregar</button>
+      </div>
     </div>
     <div class="modal-foot">
       <div class="der">
-        <button class="btn-ghost" data-cerrar="ovPagoSocia">Cancelar</button>
-        <button class="btn-primary" id="psGuardar">Guardar</button>
+        <button class="btn-ghost" data-tdcerrar>Listo</button>
       </div>
     </div>
   </div>
@@ -4386,7 +4438,7 @@
   let CONTRATOS = [], CONTRATO_EJ = {}, COBROS = [], COBRO_EJ = {};
   let MOVIMIENTOS = [], REPARTO = null, SOCIA_PCT = {};
   let FALTA_M14 = false, PLATA_CARGADA = false;
-  let FALTA_M15 = false;
+  let FALTA_M15 = false, FALTA_M16 = false;
   let PERIODO = primerDelMes(new Date());
   let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
   let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
@@ -4454,7 +4506,7 @@
       SB.from('movimiento').select('*').order('fecha', { ascending: false }),
       SB.from('reparto').select('*').limit(1),
       SB.from('socia_reparto').select('user_id, pct'),
-      SB.from('pago_socia').select('*').order('fecha', { ascending: false })
+      SB.from('pago_persona').select('*').order('fecha', { ascending: false })
     ]);
     COBROS = cb.data || [];
     MOVIMIENTOS = mv.data || [];
@@ -4467,7 +4519,16 @@
       (CONTRATO_EJ[x.contrato_id] = CONTRATO_EJ[x.contrato_id] || []).push(x.user_id);
     });
     SOCIA_PCT = {}; (sp.data || []).forEach(x => { SOCIA_PCT[x.user_id] = Number(x.pct); });
-    PAGOS_SOCIA = (ps && ps.data) ? ps.data : [];
+    // Sin la migración 16 la tabla se llama `pago_socia` y no tiene
+    // quincenas. El panel sigue andando: muestra lo que hay y avisa.
+    if (ps && ps.error) {
+      FALTA_M16 = true;
+      const vieja = await SB.from('pago_socia').select('*').order('fecha', { ascending: false });
+      PAGOS_PERSONA = (vieja && vieja.data) ? vieja.data : [];
+    } else {
+      PAGOS_PERSONA = (ps && ps.data) ? ps.data : [];
+    }
+
 
     PLATA_CARGADA = true;
   }
@@ -4518,10 +4579,25 @@
   }
 
   // ═══════════════ DISTRIBUCIÓN ═══════════════
-  // Quién hizo qué, cuánto se le paga y si ya se le pagó. Las tres
-  // pestañas miran el mismo mes que el módulo Clientes: si allá
-  // cambiás de mes, acá también.
-  let PAGOS_SOCIA = [], DIST_TAB = 'trabajos';
+  // Dos pestañas, calcadas de tus hojas:
+  //
+  //   Trabajos → Dist_Ago. Una fila por cobro y una columna por
+  //              colaboradora. La celda muestra la SUMA de lo que esa
+  //              persona hizo para ese cliente; el click abre el
+  //              detalle, que es donde queda anotado trabajo por
+  //              trabajo (para el caso de dos trabajos del mismo mes
+  //              para el mismo cliente).
+  //
+  //   Pagos    → Pagos_Ago. Todas en la misma tabla: las tres socias y
+  //              las colaboradoras, con las dos quincenas.
+  //
+  // De dónde salen las personas: de Equipo. Las socias por `rol`, las
+  // colaboradoras por `rol = equipo`. Y además, cualquiera que tenga
+  // trabajos cargados este mes aunque no esté en Equipo — Pauli no
+  // tiene cuenta y no por eso deja de cobrar.
+  let PAGOS_PERSONA = [], DIST_TAB = 'trabajos';
+  let PG_FILAS = {};    // clave de fila → {user_id, persona, nombre}
+  let TD_ABIERTO = null; // {cobroId, key} del detalle abierto
 
   function trabajosDelMes(periodo) {
     // Un "trabajo" es un egreso de categoría Colaboradoras. Vive en
@@ -4535,24 +4611,94 @@
 
   function cobroDeMov(m) { return m.cobro_id ? COBROS.find(c => c.id === m.cobro_id) : null; }
 
-  function dondeTrabajo(m) {
-    const cb = cobroDeMov(m);
-    if (!cb) return m.cliente_id ? nombreCliente(m.cliente_id) : '—';
-    const ct = contratoDe(cb.contrato_id);
-    return nombreCliente(cb.cliente_id) + (ct ? ' · ' + ct.nombre : '');
+  // La clave que identifica a una persona en las dos pestañas. Si tiene
+  // cuenta manda el id; si no, el nombre escrito a mano, normalizado.
+  function normNombre(s) { return String(s || '').trim().toLowerCase(); }
+
+  // Lo viejo está cargado como texto ("Ludmi") y la ficha dice
+  // "Ludmila Depau". Si hay UNA sola persona que empieza así, es esa.
+  // Si hay dos que podrían serlo, no adivina: queda como nombre suelto.
+  function perfilPorNombre(txt) {
+    const n = normNombre(txt);
+    if (!n) return null;
+    const exacto = EQUIPO.filter(p => normNombre(p.nombre) === n);
+    if (exacto.length === 1) return exacto[0];
+    const empieza = EQUIPO.filter(p => normNombre(p.nombre).indexOf(n) === 0);
+    return empieza.length === 1 ? empieza[0] : null;
+  }
+  function perfilDeMov(m) {
+    if (m.colaboradora_id) return EQUIPO.find(x => x.id === m.colaboradora_id) || null;
+    return perfilPorNombre(m.colaboradora);
+  }
+  function claveColab(m) {
+    if (m.colaboradora_id) return 'u:' + m.colaboradora_id;
+    const p = perfilPorNombre(m.colaboradora);
+    if (p) return 'u:' + p.id;
+    const n = normNombre(m.colaboradora);
+    return n ? 't:' + n : 't:sin nombre';
+  }
+  function clavePago(p) {
+    if (p.user_id) return 'u:' + p.user_id;
+    const q = perfilPorNombre(p.persona);
+    if (q) return 'u:' + q.id;
+    return 't:' + (normNombre(p.persona) || 'sin nombre');
+  }
+
+  function sociasOrdenadas() {
+    return PERSONAS.filter(p => p.rol === 'socia')
+      .slice().sort((a, b) => (SOCIA_PCT[b.id] || 0) - (SOCIA_PCT[a.id] || 0));
+  }
+
+  // Las colaboradoras de la tabla: las del Equipo + las que trabajaron
+  // este mes aunque estén de baja o no tengan cuenta.
+  function colabsDelMes() {
+    const out = [], visto = {};
+    EQUIPO.filter(p => p.rol !== 'socia' && p.activo !== false).forEach(p => {
+      const k = 'u:' + p.id; visto[k] = 1;
+      out.push({ key: k, user_id: p.id, persona: null,
+                 nombre: p.nombre || p.email, baja: false, suelta: false });
+    });
+    trabajosDelMes().forEach(m => {
+      const k = claveColab(m);
+      if (visto[k]) return;
+      visto[k] = 1;
+      const p = perfilDeMov(m);
+      out.push({
+        key: k, user_id: p ? p.id : null, persona: p ? null : (m.colaboradora || 'sin nombre'),
+        nombre: p ? (p.nombre || p.email) : (m.colaboradora || 'sin nombre'),
+        baja: p ? p.activo === false : false, suelta: !p
+      });
+    });
+    return out;
+  }
+
+  function cobrosDelMes() {
+    return CONTRATOS.filter(c => c.activo !== false)
+      .map(c => cobroDe(c.id, PERIODO)).filter(Boolean)
+      .sort((a, b) => {
+        const na = nombreCliente(a.cliente_id), nb = nombreCliente(b.cliente_id);
+        if (na !== nb) return na < nb ? -1 : 1;
+        const ca = contratoDe(a.contrato_id), cb2 = contratoDe(b.contrato_id);
+        return (ca ? ca.nombre : '') < (cb2 ? cb2.nombre : '') ? -1 : 1;
+      });
+  }
+
+  function trabajosDe(cobroId, key) {
+    return trabajosDelMes().filter(m => m.cobro_id === cobroId && claveColab(m) === key);
+  }
+  function sumaTrabajos(lista) {
+    return lista.reduce((a, m) => a + Number(m.monto || 0), 0);
   }
 
   function renderDist() {
     if (!soySocia()) { $('#modDist').innerHTML = ''; return; }
     if (FALTA_M14) { $('#modDist').innerHTML = avisoM14(); return; }
 
-    const trabajos = trabajosDelMes();
     const barra =
       '<div class="plata-barra">' +
         '<div class="plata-tabs">' +
-          distTab('trabajos', 'Trabajos', trabajos.length) +
-          distTab('colaboradoras', 'Colaboradoras', null) +
-          distTab('socias', 'Socias', null) +
+          distTab('trabajos', 'Trabajos', trabajosDelMes().length) +
+          distTab('pagos', 'Pagos', null) +
         '</div>' +
         '<div class="der">' +
           '<div class="mes-nav">' +
@@ -4561,18 +4707,14 @@
             '<button data-dmes="1" title="Mes siguiente">›</button>' +
             '<button data-dmes="0" title="Volver a este mes">Hoy</button>' +
           '</div>' +
-          (DIST_TAB === 'socias'
-            ? '<button class="btn-primary" id="nuPagoSocia">Registrar un pago</button>'
-            : '<button class="btn-primary" id="nuTrabajo">Nuevo trabajo</button>') +
+          (DIST_TAB === 'trabajos'
+            ? '<button class="btn-primary" id="nuTrabajo">Nuevo trabajo</button>' : '') +
         '</div>' +
       '</div>';
 
-    const cuerpo =
-      DIST_TAB === 'colaboradoras' ? vistaColaboradoras(trabajos)
-      : DIST_TAB === 'socias'      ? vistaSocias()
-      : vistaTrabajos(trabajos);
-
-    $('#modDist').innerHTML = barra + cuerpo;
+    $('#modDist').innerHTML = barra +
+      (FALTA_M16 ? '<div style="margin-bottom:16px">' + avisoM16() + '</div>' : '') +
+      (DIST_TAB === 'pagos' ? vistaPagos() : vistaTrabajos());
   }
 
   function distTab(id, txt, cuenta) {
@@ -4580,161 +4722,388 @@
       (cuenta !== null && cuenta !== undefined ? '<span class="cuenta">' + cuenta + '</span>' : '') + '</button>';
   }
 
-  // ── Pestaña 1: los trabajos, uno por fila ────────────────────
-  function vistaTrabajos(trabajos) {
-    const total = trabajos.reduce((a, m) => a + Number(m.monto || 0), 0);
-    const pagado = trabajos.filter(m => m.pagado).reduce((a, m) => a + Number(m.monto || 0), 0);
+  function avisoM16() {
+    return '<div class="res-falta">Falta correr <code>migracion-interno-16-pagos.sql</code>. ' +
+           'Hasta que la corras, las quincenas no se guardan y las colaboradoras van por nombre suelto.</div>';
+  }
+
+  // ── Pestaña 1: la grilla Dist_Ago ────────────────────────────
+  function vistaTrabajos() {
+    const colabs = colabsDelMes();
+    const socias = sociasOrdenadas();
+    const cobros = cobrosDelMes();
+    const trab = trabajosDelMes();
 
     const kpis = '<div class="kpis">' +
-      kpi('Trabajos del mes', String(trabajos.length),
-          [...new Set(trabajos.map(m => m.colaboradora).filter(Boolean))].length + ' colaboradora(s)', '') +
-      kpi('Total a pagar', plata(total), 'Ya descontado del neto', '') +
-      kpi('Pagado', plata(pagado), pct(pagado, total) + ' de lo del mes', 'verde') +
-      kpi('Falta pagar', plata(total - pagado),
-          trabajos.filter(m => !m.pagado).length + ' sin pagar', total - pagado > 0 ? 'rojo' : '') +
+      kpi('Cobrado este mes', plata(cobros.filter(c => c.estado === 'cobrado')
+            .reduce((a, c) => a + Number(c.monto || 0), 0)),
+          cobros.length + ' servicio(s)', '') +
+      kpi('Para colaboradoras', plata(sumaTrabajos(trab)),
+          trab.length + ' trabajo(s) · ' + colabs.filter(c =>
+            trab.some(m => claveColab(m) === c.key)).length + ' persona(s)', '') +
+      kpi('Neto a repartir', plata(cobros.filter(c => c.estado === 'cobrado')
+            .reduce((a, c) => a + netoDeCobro(c), 0)),
+          'Después de descontar los trabajos', 'verde') +
+      kpi('Fondo CoMakers', plata(cobros.filter(c => c.estado === 'cobrado')
+            .reduce((a, c) => a + repartoDe(c).fondo, 0)),
+          (REPARTO ? REPARTO.pct_fondo : 10) + '% del neto', '') +
     '</div>';
 
-    const cab = '<div class="prow cab cols-trab">' +
-      '<div class="oculta-mob">Fecha</div><div>Quién</div><div>Qué hizo</div>' +
-      '<div class="oculta-mob">Para</div><div class="num">Monto</div><div>Pagado</div><div></div></div>';
+    // El ancho de la grilla depende de cuántas colaboradoras haya, así
+    // que las columnas se arman acá y no en el CSS.
+    const anchos = ['minmax(190px,1.7fr)', '64px', '104px']
+      .concat(colabs.map(() => '100px'))
+      .concat(['104px', 'minmax(110px,1fr)'])
+      .concat(socias.map(() => '106px'))
+      .concat(['98px']);
+    const gt = ' style="grid-template-columns:' + anchos.join(' ') + '"';
+    const ancho = ' style="min-width:' + (190 + 64 + 104 + colabs.length * 100 + 104 + 110 +
+      socias.length * 106 + 98 + (anchos.length + 1) * 10 + 28) + 'px"';
 
-    const filas = trabajos.slice()
-      .sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0))
-      .map(m =>
-        '<div class="prow cols-trab" data-trabfila="' + m.id + '">' +
-          '<div class="oculta-mob">' +
-            cel(fechaDia(m.fecha), 'mv', m.id, 'fecha', m.fecha, 'fecha') + '</div>' +
-          '<div>' + cel(m.colaboradora ? esc(m.colaboradora) : '<span class="cel-nada">sin nombre</span>',
-                        'mv', m.id, 'colaboradora', m.colaboradora, 'text', 'nom') + '</div>' +
-          '<div>' + cel(esc(m.concepto || ''), 'mv', m.id, 'concepto', m.concepto, 'text') + '</div>' +
-          '<div class="oculta-mob" style="color:var(--ink-mute)">' + esc(dondeTrabajo(m)) + '</div>' +
-          '<div>' + cel(plata(m.monto), 'mv', m.id, 'monto', m.monto, 'num', 'num') + '</div>' +
-          '<div>' + (m.pagado
-            ? '<button class="est cobrado" data-trabpago="' + m.id + '">✅ Pagado</button>'
-            : '<button class="est pendiente" data-trabpago="' + m.id + '">Falta</button>') + '</div>' +
-          '<div><button class="mini-btn" data-trabdel="' + m.id + '" title="Borrar">✕</button></div>' +
-        '</div>').join('');
+    const cab = '<div class="prow cab dist-row"' + gt + '>' +
+      '<div>Cliente · Servicio</div><div>Fecha</div><div class="num">Cobrado</div>' +
+      colabs.map(c => '<div class="num" title="' + esc(c.nombre) + '">Pago ' +
+        esc(primerNombre(c.nombre)) + '</div>').join('') +
+      '<div class="num">Neto</div><div>Ejecuta</div>' +
+      socias.map(p => '<div class="num">' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
+      '<div class="num">Fondo</div></div>';
 
-    return kpis +
-      '<div class="cel-ayuda">Se escribe encima: tocá una celda y escribí. ' +
-        'Lo que carguen acá baja el neto del cobro antes de repartir.</div>' +
-      '<div class="tabla">' + cab +
-        (filas || '<div class="prow"><div class="res-vacio">Nadie cargó trabajos este mes.</div></div>') +
-      '</div>';
-  }
+    const filas = cobros.map(cb => {
+      const ct = contratoDe(cb.contrato_id);
+      const r = repartoDe(cb);
+      const nc = cb.estado === 'no_corresponde';
+      const ejec = (COBRO_EJ[cb.id] || []).map(u => primerNombre(nombrePersona(u) || '')).filter(Boolean);
 
-  // ── Pestaña 2: cuánto le debemos a cada una ──────────────────
-  function vistaColaboradoras(trabajos) {
-    const porQuien = {};
-    trabajos.forEach(m => {
-      const q = m.colaboradora || '(sin nombre)';
-      const x = porQuien[q] || (porQuien[q] = { total: 0, pagado: 0, n: 0 });
-      x.total += Number(m.monto || 0);
-      if (m.pagado) x.pagado += Number(m.monto || 0);
-      x.n++;
-    });
-    const nombres = Object.keys(porQuien).sort();
-
-    if (!nombres.length) {
-      return '<div class="tabla"><div class="prow"><div class="res-vacio">' +
-        'Sin trabajos cargados este mes. Cargalos en la pestaña de al lado.' +
-        '</div></div></div>';
-    }
-
-    const cab = '<div class="prow cab cols-colab"><div>Colaboradora</div>' +
-      '<div class="oculta-mob">Trabajos</div><div class="num">Le toca</div>' +
-      '<div class="num oculta-mob">Pagado</div><div class="num">Falta</div><div></div></div>';
-
-    return '<div class="tabla">' + cab + nombres.map(q => {
-      const x = porQuien[q];
-      const falta = x.total - x.pagado;
-      return '<div class="prow cols-colab">' +
-        '<div class="nom">' + esc(q) + '</div>' +
-        '<div class="oculta-mob" style="color:var(--ink-mute)">' + x.n + '</div>' +
-        '<div class="num">' + plata(x.total) + '</div>' +
-        '<div class="num oculta-mob pos">' + plata(x.pagado) + '</div>' +
-        '<div class="num' + (falta > 0 ? ' neg' : '') + '">' + plata(falta) + '</div>' +
-        '<div>' + (falta > 0
-          ? '<button class="est pendiente" data-pagartodo="' + esc(q) + '">Marcar todo pagado</button>'
-          : '<span class="est cobrado">✅ Al día</span>') + '</div>' +
-      '</div>';
-    }).join('') + '</div>';
-  }
-
-  // ── Pestaña 3: ustedes tres ──────────────────────────────────
-  function vistaSocias() {
-    const r = [PERIODO, sumarMeses(PERIODO, 1)];
-    const cobrados = COBROS.filter(c => c.estado === 'cobrado' && enRango(c.periodo, r));
-    const toca = {};
-    cobrados.forEach(cb => {
-      const rr = repartoDe(cb);
-      Object.keys(rr.personas).forEach(u => { toca[u] = (toca[u] || 0) + rr.personas[u]; });
-    });
-
-    const pagos = PAGOS_SOCIA.filter(p => mesDe(p.periodo) === mesDe(PERIODO));
-    const pagado = {};
-    pagos.forEach(p => { pagado[p.user_id] = (pagado[p.user_id] || 0) + Number(p.monto || 0); });
-
-    const socias = PERSONAS.filter(p => p.rol === 'socia');
-    const cab = '<div class="prow cab cols-socia"><div>Socia</div>' +
-      '<div class="num">Le corresponde</div><div class="num">Se le pagó</div>' +
-      '<div class="num">Diferencia</div><div>Estado</div></div>';
-
-    const filas = socias.map(p => {
-      const t = toca[p.id] || 0, pg = pagado[p.id] || 0, dif = t - pg;
-      return '<div class="prow cols-socia">' +
-        '<div class="nom">' + esc(p.nombre || p.email) + '</div>' +
-        '<div class="num">' + plata(t) + '</div>' +
-        '<div class="num pos">' + plata(pg) + '</div>' +
-        '<div class="num' + (dif > 0 ? ' neg' : '') + '">' + plata(dif) + '</div>' +
-        '<div>' + (pg === 0 ? '<span class="est pendiente">Sin pagar</span>'
-                 : dif > 1 ? '<span class="est vencido">⚠️ Parcial</span>'
-                 : '<span class="est cobrado">✅ Pagado</span>') + '</div>' +
+      return '<div class="prow dist-row' + (nc ? ' apagada' : '') + '"' + gt + '>' +
+        '<div class="celda-serv"><span class="nom">' + esc(nombreCliente(cb.cliente_id)) + '</span>' +
+          '<span class="sub">' + esc(ct ? ct.nombre : '—') + '</span></div>' +
+        '<div style="color:var(--ink-mute);font-size:11.5px">' +
+          (cb.fecha_cobro ? fechaDia(cb.fecha_cobro) : '<span class="cel-nada">—</span>') + '</div>' +
+        '<div class="num">' + (nc ? '<span class="cel-nada">—</span>' : plata(cb.monto)) + '</div>' +
+        colabs.map(c => {
+          const lista = trabajosDe(cb.id, c.key);
+          const suma = sumaTrabajos(lista);
+          return '<div class="num"><button class="pago-cel' + (suma ? ' con' : '') +
+            '" data-tdcel="' + cb.id + '|' + esc(c.key) + '" title="' +
+            (suma ? lista.length + ' trabajo(s) de ' + esc(c.nombre) : 'Cargar un trabajo de ' + esc(c.nombre)) +
+            '">' + (suma ? plata(suma) + (lista.length > 1 ? '<i>' + lista.length + '</i>' : '')
+                         : '<span class="mas">+</span>') + '</button></div>';
+        }).join('') +
+        '<div class="num">' + (nc ? '<span class="cel-nada">—</span>' : plata(r.neto)) + '</div>' +
+        '<div style="color:var(--ink-mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis">' +
+          (ejec.length ? esc(ejec.join('/')) : '<span class="cel-nada">sin asignar</span>') + '</div>' +
+        socias.map(p => '<div class="num">' +
+          (r.personas[p.id] ? plata(r.personas[p.id]) : '<span class="cel-nada">—</span>') + '</div>').join('') +
+        '<div class="num">' + (r.fondo ? plata(r.fondo) : '<span class="cel-nada">—</span>') + '</div>' +
       '</div>';
     }).join('');
 
-    const listaPagos = pagos.length
-      ? '<div class="mod-head" style="margin:22px 0 10px"><p>Los pagos que registraron este mes.</p></div>' +
-        '<div class="tabla">' + pagos.slice().sort((a, b) => a.fecha < b.fecha ? -1 : 1).map(p =>
-          '<div class="prow" style="grid-template-columns:90px minmax(0,1fr) 120px 34px">' +
-            '<div style="color:var(--ink-mute)">' + fechaDia(p.fecha) + '</div>' +
-            '<div class="nom">' + esc(nombrePersona(p.user_id) || '—') +
-              (p.notas ? '<span class="sub">' + esc(p.notas) + '</span>' : '') + '</div>' +
-            '<div class="num">' + plata(p.monto) + '</div>' +
-            '<div><button class="mini-btn" data-pagodel="' + p.id + '" title="Borrar">✕</button></div>' +
-          '</div>').join('') + '</div>'
-      : '';
+    // La fila de totales, igual que la de tu planilla.
+    const cobrados = cobros.filter(c => c.estado === 'cobrado');
+    const totSoc = {};
+    cobrados.forEach(cb => {
+      const r = repartoDe(cb);
+      Object.keys(r.personas).forEach(u => { totSoc[u] = (totSoc[u] || 0) + r.personas[u]; });
+    });
+    const totales = '<div class="prow dist-row totales"' + gt + '>' +
+      '<div class="nom">TOTALES</div><div></div>' +
+      '<div class="num">' + plata(cobrados.reduce((a, c) => a + Number(c.monto || 0), 0)) + '</div>' +
+      colabs.map(c => '<div class="num">' +
+        plata(sumaTrabajos(trab.filter(m => claveColab(m) === c.key))) + '</div>').join('') +
+      '<div class="num">' + plata(cobrados.reduce((a, c) => a + netoDeCobro(c), 0)) + '</div>' +
+      '<div></div>' +
+      socias.map(p => '<div class="num">' + plata(totSoc[p.id] || 0) + '</div>').join('') +
+      '<div class="num">' + plata(cobrados.reduce((a, c) => a + repartoDe(c).fondo, 0)) + '</div>' +
+    '</div>';
 
-    return '<div class="mod-head"><p>«Le corresponde» lo calcula el panel con los cobros del mes. ' +
-        '«Se le pagó» es lo que registrás vos abajo. La diferencia es lo que falta girar.</p></div>' +
-      '<div class="tabla">' + cab + (filas ||
-        '<div class="prow"><div class="res-vacio">No hay socias cargadas.</div></div>') + '</div>' +
-      listaPagos;
+    return kpis +
+      '<div class="cel-ayuda">Tocá una celda de «Pago …» para ver o cargar lo que esa persona hizo ' +
+        'para ese cliente. Si hizo dos trabajos, quedan los dos anotados adentro.</div>' +
+      '<div class="tabla-ancha"><div class="tabla"' + ancho + '>' + cab +
+        (filas || '<div class="prow"><div class="res-vacio">No hay cobros cargados este mes.</div></div>') +
+        (cobros.length ? totales : '') +
+      '</div></div>';
   }
 
-  // ── Guardar ──────────────────────────────────────────────────
-  async function alternarPagoTrabajo(id) {
+  function primerNombre(n) { return String(n || '').trim().split(/\s+/)[0] || ''; }
+
+  // ── Pestaña 2: la tabla Pagos_Ago ────────────────────────────
+  function cobradosDelMes() {
+    const r = [PERIODO, sumarMeses(PERIODO, 1)];
+    return COBROS.filter(c => c.estado === 'cobrado' && enRango(c.periodo, r));
+  }
+
+  function correspondeA(f) {
+    let t = 0;
+    if (f.user_id) {
+      cobradosDelMes().forEach(cb => { t += repartoDe(cb).personas[f.user_id] || 0; });
+    }
+    trabajosDelMes().forEach(m => { if (claveColab(m) === f.key) t += Number(m.monto || 0); });
+    return t;
+  }
+
+  function pagosDe(key) {
+    return PAGOS_PERSONA.filter(p => mesDe(p.periodo) === mesDe(PERIODO) && clavePago(p) === key);
+  }
+  function pagoQ(key, q) {
+    return pagosDe(key).find(p => Number(p.quincena) === q) || null;
+  }
+  function totalPagado(key) {
+    return pagosDe(key).reduce((a, p) => a + Number(p.monto || 0), 0);
+  }
+
+  function filasPago() {
+    const out = [];
+    sociasOrdenadas().forEach(p => out.push({
+      key: 'u:' + p.id, user_id: p.id, persona: null,
+      nombre: p.nombre || p.email, rol: 'Socia', suelta: false, baja: false
+    }));
+    colabsDelMes().forEach(c => out.push({
+      key: c.key, user_id: c.user_id, persona: c.persona,
+      nombre: c.nombre, rol: 'Colaboradora', suelta: c.suelta, baja: c.baja
+    }));
+    return out;
+  }
+
+  function vistaPagos() {
+    const filas = filasPago();
+    PG_FILAS = {};
+    filas.forEach(f => { PG_FILAS[f.key] = f; });
+
+    const corr = {}, pag = {};
+    filas.forEach(f => { corr[f.key] = correspondeA(f); pag[f.key] = totalPagado(f.key); });
+    const totCorr = filas.reduce((a, f) => a + corr[f.key], 0);
+    const totPag = filas.reduce((a, f) => a + pag[f.key], 0);
+
+    const kpis = '<div class="kpis">' +
+      kpi('Le corresponde al equipo', plata(totCorr),
+          filas.length + ' persona(s) este mes', '') +
+      kpi('Pagado', plata(totPag), pct(totPag, totCorr) + ' de lo del mes', 'verde') +
+      kpi('Falta girar', plata(totCorr - totPag),
+          filas.filter(f => corr[f.key] - pag[f.key] > 1).length + ' con saldo',
+          totCorr - totPag > 1 ? 'rojo' : '') +
+      kpi('Fondo CoMakers', plata(cobradosDelMes().reduce((a, c) => a + repartoDe(c).fondo, 0)),
+          'No se reparte: queda en la caja', '') +
+    '</div>';
+
+    const cab = '<div class="prow cab cols-pago">' +
+      '<div>Persona</div><div class="oculta-mob">Rol</div>' +
+      '<div class="num">Le corresponde</div>' +
+      '<div class="num">1ra quincena</div><div class="oculta-mob">Fecha</div>' +
+      '<div class="num">2da quincena</div><div class="oculta-mob">Fecha</div>' +
+      '<div class="num oculta-mob">Total pagado</div><div class="num">Diferencia</div>' +
+      '<div>Estado</div></div>';
+
+    const cuerpo = filas.map(f => {
+      const q1 = pagoQ(f.key, 1), q2 = pagoQ(f.key, 2);
+      return '<div class="prow cols-pago" data-pgfila="' + esc(f.key) + '">' +
+        '<div class="nom">' + esc(f.nombre) +
+          (f.suelta ? '<span class="sub">sin cuenta en Equipo</span>'
+           : f.baja ? '<span class="sub">dada de baja</span>' : '') + '</div>' +
+        '<div class="oculta-mob" style="color:var(--ink-mute)">' + f.rol + '</div>' +
+        '<div class="num">' + plata(corr[f.key]) + '</div>' +
+        '<div>' + cel(q1 ? plata(q1.monto) : '<span class="cel-nada">—</span>',
+                      'pg', f.key, 'm1', q1 ? q1.monto : '', 'num', 'num') + '</div>' +
+        '<div class="oculta-mob">' + cel(q1 && q1.fecha ? fechaDia(q1.fecha) : '<span class="cel-nada">—</span>',
+                      'pg', f.key, 'f1', q1 ? (q1.fecha || '') : '', 'fecha') + '</div>' +
+        '<div>' + cel(q2 ? plata(q2.monto) : '<span class="cel-nada">—</span>',
+                      'pg', f.key, 'm2', q2 ? q2.monto : '', 'num', 'num') + '</div>' +
+        '<div class="oculta-mob">' + cel(q2 && q2.fecha ? fechaDia(q2.fecha) : '<span class="cel-nada">—</span>',
+                      'pg', f.key, 'f2', q2 ? (q2.fecha || '') : '', 'fecha') + '</div>' +
+        '<div class="num oculta-mob" data-pgtot="' + esc(f.key) + '">' + plata(pag[f.key]) + '</div>' +
+        '<div class="num' + (corr[f.key] - pag[f.key] > 1 ? ' neg' : '') +
+          '" data-pgdif="' + esc(f.key) + '">' + plata(corr[f.key] - pag[f.key]) + '</div>' +
+        '<div data-pgest="' + esc(f.key) + '">' + estadoPago(corr[f.key], pag[f.key]) + '</div>' +
+      '</div>';
+    }).join('');
+
+    const totales = '<div class="prow cols-pago totales">' +
+      '<div class="nom">TOTALES</div><div class="oculta-mob"></div>' +
+      '<div class="num">' + plata(totCorr) + '</div>' +
+      '<div class="num">' + plata(filas.reduce((a, f) => a + Number((pagoQ(f.key, 1) || {}).monto || 0), 0)) + '</div>' +
+      '<div class="oculta-mob"></div>' +
+      '<div class="num">' + plata(filas.reduce((a, f) => a + Number((pagoQ(f.key, 2) || {}).monto || 0), 0)) + '</div>' +
+      '<div class="oculta-mob"></div>' +
+      '<div class="num oculta-mob">' + plata(totPag) + '</div>' +
+      '<div class="num' + (totCorr - totPag > 1 ? ' neg' : '') + '">' + plata(totCorr - totPag) + '</div>' +
+      '<div></div></div>';
+
+    return kpis +
+      '<div class="cel-ayuda">«Le corresponde» lo calcula el panel: para las socias, el reparto de los ' +
+        'cobros del mes; para las colaboradoras, la suma de sus trabajos. Las quincenas las escribís vos: ' +
+        'tocá la celda y escribí el monto.</div>' +
+      '<div class="tabla-ancha"><div class="tabla" style="min-width:1240px">' + cab +
+        (cuerpo || '<div class="prow"><div class="res-vacio">No hay nadie cargado en Equipo.</div></div>') +
+        (filas.length ? totales : '') +
+      '</div></div>';
+  }
+
+  function estadoPago(corr, pag) {
+    if (pag <= 0) return '<span class="est pendiente">Sin pagar</span>';
+    if (corr - pag > 1) return '<span class="est vencido">⚠️ Parcial</span>';
+    if (pag - corr > 1) return '<span class="est cobrado">✅ Pagado de más</span>';
+    return '<span class="est cobrado">✅ Pagado</span>';
+  }
+
+  // Después de tocar una quincena solo se repintan los tres números
+  // derivados de esa fila. Repintar la tabla entera mataría el input.
+  function pintarFilaPago(key) {
+    const f = PG_FILAS[key];
+    if (!f) return;
+    const corr = correspondeA(f), pag = totalPagado(key);
+    const tot = $('#modDist').querySelector('[data-pgtot="' + key + '"]');
+    const dif = $('#modDist').querySelector('[data-pgdif="' + key + '"]');
+    const est = $('#modDist').querySelector('[data-pgest="' + key + '"]');
+    if (tot) tot.textContent = plata(pag);
+    if (dif) { dif.textContent = plata(corr - pag); dif.classList.toggle('neg', corr - pag > 1); }
+    if (est) est.innerHTML = estadoPago(corr, pag);
+  }
+
+  // ── Guardar una quincena ─────────────────────────────────────
+  async function guardarQuincena(el, key, campo, valor) {
+    if (FALTA_M16) { toast('Primero corré migracion-interno-16-pagos.sql', 'warn'); pintarCelda(el); return; }
+    const f = PG_FILAS[key];
+    if (!f) return;
+    const q = (campo === 'm1' || campo === 'f1') ? 1 : 2;
+    let p = pagoQ(key, q);
+
+    if (campo[0] === 'm') {
+      const n = valor === '' ? 0 : Number(valor);
+      if (isNaN(n) || n < 0) { toast('Ese monto no se entiende', 'warn'); pintarCelda(el); return; }
+      if (!p && n > 0) {
+        const fila = {
+          user_id: f.user_id || null, persona: f.user_id ? null : f.nombre,
+          periodo: PERIODO, monto: n, quincena: q, fecha: hoyISO()
+        };
+        const { data, error } = await SB.from('pago_persona').insert(fila).select();
+        if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
+        if (data && data[0]) PAGOS_PERSONA.push(data[0]);
+      } else if (p && n <= 0) {
+        const { error } = await SB.from('pago_persona').delete().eq('id', p.id);
+        if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); pintarCelda(el); return; }
+        PAGOS_PERSONA = PAGOS_PERSONA.filter(x => x.id !== p.id);
+      } else if (p) {
+        const { error } = await SB.from('pago_persona').update({ monto: n }).eq('id', p.id);
+        if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
+        p.monto = n;
+      }
+    } else {
+      if (!p) { toast('Primero poné el monto de esa quincena', 'warn'); pintarCelda(el); return; }
+      const { error } = await SB.from('pago_persona')
+        .update({ fecha: valor || hoyISO() }).eq('id', p.id);
+      if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
+      p.fecha = valor || hoyISO();
+    }
+
+    pintarCelda(el);
+    pintarFilaPago(key);
+    flashRes();
+  }
+
+  // ── Detalle de una celda «Pago …» ────────────────────────────
+  function abrirTrabDet(cobroId, key) {
+    const cb = COBROS.find(c => c.id === cobroId);
+    const f = colabsDelMes().find(c => c.key === key);
+    if (!cb || !f) return;
+    TD_ABIERTO = { cobroId: cobroId, key: key, nombre: f.nombre,
+                   user_id: f.user_id, persona: f.persona };
+    const ct = contratoDe(cb.contrato_id);
+    $('#tdTitulo').textContent = f.nombre + ' · ' + nombreCliente(cb.cliente_id);
+    $('#tdSub').innerHTML = esc(ct ? ct.nombre : '—') + ' · ' + mesLargo(PERIODO) +
+      '. Cada línea baja el neto de este cobro antes del reparto.';
+    $('#tdQue').value = '';
+    $('#tdMonto').value = '';
+    $('#tdFecha').value = cb.fecha_cobro || hoyISO();
+    pintarTrabDet();
+    abrir('ovTrabDet');
+    setTimeout(() => $('#tdQue').focus(), 60);
+  }
+
+  function pintarTrabDet() {
+    if (!TD_ABIERTO) return;
+    const lista = trabajosDe(TD_ABIERTO.cobroId, TD_ABIERTO.key)
+      .slice().sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
+    const total = sumaTrabajos(lista);
+    $('#tdLista').innerHTML = lista.length
+      ? '<div class="tabla">' + lista.map(m =>
+          '<div class="prow cols-td">' +
+            '<div><input type="text" class="td-inp" data-tdid="' + m.id + '" data-tdcampo="concepto" ' +
+              'value="' + esc(m.concepto || '') + '" placeholder="Qué hizo"></div>' +
+            '<div><input type="date" class="td-inp" data-tdid="' + m.id + '" data-tdcampo="fecha" ' +
+              'value="' + esc(m.fecha || '') + '"></div>' +
+            '<div><input type="number" step="0.01" min="0" class="td-inp num" data-tdid="' + m.id + '" ' +
+              'data-tdcampo="monto" value="' + esc(String(m.monto || 0)) + '"></div>' +
+            '<div><button class="mini-btn" data-tddel="' + m.id + '" title="Borrar">✕</button></div>' +
+          '</div>').join('') +
+        '<div class="prow cols-td totales"><div class="nom">Total</div><div></div>' +
+          '<div class="num">' + plata(total) + '</div><div></div></div>' +
+        '</div>'
+      : '<div class="tabla"><div class="prow"><div class="res-vacio">' +
+        'Todavía no hay nada cargado acá. Agregalo abajo.</div></div></div>';
+  }
+
+  async function agregarTrabDet() {
+    if (!TD_ABIERTO) return;
+    const que = $('#tdQue').value.trim();
+    const monto = numOrNull('#tdMonto');
+    if (!que) { toast('¿Qué hizo?', 'warn'); $('#tdQue').focus(); return; }
+    if (!monto || monto <= 0) { toast('Poné cuánto se le paga', 'warn'); $('#tdMonto').focus(); return; }
+    const cb = COBROS.find(c => c.id === TD_ABIERTO.cobroId);
+
+    const fila = {
+      fecha: $('#tdFecha').value || hoyISO(),
+      tipo: 'egreso', categoria: 'Colaboradoras',
+      concepto: que, monto: monto,
+      colaboradora: TD_ABIERTO.nombre,
+      cliente_id: cb ? cb.cliente_id : null,
+      cobro_id: TD_ABIERTO.cobroId
+    };
+    if (!FALTA_M16 && TD_ABIERTO.user_id) fila.colaboradora_id = TD_ABIERTO.user_id;
+
+    const { data, error } = await SB.from('movimiento').insert(fila).select();
+    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+    if (data && data[0]) MOVIMIENTOS.unshift(data[0]);
+    $('#tdQue').value = ''; $('#tdMonto').value = '';
+    pintarTrabDet();
+    flashRes();
+    $('#tdQue').focus();
+  }
+
+  async function guardarTrabDet(id, campo, valor) {
     const m = MOVIMIENTOS.find(x => x.id === id);
     if (!m) return;
-    const nuevo = !m.pagado;
-    const { error } = await SB.from('movimiento')
-      .update({ pagado: nuevo, pagado_en: nuevo ? hoyISO() : null }).eq('id', id);
-    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
-    m.pagado = nuevo; m.pagado_en = nuevo ? hoyISO() : null;
-    renderDist();
+    let v;
+    if (campo === 'monto') {
+      v = valor === '' ? 0 : Number(valor);
+      if (isNaN(v) || v < 0) { toast('Ese monto no se entiende', 'warn'); pintarTrabDet(); return; }
+    } else if (campo === 'fecha') {
+      v = valor || m.fecha;
+    } else {
+      v = valor.trim();
+      if (!v) { toast('Poné qué hizo', 'warn'); pintarTrabDet(); return; }
+    }
+    const patch = {}; patch[campo] = v;
+    const { error } = await SB.from('movimiento').update(patch).eq('id', id);
+    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarTrabDet(); return; }
+    Object.assign(m, patch);
+    pintarTrabDet();
+    flashRes();
   }
 
-  async function pagarTodoDe(quien) {
-    const pend = trabajosDelMes().filter(m => !m.pagado && (m.colaboradora || '(sin nombre)') === quien);
-    if (!pend.length) return;
-    if (!confirm('Marcar como pagados los ' + pend.length + ' trabajos de ' + quien + '.\n\n¿Seguro?')) return;
-    for (let i = 0; i < pend.length; i++) {
-      const { error } = await SB.from('movimiento')
-        .update({ pagado: true, pagado_en: hoyISO() }).eq('id', pend[i].id);
-      if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
-      pend[i].pagado = true;
-    }
-    toast(pend.length + ' trabajo(s) marcados como pagados');
+  async function borrarTrabDet(id) {
+    const m = MOVIMIENTOS.find(x => x.id === id);
+    if (m && !confirm('Borrar "' + (m.concepto || 'este trabajo') + '".\n\n' +
+        'El neto del cobro vuelve a subir y el reparto se recalcula. ¿Seguro?')) return;
+    const { error } = await SB.from('movimiento').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    MOVIMIENTOS = MOVIMIENTOS.filter(x => x.id !== id);
+    pintarTrabDet();
+    flashRes();
+  }
+
+  function cerrarTrabDet() {
+    TD_ABIERTO = null;
+    cerrar('ovTrabDet');
     renderDist();
   }
 
@@ -4747,14 +5116,18 @@
     await refrescarPlata();
   }
 
-  // ── Modal: nuevo trabajo ─────────────────────────────────────
+  // ── Modal: nuevo trabajo (el de siempre, para cargar suelto) ──
   function abrirTrabajo() {
     if (FALTA_M14) { toast('Primero corré migracion-interno-14-plata.sql', 'warn'); return; }
-    $('#trQuien').value = '';
+    $('#trQuien').innerHTML = colabsDelMes()
+      .map(c => '<option value="' + esc(c.key) + '">' + esc(c.nombre) +
+        (c.suelta ? ' (sin cuenta)' : c.baja ? ' (de baja)' : '') + '</option>').join('') +
+      '<option value="__nueva">Otra persona…</option>';
+    $('#trOtra').value = '';
+    $('#trOtraWrap').style.display = 'none';
     $('#trQue').value = '';
     $('#trMonto').value = '';
     $('#trFecha').value = hoyISO();
-    $('#trPagado').classList.remove('on');
 
     // Solo los cobros del mes que estás mirando: el trabajo tiene que
     // colgar de uno para que baje el neto del reparto.
@@ -4766,73 +5139,43 @@
           ' · ' + esc(ct ? ct.nombre : '—') + '</option>';
       }).join('');
 
-    // Las que ya trabajaron alguna vez, para no escribir el nombre a mano.
-    const previas = [...new Set(MOVIMIENTOS.map(m => m.colaboradora).filter(Boolean))].sort();
-    $('#trSugeridas').innerHTML = previas.map(v => '<option value="' + esc(v) + '">').join('');
-
     abrir('ovTrabajo');
-    setTimeout(() => $('#trQuien').focus(), 60);
+    setTimeout(() => $('#trQue').focus(), 60);
   }
 
   async function guardarTrabajo() {
-    const quien = $('#trQuien').value.trim();
+    const sel = $('#trQuien').value;
     const que = $('#trQue').value.trim();
     const monto = numOrNull('#trMonto');
-    if (!quien) { toast('¿Quién lo hizo?', 'warn'); $('#trQuien').focus(); return; }
+    let nombre = '', userId = null;
+
+    if (sel === '__nueva') {
+      nombre = $('#trOtra').value.trim();
+      if (!nombre) { toast('¿Cómo se llama?', 'warn'); $('#trOtra').focus(); return; }
+    } else {
+      const f = colabsDelMes().find(c => c.key === sel);
+      if (!f) { toast('¿Quién lo hizo?', 'warn'); return; }
+      nombre = f.nombre; userId = f.user_id;
+    }
     if (!que) { toast('¿Qué hizo?', 'warn'); $('#trQue').focus(); return; }
     if (!monto || monto <= 0) { toast('Poné cuánto se le paga', 'warn'); $('#trMonto').focus(); return; }
 
     const cbId = $('#trCobro').value || null;
     const cb = cbId ? COBROS.find(c => c.id === cbId) : null;
-    const pagado = $('#trPagado').classList.contains('on');
 
-    const { error } = await SB.from('movimiento').insert({
+    const fila = {
       fecha: $('#trFecha').value || hoyISO(),
       tipo: 'egreso', categoria: 'Colaboradoras',
-      colaboradora: quien, concepto: que, monto: monto,
+      colaboradora: nombre, concepto: que, monto: monto,
       cliente_id: cb ? cb.cliente_id : null,
-      cobro_id: cbId,
-      pagado: pagado,
-      pagado_en: pagado ? hoyISO() : null
-    });
+      cobro_id: cbId
+    };
+    if (!FALTA_M16 && userId) fila.colaboradora_id = userId;
+
+    const { error } = await SB.from('movimiento').insert(fila);
     if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
     cerrar('ovTrabajo');
     toast('Trabajo cargado');
-    await refrescarPlata();
-  }
-
-  // ── Modal: pago a una socia ──────────────────────────────────
-  function abrirPagoSocia() {
-    $('#psQuien').innerHTML = PERSONAS.filter(p => p.rol === 'socia')
-      .map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
-    $('#psMonto').value = '';
-    $('#psFecha').value = hoyISO();
-    $('#psNotas').value = '';
-    $('#psMes').textContent = mesLargo(PERIODO);
-    abrir('ovPagoSocia');
-    setTimeout(() => $('#psMonto').focus(), 60);
-  }
-
-  async function guardarPagoSocia() {
-    const monto = numOrNull('#psMonto');
-    if (!monto || monto <= 0) { toast('Poné el monto', 'warn'); $('#psMonto').focus(); return; }
-    const { error } = await SB.from('pago_socia').insert({
-      user_id: $('#psQuien').value,
-      periodo: PERIODO,
-      monto: monto,
-      fecha: $('#psFecha').value || hoyISO(),
-      notas: $('#psNotas').value.trim() || null
-    });
-    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
-    cerrar('ovPagoSocia');
-    toast('Pago registrado');
-    await refrescarPlata();
-  }
-
-  async function borrarPagoSocia(id) {
-    if (!confirm('Borrar este pago del registro.\n\n¿Seguro?')) return;
-    const { error } = await SB.from('pago_socia').delete().eq('id', id);
-    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
     await refrescarPlata();
   }
 
@@ -5710,6 +6053,12 @@
       const c = CLIENTES.find(x => x.id === el.dataset.edid);
       return esc(c ? c.nombre : '');
     }
+    if (el.dataset.edt === 'pg') {
+      const p = pagoQ(el.dataset.edid, campo === 'm1' || campo === 'f1' ? 1 : 2);
+      if (!p) return '<span class="cel-nada">—</span>';
+      if (campo[0] === 'm') return plata(p.monto);
+      return p.fecha ? fechaDia(p.fecha) : '<span class="cel-nada">—</span>';
+    }
     const ct = contratoDe(el.dataset.edid);
     if (!ct) return '';
     if (campo === 'monto') return plata(ct.monto);
@@ -5734,6 +6083,11 @@
     if (el.dataset.edt === 'cl') {
       const c = CLIENTES.find(x => x.id === el.dataset.edid);
       return c ? (c.nombre || '') : '';
+    }
+    if (el.dataset.edt === 'pg') {
+      const p = pagoQ(el.dataset.edid, campo === 'm1' || campo === 'f1' ? 1 : 2);
+      if (!p) return '';
+      return campo[0] === 'm' ? String(p.monto || '') : (p.fecha || '');
     }
     const ct = contratoDe(el.dataset.edid);
     if (!ct) return '';
@@ -5829,6 +6183,7 @@
   async function guardarCelda(el, valor) {
     const t = el.dataset.edt, id = el.dataset.edid, campo = el.dataset.ed, tipo = el.dataset.edtipo;
     try {
+      if (t === 'pg') { await guardarQuincena(el, id, campo, valor); return; }
       if (t === 'mv') {
         const m = MOVIMIENTOS.find(x => x.id === id);
         if (!m) return;
@@ -8241,16 +8596,16 @@
       return;
     }
     if (e.target.closest('#nuTrabajo')) { abrirTrabajo(); return; }
-    if (e.target.closest('#nuPagoSocia')) { abrirPagoSocia(); return; }
 
-    const tp = e.target.closest('[data-trabpago]');
-    if (tp) { alternarPagoTrabajo(tp.dataset.trabpago); return; }
+    // La celda «Pago Ludmi» de la grilla: abre el detalle.
+    const tc = e.target.closest('[data-tdcel]');
+    if (tc) {
+      const p = tc.dataset.tdcel.split('|');
+      abrirTrabDet(p[0], p.slice(1).join('|'));
+      return;
+    }
     const td = e.target.closest('[data-trabdel]');
     if (td) { borrarTrabajo(td.dataset.trabdel); return; }
-    const pt = e.target.closest('[data-pagartodo]');
-    if (pt) { pagarTodoDe(pt.dataset.pagartodo); return; }
-    const pd = e.target.closest('[data-pagodel]');
-    if (pd) { borrarPagoSocia(pd.dataset.pagodel); return; }
 
     const c = e.target.closest('[data-ed]');
     if (c) {
@@ -8262,12 +8617,34 @@
     }
   });
 
-  $('#trPagado').addEventListener('click', function () { this.classList.toggle('on'); });
   $('#trGuardar').addEventListener('click', () => {
     guardarTrabajo().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
   });
-  $('#psGuardar').addEventListener('click', () => {
-    guardarPagoSocia().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  $('#trQuien').addEventListener('change', function () {
+    $('#trOtraWrap').style.display = this.value === '__nueva' ? '' : 'none';
+    if (this.value === '__nueva') $('#trOtra').focus();
+  });
+
+  // ── Eventos del detalle de una celda «Pago …» ────────────────
+  $('#ovTrabDet').addEventListener('click', e => {
+    if (e.target.closest('[data-tdcerrar]')) { cerrarTrabDet(); return; }
+    const d = e.target.closest('[data-tddel]');
+    if (d) { borrarTrabDet(d.dataset.tddel); return; }
+  });
+  $('#tdAgregar').addEventListener('click', () => {
+    agregarTrabDet().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  });
+  $('#ovTrabDet').addEventListener('change', e => {
+    const i = e.target.closest('[data-tdid]');
+    if (i) guardarTrabDet(i.dataset.tdid, i.dataset.tdcampo, i.value);
+  });
+  $('#ovTrabDet').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (e.target.id === 'tdQue' || e.target.id === 'tdMonto' || e.target.id === 'tdFecha') {
+      e.preventDefault(); $('#tdAgregar').click(); return;
+    }
+    const i = e.target.closest('[data-tdid]');
+    if (i) { e.preventDefault(); i.blur(); }
   });
 
   // ── Eventos de la plata ──────────────────────────────────────
