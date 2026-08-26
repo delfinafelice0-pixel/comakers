@@ -1562,6 +1562,26 @@
     grid-template-columns: minmax(140px,1.4fr) 96px 122px 116px 88px 116px 88px 116px 116px 108px;
   }
   .cols-pago .nom .sub { display: block; }
+
+  /* Filtro de la tabla de Pagos */
+  .filtro-pago { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filtro-pago button {
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 13px; font-size: 12px; cursor: pointer;
+    font-family: var(--body);
+  }
+  .filtro-pago button:hover { border-color: var(--ink-soft); }
+  .filtro-pago button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  /* Fichas sin cuenta en Equipo */
+  .tag-estado.ficha { background: var(--line-soft); color: var(--ink-mute); }
+  .sep-inv { height: 1px; background: var(--line); margin: 20px 0 16px; }
+  .mail-ed {
+    border-radius: 5px; padding: 2px 5px; margin: -2px -5px;
+    border: 1px dashed var(--line); display: inline-block; min-width: 90px;
+  }
+  .mail-ed:focus { outline: none; border-style: solid; border-color: var(--ink); }
+  .persona.baja .tag-estado.ficha { opacity: .7; }
   .cols-td { grid-template-columns: minmax(0,1fr) 130px 108px 34px; }
   .td-inp {
     width: 100%; border: 1px solid var(--line); border-radius: 7px;
@@ -1733,7 +1753,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 16:32</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 16:49</div>
     </div>
   </aside>
 
@@ -2814,9 +2834,26 @@
     EQUIPO = (error || !data) ? [] : data;
     // El propio usuario siempre tiene que estar en la lista
     if (ME && !EQUIPO.some(p => p.id === ME.id)) EQUIPO.unshift(ME);
-    // Los selectores solo ofrecen gente activa; las bajas siguen en
-    // EQUIPO para que su nombre no desaparezca del historial.
-    PERSONAS = EQUIPO.filter(p => p.activo !== false);
+
+    // Las fichas sin cuenta (Pauli y compañía) van en la MISMA lista.
+    // Vos las ves como a cualquiera del equipo; abajo son otra tabla
+    // porque no tienen usuario ni contraseña.
+    const pe = await SB.from('persona_externa').select('*').order('nombre');
+    if (pe.error) {
+      FALTA_M17 = true;
+    } else {
+      (pe.data || []).forEach(x => EQUIPO.push({
+        id: x.id, nombre: x.nombre, email: x.email || '', tipo: 'agencia',
+        rol: 'equipo', activo: x.activo !== false, notas: x.notas,
+        ext: true          // ← sin cuenta
+      }));
+      EQUIPO.sort((a, b) => (a.nombre || a.email || '').localeCompare(b.nombre || b.email || ''));
+    }
+
+    // Los selectores solo ofrecen gente activa Y con cuenta: ser
+    // responsable de una tarea, ejecutora de un servicio o miembro de
+    // un proyecto son cosas que se miran entrando al panel.
+    PERSONAS = EQUIPO.filter(p => p.activo !== false && !p.ext);
   }
 
   const COLS_PROY = 'id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por';
@@ -3728,9 +3765,17 @@
         '<div class="avatar-sm">' + esc(iniciales(n, p.email)) + '</div>' +
         '<div class="nom"><span contenteditable="true" data-pcampo="nombre" data-persona="' + p.id + '">' +
           esc(p.nombre || '') + '</span>' + (yo ? '<span class="yo">vos</span>' : '') + '</div>' +
-        '<div class="mail">' + esc(p.email || '') + '</div>' +
+        '<div class="mail">' +
+          (p.ext
+            ? '<span contenteditable="true" data-pcampo="email" data-persona="' + p.id + '"' +
+              ' class="mail-ed">' + esc(p.email || '') + '</span>'
+            : esc(p.email || '')) + '</div>' +
         '<div>' +
-          (yo
+          // La ficha sin cuenta no elige rol: no entra al panel, así que
+          // no hay permisos que darle. Solo cobra.
+          (p.ext
+            ? '<span class="tag-estado ficha">Sin cuenta</span>'
+            : yo
             ? '<span class="tag-estado">' + (ROLES[p.rol] || 'Equipo') + '</span>'
             : '<select class="sel" data-prol="' + p.id + '">' +
                 Object.keys(ROLES).map(r => '<option value="' + r + '"' +
@@ -3738,7 +3783,9 @@
               '</select>') +
         '</div>' +
         '<div><span class="tag-estado' + (baja ? ' baja' : '') + '">' +
-          (baja ? 'Dada de baja' : abiertas + ' abierta' + (abiertas === 1 ? '' : 's')) + '</span></div>' +
+          (baja ? 'Dada de baja'
+                : p.ext ? 'Cobra, no entra'
+                : abiertas + ' abierta' + (abiertas === 1 ? '' : 's')) + '</span></div>' +
         '<div class="acc">' +
           (yo ? '' :
             '<button class="mini-btn" data-pbaja="' + p.id + '">' +
@@ -3774,7 +3821,38 @@
           '<button class="btn-primary" id="invBtn">Invitar</button>' +
         '</div>' +
         '<div class="res-sub" id="invAviso" style="margin-top:10px">' + esc(INV_AVISO) + '</div>' +
+        '<div class="sep-inv"></div>' +
+        '<h4>…o cargar a alguien que no entra al panel</h4>' +
+        '<div class="res-sub">Para las que trabajan con nosotras y cobran, pero no necesitan cuenta. ' +
+          'Aparecen acá y en Distribución como cualquiera del equipo. ' +
+          'No se les pueden asignar tareas ni servicios: no tendrían dónde verlos.</div>' +
+        '<div class="fila-inv">' +
+          '<input type="text" id="fichaNombre" placeholder="Nombre y apellido">' +
+          '<input type="text" id="fichaNota" placeholder="Nota (opcional): qué hace, cómo se le paga…">' +
+          '<button class="btn-ghost" id="fichaBtn">Cargar ficha</button>' +
+        '</div>' +
+        (FALTA_M17 ? '<div class="res-falta" style="margin-top:10px">Falta correr ' +
+          '<code>migracion-interno-17-personas-clientes.sql</code>. Hasta que la corras, ' +
+          'las fichas sin cuenta no se guardan.</div>' : '') +
       '</div>';
+  }
+
+  async function crearFicha() {
+    const nombre = $('#fichaNombre').value.trim();
+    if (!nombre) { toast('¿Cómo se llama?', 'warn'); $('#fichaNombre').focus(); return; }
+    if (FALTA_M17) { toast('Primero corré migracion-interno-17-personas-clientes.sql', 'warn'); return; }
+    const nota = $('#fichaNota').value.trim() || null;
+    const { data, error } = await SB.from('persona_externa')
+      .insert({ nombre: nombre, notas: nota }).select();
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+    const x = (data && data[0]) || null;
+    if (x) {
+      EQUIPO.push({ id: x.id, nombre: x.nombre, email: '', tipo: 'agencia',
+                    rol: 'equipo', activo: true, notas: x.notas, ext: true });
+      EQUIPO.sort((a, b) => (a.nombre || a.email || '').localeCompare(b.nombre || b.email || ''));
+    }
+    toast(nombre + ' quedó cargada');
+    render();
   }
 
   async function guardarPersona(id, campo, valor) {
@@ -3784,14 +3862,16 @@
     if ((anterior === null || anterior === undefined ? '' : anterior) === valor) return;
     p[campo] = valor;
     const patch = {}; patch[campo] = valor;
-    const { error } = await SB.from('profiles').update(patch).eq('id', id);
+    // La ficha sin cuenta vive en otra tabla; para vos es la misma lista.
+    const { error } = await SB.from(p.ext ? 'persona_externa' : 'profiles')
+      .update(patch).eq('id', id);
     if (error) {
       p[campo] = anterior;
       toast('No se pudo guardar: ' + error.message, 'warn');
     } else {
       flashRes();
     }
-    PERSONAS = EQUIPO.filter(x => x.activo !== false);
+    PERSONAS = EQUIPO.filter(x => x.activo !== false && !x.ext);
     llenarSelects();
     render();
   }
@@ -3804,8 +3884,11 @@
     const abiertas = tareasAbiertasDe(id);
 
     if (!baja) {
-      let msg = '¿Dar de baja a ' + n + '?\n\nNo va a poder entrar más al panel ni desde una sesión ya abierta. ' +
-                'Su nombre sigue en todo lo que hizo.';
+      let msg = p.ext
+        ? '¿Dar de baja a ' + n + '?\n\nDeja de aparecer para cargarle trabajos nuevos. ' +
+          'Lo que ya cobró sigue donde está.'
+        : '¿Dar de baja a ' + n + '?\n\nNo va a poder entrar más al panel ni desde una sesión ya abierta. ' +
+          'Su nombre sigue en todo lo que hizo.';
       if (abiertas) msg += '\n\nOjo: le quedan ' + abiertas + ' tarea(s) abierta(s). Reasignalas antes o van a quedar sin dueño.';
       if (!confirm(msg)) return;
     }
@@ -4438,7 +4521,7 @@
   let CONTRATOS = [], CONTRATO_EJ = {}, COBROS = [], COBRO_EJ = {};
   let MOVIMIENTOS = [], REPARTO = null, SOCIA_PCT = {};
   let FALTA_M14 = false, PLATA_CARGADA = false;
-  let FALTA_M15 = false, FALTA_M16 = false;
+  let FALTA_M15 = false, FALTA_M16 = false, FALTA_M17 = false;
   let PERIODO = primerDelMes(new Date());
   let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
   let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
@@ -4596,7 +4679,8 @@
   // trabajos cargados este mes aunque no esté en Equipo — Pauli no
   // tiene cuenta y no por eso deja de cobrar.
   let PAGOS_PERSONA = [], DIST_TAB = 'trabajos';
-  let PG_FILAS = {};    // clave de fila → {user_id, persona, nombre}
+  let PG_FILAS = {};    // clave de fila → la persona de esa fila
+  let PG_FILTRO = 'todas';   // todas | socias | colaboradoras
   let TD_ABIERTO = null; // {cobroId, key} del detalle abierto
 
   function trabajosDelMes(periodo) {
@@ -4615,10 +4699,15 @@
   // cuenta manda el id; si no, el nombre escrito a mano, normalizado.
   function normNombre(s) { return String(s || '').trim().toLowerCase(); }
 
-  // Lo viejo está cargado como texto ("Ludmi") y la ficha dice
-  // "Ludmila Depau". Si hay UNA sola persona que empieza así, es esa.
-  // Si hay dos que podrían serlo, no adivina: queda como nombre suelto.
-  function perfilPorNombre(txt) {
+  // Toda persona se identifica igual en las dos pestañas: por su fila
+  // de Equipo. `u:` si tiene cuenta, `x:` si es una ficha sin cuenta.
+  // `t:` es el resto histórico, de cuando esto era texto escrito a mano.
+  function clavePersona(p) { return (p.ext ? 'x:' : 'u:') + p.id; }
+
+  // Lo viejo quedó como texto ("Ludmi") y la ficha dice "Ludmila
+  // Depau". Si hay UNA sola persona que empieza así, es esa. Si hay dos
+  // que podrían serlo, no adivina: queda como nombre suelto.
+  function personaPorNombre(txt) {
     const n = normNombre(txt);
     if (!n) return null;
     const exacto = EQUIPO.filter(p => normNombre(p.nombre) === n);
@@ -4626,22 +4715,29 @@
     const empieza = EQUIPO.filter(p => normNombre(p.nombre).indexOf(n) === 0);
     return empieza.length === 1 ? empieza[0] : null;
   }
-  function perfilDeMov(m) {
-    if (m.colaboradora_id) return EQUIPO.find(x => x.id === m.colaboradora_id) || null;
-    return perfilPorNombre(m.colaboradora);
+  function personaDe(userId, extId, texto) {
+    if (userId) return EQUIPO.find(x => x.id === userId && !x.ext) || null;
+    if (extId)  return EQUIPO.find(x => x.id === extId && x.ext) || null;
+    return personaPorNombre(texto);
   }
-  function claveColab(m) {
-    if (m.colaboradora_id) return 'u:' + m.colaboradora_id;
-    const p = perfilPorNombre(m.colaboradora);
-    if (p) return 'u:' + p.id;
-    const n = normNombre(m.colaboradora);
+  function perfilDeMov(m) { return personaDe(m.colaboradora_id, m.persona_ext_id, m.colaboradora); }
+
+  function claveDe(userId, extId, texto) {
+    if (userId) return 'u:' + userId;
+    if (extId)  return 'x:' + extId;
+    const p = personaPorNombre(texto);
+    if (p) return clavePersona(p);
+    const n = normNombre(texto);
     return n ? 't:' + n : 't:sin nombre';
   }
-  function clavePago(p) {
-    if (p.user_id) return 'u:' + p.user_id;
-    const q = perfilPorNombre(p.persona);
-    if (q) return 'u:' + q.id;
-    return 't:' + (normNombre(p.persona) || 'sin nombre');
+  function claveColab(m) { return claveDe(m.colaboradora_id, m.persona_ext_id, m.colaboradora); }
+  function clavePago(p)  { return claveDe(p.user_id, p.persona_ext_id, p.persona); }
+
+  // Las tres columnas que identifican a una persona en la base, según
+  // de dónde salga. Se usa para insertar sin repetir el criterio.
+  function comoGuardar(f) {
+    if (f.ext) return { colaboradora_id: null, persona_ext_id: f.id };
+    return { colaboradora_id: f.user_id || f.id, persona_ext_id: null };
   }
 
   function sociasOrdenadas() {
@@ -4654,17 +4750,20 @@
   function colabsDelMes() {
     const out = [], visto = {};
     EQUIPO.filter(p => p.rol !== 'socia' && p.activo !== false).forEach(p => {
-      const k = 'u:' + p.id; visto[k] = 1;
-      out.push({ key: k, user_id: p.id, persona: null,
+      const k = clavePersona(p); visto[k] = 1;
+      out.push({ key: k, user_id: p.ext ? null : p.id, ext: !!p.ext, id: p.id,
                  nombre: p.nombre || p.email, baja: false, suelta: false });
     });
+    // Y las que estén de baja pero hayan trabajado este mes: si cobró,
+    // tiene que verse.
     trabajosDelMes().forEach(m => {
       const k = claveColab(m);
       if (visto[k]) return;
       visto[k] = 1;
       const p = perfilDeMov(m);
       out.push({
-        key: k, user_id: p ? p.id : null, persona: p ? null : (m.colaboradora || 'sin nombre'),
+        key: k, user_id: p && !p.ext ? p.id : null, ext: !!(p && p.ext),
+        id: p ? p.id : null,
         nombre: p ? (p.nombre || p.email) : (m.colaboradora || 'sin nombre'),
         baja: p ? p.activo === false : false, suelta: !p
       });
@@ -4854,14 +4953,18 @@
 
   function filasPago() {
     const out = [];
-    sociasOrdenadas().forEach(p => out.push({
-      key: 'u:' + p.id, user_id: p.id, persona: null,
-      nombre: p.nombre || p.email, rol: 'Socia', suelta: false, baja: false
-    }));
-    colabsDelMes().forEach(c => out.push({
-      key: c.key, user_id: c.user_id, persona: c.persona,
-      nombre: c.nombre, rol: 'Colaboradora', suelta: c.suelta, baja: c.baja
-    }));
+    if (PG_FILTRO !== 'colaboradoras') {
+      sociasOrdenadas().forEach(p => out.push({
+        key: 'u:' + p.id, user_id: p.id, ext: false, id: p.id,
+        nombre: p.nombre || p.email, rol: 'Socia', suelta: false, baja: false
+      }));
+    }
+    if (PG_FILTRO !== 'socias') {
+      colabsDelMes().forEach(c => out.push({
+        key: c.key, user_id: c.user_id, ext: c.ext, id: c.id,
+        nombre: c.nombre, rol: 'Colaboradora', suelta: c.suelta, baja: c.baja
+      }));
+    }
     return out;
   }
 
@@ -4876,8 +4979,9 @@
     const totPag = filas.reduce((a, f) => a + pag[f.key], 0);
 
     const kpis = '<div class="kpis">' +
-      kpi('Le corresponde al equipo', plata(totCorr),
-          filas.length + ' persona(s) este mes', '') +
+      kpi('Le corresponde' + (PG_FILTRO === 'todas' ? ' al equipo'
+            : PG_FILTRO === 'socias' ? ' a las socias' : ' a las colaboradoras'),
+          plata(totCorr), filas.length + ' persona(s) este mes', '') +
       kpi('Pagado', plata(totPag), pct(totPag, totCorr) + ' de lo del mes', 'verde') +
       kpi('Falta girar', plata(totCorr - totPag),
           filas.filter(f => corr[f.key] - pag[f.key] > 1).length + ' con saldo',
@@ -4885,6 +4989,12 @@
       kpi('Fondo CoMakers', plata(cobradosDelMes().reduce((a, c) => a + repartoDe(c).fondo, 0)),
           'No se reparte: queda en la caja', '') +
     '</div>';
+
+    const filtro = '<div class="filtro-pago">' +
+      ['todas', 'socias', 'colaboradoras'].map(f =>
+        '<button data-pgfiltro="' + f + '"' + (PG_FILTRO === f ? ' class="on"' : '') + '>' +
+        (f === 'todas' ? 'Todas' : f === 'socias' ? 'Socias' : 'Colaboradoras') + '</button>').join('') +
+      '</div>';
 
     const cab = '<div class="prow cab cols-pago">' +
       '<div>Persona</div><div class="oculta-mob">Rol</div>' +
@@ -4898,7 +5008,8 @@
       const q1 = pagoQ(f.key, 1), q2 = pagoQ(f.key, 2);
       return '<div class="prow cols-pago" data-pgfila="' + esc(f.key) + '">' +
         '<div class="nom">' + esc(f.nombre) +
-          (f.suelta ? '<span class="sub">sin cuenta en Equipo</span>'
+          (f.suelta ? '<span class="sub">nombre suelto — cargala en Equipo</span>'
+           : f.ext ? '<span class="sub">sin cuenta</span>'
            : f.baja ? '<span class="sub">dada de baja</span>' : '') + '</div>' +
         '<div class="oculta-mob" style="color:var(--ink-mute)">' + f.rol + '</div>' +
         '<div class="num">' + plata(corr[f.key]) + '</div>' +
@@ -4928,7 +5039,7 @@
       '<div class="num' + (totCorr - totPag > 1 ? ' neg' : '') + '">' + plata(totCorr - totPag) + '</div>' +
       '<div></div></div>';
 
-    return kpis +
+    return kpis + filtro +
       '<div class="cel-ayuda">«Le corresponde» lo calcula el panel: para las socias, el reparto de los ' +
         'cobros del mes; para las colaboradoras, la suma de sus trabajos. Las quincenas las escribís vos: ' +
         'tocá la celda y escribí el monto.</div>' +
@@ -4972,9 +5083,12 @@
       if (isNaN(n) || n < 0) { toast('Ese monto no se entiende', 'warn'); pintarCelda(el); return; }
       if (!p && n > 0) {
         const fila = {
-          user_id: f.user_id || null, persona: f.user_id ? null : f.nombre,
+          user_id: f.ext ? null : (f.user_id || null),
+          persona_ext_id: f.ext ? f.id : null,
+          persona: (f.ext || f.user_id) ? null : f.nombre,
           periodo: PERIODO, monto: n, quincena: q, fecha: hoyISO()
         };
+        if (FALTA_M17) { delete fila.persona_ext_id; if (f.ext) fila.persona = f.nombre; }
         const { data, error } = await SB.from('pago_persona').insert(fila).select();
         if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
         if (data && data[0]) PAGOS_PERSONA.push(data[0]);
@@ -5006,7 +5120,7 @@
     const f = colabsDelMes().find(c => c.key === key);
     if (!cb || !f) return;
     TD_ABIERTO = { cobroId: cobroId, key: key, nombre: f.nombre,
-                   user_id: f.user_id, persona: f.persona };
+                   user_id: f.user_id, ext: f.ext, id: f.id };
     const ct = contratoDe(cb.contrato_id);
     $('#tdTitulo').textContent = f.nombre + ' · ' + nombreCliente(cb.cliente_id);
     $('#tdSub').innerHTML = esc(ct ? ct.nombre : '—') + ' · ' + mesLargo(PERIODO) +
@@ -5059,6 +5173,7 @@
       cobro_id: TD_ABIERTO.cobroId
     };
     if (!FALTA_M16 && TD_ABIERTO.user_id) fila.colaboradora_id = TD_ABIERTO.user_id;
+    if (!FALTA_M17 && TD_ABIERTO.ext) fila.persona_ext_id = TD_ABIERTO.id;
 
     const { data, error } = await SB.from('movimiento').insert(fila).select();
     if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
@@ -5121,8 +5236,9 @@
     if (FALTA_M14) { toast('Primero corré migracion-interno-14-plata.sql', 'warn'); return; }
     $('#trQuien').innerHTML = colabsDelMes()
       .map(c => '<option value="' + esc(c.key) + '">' + esc(c.nombre) +
-        (c.suelta ? ' (sin cuenta)' : c.baja ? ' (de baja)' : '') + '</option>').join('') +
+        (c.suelta ? ' (nombre suelto)' : c.ext ? ' (sin cuenta)' : c.baja ? ' (de baja)' : '') + '</option>').join('') +
       '<option value="__nueva">Otra persona…</option>';
+    $('#trQuien').value = colabsDelMes().length ? $('#trQuien').options[0].value : '__nueva';
     $('#trOtra').value = '';
     $('#trOtraWrap').style.display = 'none';
     $('#trQue').value = '';
@@ -5147,15 +5263,31 @@
     const sel = $('#trQuien').value;
     const que = $('#trQue').value.trim();
     const monto = numOrNull('#trMonto');
-    let nombre = '', userId = null;
+    let nombre = '', userId = null, extId = null;
 
     if (sel === '__nueva') {
+      // Se carga como ficha de Equipo en el momento: así queda en la
+      // misma lista que el resto y no hay que anotarla en dos lados.
       nombre = $('#trOtra').value.trim();
       if (!nombre) { toast('¿Cómo se llama?', 'warn'); $('#trOtra').focus(); return; }
+      if (!FALTA_M17) {
+        const ya = EQUIPO.find(p => normNombre(p.nombre) === normNombre(nombre));
+        if (ya) { nombre = ya.nombre; if (ya.ext) extId = ya.id; else userId = ya.id; }
+        else {
+          const { data, error } = await SB.from('persona_externa')
+            .insert({ nombre: nombre }).select();
+          if (error) { toast('No se pudo crear la ficha: ' + error.message, 'warn'); return; }
+          if (data && data[0]) {
+            extId = data[0].id;
+            EQUIPO.push({ id: extId, nombre: nombre, email: '', tipo: 'agencia',
+                          rol: 'equipo', activo: true, ext: true });
+          }
+        }
+      }
     } else {
       const f = colabsDelMes().find(c => c.key === sel);
       if (!f) { toast('¿Quién lo hizo?', 'warn'); return; }
-      nombre = f.nombre; userId = f.user_id;
+      nombre = f.nombre; userId = f.user_id; if (f.ext) extId = f.id;
     }
     if (!que) { toast('¿Qué hizo?', 'warn'); $('#trQue').focus(); return; }
     if (!monto || monto <= 0) { toast('Poné cuánto se le paga', 'warn'); $('#trMonto').focus(); return; }
@@ -5171,6 +5303,7 @@
       cobro_id: cbId
     };
     if (!FALTA_M16 && userId) fila.colaboradora_id = userId;
+    if (!FALTA_M17 && extId) fila.persona_ext_id = extId;
 
     const { error } = await SB.from('movimiento').insert(fila);
     if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
@@ -8564,6 +8697,10 @@
     const b = e.target.closest('[data-pbaja]');
     if (b) { alternarBaja(b.dataset.pbaja); return; }
     if (e.target.closest('#invBtn')) { invitar(); return; }
+    if (e.target.closest('#fichaBtn')) {
+      crearFicha().catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+      return;
+    }
   });
   $('#modEquipo').addEventListener('change', e => {
     const sel = e.target.closest('[data-prol]');
@@ -8578,6 +8715,10 @@
     const ce = e.target.closest ? e.target.closest('[data-pcampo]') : null;
     if (ce) { e.preventDefault(); ce.blur(); return; }
     if (e.target.id === 'invNombre' || e.target.id === 'invEmail') { e.preventDefault(); invitar(); }
+    if (e.target.id === 'fichaNombre' || e.target.id === 'fichaNota') {
+      e.preventDefault();
+      crearFicha().catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+    }
   });
 
   // ── Clientes ─────────────────────────────────────────────────
@@ -8587,6 +8728,9 @@
   $('#modDist').addEventListener('click', e => {
     const t = e.target.closest('[data-disttab]');
     if (t) { DIST_TAB = t.dataset.disttab; renderDist(); return; }
+
+    const pf = e.target.closest('[data-pgfiltro]');
+    if (pf) { PG_FILTRO = pf.dataset.pgfiltro; renderDist(); return; }
 
     const mes = e.target.closest('[data-dmes]');
     if (mes) {

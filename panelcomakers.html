@@ -7740,12 +7740,12 @@
         <div class="section-head">
           <div class="section-head-left">
             <div class="section-title">Clientes</div>
-            <div class="section-subtitle">Organizaciones de tu agencia · quién las atiende</div>
+            <div class="section-subtitle">Organizaciones de tu agencia · quién las atiende. Los clientes se dan de alta en el panel interno; acá se configuran.</div>
           </div>
-          <button class="section-action" id="nuevoClienteBtn">
+          <a class="section-action" id="nuevoClienteBtn" href="/interno.html" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Nuevo cliente
-          </button>
+            Cargar en el panel interno
+          </a>
         </div>
         <div style="overflow-x: auto;">
           <table class="equipo-table">
@@ -11596,9 +11596,20 @@
 
   async function cargarClientes() {
     try {
-      const { data: cls } = await window.__sb.from('clientes')
-        .select('id, nombre, agencia, slug')
-        .order('agencia', { ascending: true }).order('nombre', { ascending: true });
+      let cls = null;
+      {
+        const r = await window.__sb.from('clientes')
+          .select('id, nombre, agencia, slug, activo')
+          .order('agencia', { ascending: true }).order('nombre', { ascending: true });
+        if (r.error) {
+          const r2 = await window.__sb.from('clientes')
+            .select('id, nombre, agencia, slug')
+            .order('agencia', { ascending: true }).order('nombre', { ascending: true });
+          cls = r2.data || [];
+        } else {
+          cls = (r.data || []).filter(c => c.activo !== false);
+        }
+      }
       const { data: acc } = await window.__sb.from('acceso_cliente').select('cliente_id');
       const counts = {};
       (acc || []).forEach(a => { counts[a.cliente_id] = (counts[a.cliente_id] || 0) + 1; });
@@ -11814,7 +11825,12 @@
   });
 
   // Nuevo cliente
-  document.getElementById('nuevoClienteBtn').addEventListener('click', async () => {
+  // El alta de clientes se hace en el panel INTERNO: no puede haber dos
+  // lugares donde crear lo mismo. El botón de arriba ahora es un link
+  // que lleva para allá. Este bloque quedó sin uso — se le engancha a un
+  // elemento que no existe, en vez de borrarlo, por si vuelve.
+  (document.getElementById('altaClienteViejo') || { addEventListener: function () {} })
+    .addEventListener('click', async () => {
     let personaOpts = [];
     try {
       let { data: ag, error: eAg } = await window.__sb.from('profiles')
@@ -13393,14 +13409,33 @@
 
     // Bind toggles
     cont.querySelectorAll('[data-modulo-toggle]').forEach(sw => {
-      sw.addEventListener('click', () => {
+      sw.addEventListener('click', async () => {
         if (sw.classList.contains('disabled')) return;
         const slug = sw.dataset.moduloToggle;
         const current = CLIENTES[currentClient].modulos[slug];
-        CLIENTES[currentClient].modulos[slug] = !current;
+        const nuevo = !current;
+        CLIENTES[currentClient].modulos[slug] = nuevo;
         renderModulosConfig();
         applyModulosToSidebar();
-        showToast((current ? 'Módulo desactivado' : 'Módulo activado') + ': ' + MODULOS_DEF.find(x => x.slug === slug).label);
+
+        // Antes esto vivía solo en la memoria del navegador: apagabas un
+        // módulo, recargabas y volvía prendido. Ahora se guarda.
+        const cid = CLIENTES[currentClient].id;
+        if (!cid || !window.__sb) {
+          showToast('Cambiado, pero sin guardar: falta el cliente en la base');
+          return;
+        }
+        const { error } = await window.__sb.from('cliente_modulo')
+          .upsert({ cliente_id: cid, modulo: slug, activo: nuevo, actualizado_en: new Date().toISOString() },
+                  { onConflict: 'cliente_id,modulo' });
+        if (error) {
+          CLIENTES[currentClient].modulos[slug] = current;
+          renderModulosConfig();
+          applyModulosToSidebar();
+          showToast('No se pudo guardar: ' + error.message);
+          return;
+        }
+        showToast((nuevo ? 'Módulo activado' : 'Módulo desactivado') + ': ' + MODULOS_DEF.find(x => x.slug === slug).label);
       });
     });
   }
@@ -13984,8 +14019,18 @@
 
     // 1) Clientes accesibles (la RLS ya los filtra: el super ve todos)
     try {
-      const { data: cls } = await window.__sb.from('clientes')
-        .select('id, nombre, slug, agencia').order('nombre');
+      // Un cliente guardado en el archivo desde el interno desaparece
+      // de acá. `activo` puede no existir todavía: si falla, se pide sin ella.
+      let cls = null;
+      {
+        const r = await window.__sb.from('clientes').select('id, nombre, slug, agencia, activo').order('nombre');
+        if (r.error) {
+          const r2 = await window.__sb.from('clientes').select('id, nombre, slug, agencia').order('nombre');
+          cls = r2.data;
+        } else {
+          cls = (r.data || []).filter(c => c.activo !== false);
+        }
+      }
       if (cls && cls.length) {
         const slugs = [];
         cls.forEach(c => {
@@ -14000,6 +14045,25 @@
           }
           CLIENTES[key].id = c.id;
         });
+        // Qué módulos tiene apagado cada uno. Sin fila = prendido, así
+        // que los clientes de antes siguen viéndose igual que siempre.
+        try {
+          const ids = cls.map(c => c.id);
+          const { data: mods, error: eMods } = await window.__sb
+            .from('cliente_modulo').select('cliente_id, modulo, activo').in('cliente_id', ids);
+          if (eMods) { window.__SIN_MODULOS = true; }
+          else {
+            const porId = {};
+            cls.forEach(c => { porId[c.id] = c.slug || ('c' + c.id); });
+            (mods || []).forEach(m => {
+              const key = porId[m.cliente_id];
+              if (key && CLIENTES[key] && CLIENTES[key].modulos) {
+                CLIENTES[key].modulos[m.modulo] = m.activo !== false;
+              }
+            });
+          }
+        } catch (e) { window.__SIN_MODULOS = true; }
+
         _clientesVisibles = slugs;
         if (!slugs.includes(currentClient)) currentClient = slugs[0];
       } else {
