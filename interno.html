@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Interno · CoMakers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -947,6 +948,35 @@
   .dia.finde { background: rgba(203,238,243,0.16); }
   .dia.drag-over { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--ink); }
   .dia-num { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  /* El "+" de cada día. Aparece al pasar por encima para no competir
+     con las barras, que son lo que se mira primero. */
+  .dia-add {
+    position: absolute; top: 4px; right: 5px; width: 19px; height: 19px;
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-mute);
+    border-radius: 6px; font-size: 14px; line-height: 1; cursor: pointer;
+    font-family: var(--body); padding: 0; opacity: 0; transition: opacity .12s;
+  }
+  .dia { position: relative; }
+  .dia:hover .dia-add { opacity: 1; }
+  .dia-add:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* El alta rápida se dibuja ADENTRO del día, pegada abajo y por
+     encima de las barras, para que no te la tapen mientras escribís. */
+  .quick-add {
+    position: absolute; left: 4px; right: 4px; bottom: 4px; z-index: 5;
+    background: var(--bg-elev); border: 1px solid var(--ink);
+    border-radius: 8px; box-shadow: var(--shadow); padding: 5px 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .quick-add input {
+    flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+    font-family: var(--body); font-size: 12px; color: var(--ink);
+  }
+  .quick-add .mas-op {
+    border: none; background: none; cursor: pointer; color: var(--ink-mute);
+    font-size: 14px; line-height: 1; padding: 2px 3px; flex-shrink: 0;
+  }
+  .quick-add .mas-op:hover { color: var(--ink); }
   .dia.fuera .dia-num { color: var(--ink-mute); opacity: 0.55; }
   .dia.hoy .dia-num {
     background: var(--ink); color: var(--bg-elev); border-radius: 50%;
@@ -6349,7 +6379,10 @@
       if (mesRef >= 0 && d.getMonth() !== mesRef) cls.push('fuera');
       if (i >= 5) cls.push('finde');
       if (iso === hoy) cls.push('hoy');
-      celdas += '<div class="' + cls.join(' ') + '" data-dia="' + iso + '"><div class="dia-num">' + d.getDate() + '</div></div>';
+      celdas += '<div class="' + cls.join(' ') + '" data-dia="' + iso + '">' +
+        '<div class="dia-num">' + d.getDate() + '</div>' +
+        '<button class="dia-add" data-diaadd="' + iso + '" title="Nueva tarea el ' + d.getDate() + '">+</button>' +
+        '</div>';
     }
 
     // Tareas que tocan esta semana, ordenadas: primero las que arrancan antes y duran más
@@ -6402,6 +6435,96 @@
     return '<div class="sem"><div class="sem-dias">' + celdas + '</div><div class="sem-barras">' + barras + mas + '</div></div>';
   }
 
+  // ── Alta rápida desde el calendario ──────────────────────────
+  // El calendario ya usa el click (abrir una barra) y el arrastre
+  // (mover una tarea). Lo único libre es el hueco vacío del día, así
+  // que ahí va: clickeás el vacío y se abre un renglón para escribir.
+  // Enter crea y deja el renglón abierto para la siguiente; Escape
+  // cierra; el "⋯" pasa al formulario completo con lo que escribiste.
+  let QUICK = null;
+
+  function cerrarQuick() {
+    if (QUICK && QUICK.parentNode) QUICK.parentNode.removeChild(QUICK);
+    QUICK = null;
+  }
+
+  function abrirQuick(iso) {
+    cerrarQuick();
+    const celda = $('#calendario').querySelector('[data-dia="' + iso + '"]');
+    if (!celda) return;
+
+    const cont = document.createElement('div');
+    cont.className = 'quick-add';
+    cont.dataset.quickdia = iso;
+    cont.innerHTML = '<input type="text" placeholder="Nueva tarea…">' +
+      '<button class="mas-op" title="Abrir el formulario completo">⋯</button>';
+    celda.appendChild(cont);
+    QUICK = cont;
+
+    const inp = cont.querySelector('input');
+    inp.focus();
+
+    inp.addEventListener('keydown', async e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cerrarQuick(); return; }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const titulo = inp.value.trim();
+        if (!titulo) { cerrarQuick(); return; }
+        inp.value = '';
+        inp.disabled = true;
+        await crearEnDia(iso, titulo);
+        // El repintado se llevó el renglón puesto: se abre de nuevo en
+        // el mismo día, para poder cargar varias seguidas.
+        abrirQuick(iso);
+      }
+    });
+
+    cont.querySelector('.mas-op').addEventListener('mousedown', e => {
+      e.preventDefault();
+      const titulo = inp.value.trim();
+      cerrarQuick();
+      abrirForm(null);
+      $('#fVence').value = iso;
+      if (titulo) $('#fTitulo').value = titulo;
+      setTimeout(() => $('#fTitulo').focus(), 80);
+    });
+
+    inp.addEventListener('blur', () => {
+      // Un ratito de gracia: si el blur viene de tocar el "⋯", ese
+      // handler ya corrió y cerró todo por su cuenta.
+      setTimeout(() => { if (QUICK === cont && document.activeElement !== inp) cerrarQuick(); }, 120);
+    });
+  }
+
+  async function crearEnDia(iso, titulo) {
+    const p = proyActivo();
+    const fila = {
+      titulo: titulo,
+      responsable_tipo: 'agencia',
+      responsable_id: ME ? ME.id : null,
+      cliente_id: p ? (p.cliente_id || null) : null,
+      urgencia: 'normal',
+      vence: iso,
+      visible_cliente: false
+    };
+    const { data, error } = await SB.from('tarea').insert(fila).select('id').single();
+    if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+
+    // Si estás parada adentro de un proyecto, la tarea entra ahí, en su
+    // primera sección. Si estás en la vista global, queda suelta.
+    if (p) {
+      const secs = seccionesDe(p.id);
+      await SB.from('tarea_proyecto').insert({
+        tarea_id: data.id, proyecto_id: p.id,
+        seccion_id: secs.length ? secs[0].id : null,
+        orden: Date.now() / 1000, principal: true
+      });
+      await SB.from('tarea').update({ proyecto_id: p.id }).eq('id', data.id);
+    }
+    await cargarTareas();
+    flashGuardado();
+  }
+
   // ── Drag & drop del calendario ───────────────────────────────
   let CAL_DRAG = null; // { id, modo: 'mover'|'ini'|'fin' }
 
@@ -6425,6 +6548,13 @@
     });
 
     $$('#calendario .dia').forEach(celda => {
+      // Click en el hueco vacío del día → alta rápida ahí mismo. Las
+      // barras tienen su propio click (abrir la tarea) y no llegan acá
+      // porque la capa de barras está por encima.
+      celda.addEventListener('click', e => {
+        if (e.target.closest('.quick-add')) return;
+        abrirQuick(celda.dataset.dia);
+      });
       celda.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; celda.classList.add('drag-over'); });
       celda.addEventListener('dragleave', () => celda.classList.remove('drag-over'));
       celda.addEventListener('drop', async e => {

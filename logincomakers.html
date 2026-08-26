@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión · CoMakers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #F7F6F9;
+    --bg-elev: #FFFFFF;
+    --ink: #1B1620;
+    --ink-soft: #5B525E;
+    --ink-mute: #938C99;
+    --line: #ECEAF0;
+    --accent: #FF82FF;
+    --accent-soft: #FFE9FE;
+    --lime: #D3FF99;
+    --coral: #F26A8D;
+    --warn: #F26A8D;
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'DM Sans', -apple-system, system-ui, sans-serif;
+    --radius: 10px;
+    --shadow: 0 1px 0 rgba(27,22,32,0.04), 0 1px 3px rgba(27,22,32,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--body);
+    background: var(--lime);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 2px 8px rgba(26,26,23,0.06);
+  }
+
+  .brand {
+    margin-bottom: 32px;
+  }
+  .brand-name {
+    font-family: var(--body);
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: baseline;
+    line-height: 1;
+  }
+  .brand-name em {
+    font-family: var(--display);
+    font-style: normal;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .brand-spark { width: 15px; height: 15px; margin-left: 6px; color: var(--accent); align-self: flex-start; flex-shrink: 0; }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  input[type="email"],
+  input[type="password"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  input.error {
+    border-color: var(--warn);
+  }
+
+  .error-msg {
+    font-size: 12px;
+    color: var(--warn);
+    margin-top: 8px;
+    display: none;
+  }
+  .error-msg.visible {
+    display: block;
+  }
+
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--ink);
+    border: none;
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .link-flojo {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; color: var(--ink-mute);
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .link-flojo:hover { color: var(--ink); }
+  .fila-olvide { display: flex; justify-content: flex-end; margin-top: -6px; }
+  .aviso-ok {
+    background: #ECFBD4; border-radius: 10px; padding: 11px 13px;
+    font-size: 13px; line-height: 1.5; margin-top: 14px;
+  }
+
+  .footer-note {
+    font-size: 12px;
+    color: var(--ink-mute);
+    text-align: center;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">
+    <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
+    <div class="brand-sub">Acceso al panel</div>
+  </div>
+
+  <h1>Iniciar sesión</h1>
+  <p class="subtitle">Ingresá con tu cuenta para ver tu panel.</p>
+
+  <form id="loginForm" novalidate>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="tu@email.com" autocomplete="email" required>
+    </div>
+    <div class="field">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
+
+    <div class="fila-olvide">
+      <button type="button" class="link-flojo" id="olvide">¿Olvidaste tu contraseña?</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg">Email o contraseña incorrectos. Intentá de nuevo.</div>
+    <div class="aviso-ok" id="avisoOk" style="display:none"></div>
+
+    <button type="submit" class="btn" id="submitBtn">Entrar</button>
+  </form>
+
+  <!-- Cuando volvés del mail de recuperación -->
+  <form id="nuevaForm" novalidate style="display:none">
+    <div class="field">
+      <label for="pass1">Contraseña nueva</label>
+      <input type="password" id="pass1" placeholder="Al menos 8 caracteres" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label for="pass2">Repetila</label>
+      <input type="password" id="pass2" placeholder="••••••••" autocomplete="new-password">
+    </div>
+    <div class="error-msg" id="errorNueva"></div>
+    <button type="submit" class="btn" id="btnNueva">Guardar y entrar</button>
+  </form>
+
+  <p class="footer-note">¿Problemas para entrar? Escribile a Delfi.</p>
+</div>
+
+<script>
+  // ── SUPABASE CONFIG ──────────────────────────────────
+  const SUPABASE_URL      = 'https://ggcstolnadkkqhsqpzql.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── A DÓNDE VA CADA UNO ──────────────────────────────
+  // Agencia (o super admin) → panel interno.
+  // Cliente → su panel de reportes.
+  // Si el perfil no se puede leer, cae al panel de cliente (lo más restrictivo).
+  async function irAlPanel(session) {
+    let destino = 'panel-comakers.html';
+    try {
+      const { data: perfil } = await sb
+        .from('profiles')
+        .select('tipo, super_admin')
+        .eq('id', session.user.id)
+        .single();
+      if (perfil && (perfil.tipo === 'agencia' || perfil.super_admin)) {
+        destino = 'interno.html';
+      }
+    } catch (e) { /* nos quedamos con el destino por defecto */ }
+    window.location.href = destino;
+  }
+
+  // ── ¿VENIMOS DEL MAIL DE RECUPERACIÓN? ───────────────
+  // Supabase manda el token en el # de la URL. Si es de tipo recovery,
+  // NO entramos al panel: mostramos el formulario para poner una nueva.
+  const hash = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+  const esRecuperacion = hash.get('type') === 'recovery';
+
+  if (esRecuperacion) {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('nuevaForm').style.display = '';
+    document.querySelector('h1').textContent = 'Elegí una contraseña nueva';
+    document.querySelector('.subtitle').textContent =
+      'La anterior no la puede ver nadie, ni nosotras. Poné una nueva y entrás directo.';
+  } else {
+    // Si ya hay sesión activa, ir directo al panel que corresponda
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) irAlPanel(session);
+    });
+  }
+
+  const form    = document.getElementById('loginForm');
+  const emailEl = document.getElementById('email');
+  const passEl  = document.getElementById('password');
+  const errEl   = document.getElementById('errorMsg');
+  const btn     = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errEl.classList.remove('visible');
+    emailEl.classList.remove('error');
+    passEl.classList.remove('error');
+
+    const email    = emailEl.value.trim();
+    const password = passEl.value;
+
+    if (!email || !password) {
+      errEl.textContent = 'Completá email y contraseña.';
+      errEl.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Entrando…';
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+      errEl.textContent = 'Email o contraseña incorrectos. Intentá de nuevo.';
+      errEl.classList.add('visible');
+      emailEl.classList.add('error');
+      passEl.classList.add('error');
+      return;
+    }
+
+    await irAlPanel(data.session);
+  });
+
+  // ── OLVIDÉ MI CONTRASEÑA ─────────────────────────────
+  const avisoOk = document.getElementById('avisoOk');
+
+  document.getElementById('olvide').addEventListener('click', async () => {
+    const email = emailEl.value.trim();
+    errEl.classList.remove('visible');
+    avisoOk.style.display = 'none';
+
+    if (!email) {
+      errEl.textContent = 'Escribí tu email arriba y volvé a apretar.';
+      errEl.classList.add('visible');
+      emailEl.focus();
+      return;
+    }
+
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+
+    // A propósito decimos lo mismo haya o no una cuenta con ese mail:
+    // si dijéramos "ese mail no existe", cualquiera podría averiguar
+    // quién tiene cuenta probando direcciones.
+    if (error && /rate|limit|seconds/i.test(error.message)) {
+      errEl.textContent = 'Esperá un momento antes de pedir otro mail.';
+      errEl.classList.add('visible');
+      return;
+    }
+    avisoOk.textContent = 'Listo. Si hay una cuenta con ese mail, te llega un link para ' +
+      'poner una contraseña nueva. Revisá también el correo no deseado.';
+    avisoOk.style.display = '';
+  });
+
+  // ── PONER LA CONTRASEÑA NUEVA ────────────────────────
+  const nuevaForm = document.getElementById('nuevaForm');
+  const errNueva  = document.getElementById('errorNueva');
+  const btnNueva  = document.getElementById('btnNueva');
+
+  nuevaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errNueva.classList.remove('visible');
+    const p1 = document.getElementById('pass1').value;
+    const p2 = document.getElementById('pass2').value;
+
+    if (p1.length < 8) {
+      errNueva.textContent = 'Tiene que tener al menos 8 caracteres.';
+      errNueva.classList.add('visible');
+      return;
+    }
+    if (p1 !== p2) {
+      errNueva.textContent = 'Las dos no coinciden.';
+      errNueva.classList.add('visible');
+      return;
+    }
+
+    btnNueva.disabled = true;
+    btnNueva.textContent = 'Guardando…';
+
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) {
+      btnNueva.disabled = false;
+      btnNueva.textContent = 'Guardar y entrar';
+      errNueva.textContent = /expired|invalid/i.test(error.message)
+        ? 'Ese link ya venció. Pedí uno nuevo desde "¿Olvidaste tu contraseña?".'
+        : 'No se pudo guardar: ' + error.message;
+      errNueva.classList.add('visible');
+      return;
+    }
+
+    const { data } = await sb.auth.getSession();
+    if (data && data.session) await irAlPanel(data.session);
+    else window.location.href = window.location.pathname;
+  });
+</script>
+
+</body>
+</html>
