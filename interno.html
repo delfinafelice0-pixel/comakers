@@ -1821,7 +1821,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 18:40</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 19:24</div>
     </div>
   </aside>
 
@@ -2951,7 +2951,16 @@
       .eq('archivado', false).order('nombre');
     if (error) {
       const r = await SB.from('proyecto').select(COLS_PROY).eq('archivado', false).order('nombre');
-      if (!r.error) { data = r.data; error = null; FALTA_M8 = true; }
+      if (!r.error) {
+        // Si sin `descripcion, salud` anda, es que esas columnas no
+        // están: ahí sí falta la 8. Se deja dicho cuál fue el error
+        // por si algún día es otra cosa.
+        data = r.data; FALTA_M8 = true;
+        if (!/does not exist|schema cache|column/i.test(String(error.message || ''))) {
+          ERROR_RES = String(error.message || error);
+        }
+        error = null;
+      }
     }
     if (error) { PROYECTOS = []; avisarFalla('proyectos', error); }
     else PROYECTOS = data || [];
@@ -6668,6 +6677,7 @@
 
   let RES_DATOS = [], RES_LINKS = [], RES_VISTOS = {}, RES_PROY = null;
   let RES_ABIERTO = {};   // dato_id → true si ya lo revelaron en esta sesión
+  let ERROR_RES = null;   // el error de verdad, si la consulta falló por otra cosa
 
   function flashRes() {
     const g = $('#guardadoFlot');
@@ -6684,8 +6694,18 @@
       SB.from('proyecto_link').select('id, proyecto_id, titulo, url, orden').eq('proyecto_id', proyId).order('orden')
     ]);
     if (d.error || l.error) {
-      FALTA_M8 = true; RES_DATOS = []; RES_LINKS = []; RES_VISTOS = {};
+      // Ojo con esto: antes acá decía siempre "falta la migración 8", y
+      // eso es mentira salvo que la tabla no exista. Un permiso mal
+      // puesto, una columna renombrada o un error de red daban el mismo
+      // cartel, y mandaban a correr de nuevo una migración ya corrida.
+      const err = d.error || l.error;
+      const msg = String((err && err.message) || err || '');
+      const noExiste = /does not exist|schema cache|Could not find the table/i.test(msg);
+      FALTA_M8 = noExiste;
+      ERROR_RES = noExiste ? null : msg;
+      RES_DATOS = []; RES_LINKS = []; RES_VISTOS = {};
     } else {
+      ERROR_RES = null;
       RES_DATOS = d.data || []; RES_LINKS = l.data || []; RES_VISTOS = {};
       if (RES_DATOS.some(x => x.es_secreto)) {
         const v = await SB.from('dato_visto')
@@ -6700,6 +6720,11 @@
   }
 
   function avisoMigracion() {
+    if (ERROR_RES) {
+      return '<div class="res-falta">No se pudo leer esta parte. La base contestó:<br>' +
+             '<code>' + esc(ERROR_RES) + '</code><br>' +
+             'No es que falte una migración — pasame este texto.</div>';
+    }
     return '<div class="res-falta">Falta correr <code>migracion-interno-8-resumen.sql</code> en Supabase. ' +
            'Hasta que la corras, el Resumen no puede guardar nada.</div>';
   }
@@ -6794,7 +6819,7 @@
         '<h4>Datos del cliente</h4>' +
         '<div class="res-sub">Etiqueta y valor: contacto, CUIT, usuario de Instagram, lo que necesiten. ' +
           'Marcá “es un acceso” para que quede tapado.</div>' +
-        (FALTA_M8 ? avisoMigracion()
+        ((FALTA_M8 || ERROR_RES) ? avisoMigracion()
           : (RES_DATOS.length ? RES_DATOS.map(filaDato).join('')
              : '<div class="res-vacio">Todavía no cargaste ningún dato.</div>') +
             '<div class="res-alta">' +
@@ -6815,7 +6840,7 @@
       '<div class="res-card">' +
         '<h4>Links y archivos</h4>' +
         '<div class="res-sub">Drive, guion, planilla de pauta, carpeta de material.</div>' +
-        (FALTA_M8 ? avisoMigracion()
+        ((FALTA_M8 || ERROR_RES) ? avisoMigracion()
           : (RES_LINKS.length ? RES_LINKS.map(filaLink).join('')
              : '<div class="res-vacio">Todavía no hay links.</div>') +
             '<div class="res-alta">' +
