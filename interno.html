@@ -1214,7 +1214,24 @@
   .prog-txt { font-size: 11px; color: var(--ink-mute); font-weight: 600; white-space: nowrap; }
   .sub-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 8px; margin: 0 -8px; border-radius: 8px; }
   .sub-row:hover { background: var(--line-soft); }
-  .sub-row .txt { font-size: 13px; flex: 1; line-height: 1.45; }
+  .sub-row .txt { font-size: 13px; flex: 1; line-height: 1.45; cursor: pointer; }
+  .sub-row .txt:hover { text-decoration: underline; }
+  .sub-row .sub-meta { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .sub-row .sub-meta .avatar-sm { width: 20px; height: 20px; font-size: 8.5px; }
+  .sub-row .sub-fecha { font-size: 11px; color: var(--ink-mute); white-space: nowrap; }
+  .sub-row .sub-fecha.tarde { color: var(--warn); font-weight: 600; }
+
+  /* Cuando lo abierto es una subtarea, arriba de todo va de quién cuelga. */
+  .madre-row {
+    display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
+    font-size: 12px; color: var(--ink-mute);
+  }
+  .madre-row button {
+    border: none; background: none; padding: 0; cursor: pointer; font-family: var(--body);
+    font-size: 12px; color: var(--ink-soft); font-weight: 500; text-align: left;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 380px;
+  }
+  .madre-row button:hover { color: var(--ink); text-decoration: underline; }
   .sub-row.hecha .txt { text-decoration: line-through; color: var(--ink-mute); }
   .sub-row .check { width: 16px; height: 16px; margin-top: 1px; }
   .sub-row .check.checked::after { font-size: 10px; }
@@ -1458,6 +1475,15 @@
 
   .reparto-tabla { margin-bottom: 18px; }
   .cols-reparto { grid-template-columns: minmax(0,1.4fr) repeat(4, minmax(0,1fr)); }
+  .cols-trab  { grid-template-columns: 92px minmax(0,1fr) minmax(0,1.7fr) minmax(0,1.2fr) 110px 108px 34px; }
+  .cols-colab { grid-template-columns: minmax(0,1.4fr) 80px 118px 118px 118px 150px; }
+  .cols-socia { grid-template-columns: minmax(0,1.4fr) repeat(3, 130px) 110px; }
+  @media (max-width: 900px) {
+    .cols-trab  { grid-template-columns: minmax(0,1fr) 100px 34px; }
+    .cols-colab { grid-template-columns: minmax(0,1fr) 100px 100px; }
+    .cols-socia { grid-template-columns: minmax(0,1fr) 110px 100px; }
+    .cols-trab > .oculta-mob, .cols-colab > .oculta-mob, .cols-socia > .oculta-mob { display: none; }
+  }
 
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 900px) {
@@ -1586,6 +1612,10 @@
         <button class="nav-item" id="navPlata" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
           Contabilidad
+        </button>
+        <button class="nav-item" id="navDist" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          Distribución
         </button>
         <button class="nav-item" id="navWiki">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
@@ -1736,6 +1766,9 @@
 
     <!-- ═══════════ CONTABILIDAD ═══════════ -->
     <div id="modPlata" style="display:none"></div>
+
+    <!-- ═══════════ DISTRIBUCIÓN ═══════════ -->
+    <div id="modDist" style="display:none"></div>
 
     <!-- ═══════════ WIKI ═══════════ -->
     <div id="modWiki" style="display:none"></div>
@@ -1982,6 +2015,90 @@
   </div>
 </div>
 
+<!-- ═══════════ MODAL TRABAJO DE COLABORADORA ═══════════ -->
+<div class="overlay" id="ovTrabajo">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div class="modal-title">Nuevo trabajo</div>
+      <button class="modal-close" data-cerrar="ovTrabajo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Quién lo hizo</label>
+        <input type="text" id="trQuien" list="trSugeridas" placeholder="Karin, Ludmi, Pauli…">
+        <datalist id="trSugeridas"></datalist>
+      </div>
+      <div>
+        <label class="campo-label">Fecha</label>
+        <input type="date" id="trFecha">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Qué hizo</label>
+      <input type="text" id="trQue" placeholder="Ej: edición de 4 reels">
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Para qué cobro</label>
+        <select id="trCobro"></select>
+      </div>
+      <div>
+        <label class="campo-label">Cuánto se le paga</label>
+        <input type="number" id="trMonto" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="switch-row">
+      <div class="switch-txt">
+        <div class="t">Ya se le pagó</div>
+        <div class="s">Si todavía no, queda en «Falta» y lo ves en la pestaña Colaboradoras.</div>
+      </div>
+      <div class="switch" id="trPagado"></div>
+    </div>
+    <div class="res-sub">Al colgarlo de un cobro, el monto baja el neto de ese cobro antes del reparto — igual que en la planilla.</div>
+    <div class="modal-foot">
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovTrabajo">Cancelar</button>
+        <button class="btn-primary" id="trGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL PAGO A UNA SOCIA ═══════════ -->
+<div class="overlay" id="ovPagoSocia">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title">Registrar un pago</div>
+      <button class="modal-close" data-cerrar="ovPagoSocia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="res-sub" style="margin-bottom:14px">Se registra contra <b id="psMes"></b>. Podés cargar varios pagos del mismo mes (las quincenas, por ejemplo).</div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">A quién</label>
+        <select id="psQuien"></select>
+      </div>
+      <div>
+        <label class="campo-label">Cuánto</label>
+        <input type="number" id="psMonto" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Fecha del pago</label>
+      <input type="date" id="psFecha">
+    </div>
+    <div class="campo">
+      <label class="campo-label">Nota</label>
+      <input type="text" id="psNotas" placeholder="Ej: primera quincena">
+    </div>
+    <div class="modal-foot">
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovPagoSocia">Cancelar</button>
+        <button class="btn-primary" id="psGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="guardado-flot" id="guardadoFlot">Guardado</div>
 
 <!-- ═══════════ MODAL CLIENTE ═══════════ -->
@@ -2211,6 +2328,7 @@
   </div>
 
   <div class="drawer-body">
+    <div class="madre-row" id="dMadre" style="display:none"></div>
     <div class="d-titulo-row">
       <textarea class="d-titulo" id="dTitulo" rows="1" placeholder="Título de la tarea"></textarea>
       <button class="mini-btn" id="dEmojiTit" title="Poner un emoji">🙂</button>
@@ -2310,14 +2428,14 @@
     </div>
 
     <div class="d-sec">
-      <div class="d-sec-head"><div class="sec-title">Checklist</div></div>
+      <div class="d-sec-head"><div class="sec-title">Subtareas</div></div>
       <div class="prog" id="dProg" style="display:none">
         <div class="prog-bar"><div class="prog-fill" id="dProgFill" style="width:0%"></div></div>
         <div class="prog-txt" id="dProgTxt">0 de 0</div>
       </div>
       <div id="dSubtareas"></div>
       <div class="add-row">
-        <input type="text" id="dNuevaSub" placeholder="Agregar un paso…">
+        <input type="text" id="dNuevaSub" placeholder="Agregar una subtarea…">
       </div>
     </div>
 
@@ -2669,10 +2787,22 @@
     CLIENTES = (error || !data) ? [] : data;
   }
 
+  const COLS_TAREA = 'id, titulo, descripcion, cliente_id, responsable_id, responsable, ' +
+    'responsable_tipo, proyecto, estado, urgencia, proyecto_id, empieza, vence, orden, ' +
+    'visible_cliente, completada, completada_en, comentarios, created_at';
+
   async function cargarTareas() {
-    const { data, error } = await SB.from('tarea')
-      .select('id, titulo, descripcion, cliente_id, responsable_id, responsable, responsable_tipo, proyecto, estado, urgencia, proyecto_id, empieza, vence, orden, visible_cliente, completada, completada_en, comentarios, created_at')
+    // `padre_id` es de la migración 15. Si todavía no corrió, la consulta
+    // entera falla: reintentamos sin esa columna en vez de quedarnos sin
+    // tablero.
+    let { data, error } = await SB.from('tarea')
+      .select(COLS_TAREA + ', padre_id')
       .order('orden', { ascending: true, nullsFirst: false });
+    if (error) {
+      const r = await SB.from('tarea').select(COLS_TAREA)
+        .order('orden', { ascending: true, nullsFirst: false });
+      if (!r.error) { data = r.data; error = null; FALTA_M15 = true; }
+    }
 
     $('#cargando').style.display = 'none';
 
@@ -2692,14 +2822,22 @@
     await cargarTP();
     await cargarColabs();
     SUB_MAP = {}; ADJ_MAP = {};
-    const [subs, adjs] = await Promise.all([
-      SB.from('subtarea').select('tarea_id, hecha'),
-      SB.from('adjunto_tarea').select('tarea_id')
-    ]);
-    if (subs && subs.data) subs.data.forEach(s => {
-      const m = SUB_MAP[s.tarea_id] || (SUB_MAP[s.tarea_id] = { total: 0, hechas: 0 });
-      m.total++; if (s.hecha) m.hechas++;
+    // Las subtareas ya son tareas: el contador sale de TAREAS, sin
+    // consulta extra. Si todavía no corriste la migración 15, se cae a
+    // la tabla vieja para que los pasos que tenías no desaparezcan.
+    TAREAS.forEach(t => {
+      if (!t.padre_id) return;
+      const m = SUB_MAP[t.padre_id] || (SUB_MAP[t.padre_id] = { total: 0, hechas: 0 });
+      m.total++; if (t.completada) m.hechas++;
     });
+    const adjs = await SB.from('adjunto_tarea').select('tarea_id');
+    if (FALTA_M15) {
+      const subs = await SB.from('subtarea').select('tarea_id, hecha');
+      if (subs && subs.data) subs.data.forEach(x => {
+        const m = SUB_MAP[x.tarea_id] || (SUB_MAP[x.tarea_id] = { total: 0, hechas: 0 });
+        m.total++; if (x.hecha) m.hechas++;
+      });
+    }
     if (adjs && adjs.data) adjs.data.forEach(a => { ADJ_MAP[a.tarea_id] = (ADJ_MAP[a.tarea_id] || 0) + 1; });
   }
 
@@ -2923,9 +3061,18 @@
   }
 
   // ═══════════════ FILTRADO ═══════════════
+  function subtareasDe(id) { return TAREAS.filter(t => t.padre_id === id); }
+  function madreDe(t) { return t && t.padre_id ? TAREAS.find(x => x.id === t.padre_id) : null; }
+
   function visibles() {
     const q = FILTRO.texto.trim().toLowerCase();
+    // Las subtareas no salen como tarjetas sueltas en el tablero: se ven
+    // adentro de su tarea madre, igual que en Asana. Sí aparecen cuando
+    // estás mirando lo de UNA persona (o lo tuyo), que es donde importa
+    // saber que tenés un paso asignado.
+    const porPersona = !!(FILTRO.mias || FILTRO.persona || FILTRO.texto.trim());
     return TAREAS.filter(t => {
+      if (t.padre_id && !porPersona) return false;
       if (q) {
         const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
@@ -2967,6 +3114,7 @@
       else if (MODULO === 'equipo') renderEquipo();
       else if (MODULO === 'clientes') renderClientes();
       else if (MODULO === 'plata') renderPlata();
+      else if (MODULO === 'dist') renderDist();
       else if (MODULO === 'wiki') renderWiki();
       return;
     }
@@ -3423,7 +3571,7 @@
     // Equipo, Clientes y Contabilidad son de las socias. Esto es la
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
-    if ((m === 'equipo' || m === 'clientes' || m === 'plata') && !soySocia()) return;
+    if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -3440,16 +3588,19 @@
     $('#modEquipo').style.display  = MODULO === 'equipo'   ? '' : 'none';
     $('#modClientes').style.display = MODULO === 'clientes' ? '' : 'none';
     $('#modPlata').style.display   = MODULO === 'plata'    ? '' : 'none';
+    $('#modDist').style.display    = MODULO === 'dist'     ? '' : 'none';
     $('#modWiki').style.display    = MODULO === 'wiki'     ? '' : 'none';
     $('.controles').style.display = MODULO === 'tareas' ? '' : 'none';
     $('#btnNueva').style.display = MODULO === 'tareas' ? '' : 'none';
     $('#navEquipo').style.display = soySocia() ? '' : 'none';
     $('#navClientes').style.display = soySocia() ? '' : 'none';
     $('#navPlata').style.display  = soySocia() ? '' : 'none';
+    $('#navDist').style.display   = soySocia() ? '' : 'none';
     $('#navTablero').classList.toggle('active', MODULO === 'tareas' && !FILTRO.proyecto);
     $('#navClientes').classList.toggle('active', MODULO === 'clientes');
     $('#navWiki').classList.toggle('active', MODULO === 'wiki');
     $('#navPlata').classList.toggle('active', MODULO === 'plata');
+    $('#navDist').classList.toggle('active', MODULO === 'dist');
     $('#navEquipo').classList.toggle('active', MODULO === 'equipo');
 
     const t = $('#tituloGlobal');
@@ -3465,6 +3616,7 @@
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
+      dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.']
     }[MODULO];
     t.querySelector('h1').innerHTML = H[0];
@@ -4195,6 +4347,7 @@
   let CONTRATOS = [], CONTRATO_EJ = {}, COBROS = [], COBRO_EJ = {};
   let MOVIMIENTOS = [], REPARTO = null, SOCIA_PCT = {};
   let FALTA_M14 = false, PLATA_CARGADA = false;
+  let FALTA_M15 = false;
   let PERIODO = primerDelMes(new Date());
   let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
   let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
@@ -4255,13 +4408,14 @@
     try { await SB.rpc('generar_cobros'); } catch (e) { /* sin drama */ }
     try { await SB.rpc('avisar_ajustes'); } catch (e) { /* sin drama */ }
 
-    const [cb, ce, ct, mv, rp, sp] = await Promise.all([
+    const [cb, ce, ct, mv, rp, sp, ps] = await Promise.all([
       SB.from('cobro').select('*').order('periodo', { ascending: false }),
       SB.from('cobro_ejecutora').select('cobro_id, user_id'),
       SB.from('contrato_ejecutora').select('contrato_id, user_id'),
       SB.from('movimiento').select('*').order('fecha', { ascending: false }),
       SB.from('reparto').select('*').limit(1),
-      SB.from('socia_reparto').select('user_id, pct')
+      SB.from('socia_reparto').select('user_id, pct'),
+      SB.from('pago_socia').select('*').order('fecha', { ascending: false })
     ]);
     COBROS = cb.data || [];
     MOVIMIENTOS = mv.data || [];
@@ -4274,6 +4428,7 @@
       (CONTRATO_EJ[x.contrato_id] = CONTRATO_EJ[x.contrato_id] || []).push(x.user_id);
     });
     SOCIA_PCT = {}; (sp.data || []).forEach(x => { SOCIA_PCT[x.user_id] = Number(x.pct); });
+    PAGOS_SOCIA = (ps && ps.data) ? ps.data : [];
 
     PLATA_CARGADA = true;
   }
@@ -4321,6 +4476,325 @@
       porPersona[u] = (porPersona[u] || 0) + parteSoc * SOCIA_PCT[u] / 100;
     });
     return { neto: neto, fondo: fondo, personas: porPersona, sinEjecutora: !ejec.length };
+  }
+
+  // ═══════════════ DISTRIBUCIÓN ═══════════════
+  // Quién hizo qué, cuánto se le paga y si ya se le pagó. Las tres
+  // pestañas miran el mismo mes que el módulo Clientes: si allá
+  // cambiás de mes, acá también.
+  let PAGOS_SOCIA = [], DIST_TAB = 'trabajos';
+
+  function trabajosDelMes(periodo) {
+    // Un "trabajo" es un egreso de categoría Colaboradoras. Vive en
+    // `movimiento` a propósito: colgado del cobro, es lo que baja el
+    // neto antes del reparto. Si viviera en una tabla aparte habría
+    // que cargarlo dos veces.
+    const per = mesDe(periodo || PERIODO);
+    return MOVIMIENTOS.filter(m =>
+      m.tipo === 'egreso' && m.categoria === 'Colaboradoras' && mesDe(m.fecha) === per);
+  }
+
+  function cobroDeMov(m) { return m.cobro_id ? COBROS.find(c => c.id === m.cobro_id) : null; }
+
+  function dondeTrabajo(m) {
+    const cb = cobroDeMov(m);
+    if (!cb) return m.cliente_id ? nombreCliente(m.cliente_id) : '—';
+    const ct = contratoDe(cb.contrato_id);
+    return nombreCliente(cb.cliente_id) + (ct ? ' · ' + ct.nombre : '');
+  }
+
+  function renderDist() {
+    if (!soySocia()) { $('#modDist').innerHTML = ''; return; }
+    if (FALTA_M14) { $('#modDist').innerHTML = avisoM14(); return; }
+
+    const trabajos = trabajosDelMes();
+    const barra =
+      '<div class="plata-barra">' +
+        '<div class="plata-tabs">' +
+          distTab('trabajos', 'Trabajos', trabajos.length) +
+          distTab('colaboradoras', 'Colaboradoras', null) +
+          distTab('socias', 'Socias', null) +
+        '</div>' +
+        '<div class="der">' +
+          '<div class="mes-nav">' +
+            '<button data-dmes="-1" title="Mes anterior">‹</button>' +
+            '<span class="mes-txt">' + mesLargo(PERIODO) + '</span>' +
+            '<button data-dmes="1" title="Mes siguiente">›</button>' +
+            '<button data-dmes="0" title="Volver a este mes">Hoy</button>' +
+          '</div>' +
+          (DIST_TAB === 'socias'
+            ? '<button class="btn-primary" id="nuPagoSocia">Registrar un pago</button>'
+            : '<button class="btn-primary" id="nuTrabajo">Nuevo trabajo</button>') +
+        '</div>' +
+      '</div>';
+
+    const cuerpo =
+      DIST_TAB === 'colaboradoras' ? vistaColaboradoras(trabajos)
+      : DIST_TAB === 'socias'      ? vistaSocias()
+      : vistaTrabajos(trabajos);
+
+    $('#modDist').innerHTML = barra + cuerpo;
+  }
+
+  function distTab(id, txt, cuenta) {
+    return '<button data-disttab="' + id + '"' + (DIST_TAB === id ? ' class="on"' : '') + '>' + txt +
+      (cuenta !== null && cuenta !== undefined ? '<span class="cuenta">' + cuenta + '</span>' : '') + '</button>';
+  }
+
+  // ── Pestaña 1: los trabajos, uno por fila ────────────────────
+  function vistaTrabajos(trabajos) {
+    const total = trabajos.reduce((a, m) => a + Number(m.monto || 0), 0);
+    const pagado = trabajos.filter(m => m.pagado).reduce((a, m) => a + Number(m.monto || 0), 0);
+
+    const kpis = '<div class="kpis">' +
+      kpi('Trabajos del mes', String(trabajos.length),
+          [...new Set(trabajos.map(m => m.colaboradora).filter(Boolean))].length + ' colaboradora(s)', '') +
+      kpi('Total a pagar', plata(total), 'Ya descontado del neto', '') +
+      kpi('Pagado', plata(pagado), pct(pagado, total) + ' de lo del mes', 'verde') +
+      kpi('Falta pagar', plata(total - pagado),
+          trabajos.filter(m => !m.pagado).length + ' sin pagar', total - pagado > 0 ? 'rojo' : '') +
+    '</div>';
+
+    const cab = '<div class="prow cab cols-trab">' +
+      '<div class="oculta-mob">Fecha</div><div>Quién</div><div>Qué hizo</div>' +
+      '<div class="oculta-mob">Para</div><div class="num">Monto</div><div>Pagado</div><div></div></div>';
+
+    const filas = trabajos.slice()
+      .sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0))
+      .map(m =>
+        '<div class="prow cols-trab" data-trabfila="' + m.id + '">' +
+          '<div class="oculta-mob">' +
+            cel(fechaDia(m.fecha), 'mv', m.id, 'fecha', m.fecha, 'fecha') + '</div>' +
+          '<div>' + cel(m.colaboradora ? esc(m.colaboradora) : '<span class="cel-nada">sin nombre</span>',
+                        'mv', m.id, 'colaboradora', m.colaboradora, 'text', 'nom') + '</div>' +
+          '<div>' + cel(esc(m.concepto || ''), 'mv', m.id, 'concepto', m.concepto, 'text') + '</div>' +
+          '<div class="oculta-mob" style="color:var(--ink-mute)">' + esc(dondeTrabajo(m)) + '</div>' +
+          '<div>' + cel(plata(m.monto), 'mv', m.id, 'monto', m.monto, 'num', 'num') + '</div>' +
+          '<div>' + (m.pagado
+            ? '<button class="est cobrado" data-trabpago="' + m.id + '">✅ Pagado</button>'
+            : '<button class="est pendiente" data-trabpago="' + m.id + '">Falta</button>') + '</div>' +
+          '<div><button class="mini-btn" data-trabdel="' + m.id + '" title="Borrar">✕</button></div>' +
+        '</div>').join('');
+
+    return kpis +
+      '<div class="cel-ayuda">Se escribe encima: tocá una celda y escribí. ' +
+        'Lo que carguen acá baja el neto del cobro antes de repartir.</div>' +
+      '<div class="tabla">' + cab +
+        (filas || '<div class="prow"><div class="res-vacio">Nadie cargó trabajos este mes.</div></div>') +
+      '</div>';
+  }
+
+  // ── Pestaña 2: cuánto le debemos a cada una ──────────────────
+  function vistaColaboradoras(trabajos) {
+    const porQuien = {};
+    trabajos.forEach(m => {
+      const q = m.colaboradora || '(sin nombre)';
+      const x = porQuien[q] || (porQuien[q] = { total: 0, pagado: 0, n: 0 });
+      x.total += Number(m.monto || 0);
+      if (m.pagado) x.pagado += Number(m.monto || 0);
+      x.n++;
+    });
+    const nombres = Object.keys(porQuien).sort();
+
+    if (!nombres.length) {
+      return '<div class="tabla"><div class="prow"><div class="res-vacio">' +
+        'Sin trabajos cargados este mes. Cargalos en la pestaña de al lado.' +
+        '</div></div></div>';
+    }
+
+    const cab = '<div class="prow cab cols-colab"><div>Colaboradora</div>' +
+      '<div class="oculta-mob">Trabajos</div><div class="num">Le toca</div>' +
+      '<div class="num oculta-mob">Pagado</div><div class="num">Falta</div><div></div></div>';
+
+    return '<div class="tabla">' + cab + nombres.map(q => {
+      const x = porQuien[q];
+      const falta = x.total - x.pagado;
+      return '<div class="prow cols-colab">' +
+        '<div class="nom">' + esc(q) + '</div>' +
+        '<div class="oculta-mob" style="color:var(--ink-mute)">' + x.n + '</div>' +
+        '<div class="num">' + plata(x.total) + '</div>' +
+        '<div class="num oculta-mob pos">' + plata(x.pagado) + '</div>' +
+        '<div class="num' + (falta > 0 ? ' neg' : '') + '">' + plata(falta) + '</div>' +
+        '<div>' + (falta > 0
+          ? '<button class="est pendiente" data-pagartodo="' + esc(q) + '">Marcar todo pagado</button>'
+          : '<span class="est cobrado">✅ Al día</span>') + '</div>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
+  // ── Pestaña 3: ustedes tres ──────────────────────────────────
+  function vistaSocias() {
+    const r = [PERIODO, sumarMeses(PERIODO, 1)];
+    const cobrados = COBROS.filter(c => c.estado === 'cobrado' && enRango(c.periodo, r));
+    const toca = {};
+    cobrados.forEach(cb => {
+      const rr = repartoDe(cb);
+      Object.keys(rr.personas).forEach(u => { toca[u] = (toca[u] || 0) + rr.personas[u]; });
+    });
+
+    const pagos = PAGOS_SOCIA.filter(p => mesDe(p.periodo) === mesDe(PERIODO));
+    const pagado = {};
+    pagos.forEach(p => { pagado[p.user_id] = (pagado[p.user_id] || 0) + Number(p.monto || 0); });
+
+    const socias = PERSONAS.filter(p => p.rol === 'socia');
+    const cab = '<div class="prow cab cols-socia"><div>Socia</div>' +
+      '<div class="num">Le corresponde</div><div class="num">Se le pagó</div>' +
+      '<div class="num">Diferencia</div><div>Estado</div></div>';
+
+    const filas = socias.map(p => {
+      const t = toca[p.id] || 0, pg = pagado[p.id] || 0, dif = t - pg;
+      return '<div class="prow cols-socia">' +
+        '<div class="nom">' + esc(p.nombre || p.email) + '</div>' +
+        '<div class="num">' + plata(t) + '</div>' +
+        '<div class="num pos">' + plata(pg) + '</div>' +
+        '<div class="num' + (dif > 0 ? ' neg' : '') + '">' + plata(dif) + '</div>' +
+        '<div>' + (pg === 0 ? '<span class="est pendiente">Sin pagar</span>'
+                 : dif > 1 ? '<span class="est vencido">⚠️ Parcial</span>'
+                 : '<span class="est cobrado">✅ Pagado</span>') + '</div>' +
+      '</div>';
+    }).join('');
+
+    const listaPagos = pagos.length
+      ? '<div class="mod-head" style="margin:22px 0 10px"><p>Los pagos que registraron este mes.</p></div>' +
+        '<div class="tabla">' + pagos.slice().sort((a, b) => a.fecha < b.fecha ? -1 : 1).map(p =>
+          '<div class="prow" style="grid-template-columns:90px minmax(0,1fr) 120px 34px">' +
+            '<div style="color:var(--ink-mute)">' + fechaDia(p.fecha) + '</div>' +
+            '<div class="nom">' + esc(nombrePersona(p.user_id) || '—') +
+              (p.notas ? '<span class="sub">' + esc(p.notas) + '</span>' : '') + '</div>' +
+            '<div class="num">' + plata(p.monto) + '</div>' +
+            '<div><button class="mini-btn" data-pagodel="' + p.id + '" title="Borrar">✕</button></div>' +
+          '</div>').join('') + '</div>'
+      : '';
+
+    return '<div class="mod-head"><p>«Le corresponde» lo calcula el panel con los cobros del mes. ' +
+        '«Se le pagó» es lo que registrás vos abajo. La diferencia es lo que falta girar.</p></div>' +
+      '<div class="tabla">' + cab + (filas ||
+        '<div class="prow"><div class="res-vacio">No hay socias cargadas.</div></div>') + '</div>' +
+      listaPagos;
+  }
+
+  // ── Guardar ──────────────────────────────────────────────────
+  async function alternarPagoTrabajo(id) {
+    const m = MOVIMIENTOS.find(x => x.id === id);
+    if (!m) return;
+    const nuevo = !m.pagado;
+    const { error } = await SB.from('movimiento')
+      .update({ pagado: nuevo, pagado_en: nuevo ? hoyISO() : null }).eq('id', id);
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+    m.pagado = nuevo; m.pagado_en = nuevo ? hoyISO() : null;
+    renderDist();
+  }
+
+  async function pagarTodoDe(quien) {
+    const pend = trabajosDelMes().filter(m => !m.pagado && (m.colaboradora || '(sin nombre)') === quien);
+    if (!pend.length) return;
+    if (!confirm('Marcar como pagados los ' + pend.length + ' trabajos de ' + quien + '.\n\n¿Seguro?')) return;
+    for (let i = 0; i < pend.length; i++) {
+      const { error } = await SB.from('movimiento')
+        .update({ pagado: true, pagado_en: hoyISO() }).eq('id', pend[i].id);
+      if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+      pend[i].pagado = true;
+    }
+    toast(pend.length + ' trabajo(s) marcados como pagados');
+    renderDist();
+  }
+
+  async function borrarTrabajo(id) {
+    const m = MOVIMIENTOS.find(x => x.id === id);
+    if (m && !confirm('Borrar "' + (m.concepto || 'este trabajo') + '".\n\n' +
+        'El neto del cobro vuelve a subir y el reparto se recalcula. ¿Seguro?')) return;
+    const { error } = await SB.from('movimiento').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    await refrescarPlata();
+  }
+
+  // ── Modal: nuevo trabajo ─────────────────────────────────────
+  function abrirTrabajo() {
+    if (FALTA_M14) { toast('Primero corré migracion-interno-14-plata.sql', 'warn'); return; }
+    $('#trQuien').value = '';
+    $('#trQue').value = '';
+    $('#trMonto').value = '';
+    $('#trFecha').value = hoyISO();
+    $('#trPagado').classList.remove('on');
+
+    // Solo los cobros del mes que estás mirando: el trabajo tiene que
+    // colgar de uno para que baje el neto del reparto.
+    const delMes = COBROS.filter(c => mesDe(c.periodo) === mesDe(PERIODO));
+    $('#trCobro').innerHTML = '<option value="">Sin cliente (gasto suelto)</option>' +
+      delMes.map(c => {
+        const ct = contratoDe(c.contrato_id);
+        return '<option value="' + c.id + '">' + esc(nombreCliente(c.cliente_id)) +
+          ' · ' + esc(ct ? ct.nombre : '—') + '</option>';
+      }).join('');
+
+    // Las que ya trabajaron alguna vez, para no escribir el nombre a mano.
+    const previas = [...new Set(MOVIMIENTOS.map(m => m.colaboradora).filter(Boolean))].sort();
+    $('#trSugeridas').innerHTML = previas.map(v => '<option value="' + esc(v) + '">').join('');
+
+    abrir('ovTrabajo');
+    setTimeout(() => $('#trQuien').focus(), 60);
+  }
+
+  async function guardarTrabajo() {
+    const quien = $('#trQuien').value.trim();
+    const que = $('#trQue').value.trim();
+    const monto = numOrNull('#trMonto');
+    if (!quien) { toast('¿Quién lo hizo?', 'warn'); $('#trQuien').focus(); return; }
+    if (!que) { toast('¿Qué hizo?', 'warn'); $('#trQue').focus(); return; }
+    if (!monto || monto <= 0) { toast('Poné cuánto se le paga', 'warn'); $('#trMonto').focus(); return; }
+
+    const cbId = $('#trCobro').value || null;
+    const cb = cbId ? COBROS.find(c => c.id === cbId) : null;
+    const pagado = $('#trPagado').classList.contains('on');
+
+    const { error } = await SB.from('movimiento').insert({
+      fecha: $('#trFecha').value || hoyISO(),
+      tipo: 'egreso', categoria: 'Colaboradoras',
+      colaboradora: quien, concepto: que, monto: monto,
+      cliente_id: cb ? cb.cliente_id : null,
+      cobro_id: cbId,
+      pagado: pagado,
+      pagado_en: pagado ? hoyISO() : null
+    });
+    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+    cerrar('ovTrabajo');
+    toast('Trabajo cargado');
+    await refrescarPlata();
+  }
+
+  // ── Modal: pago a una socia ──────────────────────────────────
+  function abrirPagoSocia() {
+    $('#psQuien').innerHTML = PERSONAS.filter(p => p.rol === 'socia')
+      .map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
+    $('#psMonto').value = '';
+    $('#psFecha').value = hoyISO();
+    $('#psNotas').value = '';
+    $('#psMes').textContent = mesLargo(PERIODO);
+    abrir('ovPagoSocia');
+    setTimeout(() => $('#psMonto').focus(), 60);
+  }
+
+  async function guardarPagoSocia() {
+    const monto = numOrNull('#psMonto');
+    if (!monto || monto <= 0) { toast('Poné el monto', 'warn'); $('#psMonto').focus(); return; }
+    const { error } = await SB.from('pago_socia').insert({
+      user_id: $('#psQuien').value,
+      periodo: PERIODO,
+      monto: monto,
+      fecha: $('#psFecha').value || hoyISO(),
+      notas: $('#psNotas').value.trim() || null
+    });
+    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+    cerrar('ovPagoSocia');
+    toast('Pago registrado');
+    await refrescarPlata();
+  }
+
+  async function borrarPagoSocia(id) {
+    if (!confirm('Borrar este pago del registro.\n\n¿Seguro?')) return;
+    const { error } = await SB.from('pago_socia').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    await refrescarPlata();
   }
 
   // ═══════════════ MÓDULO CLIENTES ═══════════════
@@ -5185,6 +5659,14 @@
   // Lo que la celda muestra cuando NO se está editando, leído del modelo.
   function textoCelda(el) {
     const campo = el.dataset.ed;
+    if (el.dataset.edt === 'mv') {
+      const m = MOVIMIENTOS.find(x => x.id === el.dataset.edid);
+      if (!m) return '';
+      if (campo === 'monto') return plata(m.monto);
+      if (campo === 'fecha') return fechaDia(m.fecha);
+      if (campo === 'colaboradora') return m.colaboradora ? esc(m.colaboradora) : '<span class="cel-nada">sin nombre</span>';
+      return esc(m[campo] || '');
+    }
     if (el.dataset.edt === 'cl') {
       const c = CLIENTES.find(x => x.id === el.dataset.edid);
       return esc(c ? c.nombre : '');
@@ -5205,6 +5687,11 @@
 
   function valorCrudo(el) {
     const campo = el.dataset.ed;
+    if (el.dataset.edt === 'mv') {
+      const m = MOVIMIENTOS.find(x => x.id === el.dataset.edid);
+      if (!m) return '';
+      return m[campo] === null || m[campo] === undefined ? '' : String(m[campo]);
+    }
     if (el.dataset.edt === 'cl') {
       const c = CLIENTES.find(x => x.id === el.dataset.edid);
       return c ? (c.nombre || '') : '';
@@ -5260,7 +5747,8 @@
   }
 
   function moverCelda(el, hacia) {
-    const todas = Array.prototype.slice.call($('#modClientes').querySelectorAll('[data-ed]'));
+    const cont = el.closest('#modClientes, #modDist') || $('#modClientes');
+    const todas = Array.prototype.slice.call(cont.querySelectorAll('[data-ed]'));
     const i = todas.indexOf(el);
     const campo = el.dataset.ed;
     let destino = null;
@@ -5302,6 +5790,29 @@
   async function guardarCelda(el, valor) {
     const t = el.dataset.edt, id = el.dataset.edid, campo = el.dataset.ed, tipo = el.dataset.edtipo;
     try {
+      if (t === 'mv') {
+        const m = MOVIMIENTOS.find(x => x.id === id);
+        if (!m) return;
+        let v;
+        if (tipo === 'num') {
+          v = valor === '' ? 0 : Number(valor);
+          if (isNaN(v) || v < 0) { toast('Ese monto no se entiende', 'warn'); pintarCelda(el); return; }
+        } else if (tipo === 'fecha') {
+          v = valor || m.fecha;
+        } else {
+          v = valor.trim() || null;
+          if (campo === 'concepto' && !v) { toast('Poné qué hizo', 'warn'); pintarCelda(el); return; }
+        }
+        const patch = {}; patch[campo] = v;
+        const { error } = await SB.from('movimiento').update(patch).eq('id', id);
+        if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
+        Object.assign(m, patch);
+        pintarCelda(el);
+        // Cambiar el monto cambia el neto y el reparto: se repinta la
+        // tabla entera, pero solo si no quedó ninguna celda abierta.
+        if (CELDA === null) renderDist();
+        return;
+      }
       if (t === 'cl') {
         const nombre = valor.trim();
         if (!nombre) { toast('El cliente necesita un nombre', 'warn'); pintarCelda(el); return; }
@@ -6622,6 +7133,19 @@
   }
 
   function llenarDrawer(t) {
+    // Si es una subtarea, arriba de todo va de quién cuelga y se puede
+    // volver a la madre de un click.
+    const madre = madreDe(t);
+    const dm = $('#dMadre');
+    if (madre) {
+      dm.style.display = '';
+      dm.innerHTML = '<span>↳ subtarea de</span>' +
+        '<button data-vermadre="' + madre.id + '">' + esc(textoPlano(madre.titulo)) + '</button>';
+    } else {
+      dm.style.display = 'none';
+      dm.innerHTML = '';
+    }
+
     $('#dTitulo').value = t.titulo || '';
     autoGrow($('#dTitulo'));
     $('#dDesc').value = t.descripcion || '';
@@ -6810,21 +7334,23 @@
   }
 
   // ── Subtareas ────────────────────────────────────────────────
+  // Ya no son un checklist: son TAREAS con `padre_id`. Eso les da
+  // responsable, fecha, comentarios y panel propio, sin código nuevo.
   async function cargarSubtareas(tareaId) {
-    const { data, error } = await SB.from('subtarea')
-      .select('id, titulo, hecha, orden')
-      .eq('tarea_id', tareaId).order('orden', { ascending: true });
-    if (error) {
-      $('#dSubtareas').innerHTML = '<div class="vacio-mini">Falta correr la migración 2 (tabla subtarea).</div>';
+    if (FALTA_M15) {
+      $('#dSubtareas').innerHTML = '<div class="vacio-mini">Falta correr ' +
+        '<code>migracion-interno-15-subtareas-distribucion.sql</code>. ' +
+        'Hasta que la corras, las subtareas no se pueden crear.</div>';
       $('#dProg').style.display = 'none';
+      SUBS = [];
       return;
     }
-    SUBS = data || [];
+    SUBS = subtareasDe(tareaId);
     pintarSubtareas();
   }
 
   function pintarSubtareas() {
-    const hechas = SUBS.filter(s => s.hecha).length;
+    const hechas = SUBS.filter(s => s.completada).length;
     const prog = $('#dProg');
     if (SUBS.length) {
       prog.style.display = '';
@@ -6833,46 +7359,89 @@
     } else {
       prog.style.display = 'none';
     }
+
     $('#dSubtareas').innerHTML = SUBS.length
-      ? SUBS.map(s =>
-          '<div class="sub-row' + (s.hecha ? ' hecha' : '') + '" data-sub="' + s.id + '">' +
-            '<div class="check' + (s.hecha ? ' checked' : '') + '" data-subcheck="' + s.id + '"></div>' +
-            '<div class="txt">' + esc(s.titulo) + '</div>' +
-            '<button class="mini-del" data-subdel="' + s.id + '" title="Borrar paso">×</button>' +
-          '</div>').join('')
-      : '<div class="vacio-mini">Sin pasos todavía. Útil para que alguien nuevo sepa exactamente qué entregar.</div>';
+      ? SUBS.map(s => {
+          const n = nombrePersona(s.responsable_id);
+          return '<div class="sub-row' + (s.completada ? ' hecha' : '') + '" data-sub="' + s.id + '">' +
+            '<div class="check' + (s.completada ? ' checked' : '') + '" data-subcheck="' + s.id + '"></div>' +
+            '<div class="txt" data-subabrir="' + s.id + '" title="Abrir la subtarea">' +
+              esc(textoPlano(s.titulo)) +
+            '</div>' +
+            '<div class="sub-meta">' +
+              (s.vence ? '<span class="sub-fecha' + (!s.completada && estaVencida(s) ? ' tarde' : '') + '">' +
+                fechaCortaDia(s.vence) + '</span>' : '') +
+              (n ? '<div class="avatar-sm" title="' + esc(n) + '">' + esc(iniciales(n, '')) + '</div>'
+                 : '<div class="avatar-sm sin" title="Sin responsable">?</div>') +
+            '</div>' +
+            '<button class="mini-del" data-subdel="' + s.id + '" title="Borrar subtarea">×</button>' +
+          '</div>';
+        }).join('')
+      : '<div class="vacio-mini">Sin subtareas. Cada una es una tarea de verdad: ' +
+        'le podés poner responsable, fecha y comentarios.</div>';
+  }
+
+  function fechaCortaDia(iso) {
+    if (!iso) return '';
+    const [a, m, d] = iso.slice(0, 10).split('-');
+    return d + '/' + m;
   }
 
   async function agregarSubtarea(titulo) {
     if (!DETALLE || !titulo.trim()) return;
+    if (FALTA_M15) { toast('Primero corré migracion-interno-15', 'warn'); return; }
     const orden = SUBS.length ? Math.max.apply(null, SUBS.map(s => s.orden || 0)) + 100 : 100;
-    const { data, error } = await SB.from('subtarea')
-      .insert({ tarea_id: DETALLE.id, titulo: titulo.trim(), orden: orden })
-      .select('id, titulo, hecha, orden').single();
-    if (error) { toast('No se pudo agregar el paso: ' + error.message, 'warn'); return; }
-    SUBS.push(data);
+    const fila = {
+      titulo: titulo.trim(),
+      padre_id: DETALLE.id,
+      cliente_id: DETALLE.cliente_id || null,   // hereda el cliente de la madre
+      responsable_tipo: 'agencia',
+      urgencia: 'normal',
+      orden: orden,
+      visible_cliente: false
+    };
+    const { data, error } = await SB.from('tarea').insert(fila).select(COLS_TAREA + ', padre_id').single();
+    if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
+    TAREAS.push(data);
+    SUBS = subtareasDe(DETALLE.id);
     pintarSubtareas();
     refrescarContadores();
+    render();
     flashGuardado();
   }
 
   async function alternarSubtarea(id) {
-    const s = SUBS.find(x => x.id === id);
+    const s = TAREAS.find(x => x.id === id);
     if (!s) return;
-    s.hecha = !s.hecha;
+    const nuevo = !s.completada;
+    s.completada = nuevo;
+    s.completada_en = nuevo ? new Date().toISOString() : null;
     pintarSubtareas();
-    const { error } = await SB.from('subtarea').update({ hecha: s.hecha }).eq('id', id);
-    if (error) { s.hecha = !s.hecha; pintarSubtareas(); toast('No se pudo actualizar: ' + error.message, 'warn'); return; }
+    const { error } = await SB.from('tarea')
+      .update({ completada: nuevo, completada_en: s.completada_en }).eq('id', id);
+    if (error) {
+      s.completada = !nuevo; pintarSubtareas();
+      toast('No se pudo actualizar: ' + error.message, 'warn');
+      return;
+    }
     refrescarContadores();
+    render();
     flashGuardado();
   }
 
   async function borrarSubtarea(id) {
-    const { error } = await SB.from('subtarea').delete().eq('id', id);
+    const s = TAREAS.find(x => x.id === id);
+    // Ahora es una tarea de verdad, con comentarios e historial: se
+    // pregunta antes, igual que al borrar cualquier tarea.
+    if (s && !confirm('Borrar la subtarea "' + textoPlano(s.titulo) + '".\n\n' +
+        'Se va con sus comentarios y su historial. ¿Seguro?')) return;
+    const { error } = await SB.from('tarea').delete().eq('id', id);
     if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
-    SUBS = SUBS.filter(s => s.id !== id);
+    TAREAS = TAREAS.filter(t => t.id !== id);
+    if (DETALLE) SUBS = subtareasDe(DETALLE.id);
     pintarSubtareas();
     refrescarContadores();
+    render();
   }
 
   // ── Adjuntos ─────────────────────────────────────────────────
@@ -7201,6 +7770,10 @@
   $('#dAdjAdd').addEventListener('click', agregarAdjunto);
   $('#dAdjUrl').addEventListener('keydown', e => { if (e.key === 'Enter') agregarAdjunto(); });
   $('#drawer').addEventListener('click', e => {
+    const sa = e.target.closest('[data-subabrir]');
+    if (sa) { abrirDrawer(sa.dataset.subabrir); return; }
+    const vm = e.target.closest('[data-vermadre]');
+    if (vm) { abrirDrawer(vm.dataset.vermadre); return; }
     const sc = e.target.closest('[data-subcheck]');
     if (sc) { alternarSubtarea(sc.dataset.subcheck); return; }
     const sd = e.target.closest('[data-subdel]');
@@ -7514,6 +8087,50 @@
   });
 
   // ── Clientes ─────────────────────────────────────────────────
+  // ── Eventos de Distribución ──────────────────────────────────
+  $('#navDist').addEventListener('click', () => cambiarModulo('dist'));
+
+  $('#modDist').addEventListener('click', e => {
+    const t = e.target.closest('[data-disttab]');
+    if (t) { DIST_TAB = t.dataset.disttab; renderDist(); return; }
+
+    const mes = e.target.closest('[data-dmes]');
+    if (mes) {
+      const n = Number(mes.dataset.dmes);
+      PERIODO = n === 0 ? primerDelMes(new Date()) : sumarMeses(PERIODO, n);
+      renderDist();
+      return;
+    }
+    if (e.target.closest('#nuTrabajo')) { abrirTrabajo(); return; }
+    if (e.target.closest('#nuPagoSocia')) { abrirPagoSocia(); return; }
+
+    const tp = e.target.closest('[data-trabpago]');
+    if (tp) { alternarPagoTrabajo(tp.dataset.trabpago); return; }
+    const td = e.target.closest('[data-trabdel]');
+    if (td) { borrarTrabajo(td.dataset.trabdel); return; }
+    const pt = e.target.closest('[data-pagartodo]');
+    if (pt) { pagarTodoDe(pt.dataset.pagartodo); return; }
+    const pd = e.target.closest('[data-pagodel]');
+    if (pd) { borrarPagoSocia(pd.dataset.pagodel); return; }
+
+    const c = e.target.closest('[data-ed]');
+    if (c) {
+      const vivo = c.isConnected ? c : $('#modDist').querySelector(
+        '[data-edt="' + c.dataset.edt + '"][data-edid="' + c.dataset.edid +
+        '"][data-ed="' + c.dataset.ed + '"]');
+      abrirCelda(vivo);
+      return;
+    }
+  });
+
+  $('#trPagado').addEventListener('click', function () { this.classList.toggle('on'); });
+  $('#trGuardar').addEventListener('click', () => {
+    guardarTrabajo().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  });
+  $('#psGuardar').addEventListener('click', () => {
+    guardarPagoSocia().catch(err => toast('No se pudo guardar: ' + (err.message || err), 'warn'));
+  });
+
   // ── Eventos de la plata ──────────────────────────────────────
   $('#navPlata').addEventListener('click', () => cambiarModulo('plata'));
 
