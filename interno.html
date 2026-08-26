@@ -400,6 +400,69 @@
     font-size: 9px; color: var(--ink-mute); letter-spacing: 0.1em;
     text-transform: uppercase; padding: 10px 10px 4px;
   }
+
+  /* El título "Proyectos" es el que pliega la lista. */
+  .nav-label.plegar {
+    display: flex; align-items: center; gap: 5px; cursor: pointer;
+    border-radius: 5px; padding: 2px 4px; margin-left: -4px;
+  }
+  .nav-label.plegar:hover { color: var(--ink); background: var(--line-soft); }
+  .nav-label.plegar .chev { width: 11px; height: 11px; transition: transform 0.15s; }
+  .nav-label.plegar.cerrado .chev { transform: rotate(-90deg); }
+  .nav-label.plegar .cuantos { opacity: 0.7; letter-spacing: 0; }
+
+  /* La estrellita aparece al pasar por encima; si ya es favorito, se queda. */
+  /* Pastilla de una tarea linkeada dentro de un texto */
+  .tarea-link {
+    display: inline-flex; align-items: center; gap: 5px; vertical-align: baseline;
+    background: var(--line-soft); border: 1px solid var(--line);
+    border-radius: 999px; padding: 1px 9px 1px 7px;
+    color: var(--ink); font-size: 0.92em; text-decoration: none;
+    max-width: 100%; overflow-wrap: anywhere;
+  }
+  .tarea-link:hover { background: var(--accent); border-color: var(--accent); }
+  .tarea-link svg { width: 11px; height: 11px; flex-shrink: 0; color: var(--ink-mute); }
+  .tarea-link.hecha { opacity: .65; }
+  .tarea-link.hecha svg { color: #4E7C1C; }
+
+  /* Dependencias */
+  .dep-fila {
+    display: flex; align-items: center; gap: 9px; padding: 6px 0;
+    border-bottom: 1px solid var(--line-soft); font-size: 13px;
+  }
+  .dep-fila:last-child { border-bottom: none; }
+  .dep-fila .est-dep {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+    padding: 2px 7px; border-radius: 999px; flex-shrink: 0;
+  }
+  .dep-fila .est-dep.abierta { background: var(--warn-soft); color: var(--warn); }
+  .dep-fila .est-dep.lista   { background: var(--good-soft); color: #4E7C1C; }
+  .dep-fila .tit { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .dep-fila .tit:hover { text-decoration: underline; }
+  .dep-sub-label {
+    font-size: 9.5px; color: var(--ink-mute); letter-spacing: .1em;
+    text-transform: uppercase; margin: 12px 0 2px;
+  }
+  .espera-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--warn-soft); color: var(--warn);
+    font-size: 10px; padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+  }
+
+  .nav-item.proy .fav {
+    margin-left: auto; width: 15px; height: 15px; flex-shrink: 0;
+    color: var(--ink-mute); opacity: 0; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-item.proy:hover .fav { opacity: 1; }
+  .nav-item.proy .fav.on { opacity: 1; color: #E8A800; }
+  .nav-item.proy .fav svg { width: 13px; height: 13px; color: inherit; }
+  .nav-item.proy .fav:hover { background: var(--bg); }
+  .nav-item.proy .candado + .fav { margin-left: 4px; }
+  .fav-vacio {
+    font-size: 11px; color: var(--ink-mute); padding: 2px 10px 6px;
+    line-height: 1.45; font-style: italic;
+  }
   .chip-proy.fin { opacity: 0.65; }
   .chip-proy.fin .nomp { text-decoration: line-through; }
 
@@ -1705,8 +1768,13 @@
     </nav>
 
     <div>
+      <nav class="nav-group" id="navFavoritos"></nav>
       <div class="nav-label-row">
-        <div class="nav-label">Proyectos</div>
+        <button class="nav-label plegar" id="btnPlegarProy" title="Minimizar">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <span>Proyectos</span>
+          <span class="cuantos" id="proyCuantos"></span>
+        </button>
         <button class="nav-mini" id="btnNuevoProy" title="Nuevo proyecto">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
@@ -1753,7 +1821,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 16:49</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 18:35</div>
     </div>
   </aside>
 
@@ -2422,6 +2490,9 @@
     <button class="icon-btn" id="dNext" title="Siguiente (↓)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
     </button>
+    <button class="icon-btn" id="dLink" title="Copiar el link de esta tarea">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+    </button>
     <button class="icon-btn" id="dExpandir" title="Agrandar a toda la pantalla">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
     </button>
@@ -2536,6 +2607,16 @@
       <div class="colabs" id="dColabs"></div>
       <div class="res-sub" style="margin-top:8px">Se enteran de todo lo que pasa acá. La tarea sigue siendo
         de su responsable: no aparece en el “Mías” de las colaboradoras.</div>
+    </div>
+
+    <div class="d-sec">
+      <div class="d-sec-head"><div class="sec-title">Depende de</div></div>
+      <div id="dDeps"></div>
+      <div class="add-row">
+        <select id="dDepSel"><option value="">Elegí a cuál espera…</option></select>
+      </div>
+      <div class="res-sub" style="margin-top:8px">Avisa, no traba: podés marcarla finalizada igual.
+        Si pegás el link de una tarea en cualquier texto, queda como pastilla y te lleva de una.</div>
     </div>
 
     <div class="d-sec">
@@ -2812,11 +2893,14 @@
     SALUDO_BASE = 'Hola ' + primer + ' 👋 — todo lo que el equipo tiene entre manos.';
     $('#saludo').textContent = SALUDO_BASE;
 
-    await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos()]);
+    await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos(), cargarFavoritos()]);
     await cargarPlata();
     llenarSelects();
     await cargarTareas();
+    await cargarDeps();
     cargarBandeja();
+    // Si entraste con el link de una tarea, se abre sola.
+    abrirDesdeHash();
   }
 
   const COLS_PERSONA = 'id, nombre, email, tipo';
@@ -3011,29 +3095,96 @@
   }
 
   // ═══════════════ PROYECTOS ═══════════════
+  // Favoritos: son de cada una. Lo que marca Marti no le sale a Lari.
+  // Se guardan en la base (no en el navegador) para que te sigan a
+  // cualquier compu donde entres.
+  let FAVORITOS = [];
+  // Que la lista larga esté plegada sí es del navegador: es cómo tenés
+  // acomodada ESA pantalla, no un dato de la agencia.
+  let PROY_PLEGADO = false;
+  try { PROY_PLEGADO = localStorage.getItem('cm_proy_plegado') === '1'; } catch (e) {}
+
+  const ESTRELLA = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
+
+  function esFav(id) { return FAVORITOS.indexOf(id) !== -1; }
+
   function itemProyecto(p) {
     const abiertas = TAREAS.filter(t => !t.completada && tpEn(t.id, p.id)).length;
     const fin = !!p.finalizado_en;
+    const fav = esFav(p.id);
     return '<button class="nav-item proy' + (FILTRO.proyecto === p.id ? ' active' : '') + (fin ? ' fin' : '') + '" data-proy="' + p.id + '">' +
              '<span class="proy-dot" style="background:' + (COLORES[p.color] || COLORES.gris) + '"></span>' +
              '<span class="nom">' + esc(p.nombre) + '</span>' +
              (!fin && abiertas ? '<span class="soon-tag">' + abiertas + '</span>' : '') +
+             '<span class="fav' + (fav ? ' on' : '') + '" data-fav="' + p.id + '" role="button"' +
+               ' title="' + (fav ? 'Sacar de favoritos' : 'Poner en favoritos') + '">' + ESTRELLA + '</span>' +
            '</button>';
   }
 
   function renderProyectosSidebar() {
+    const favs = PROYECTOS.filter(p => esFav(p.id));
+    const resto = PROYECTOS.filter(p => !esFav(p.id));
+    const activos = resto.filter(p => !p.finalizado_en);
+    const finalizados = resto.filter(p => p.finalizado_en);
+
+    // ── Arriba, los favoritos. Nunca se pliegan: son los que mirás.
+    const cf = $('#navFavoritos');
+    cf.innerHTML = favs.length
+      ? '<div class="nav-label">Favoritos</div>' + favs.map(itemProyecto).join('')
+      : '';
+
+    // ── Abajo, todo lo demás, plegable.
+    const btn = $('#btnPlegarProy');
+    btn.classList.toggle('cerrado', PROY_PLEGADO);
+    btn.title = PROY_PLEGADO ? 'Mostrar los proyectos' : 'Minimizar';
+    $('#proyCuantos').textContent = PROY_PLEGADO && resto.length ? '(' + resto.length + ')' : '';
+
     const cont = $('#navProyectos');
-    const activos = PROYECTOS.filter(p => !p.finalizado_en);
-    const finalizados = PROYECTOS.filter(p => p.finalizado_en);
+    if (PROY_PLEGADO) { cont.innerHTML = ''; cont.style.display = 'none'; return; }
+    cont.style.display = '';
+
     let items = activos.map(itemProyecto).join('');
     if (finalizados.length) {
       items += '<div class="nav-sub-label">Finalizados</div>' + finalizados.map(itemProyecto).join('');
     }
-    cont.innerHTML = (items || '<div class="nav-vacio">Todavía no hay proyectos</div>')
+    cont.innerHTML = (items ||
+        (favs.length ? '' : '<div class="nav-vacio">Todavía no hay proyectos</div>'))
       + '<button class="nav-item nuevo-proy" id="navNuevoProy">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
           'Nuevo proyecto' +
         '</button>';
+  }
+
+  function plegarProyectos() {
+    PROY_PLEGADO = !PROY_PLEGADO;
+    try { localStorage.setItem('cm_proy_plegado', PROY_PLEGADO ? '1' : '0'); } catch (e) {}
+    renderProyectosSidebar();
+  }
+
+  async function alternarFavorito(id) {
+    const era = esFav(id);
+    // Se pinta primero y se guarda después: la estrellita tiene que
+    // responder en el momento.
+    FAVORITOS = era ? FAVORITOS.filter(x => x !== id) : FAVORITOS.concat([id]);
+    renderProyectosSidebar();
+    if (FALTA_M18) { toast('Primero corré migracion-interno-18', 'warn'); return; }
+    const { error } = era
+      ? await SB.from('proyecto_favorito').delete()
+          .eq('proyecto_id', id).eq('user_id', ME.id)
+      : await SB.from('proyecto_favorito').insert({ proyecto_id: id, user_id: ME.id });
+    if (error) {
+      FAVORITOS = era ? FAVORITOS.concat([id]) : FAVORITOS.filter(x => x !== id);
+      renderProyectosSidebar();
+      toast('No se pudo guardar: ' + error.message, 'warn');
+    }
+  }
+
+  async function cargarFavoritos() {
+    if (!ME) return;
+    const { data, error } = await SB.from('proyecto_favorito')
+      .select('proyecto_id').eq('user_id', ME.id);
+    if (error) { FALTA_M18 = true; FAVORITOS = []; return; }
+    FAVORITOS = (data || []).map(x => x.proyecto_id);
   }
 
   let PROY_EDIT = null;
@@ -4260,6 +4411,35 @@
     { re: /(^|[^*])\*([^\n*]+)\*(?!\*)/g, a: '<em>', z: '</em>', pre: true }
   ];
 
+  // Un link a una tarea de este mismo panel se muestra como una
+  // pastilla con el título, no como un URL kilométrico. Y al tocarla
+  // abre la tarea al costado en vez de recargar la página.
+  const RE_TLINK = /#t\/([A-Za-z0-9-]{6,})$/;
+  function idDeLink(url) {
+    const m = String(url || '').match(RE_TLINK);
+    if (!m) return null;
+    // Solo si el link es a ESTE panel. Uno a otro dominio se abre normal.
+    const limpio = String(url).replace(RE_TLINK, '');
+    if (limpio && limpio.indexOf('://') !== -1 &&
+        limpio.indexOf(location.host) === -1) return null;
+    return m[1];
+  }
+  function linkDeTarea(id) {
+    return location.origin + location.pathname + '#t/' + id;
+  }
+  function chipTarea(id, texto) {
+    const t = (typeof TAREAS !== 'undefined') ? TAREAS.find(x => x.id === id) : null;
+    // Ojo: `texto` ya viene escapado (renderTexto escapa todo primero).
+    // El título lo sacamos crudo del modelo, así que ese sí hay que escaparlo.
+    const nom = (texto === null || texto === undefined)
+      ? esc(t ? textoPlano(t.titulo) : 'tarea') : texto;
+    const hecha = t && t.completada;
+    return '<a class="tarea-link' + (hecha ? ' hecha' : '') + '" href="#t/' + id + '"' +
+      ' data-tlink="' + id + '" title="' + (t ? esc(textoPlano(t.titulo)) : 'Abrir la tarea') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 20 6"></polyline><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"></path></svg>' +
+      nom + '</a>';
+  }
+
   function renderTexto(txt) {
     if (!txt) return '';
     let h = esc(String(txt).replace(/\u0000/g, ''));
@@ -4270,10 +4450,18 @@
     const guardar = html => '\u0000' + (piezas.push(html) - 1) + '\u0000';
 
     h = h.replace(RE_MENCION, (m, nombre) => guardar('<span class="mencion">@' + nombre + '</span>'));
-    h = h.replace(RE_LINK, (m, texto, url) =>
-      guardar('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + texto + '</a>'));
-    h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (m, pre, url) =>
-      pre + guardar('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>'));
+    h = h.replace(RE_LINK, (m, texto, url) => {
+      const t = idDeLink(url);
+      return guardar(t ? chipTarea(t, texto)
+        : '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + texto + '</a>');
+    });
+    h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (m, pre, url) => {
+      const t = idDeLink(url);
+      return pre + guardar(t ? chipTarea(t, null)
+        : '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>');
+    });
+    // Y el link cortito, por si alguien copia solo el pedacito de atrás.
+    h = h.replace(/(^|\s)#t\/([A-Za-z0-9-]{6,})/g, (m, pre, id) => pre + guardar(chipTarea(id, null)));
 
     FORMATO.forEach(f => {
       h = f.pre
@@ -4521,7 +4709,7 @@
   let CONTRATOS = [], CONTRATO_EJ = {}, COBROS = [], COBRO_EJ = {};
   let MOVIMIENTOS = [], REPARTO = null, SOCIA_PCT = {};
   let FALTA_M14 = false, PLATA_CARGADA = false;
-  let FALTA_M15 = false, FALTA_M16 = false, FALTA_M17 = false;
+  let FALTA_M15 = false, FALTA_M16 = false, FALTA_M17 = false, FALTA_M18 = false;
   let PERIODO = primerDelMes(new Date());
   let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
   let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
@@ -7208,6 +7396,18 @@
     if (bs) bs.addEventListener('click', () => agregarSeccion(p.id));
   }
 
+  // "Espera a" solo cuenta las que todavía NO están listas: una
+  // dependencia ya cumplida dejó de ser información.
+  function pillEspera(t) {
+    if (t.completada) return '';
+    const f = frenanA(t.id);
+    if (!f.length) return '';
+    return '<span class="espera-pill" title="Espera a: ' +
+      esc(f.map(x => textoPlano(x.titulo)).join(' · ')) + '">⏳ espera a ' +
+      (f.length === 1 ? esc(recorte(textoPlano(f[0].titulo), 22)) : f.length) + '</span>';
+  }
+  function recorte(t, n) { return t.length > n ? t.slice(0, n - 1) + '…' : t; }
+
   function cardHTML(t, ctxProy) {
     const f = fechaTxt(t.vence);
     const venc = estaVencida(t);
@@ -7228,6 +7428,7 @@
             (SUB_MAP[t.id] ? '<span class="mini-meta" title="Checklist">✓ ' + SUB_MAP[t.id].hechas + '/' + SUB_MAP[t.id].total + '</span>' : '') +
             (ADJ_MAP[t.id] ? '<span class="mini-meta" title="Links">🔗 ' + ADJ_MAP[t.id] + '</span>' : '') +
             (t.comentarios ? '<span class="mini-meta">💬 ' + t.comentarios + '</span>' : '') +
+            pillEspera(t) +
           '</div>' +
           (f.txt ? '<span class="fecha ' + f.clase + '">' + f.txt + '</span>' : '') +
         '</div>' +
@@ -7360,7 +7561,8 @@
         (movible ? '<div class="fila-mano" title="Arrastrá para reordenar">' + MANO_SVG + '</div>' : '') +
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
         '<div class="fila-main">' +
-          '<div class="fila-titulo">' + esc(t.titulo) + (t.visible_cliente ? ' ' + OJO_SVG : '') + '</div>' +
+          '<div class="fila-titulo">' + esc(t.titulo) + (t.visible_cliente ? ' ' + OJO_SVG : '') +
+            pillEspera(t) + '</div>' +
           (t.descripcion ? '<div class="fila-desc">' + esc(textoPlano(t.descripcion)) + '</div>' : '') +
         '</div>' +
         chipCliente(t) + chipsProyectos(t, proyActivo()) +
@@ -7720,12 +7922,133 @@
     return $$('#kanban .card-k, #lista .fila, #calendario .cal-bar, #calendario .tray-item').map(el => el.dataset.id);
   }
 
+  // ═══════════════ DEPENDENCIAS ═══════════════
+  // "Esta tarea espera a esta otra". Avisan, no bloquean: si la
+  // dependencia está mal cargada, no te deja trabada.
+  let DEPS = [];   // [{tarea_id, depende_de}]
+
+  async function cargarDeps() {
+    const { data, error } = await SB.from('tarea_dependencia').select('tarea_id, depende_de');
+    if (error) { FALTA_M18 = true; DEPS = []; return; }
+    DEPS = data || [];
+  }
+
+  function esperaA(id)  { return DEPS.filter(d => d.tarea_id === id).map(d => d.depende_de); }
+  function bloqueaA(id) { return DEPS.filter(d => d.depende_de === id).map(d => d.tarea_id); }
+
+  // Las que todavía no están listas. Es lo único que se muestra en las
+  // tarjetas: una dependencia ya cumplida no es información.
+  function frenanA(id) {
+    return esperaA(id)
+      .map(x => TAREAS.find(t => t.id === x))
+      .filter(t => t && !t.completada);
+  }
+
+  function pintarDeps(t) {
+    const cont = $('#dDeps');
+    if (!cont) return;
+    if (FALTA_M18) {
+      cont.innerHTML = '<div class="vacio-mini">Falta correr ' +
+        '<code>migracion-interno-18-favoritos-dependencias.sql</code>.</div>';
+      $('#dDepSel').style.display = 'none';
+      return;
+    }
+    $('#dDepSel').style.display = '';
+
+    const espera = esperaA(t.id).map(x => TAREAS.find(y => y.id === x)).filter(Boolean);
+    const bloquea = bloqueaA(t.id).map(x => TAREAS.find(y => y.id === x)).filter(Boolean);
+
+    const fila = (x, quitar) =>
+      '<div class="dep-fila">' +
+        '<span class="est-dep ' + (x.completada ? 'lista' : 'abierta') + '">' +
+          (x.completada ? 'lista' : 'abierta') + '</span>' +
+        '<span class="tit" data-tlink="' + x.id + '">' + esc(textoPlano(x.titulo)) + '</span>' +
+        (quitar ? '<button class="mini-btn" data-depdel="' + x.id + '" title="Sacar">✕</button>' : '') +
+      '</div>';
+
+    cont.innerHTML =
+      (espera.length
+        ? espera.map(x => fila(x, true)).join('')
+        : '<div class="vacio-mini">No espera a ninguna.</div>') +
+      (bloquea.length
+        ? '<div class="dep-sub-label">Y esta traba a</div>' + bloquea.map(x => fila(x, false)).join('')
+        : '');
+
+    // El selector no ofrece: ella misma, las que ya puso, ni las que la
+    // esperan a ella (eso sería un círculo y la base lo rechaza).
+    const prohibidas = [t.id].concat(esperaA(t.id)).concat(bloqueaA(t.id));
+    const libres = TAREAS.filter(x => !x.completada && prohibidas.indexOf(x.id) === -1);
+    $('#dDepSel').innerHTML = '<option value="">Elegí a cuál espera…</option>' +
+      libres.map(x => '<option value="' + x.id + '">' + esc(textoPlano(x.titulo)) + '</option>').join('');
+  }
+
+  async function agregarDep(depende_de) {
+    if (!DETALLE || !depende_de) return;
+    const { error } = await SB.from('tarea_dependencia')
+      .insert({ tarea_id: DETALLE.id, depende_de: depende_de });
+    if (error) { toast(error.message, 'warn'); return; }
+    DEPS.push({ tarea_id: DETALLE.id, depende_de: depende_de });
+    pintarDeps(DETALLE);
+    render();
+    flashRes();
+  }
+
+  async function sacarDep(depende_de) {
+    if (!DETALLE) return;
+    const { error } = await SB.from('tarea_dependencia').delete()
+      .eq('tarea_id', DETALLE.id).eq('depende_de', depende_de);
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+    DEPS = DEPS.filter(d => !(d.tarea_id === DETALLE.id && d.depende_de === depende_de));
+    pintarDeps(DETALLE);
+    render();
+    flashRes();
+  }
+
+  // ── El link de una tarea ─────────────────────────────────────
+  let HASH_PROPIO = false;   // para no reabrir el drawer con mi propio cambio de hash
+
+  function ponerHash(id) {
+    HASH_PROPIO = true;
+    try {
+      if (id) history.replaceState(null, '', '#t/' + id);
+      else if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    } catch (e) { /* si el navegador no deja, no pasa nada */ }
+    setTimeout(() => { HASH_PROPIO = false; }, 0);
+  }
+
+  async function copiarLinkTarea() {
+    if (!DETALLE) return;
+    const url = linkDeTarea(DETALLE.id);
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('Link copiado. Pegalo en otra tarea y queda enlazada.');
+    } catch (e) {
+      // Sin permiso de portapapeles: al menos que lo pueda copiar a mano.
+      prompt('Copiá el link:', url);
+    }
+  }
+
+  function abrirDesdeHash() {
+    const m = (location.hash || '').match(/^#t\/([A-Za-z0-9-]{6,})$/);
+    if (!m) return false;
+    const id = m[1];
+    if (DETALLE && DETALLE.id === id) return true;
+    if (!TAREAS.some(t => t.id === id)) {
+      toast('Esa tarea no existe o no la podés ver', 'warn');
+      return false;
+    }
+    abrirDrawer(id);
+    return true;
+  }
+
   async function abrirDrawer(id) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
     DETALLE = t;
     ACT_TODO = false;
     llenarDrawer(t);
+    pintarDeps(t);
+    ponerHash(t.id);
     $('#scrim').classList.add('open');
     $('#drawer').classList.add('open');
     $('#drawer').setAttribute('aria-hidden', 'false');
@@ -7747,6 +8070,7 @@
     $('#drawer').classList.remove('open');
     $('#drawer').setAttribute('aria-hidden', 'true');
     DETALLE = null;
+    ponerHash(null);
   }
 
   function navegar(delta) {
@@ -8438,8 +8762,38 @@
     pintarMiembros();
   });
 
-  $('#navProyectos').addEventListener('click', e => {
+  // ── El link de una tarea ─────────────────────────────────────
+  $('#dLink').addEventListener('click', copiarLinkTarea);
+  window.addEventListener('hashchange', () => { if (!HASH_PROPIO) abrirDesdeHash(); });
+
+  // Una pastilla de tarea, esté donde esté (descripción, comentario,
+  // dependencias), abre esa tarea al costado en vez de recargar.
+  document.addEventListener('click', e => {
+    const l = e.target.closest('[data-tlink]');
+    if (!l) return;
+    e.preventDefault();
+    abrirDrawer(l.dataset.tlink);
+  });
+
+  $('#dDepSel').addEventListener('change', function () {
+    const v = this.value;
+    this.value = '';
+    if (v) agregarDep(v).catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+  });
+  $('#dDeps').addEventListener('click', e => {
+    const b = e.target.closest('[data-depdel]');
+    if (b) sacarDep(b.dataset.depdel);
+  });
+
+  $('#btnPlegarProy').addEventListener('click', plegarProyectos);
+  $('#navFavoritos').addEventListener('click', e => clickProyecto(e));
+  $('#navProyectos').addEventListener('click', e => clickProyecto(e));
+
+  function clickProyecto(e) {
     if (e.target.closest('#navNuevoProy')) { abrirProyecto(null); return; }
+    // La estrellita no entra al proyecto: solo lo marca.
+    const fv = e.target.closest('[data-fav]');
+    if (fv) { e.stopPropagation(); alternarFavorito(fv.dataset.fav); return; }
     const b = e.target.closest('[data-proy]');
     if (!b) return;
     const id = b.dataset.proy;
@@ -8451,7 +8805,7 @@
     // Al entrar a un proyecto desde la vista global, arrancamos por el Resumen.
     if (primeraVez) VISTA = 'resumen';
     render();
-  });
+  }
 
   $('#proyEditar').addEventListener('click', () => { const p = proyActivo(); if (p) abrirProyecto(p); });
   $('#fProyecto').addEventListener('change', llenarSeccionesForm);
