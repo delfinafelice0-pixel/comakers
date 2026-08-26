@@ -1145,6 +1145,10 @@
     z-index: 95; display: flex; flex-direction: column;
   }
   .drawer.open { transform: none; }
+  /* Expandida: ocupa casi toda la pantalla, como el "full screen" de
+     Asana. La transición del ancho va aparte de la del transform. */
+  .drawer.ancho { width: min(1180px, calc(100% - 56px)); }
+  @media (max-width: 900px) { .drawer.ancho { width: 100%; } }
   .drawer-head {
     display: flex; align-items: center; gap: 6px;
     padding: 13px 18px; border-bottom: 1px solid var(--line); flex-shrink: 0;
@@ -1335,10 +1339,11 @@
 
   /* Filas de plata: contratos, cobros y movimientos comparten estilo */
   .prow {
-    display: grid; gap: 12px; align-items: center;
-    padding: 11px 16px; border-bottom: 1px solid var(--line-soft);
+    display: grid; gap: 10px; align-items: center;
+    padding: 6px 14px; border-bottom: 1px solid var(--line-soft);
     font-size: 13px;
   }
+  .prow.cab { padding: 5px 14px; }
   .prow:last-child { border-bottom: none; }
   .prow.cab {
     font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
@@ -1348,6 +1353,14 @@
   .prow.clic:hover { background: var(--line-soft); }
   .prow .nom { font-weight: 500; overflow-wrap: anywhere; }
   .prow .sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 2px; overflow-wrap: anywhere; }
+  /* En la tabla de servicios el subtítulo va AL COSTADO, no debajo:
+     una fila de una línea en vez de dos. Es lo que más achica. */
+  .cols-serv .sub {
+    display: inline; margin-top: 0; margin-left: 8px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cols-serv .celda-serv { display: flex; align-items: baseline; min-width: 0; }
+  .cols-serv .celda-serv .sub { flex: 1; min-width: 0; }
   .prow .num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
   .prow .num.neg { color: var(--warn); }
   .prow .num.pos { color: #4E7C1C; }
@@ -1360,7 +1373,13 @@
      combinadas: se lee "un cliente, tres servicios", no tres clientes. */
   .prow.g-ini { border-top: 1px solid var(--line); }
   .prow.g-ini:first-of-type { border-top: none; }
-  .prow .cli { font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; }
+  /* El nombre y el "+" en la misma línea: con `.cel` en block, el
+     botón se caía al renglón de abajo y la fila medía 43px de alto. */
+  .prow .cli {
+    font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere;
+    display: flex; align-items: center; min-width: 0;
+  }
+  .prow .cli .cel { min-width: 0; }
   .prow .cli .mas {
     border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-mute);
     border-radius: 6px; width: 20px; height: 20px; line-height: 1; cursor: pointer;
@@ -1371,14 +1390,14 @@
   .prow .cli .mas:hover { border-color: var(--ink); color: var(--ink); }
   .prow .cli.sigue {
     border-left: 2px solid #D9D4E1; margin-left: 5px; padding-left: 9px;
-    min-height: 30px; align-self: stretch;
+    min-height: 24px; align-self: stretch;
   }
   /* Los servicios de un mismo cliente se leen como un bloque: la línea
      divisoria queda solo entre clientes. Si el navegador no entiende
      :has(), se ven las rayitas de siempre y no pasa nada. */
   .prow.cols-serv:has(+ .prow.cols-serv:not(.g-ini)) { border-bottom-color: transparent; }
   .prow .ejec { display: flex; gap: 3px; flex-wrap: wrap; }
-  .prow .ejec .avatar-sm { width: 22px; height: 22px; font-size: 9px; }
+  .prow .ejec .avatar-sm { width: 20px; height: 20px; font-size: 8.5px; }
   .prow .ejec .sin-ejec { font-size: 11px; color: var(--warn); }
   .cols-contrato { grid-template-columns: minmax(0,2.1fr) 108px 92px minmax(0,1fr) 118px; }
   .cols-mov      { grid-template-columns: 84px minmax(0,2.2fr) minmax(0,1fr) 112px 34px; }
@@ -1386,7 +1405,7 @@
 
   .est {
     display: inline-flex; align-items: center; gap: 5px; border-radius: 999px;
-    padding: 3px 10px; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    padding: 2px 9px; font-size: 11.5px; font-weight: 600; white-space: nowrap;
     border: 1px solid transparent; cursor: pointer; font-family: var(--body);
   }
   .est.cobrado   { background: var(--good-soft); color: #4E7C1C; border-color: #CFEBA6; }
@@ -1459,8 +1478,8 @@
   /* La tabla de Clientes se escribe encima, como una planilla:
      click en la celda, escribís, Enter baja, Tab va al costado. */
   .cel {
-    border-radius: 6px; padding: 3px 6px; margin: -3px -6px;
-    border: 1px solid transparent; cursor: text; min-height: 22px;
+    border-radius: 5px; padding: 2px 5px; margin: -2px -5px;
+    border: 1px solid transparent; cursor: text; min-height: 20px;
     display: block; overflow-wrap: anywhere;
   }
   .cel:hover { border-color: var(--line); background: var(--bg-elev); }
@@ -1470,7 +1489,7 @@
   .cel input {
     width: 100%; border: none; outline: none; background: transparent;
     font-family: var(--body); font-size: 13px; color: var(--ink);
-    padding: 3px 6px; border-radius: 6px;
+    padding: 2px 5px; border-radius: 5px;
   }
   .cel.num input { text-align: right; font-variant-numeric: tabular-nums; }
   .cel .vacio { color: var(--ink-mute); }
@@ -2174,6 +2193,9 @@
     </button>
     <button class="icon-btn" id="dNext" title="Siguiente (↓)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </button>
+    <button class="icon-btn" id="dExpandir" title="Agrandar a toda la pantalla">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
     </button>
     <span class="drawer-pos" id="dPos"></span>
     <span style="margin-left:auto; display:flex; align-items:center; gap:10px;">
@@ -3403,7 +3425,9 @@
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata') && !soySocia()) return;
     MODULO = m;
-    if (m !== 'tareas') { cerrarDrawer(); }
+    // La bandeja también puede tener el panel de la tarea abierto al
+    // costado: no se cierra al entrar ahí.
+    if (m !== 'tareas' && m !== 'bandeja') { cerrarDrawer(); }
     if (m === 'wiki' && !WIKI_CARGADA) cargarWiki();
     if (m === 'bandeja' && !BAN_CARGADA) cargarBandeja();
     render();
@@ -4000,8 +4024,36 @@
       while (f < v.length && !/\s/.test(v[f])) f++;
       if (i === f) return;
     }
+    // Los espacios y saltos de línea de las puntas quedan AFUERA de las
+    // marcas. Si no, seleccionar una línea entera (con su Enter final)
+    // dejaba el `**` de cierre al principio del renglón siguiente y el
+    // texto se veía con los asteriscos crudos.
+    while (i < f && /\s/.test(v[i])) i++;
+    while (f > i && /\s/.test(v[f - 1])) f--;
+    if (i >= f) return;
+
     const sel = v.slice(i, f);
     const n = marca.length;
+
+    // Selección de varias líneas: se marca CADA línea por separado.
+    // El formato no cruza saltos de línea, ni acá ni al mostrarlo.
+    if (sel.indexOf('\n') !== -1) {
+      const marcado = sel.split('\n').map(function (linea) {
+        const t = linea.trim();
+        if (!t) return linea;
+        if (t.startsWith(marca) && t.endsWith(marca) && t.length > marca.length * 2) {
+          return linea.replace(t, t.slice(marca.length, -marca.length));
+        }
+        return linea.replace(t, marca + t + marca);
+      }).join('\n');
+      el.value = v.slice(0, i) + marcado + v.slice(f);
+      el.focus();
+      try { el.setSelectionRange(i, i + marcado.length); } catch (_) {}
+      if (el.tagName === 'TEXTAREA') autoGrow(el);
+      guardarCampoDe(el);
+      return;
+    }
+
     const yaEsta = v.slice(i - n, i) === marca && v.slice(f, f + n) === marca;
     const dentro = sel.startsWith(marca) && sel.endsWith(marca) && sel.length > n * 2;
 
@@ -4433,7 +4485,7 @@
               '<button class="mas" data-ctnuevo="' + cl.id + '" title="Sumarle otro servicio">+</button>'
             : '') +
         '</div>' +
-        '<div>' +
+        '<div class="celda-serv">' +
           cel(esc(ct.nombre), 'ct', ct.id, 'nombre', ct.nombre, 'text', 'nom') +
           '<div class="sub" data-ctabrir="' + ct.id + '" style="cursor:pointer">' +
             (ct.tipo === 'cuotas'
@@ -6520,6 +6572,13 @@
     g.__t = setTimeout(() => g.classList.remove('on'), 1400);
   }
   function idsVisibles() {
+    if (MODULO === 'bandeja') {
+      // Dentro de la bandeja, las flechas recorren las novedades que
+      // estás viendo, sin repetir la misma tarea dos veces.
+      const vistos = {};
+      return $$('#modBandeja [data-novtarea]').map(el => el.dataset.novtarea)
+        .filter(id => (vistos[id] ? false : (vistos[id] = true)));
+    }
     return $$('#kanban .card-k, #lista .fila, #calendario .cal-bar, #calendario .tray-item').map(el => el.dataset.id);
   }
 
@@ -6988,6 +7047,19 @@
 
   // ── Drawer: navegación y cierre ──────────────────────────────
   $('#dCerrar').addEventListener('click', cerrarDrawer);
+  $('#dExpandir').addEventListener('click', () => {
+    const d = $('#drawer');
+    const ancho = d.classList.toggle('ancho');
+    $('#dExpandir').title = ancho ? 'Volver al tamaño normal' : 'Agrandar a toda la pantalla';
+    try { localStorage.setItem('interno.drawerAncho', ancho ? '1' : ''); } catch (_) {}
+  });
+  // Cómo la dejaste la última vez.
+  try {
+    if (localStorage.getItem('interno.drawerAncho')) {
+      $('#drawer').classList.add('ancho');
+      $('#dExpandir').title = 'Volver al tamaño normal';
+    }
+  } catch (_) {}
   $('#scrim').addEventListener('click', cerrarDrawer);
   $('#dPrev').addEventListener('click', () => navegar(-1));
   $('#dNext').addEventListener('click', () => navegar(1));
@@ -7390,8 +7462,9 @@
     marcarLeida(fila.dataset.nov);
     const tid = fila.dataset.novtarea;
     if (tid && TAREAS.some(t => t.id === tid)) {
-      MODULO = 'tareas';
-      render();
+      // Se abre acá mismo. Antes te sacaba al tablero y perdías el
+      // lugar donde estabas leyendo.
+      renderBandeja();
       abrirDrawer(tid);
     } else if (tid) {
       toast('Esa tarea ya no existe o no la podés ver');
