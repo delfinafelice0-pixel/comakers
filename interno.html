@@ -1455,6 +1455,49 @@
     .prow.cab { display: none; }
   }
 
+  /* ── CELDAS EDITABLES ─────────────────────────────────────── */
+  /* La tabla de Clientes se escribe encima, como una planilla:
+     click en la celda, escribís, Enter baja, Tab va al costado. */
+  .cel {
+    border-radius: 6px; padding: 3px 6px; margin: -3px -6px;
+    border: 1px solid transparent; cursor: text; min-height: 22px;
+    display: block; overflow-wrap: anywhere;
+  }
+  .cel:hover { border-color: var(--line); background: var(--bg-elev); }
+  .prow:hover .cel:hover { border-color: var(--ink-soft); }
+  .cel.editando { border-color: var(--ink); background: var(--bg-elev); padding: 0; }
+  .cel.num { text-align: right; }
+  .cel input {
+    width: 100%; border: none; outline: none; background: transparent;
+    font-family: var(--body); font-size: 13px; color: var(--ink);
+    padding: 3px 6px; border-radius: 6px;
+  }
+  .cel.num input { text-align: right; font-variant-numeric: tabular-nums; }
+  .cel .vacio { color: var(--ink-mute); }
+
+  .cel-ayuda {
+    font-size: 11.5px; color: var(--ink-mute); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .cel-ayuda kbd {
+    font-family: var(--body); font-size: 10.5px; border: 1px solid var(--line);
+    border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px;
+    background: var(--bg-elev); color: var(--ink-soft);
+  }
+
+  /* Selector de ejecutoras, pegado a la celda */
+  .ejec-pop {
+    position: absolute; z-index: 90; background: var(--bg-elev);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow); padding: 12px; width: 250px;
+  }
+  .ejec-pop .t {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--ink-mute); font-weight: 600; margin-bottom: 8px;
+  }
+  .ejec-pop .miembros { gap: 5px; }
+  .ejec-pop .nota { font-size: 11px; color: var(--ink-mute); margin-top: 9px; line-height: 1.45; }
+
   /* ── RESPONSIVE ───────────────────────────── */
   @media (max-width: 1200px) { .kanban.active { grid-template-columns: repeat(3, minmax(210px,1fr)); } }
   @media (max-width: 900px) {
@@ -4231,6 +4274,8 @@
   // ═══════════════ MÓDULO CLIENTES ═══════════════
   function renderClientes() {
     if (!soySocia()) { $('#modClientes').innerHTML = ''; return; }
+    // Las sugerencias de servicio también las usan las celdas de la tabla.
+    llenarSugerenciasServicio();
     const activos = CLIENTES.filter(c => c.activo !== false);
     const guardados = CLIENTES.filter(c => c.activo === false);
 
@@ -4255,7 +4300,7 @@
       '</div>';
 
     const kpis = FALTA_M14 ? '' :
-      '<div class="kpis">' +
+      '<div class="kpis" id="clKpis">' +
         kpi('A cobrar este mes', plata(aCobrar), delMes.length + ' servicio' + (delMes.length === 1 ? '' : 's'), '') +
         kpi('Cobrado', plata(cobrado), pct(cobrado, aCobrar) + ' de lo del mes', 'verde') +
         kpi('Falta cobrar', plata(aCobrar - cobrado), (delMes.filter(c => c.estado === 'pendiente').length) + ' pendiente(s)', aCobrar - cobrado > 0 ? 'rojo' : '') +
@@ -4278,7 +4323,7 @@
       const cts = contratosDe(cl.id).filter(c => c.activo !== false);
       if (!cts.length) {
         filas += '<div class="prow cols-serv clic g-ini" data-ctnuevo="' + cl.id + '">' +
-          '<div class="cli">' + esc(cl.nombre) + '</div>' +
+          '<div class="cli">' + cel(esc(cl.nombre), 'cl', cl.id, 'nombre', cl.nombre, 'text') + '</div>' +
           '<div><div class="sub">Sin servicio cargado — clickeá para agregarle uno</div></div>' +
           '<div class="oculta-mob"></div>' +
           '<div class="num oculta-mob">—</div><div class="oculta-mob"></div>' +
@@ -4313,6 +4358,8 @@
       barra +
       (FALTA_M14 ? '<div style="margin-bottom:16px">' + avisoM14() + '</div>' : '') +
       kpis +
+      '<div class="cel-ayuda">Se escribe encima, como una planilla: tocá una celda y escribí. ' +
+        '<kbd>Enter</kbd> baja · <kbd>Tab</kbd> va al costado · <kbd>Esc</kbd> cancela.</div>' +
       '<div class="tabla">' + cab +
         (filas || '<div class="prow"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
       '</div>' +
@@ -4377,29 +4424,36 @@
         }).join('')
       : '<span class="sin-ejec">nadie</span>';
 
-    return '<div class="prow cols-serv clic' + (primera ? ' g-ini' : '') + '" data-ctabrir="' + ct.id + '">' +
+    // Casi toda la fila se escribe encima. La columna del estado y la
+    // del ajuste vencido no: esas son botones, no texto.
+    return '<div class="prow cols-serv' + (primera ? ' g-ini' : '') + '" data-ctfila="' + ct.id + '">' +
         '<div class="cli' + (primera ? '' : ' sigue') + '">' +
           (primera
-            ? esc(cl.nombre) + '<button class="mas" data-ctnuevo="' + cl.id + '" title="Sumarle otro servicio">+</button>'
+            ? cel(esc(cl.nombre), 'cl', cl.id, 'nombre', cl.nombre, 'text') +
+              '<button class="mas" data-ctnuevo="' + cl.id + '" title="Sumarle otro servicio">+</button>'
             : '') +
         '</div>' +
         '<div>' +
-          '<div class="nom">' + esc(ct.nombre) + '</div>' +
-          '<div class="sub">' +
+          cel(esc(ct.nombre), 'ct', ct.id, 'nombre', ct.nombre, 'text', 'nom') +
+          '<div class="sub" data-ctabrir="' + ct.id + '" style="cursor:pointer">' +
             (ct.tipo === 'cuotas'
               ? 'En ' + (ct.cuotas_total || '?') + ' cuotas' + (cb && cb.cuota_n ? ' · cuota ' + cb.cuota_n + '/' + ct.cuotas_total : '')
               : 'Mensual') +
             (ct.detalle ? ' — ' + esc(textoPlano(ct.detalle).slice(0, 60)) : '') +
+            (abierto ? ' ▾' : ' ▸') +
           '</div>' +
         '</div>' +
-        '<div class="ejec oculta-mob">' + ejec + '</div>' +
-        '<div class="num oculta-mob">' + plata(ct.monto) + '</div>' +
-        '<div class="oculta-mob">' + esc(dias) + '</div>' +
+        '<div class="ejec oculta-mob" data-ejecabrir="' + ct.id + '" style="cursor:pointer" title="Cambiar quién ejecuta">' + ejec + '</div>' +
+        '<div class="oculta-mob">' + cel(plata(ct.monto), 'ct', ct.id, 'monto', ct.monto, 'num', 'num') + '</div>' +
         '<div class="oculta-mob">' +
-          (ct.proximo_ajuste
-            ? (aj ? '<button class="est aviso" data-ctajustar="' + ct.id + '" title="Ajustar el monto">🔴 ' + fechaDia(ct.proximo_ajuste) + '</button>'
-                  : fechaDia(ct.proximo_ajuste))
-            : '<span style="color:var(--ink-mute)">sin fecha</span>') +
+          cel(ct.dia_desde ? esc(dias) : '<span class="cel-nada">—</span>',
+              'ct', ct.id, 'dias', ct.dia_desde ? (ct.dia_desde + ' - ' + (ct.dia_hasta || ct.dia_desde)) : '', 'text') +
+        '</div>' +
+        '<div class="oculta-mob">' +
+          (aj
+            ? '<button class="est aviso" data-ctajustar="' + ct.id + '" title="Ajustar el monto">🔴 ' + fechaDia(ct.proximo_ajuste) + '</button>'
+            : cel(ct.proximo_ajuste ? fechaDia(ct.proximo_ajuste) : '<span class="cel-nada">sin fecha</span>',
+                  'ct', ct.id, 'proximo_ajuste', ct.proximo_ajuste || '', 'fecha')) +
         '</div>' +
         '<div>' + estado + '</div>' +
       '</div>' +
@@ -5056,6 +5110,258 @@
     cerrar('ovMov');
     toast('Movimiento borrado');
     await refrescarPlata();
+  }
+
+  // ═══════════════ CELDAS EDITABLES ═══════════════
+  // La tabla de Clientes se escribe encima, como una planilla. Click en
+  // la celda, escribís, Enter baja, Tab va al costado, Escape cancela.
+  //
+  // Regla de oro acá: al guardar NO se repinta la tabla. Repintar mata
+  // el input que estás usando y el foco salta a cualquier lado. Se
+  // actualiza la celda sola y, aparte, los números de arriba.
+  let CELDA = null;
+
+  // t: 'ct' contrato · 'cl' cliente. tipo: text | num | fecha | dias
+  function cel(html, t, id, campo, valor, tipo, clase) {
+    return '<span class="cel' + (clase ? ' ' + clase : '') + '"' +
+      ' data-edt="' + t + '" data-edid="' + id + '" data-ed="' + campo + '"' +
+      ' data-edtipo="' + (tipo || 'text') + '"' +
+      ' data-edv="' + esc(valor === null || valor === undefined ? '' : String(valor)) + '">' +
+      html + '</span>';
+  }
+
+  // Lo que la celda muestra cuando NO se está editando, leído del modelo.
+  function textoCelda(el) {
+    const campo = el.dataset.ed;
+    if (el.dataset.edt === 'cl') {
+      const c = CLIENTES.find(x => x.id === el.dataset.edid);
+      return esc(c ? c.nombre : '');
+    }
+    const ct = contratoDe(el.dataset.edid);
+    if (!ct) return '';
+    if (campo === 'monto') return plata(ct.monto);
+    if (campo === 'dias') {
+      if (!ct.dia_desde) return '<span class="cel-nada">—</span>';
+      return ct.dia_hasta && ct.dia_hasta !== ct.dia_desde
+        ? ct.dia_desde + ' al ' + ct.dia_hasta : 'el ' + ct.dia_desde;
+    }
+    if (campo === 'proximo_ajuste') {
+      return ct.proximo_ajuste ? fechaDia(ct.proximo_ajuste) : '<span class="cel-nada">sin fecha</span>';
+    }
+    return esc(ct[campo] || '');
+  }
+
+  function valorCrudo(el) {
+    const campo = el.dataset.ed;
+    if (el.dataset.edt === 'cl') {
+      const c = CLIENTES.find(x => x.id === el.dataset.edid);
+      return c ? (c.nombre || '') : '';
+    }
+    const ct = contratoDe(el.dataset.edid);
+    if (!ct) return '';
+    if (campo === 'dias') {
+      return ct.dia_desde ? (ct.dia_desde + ' - ' + (ct.dia_hasta || ct.dia_desde)) : '';
+    }
+    return ct[campo] === null || ct[campo] === undefined ? '' : String(ct[campo]);
+  }
+
+  function pintarCelda(el) {
+    el.dataset.edv = valorCrudo(el);
+    el.classList.remove('editando');
+    el.innerHTML = textoCelda(el);
+  }
+
+  function abrirCelda(el) {
+    if (!el || CELDA === el) return;
+    if (CELDA) cerrarCelda(true);
+    if (!el.isConnected) return;
+
+    const tipo = el.dataset.edtipo;
+    const valor = el.dataset.edv || '';
+    CELDA = el;
+    el.classList.add('editando');
+    el.innerHTML = '<input type="' + (tipo === 'fecha' ? 'date' : tipo === 'num' ? 'number' : 'text') + '"' +
+      (tipo === 'num' ? ' step="0.01" min="0"' : '') +
+      (el.dataset.ed === 'nombre' && el.dataset.edt === 'ct' ? ' list="ctSugeridos"' : '') +
+      ' value="' + esc(valor) + '">';
+
+    const inp = el.querySelector('input');
+    inp.focus();
+    if (tipo !== 'fecha') inp.select();
+
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cerrarCelda(false); return; }
+      if (e.key === 'Enter')  { e.preventDefault(); moverCelda(el, 'abajo'); return; }
+      if (e.key === 'Tab')    { e.preventDefault(); moverCelda(el, e.shiftKey ? 'antes' : 'despues'); return; }
+    });
+    inp.addEventListener('blur', () => { if (CELDA === el) cerrarCelda(true); });
+  }
+
+  function cerrarCelda(guardar) {
+    if (!CELDA) return;
+    const el = CELDA, inp = el.querySelector('input');
+    const nuevo = inp ? inp.value : null;
+    CELDA = null;
+    const cambio = guardar && nuevo !== null && nuevo !== el.dataset.edv;
+    pintarCelda(el);
+    if (cambio) guardarCelda(el, nuevo);
+  }
+
+  function moverCelda(el, hacia) {
+    const todas = Array.prototype.slice.call($('#modClientes').querySelectorAll('[data-ed]'));
+    const i = todas.indexOf(el);
+    const campo = el.dataset.ed;
+    let destino = null;
+    if (hacia === 'despues') destino = todas[i + 1];
+    else if (hacia === 'antes') destino = todas[i - 1];
+    else {
+      for (let j = i + 1; j < todas.length; j++) {
+        if (todas[j].dataset.ed === campo) { destino = todas[j]; break; }
+      }
+    }
+    cerrarCelda(true);
+    if (destino) abrirCelda(destino);
+  }
+
+  // "1 - 10", "1 al 10", "5", "1/10" → {desde, hasta}
+  function parseDias(txt) {
+    const n = String(txt).match(/\d+/g);
+    if (!n || !n.length) return { desde: null, hasta: null };
+    const a = Math.min(31, Math.max(1, parseInt(n[0], 10)));
+    const b = n.length > 1 ? Math.min(31, Math.max(1, parseInt(n[1], 10))) : a;
+    return { desde: a, hasta: b };
+  }
+
+  // Solo los cuatro números de arriba, sin tocar la tabla.
+  function pintarKPIs() {
+    const cont = $('#clKpis');
+    if (!cont) return;
+    const delMes = CONTRATOS.filter(c => c.activo !== false).map(c => cobroDe(c.id, PERIODO)).filter(Boolean);
+    const aCobrar = delMes.filter(c => c.estado !== 'no_corresponde').reduce((a, c) => a + Number(c.monto || 0), 0);
+    const cobrado = delMes.filter(c => c.estado === 'cobrado').reduce((a, c) => a + Number(c.monto || 0), 0);
+    const ajustes = CONTRATOS.filter(c => c.activo !== false && tocaAjustar(c)).length;
+    cont.innerHTML =
+      kpi('A cobrar este mes', plata(aCobrar), delMes.length + ' servicio' + (delMes.length === 1 ? '' : 's'), '') +
+      kpi('Cobrado', plata(cobrado), pct(cobrado, aCobrar) + ' de lo del mes', 'verde') +
+      kpi('Falta cobrar', plata(aCobrar - cobrado), delMes.filter(c => c.estado === 'pendiente').length + ' pendiente(s)', aCobrar - cobrado > 0 ? 'rojo' : '') +
+      kpi('Ajustes que tocan', String(ajustes), ajustes ? 'Miralos abajo, en rojo' : 'Ninguno este mes', ajustes ? 'rojo' : '');
+  }
+
+  async function guardarCelda(el, valor) {
+    const t = el.dataset.edt, id = el.dataset.edid, campo = el.dataset.ed, tipo = el.dataset.edtipo;
+    try {
+      if (t === 'cl') {
+        const nombre = valor.trim();
+        if (!nombre) { toast('El cliente necesita un nombre', 'warn'); pintarCelda(el); return; }
+        // El identificador NO se toca nunca: es lo que usa el panel de
+        // cliente para encontrarlo, y cambiarlo rompería los links.
+        const { error } = await SB.from('clientes').update({ nombre: nombre }).eq('id', id);
+        if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
+        const c = CLIENTES.find(x => x.id === id);
+        if (c) c.nombre = nombre;
+        pintarCelda(el);
+        return;
+      }
+
+      const ct = contratoDe(id);
+      if (!ct) return;
+      const patch = {};
+
+      if (campo === 'dias') {
+        const d = parseDias(valor);
+        patch.dia_desde = d.desde; patch.dia_hasta = d.hasta;
+      } else if (tipo === 'num') {
+        const n = valor === '' ? 0 : Number(valor);
+        if (isNaN(n) || n < 0) { toast('Ese monto no se entiende', 'warn'); pintarCelda(el); return; }
+        patch[campo] = n;
+      } else if (tipo === 'fecha') {
+        patch[campo] = valor || null;
+      } else {
+        const v = valor.trim();
+        if (campo === 'nombre' && !v) { toast('El servicio necesita un nombre', 'warn'); pintarCelda(el); return; }
+        patch[campo] = v || null;
+      }
+
+      const { error } = await SB.from('contrato').update(patch).eq('id', id);
+      if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
+      const antesTocaba = tocaAjustar(ct);
+      Object.assign(ct, patch);
+
+      // Si cambiaste el monto, el cobro del mes se actualiza SOLO si
+      // sigue pendiente. Lo que ya cobraste no se toca: eso ya pasó.
+      if (campo === 'monto') {
+        const cb = cobroDe(id, PERIODO);
+        if (cb && cb.estado === 'pendiente') {
+          await SB.from('cobro').update({ monto: patch.monto }).eq('id', cb.id);
+          cb.monto = patch.monto;
+        }
+      }
+
+      pintarCelda(el);
+      pintarKPIs();
+
+      // Poner una fecha de ajuste ya vencida convierte la celda en un
+      // botón rojo: eso sí necesita repintar la tabla.
+      if (campo === 'proximo_ajuste' && tocaAjustar(ct) !== antesTocaba && CELDA === null) {
+        renderClientes();
+      }
+    } catch (e) {
+      toast('No se pudo guardar: ' + (e.message || e), 'warn');
+      pintarCelda(el);
+    }
+  }
+
+  // ── Quién ejecuta: un selector chiquito pegado a la celda ────
+  let EJEC_POP = null;
+  function abrirEjecutoras(el, contratoId) {
+    cerrarEjecutoras();
+    const ct = contratoDe(contratoId);
+    if (!ct) return;
+    const puestas = (CONTRATO_EJ[contratoId] || []);
+
+    const pop = document.createElement('div');
+    pop.className = 'ejec-pop';
+    pop.dataset.ejecpop = contratoId;
+    pop.innerHTML = '<div class="t">Quién ejecuta</div><div class="miembros">' +
+      PERSONAS.map(p => {
+        const on = puestas.indexOf(p.id) !== -1;
+        const n = p.nombre || p.email;
+        return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-ejec="' + p.id + '">' +
+          '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) + '</button>';
+      }).join('') + '</div>' +
+      '<div class="nota">El 85% se divide en partes iguales entre quienes elijas. ' +
+      'Cambia el servicio de acá en más; los cobros ya hechos no se tocan.</div>';
+
+    document.body.appendChild(pop);
+    const r = el.getBoundingClientRect();
+    pop.style.left = Math.max(10, Math.min(r.left, window.innerWidth - 264)) + 'px';
+    pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+    EJEC_POP = pop;
+  }
+  function cerrarEjecutoras() {
+    if (EJEC_POP && EJEC_POP.parentNode) EJEC_POP.parentNode.removeChild(EJEC_POP);
+    EJEC_POP = null;
+  }
+
+  async function alternarEjecutora(contratoId, userId) {
+    const puestas = (CONTRATO_EJ[contratoId] || []).slice();
+    const i = puestas.indexOf(userId);
+    if (i === -1) {
+      const { error } = await SB.from('contrato_ejecutora')
+        .insert({ contrato_id: contratoId, user_id: userId });
+      if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+      puestas.push(userId);
+    } else {
+      const { error } = await SB.from('contrato_ejecutora').delete()
+        .eq('contrato_id', contratoId).eq('user_id', userId);
+      if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+      puestas.splice(i, 1);
+    }
+    CONTRATO_EJ[contratoId] = puestas;
+    renderClientes();
+    // El popover se redibuja para que se vea el chip prendido.
+    const cl = $('#modClientes').querySelector('[data-ejecabrir="' + contratoId + '"]');
+    if (cl) abrirEjecutoras(cl, contratoId);
   }
 
   // ═══════════════ RESUMEN DEL PROYECTO ═══════════════
@@ -7163,6 +7469,21 @@
     const vc = e.target.closest('[data-cbabrir]');
     if (vc) { e.stopPropagation(); const c = COBROS.find(x => x.id === vc.dataset.cbabrir); if (c) abrirCobro(c); return; }
 
+    // ── Celdas editables ──────────────────────────────────────
+    const c = e.target.closest('[data-ed]');
+    if (c) {
+      // Si el blur ya repintó, el nodo del click puede estar muerto:
+      // lo volvemos a buscar por sus datos antes de abrirlo.
+      const vivo = c.isConnected ? c : $('#modClientes').querySelector(
+        '[data-edt="' + c.dataset.edt + '"][data-edid="' + c.dataset.edid +
+        '"][data-ed="' + c.dataset.ed + '"]');
+      abrirCelda(vivo);
+      return;
+    }
+
+    const ej = e.target.closest('[data-ejecabrir]');
+    if (ej) { e.stopPropagation(); abrirEjecutoras(ej, ej.dataset.ejecabrir); return; }
+
     const ab = e.target.closest('[data-ctabrir]');
     if (ab) {
       const id = ab.dataset.ctabrir;
@@ -7171,6 +7492,20 @@
       return;
     }
   });
+
+  // El selector de ejecutoras vive fuera del módulo, colgado del body.
+  document.addEventListener('click', e => {
+    const chip = e.target.closest('.ejec-pop [data-ejec]');
+    if (chip) {
+      alternarEjecutora(chip.closest('.ejec-pop').dataset.ejecpop, chip.dataset.ejec);
+      return;
+    }
+    if (EJEC_POP && !e.target.closest('.ejec-pop') && !e.target.closest('[data-ejecabrir]')) {
+      cerrarEjecutoras();
+    }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarEjecutoras(); });
+  window.addEventListener('scroll', cerrarEjecutoras, true);
 
   $('#modPlata').addEventListener('click', e => {
     const t = e.target.closest('[data-pltab]');
