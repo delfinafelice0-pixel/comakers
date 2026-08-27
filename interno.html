@@ -376,7 +376,6 @@
   .fecha.hoy     { background: var(--accent-soft); color: var(--ink); }
   .fecha.pronto  { background: var(--lime-soft); color: var(--ink); }
 
-  .ojo { width: 13px; height: 13px; color: var(--ink-mute); flex-shrink: 0; }
 
   /* ── PROYECTOS ────────────────────────────── */
   .nav-label-row { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 6px 10px; margin-top: 8px; }
@@ -1830,7 +1829,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 11:21</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 12:39</div>
     </div>
   </aside>
 
@@ -2416,13 +2415,15 @@
       <label class="campo-label">Proyecto</label>
       <select id="fProyecto"></select>
     </div>
-    <div class="switch-row">
-      <div class="switch-txt">
-        <div class="t">Visible para el cliente</div>
-        <div class="s">Apagado = tarea interna, el cliente no la ve nunca.</div>
-      </div>
-      <div class="switch" id="fVisible"></div>
-    </div>
+    <!-- El switch "Visible para el cliente" se sacó el 27/08/2026.
+         La columna `tarea.visible_cliente` sigue en la base y no se borró
+         nada: lo que se sacó es el control, porque NO FUNCIONABA. Desde que
+         todos los proyectos son privados, un cliente nunca es miembro de
+         ninguno, así que `puede_ver_tarea` le da que no y la tarea no le
+         aparecía igual. Un tilde que no hace nada es peor que no tenerlo.
+         Cuando se conecte el panel del cliente de verdad, se arregla la
+         policy `tarea_select` (ver SEGURIDAD-pendientes, sección 12) y
+         recién ahí vuelve este switch. -->
     <div class="modal-foot">
       <button class="btn-danger" id="fBorrar" style="display:none">Borrar tarea</button>
       <div class="der">
@@ -2570,13 +2571,8 @@
           <div class="res-sub prop-nota" id="dClienteNota" style="display:none"></div></div>
       </div>
 
-      <div class="prop">
-        <div class="prop-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          Ve el cliente
-        </div>
-        <div class="prop-val"><div class="switch" id="dVisible"></div></div>
-      </div>
+      <!-- "Ve el cliente" sacado el 27/08/2026. Ver el comentario largo en el
+           modal de tarea. La columna sigue en la base, intacta. -->
     </div>
 
     <div class="d-sec">
@@ -7548,7 +7544,6 @@
       cliente_id: p ? (p.cliente_id || null) : null,
       urgencia: 'normal',
       vence: iso,
-      visible_cliente: false
     };
     const { data, error } = await SB.from('tarea').insert(fila).select('id').single();
     if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
@@ -7714,7 +7709,6 @@
     if (!n) return '<div class="avatar-sm sin" title="Sin responsable">?</div>';
     return '<div class="avatar-sm" title="' + esc(n) + '">' + esc(iniciales(n, '')) + '</div>';
   }
-  const OJO_SVG = '<svg class="ojo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
 
   // Columnas del tablero: las secciones del proyecto activo, o los
   // cuatro tipos canónicos si estamos en la vista global.
@@ -7803,7 +7797,6 @@
         (t.descripcion ? '<div class="card-k-desc">' + esc(textoPlano(t.descripcion)) + '</div>' : '') +
         '<div class="card-k-bottom">' +
           '<div class="card-k-meta">' + avatarDe(t) +
-            (t.visible_cliente ? OJO_SVG : '') +
             (SUB_MAP[t.id] ? '<span class="mini-meta" title="Checklist">✓ ' + SUB_MAP[t.id].hechas + '/' + SUB_MAP[t.id].total + '</span>' : '') +
             (ADJ_MAP[t.id] ? '<span class="mini-meta" title="Links">🔗 ' + ADJ_MAP[t.id] + '</span>' : '') +
             (t.comentarios ? '<span class="mini-meta">💬 ' + t.comentarios + '</span>' : '') +
@@ -7940,7 +7933,7 @@
         (movible ? '<div class="fila-mano" title="Arrastrá para reordenar">' + MANO_SVG + '</div>' : '') +
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
         '<div class="fila-main">' +
-          '<div class="fila-titulo">' + esc(t.titulo) + (t.visible_cliente ? ' ' + OJO_SVG : '') +
+          '<div class="fila-titulo">' + esc(t.titulo) +
             pillEspera(t) + '</div>' +
           (t.descripcion ? '<div class="fila-desc">' + esc(textoPlano(t.descripcion)) + '</div>' : '') +
         '</div>' +
@@ -8209,7 +8202,6 @@
     $('#fEmpieza').value = t ? (t.empieza || '') : '';
     $('#fVence').value = t ? (t.vence || '') : '';
     $('#fProyecto').value = t ? (t.proyecto_id || '') : (FILTRO.proyecto && FILTRO.proyecto !== '__sinproy' ? FILTRO.proyecto : '');
-    $('#fVisible').classList.toggle('on', !!(t && t.visible_cliente));
     $('#fBorrar').style.display = t ? '' : 'none';
     abrir('ovForm');
     setTimeout(() => $('#fTitulo').focus(), 60);
@@ -8234,8 +8226,8 @@
       proyecto: proyId ? nombreProyecto(proyId) : null,
       urgencia: $('#fPrioridad').value,
       empieza: $('#fEmpieza').value || null,
-      vence: $('#fVence').value || null,
-      visible_cliente: $('#fVisible').classList.contains('on')
+      vence: $('#fVence').value || null
+      // visible_cliente: no se manda. Lo que ya esté guardado queda como está.
     };
 
     $('#fGuardar').disabled = true;
@@ -8518,7 +8510,6 @@
     $('#dEmpieza').value = t.empieza || '';
     $('#dVence').value = t.vence || '';
     $('#dPrioridad').value = t.urgencia || 'normal';
-    $('#dVisible').classList.toggle('on', !!t.visible_cliente);
     pintarBotonFin();
     pintarProyectosDrawer();
     pintarColabs();
@@ -8879,7 +8870,6 @@
       responsable_tipo: 'agencia',
       urgencia: 'normal',
       orden: orden,
-      visible_cliente: false
     };
     const { data, error } = await SB.from('tarea').insert(fila).select(COLS_TAREA + ', padre_id').single();
     if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
@@ -9088,7 +9078,6 @@
   $('#navEquipo').addEventListener('click', () => cambiarModulo('equipo'));
   $('#fGuardar').addEventListener('click', guardar);
   $('#fBorrar').addEventListener('click', () => borrarTarea(EDITANDO));
-  $('#fVisible').addEventListener('click', function () { this.classList.toggle('on'); });
   $('#dEnviarCom').addEventListener('click', enviarComentario);
   $('#dNuevoCom').addEventListener('keydown', e => {
     if ($('#menPop').classList.contains('on')) return;   // estás eligiendo a quién mencionar
@@ -9259,11 +9248,6 @@
   $('#dEmpieza').addEventListener('change', e => guardarCampo('empieza', e.target.value || null));
   $('#dVence').addEventListener('change', e => guardarCampo('vence', e.target.value || null));
   $('#dPrioridad').addEventListener('change', e => guardarCampo('urgencia', e.target.value));
-  $('#dVisible').addEventListener('click', function () {
-    const nuevo = !this.classList.contains('on');
-    this.classList.toggle('on', nuevo);
-    guardarCampo('visible_cliente', nuevo);
-  });
 
   // ── Drawer: checklist y links ────────────────────────────────
   $('#dNuevaSub').addEventListener('keydown', e => {
