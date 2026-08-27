@@ -1983,7 +1983,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 16:55</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 17:46</div>
     </div>
   </aside>
 
@@ -2568,6 +2568,16 @@
     <div class="campo">
       <label class="campo-label">Proyecto</label>
       <select id="fProyecto"></select>
+    </div>
+    <!-- Sumar colaboradoras acá mismo, sin tener que guardar y volver a
+         abrir la tarea. Lo pidió Marti el 27/08. -->
+    <div class="campo">
+      <label class="campo-label" style="display:flex; align-items:center; gap:8px;">Colaboradoras
+        <select class="sel" id="fAddColab" style="font-size:12px; padding:4px 8px; margin-left:auto; max-width:190px;"></select>
+      </label>
+      <div class="colabs" id="fColabs"></div>
+      <div class="res-sub" style="margin-top:6px">Se enteran de todo lo que pasa en la tarea, pero
+        no les cuenta como propia: sigue siendo de su responsable.</div>
     </div>
     <!-- El switch "Visible para el cliente" se sacó el 27/08/2026.
          La columna `tarea.visible_cliente` sigue en la base y no se borró
@@ -7326,8 +7336,14 @@
     //  agrega una línea a esta lista y nada más.
     const TEXTOS = [
       { campo: 'objetivo',   titulo: 'Objetivo de la marca',
-        sub: 'A dónde quiere llegar el cliente. No qué hacemos nosotras: qué quiere lograr él.',
-        vacio: 'Vender más en temporada baja, dejar de depender de las reservas por teléfono, lo que sea…' },
+        sub: 'Tiene que ser <b>medible y con plazo</b>: un número y una fecha. ' +
+             '“Más presencia” no es un objetivo — “20 reservas por mes de acá a marzo” sí. ' +
+             'Esto no es para el cliente: es <b>nuestro norte</b>. Nos dice cómo tiene que ser el ' +
+             'servicio y qué resultado tenemos que dar para que a la marca le convenga seguir ' +
+             'contratándonos.',
+        subHTML: true,
+        vacio: 'Ej: llegar a 20 reservas por mes en temporada baja (hoy 8), antes de marzo 2027.\n' +
+               'Ej: bajar el costo por consulta de $4.000 a $2.500 en tres meses de pauta.' },
       { campo: 'descripcion', titulo: 'Descripción',
         sub: 'Qué es, en dos renglones. Para que alguien que nunca lo tocó entienda de qué se trata.',
         vacio: 'Quién es el cliente, a qué se dedica, dónde está…' },
@@ -7351,7 +7367,7 @@
             '</button>' +
           '</span>' +
         '</h4>' +
-        '<div class="res-sub">' + esc(c.sub) + '</div>' +
+        '<div class="res-sub">' + (c.subHTML ? c.sub : esc(c.sub)) + '</div>' +
         '<div class="res-brief-vista' + (hay ? '' : ' vacia') + '" data-resvista="' + c.campo + '">' +
           (hay ? renderTexto(val) : esc(c.vacio)) +
         '</div>' +
@@ -7427,25 +7443,19 @@
         }).join('') + '</div>'
       : '<div class="res-vacio">Sin miembros: por ahora solo lo ve quien lo creó.</div>';
 
-    // El estado que ponés vos, arriba de todo: es lo que alguien que abre
-    // el proyecto quiere saber primero, y ningún contador se lo dice.
-    // Los tres números pasan abajo, como apoyo.
-    const salud = p.salud || '';
-    const SALUDES = [['curso', 'En curso'], ['riesgo', 'En riesgo'], ['retraso', 'Con retraso']];
-    const cajaSalud = FALTA_M8
-      ? ''
-      : '<div class="res-card">' +
-          '<h4>¿Cómo va?</h4>' +
-          '<div class="salud-btns">' +
-            SALUDES.map(x => '<button class="salud-btn ' + x[0] + (salud === x[0] ? ' on' : '') +
-              '" data-salud="' + x[0] + '">' + x[1] + '</button>').join('') +
-          '</div>' +
-          '<div class="res-nums">' +
-            '<div class="res-num"><b>' + abiertas.length + '</b><span>abiertas</span></div>' +
-            '<div class="res-num' + (vencidas.length ? ' alerta' : '') + '"><b>' + vencidas.length + '</b><span>vencidas</span></div>' +
-            '<div class="res-num"><b>' + listas.length + '</b><span>listas</span></div>' +
-          '</div>' +
-        '</div>';
+    // Los tres botones de estado (En curso / En riesgo / Con retraso) los
+    // sacamos el 27/08: un estado que hay que acordarse de actualizar a
+    // mano miente a los dos días. Los números salen solos de las tareas.
+    // La columna `proyecto.salud` sigue existiendo por si vuelve.
+    const cajaSalud =
+      '<div class="res-card">' +
+        '<h4>¿Cómo va?</h4>' +
+        '<div class="res-nums">' +
+          '<div class="res-num"><b>' + abiertas.length + '</b><span>abiertas</span></div>' +
+          '<div class="res-num' + (vencidas.length ? ' alerta' : '') + '"><b>' + vencidas.length + '</b><span>vencidas</span></div>' +
+          '<div class="res-num"><b>' + listas.length + '</b><span>listas</span></div>' +
+        '</div>' +
+      '</div>';
 
     $('#resDer').innerHTML =
       cajaSalud +
@@ -8586,6 +8596,52 @@
   }
 
   // ═══════════════ FORM ═══════════════
+  // Las colaboradoras elegidas en el modal, antes de que la tarea exista.
+  // Se guardan recién al Guardar: si cancelás, no queda nada suelto.
+  let F_COLABS = [];
+
+  function pintarColabsForm() {
+    const resp = $('#fResponsable').value || null;
+    // La responsable no va como colaboradora: la base ya la anota sola,
+    // con motivo "responsable". Ponerla dos veces reventaba el insert.
+    const arr = F_COLABS.filter(id => id !== resp);
+    $('#fColabs').innerHTML = arr.length
+      ? arr.map(id => {
+          const n = nombrePersona(id) || 'Alguien';
+          return '<span class="colab"><span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' +
+            esc(n) + '<button type="button" class="quitar" data-fcolabdel="' + id + '" title="Sacar">×</button></span>';
+        }).join('')
+      : '<div class="res-vacio">Nadie más, por ahora.</div>';
+
+    const libres = PERSONAS.filter(p => arr.indexOf(p.id) === -1 && p.id !== resp);
+    $('#fAddColab').innerHTML = '<option value="">+ Sumar a alguien</option>'
+      + libres.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
+    $('#fAddColab').value = '';
+    $('#fAddColab').disabled = !libres.length || FALTA_M11;
+  }
+
+  // Deja la lista de la base igual a la del modal. Sirve para una tarea
+  // recién creada (no hay nada antes) y para una que estás editando.
+  async function guardarColabsDelForm(tareaId) {
+    if (FALTA_M11 || !tareaId) return;
+    const resp = $('#fResponsable').value || null;
+    const antes = (COLABS[tareaId] || []).filter(c => c.motivo !== 'responsable').map(c => c.id);
+    const ahora = F_COLABS.filter(id => id !== resp);
+    const suman  = ahora.filter(id => antes.indexOf(id) === -1);
+    const restan = antes.filter(id => ahora.indexOf(id) === -1);
+    if (!suman.length && !restan.length) return;
+
+    if (suman.length) {
+      const { error } = await SB.from('tarea_colaborador')
+        .insert(suman.map(id => ({ tarea_id: tareaId, user_id: id, motivo: 'agregada' })));
+      if (error) { toast('La tarea se guardó, pero no pude sumar a las colaboradoras: ' + error.message, 'warn'); return; }
+    }
+    for (const id of restan) {
+      await SB.from('tarea_colaborador').delete().eq('tarea_id', tareaId).eq('user_id', id);
+    }
+    await cargarColabs();
+  }
+
   function abrirForm(t, seccionPreset) {
     EDITANDO = t;
     $('#formTitulo').textContent = t ? 'Editar tarea' : 'Nueva tarea';
@@ -8599,6 +8655,8 @@
     $('#fEmpieza').value = t ? (t.empieza || '') : '';
     $('#fVence').value = t ? (t.vence || '') : '';
     $('#fProyecto').value = t ? (t.proyecto_id || '') : (FILTRO.proyecto && FILTRO.proyecto !== '__sinproy' ? FILTRO.proyecto : '');
+    F_COLABS = t ? (COLABS[t.id] || []).filter(c => c.motivo !== 'responsable').map(c => c.id) : [];
+    pintarColabsForm();
     $('#fBorrar').style.display = t ? '' : 'none';
     abrir('ovForm');
     setTimeout(() => $('#fTitulo').focus(), 60);
@@ -8632,6 +8690,7 @@
       if (EDITANDO) {
         const { error } = await SB.from('tarea').update(fila).eq('id', EDITANDO.id);
         if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+        await guardarColabsDelForm(EDITANDO.id);
         toast('Tarea actualizada');
       } else {
         fila.orden = Date.now() / 1000;
@@ -8644,6 +8703,9 @@
             .insert({ tarea_id: data.id, proyecto_id: proyId, seccion_id: secId, orden: ord, principal: true });
           if (e2) toast('Tarea creada, pero no entró al proyecto: ' + e2.message, 'warn');
         }
+        // Las colaboradoras van DESPUÉS del insert: recién ahí existe el
+        // id de la tarea al que colgarlas.
+        await guardarColabsDelForm(data && data.id);
         toast('Tarea creada');
         cerrar('ovForm');
         await cargarTareas();
@@ -9934,18 +9996,6 @@
       }
       return;
     }
-    const sal = e.target.closest('[data-salud]');
-    if (sal) {
-      const p = proyActivo();
-      // Volver a clickear el que ya estaba puesto lo saca: no hay forma de
-      // "despintar" si no, y un estado viejo miente más que ninguno.
-      const nuevo = (p && p.salud === sal.dataset.salud) ? null : sal.dataset.salud;
-      // Se pinta al toque, a mano. El Resumen no se repinta entero a
-      // propósito: si lo hiciera, te borraría el brief a medio escribir.
-      $$('#resDer .salud-btn').forEach(b => b.classList.toggle('on', b.dataset.salud === nuevo));
-      guardarProyCampo('salud', nuevo);
-      return;
-    }
     const ir = e.target.closest('[data-irtarea]');
     if (ir) { abrirDrawer(ir.dataset.irtarea); return; }
     if (e.target.closest('#nuDatoBtn')) { agregarDato(); return; }
@@ -10019,6 +10069,22 @@
     const b = e.target.closest('[data-colabdel]');
     if (b) sacarColab(b.dataset.colabdel);
   });
+
+  // ── Colaboradoras en el modal de alta ────────────────────────
+  $('#fAddColab').addEventListener('change', e => {
+    const id = e.target.value;
+    if (id && F_COLABS.indexOf(id) === -1) F_COLABS.push(id);
+    pintarColabsForm();
+  });
+  $('#fColabs').addEventListener('click', e => {
+    const b = e.target.closest('[data-fcolabdel]');
+    if (!b) return;
+    F_COLABS = F_COLABS.filter(id => id !== b.dataset.fcolabdel);
+    pintarColabsForm();
+  });
+  // Si cambiás de responsable, la que era colaboradora y pasó a responsable
+  // sale de la lista sola — si no, la base la rechazaría por repetida.
+  $('#fResponsable').addEventListener('change', pintarColabsForm);
 
   // ── Menciones con @ ──────────────────────────────────────────
   montarMenciones($('#dDesc'));
