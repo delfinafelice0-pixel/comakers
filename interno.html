@@ -242,6 +242,13 @@
   }
   .view-toggle button.active { background: var(--ink); color: var(--bg-elev); }
   .view-toggle button svg { width: 13px; height: 13px; }
+  /* Solo la pestaña activa muestra su nombre; las otras, el ícono (el
+     nombre completo aparece al pasar el mouse). Los cuatro nombres juntos
+     —"Calendario de la muerte" incluido— no entraban en el renglón y la
+     barra se partía en dos. Achicar el nombre habría sido más fácil, pero
+     ese nombre es la mitad de la gracia. */
+  .view-toggle button .t { display: none; }
+  .view-toggle button.active .t { display: inline; }
 
   /* ── KANBAN ───────────────────────────────── */
   .kanban { display: none; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 12px; }
@@ -322,11 +329,37 @@
   .grupo-body { display: flex; flex-direction: column; }
   .grupo.collapsed .grupo-body { display: none; }
 
+  /* Los anchos son FIJOS a propósito. Con `auto`, cada fila es su propia
+     grilla y se mide sola: una fila con dos chips corría todo a la
+     derecha y las columnas quedaban escalonadas. Fijos, el ojo baja
+     derecho por una columna — que es lo único que hace legible una
+     lista larga. Los chips van adentro de .fila-chips por lo mismo:
+     uno o dos chips tienen que ocupar UNA celda, no una y dos. */
+  .lista-cols { --cols: 24px 1fr 170px 96px 26px 88px; }
   .fila {
-    display: grid; grid-template-columns: 24px 1fr auto auto auto auto auto;
+    display: grid; grid-template-columns: var(--cols, 24px 1fr 170px 96px 26px 88px);
     gap: 14px; align-items: center; padding: 11px 20px;
     border-bottom: 1px solid var(--line-soft); transition: background 0.12s; cursor: pointer;
   }
+  .fila-chips { display: flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; }
+  .fila-chips > * { overflow: hidden; text-overflow: ellipsis; }
+
+  .lista-head {
+    display: grid; grid-template-columns: var(--cols, 24px 1fr 170px 96px 26px 88px);
+    gap: 14px; align-items: center; padding: 0 20px 8px;
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    font-weight: 600; color: var(--ink-mute);
+  }
+  .lista-head button {
+    background: none; border: none; padding: 2px 0; font: inherit; color: inherit;
+    letter-spacing: inherit; text-transform: inherit; cursor: pointer; text-align: left;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .lista-head button:hover { color: var(--ink); }
+  .lista-head button.on { color: var(--ink); }
+  .lista-head .flecha { font-size: 9px; opacity: .8; }
+  .lista-head .fija { color: var(--ink-mute); cursor: default; }
+  .lista-head .centro { justify-content: center; }
   .fila:last-child { border-bottom: none; }
   .fila:hover { background: var(--line-soft); }
   .fila.done .fila-titulo { text-decoration: line-through; color: var(--ink-mute); }
@@ -349,17 +382,32 @@
     font-size: 11px; color: var(--ink-soft); padding: 3px 8px;
     border-radius: 12px; background: var(--line-soft); font-weight: 500; white-space: nowrap;
   }
-  .pill.interno { background: var(--cyan-soft); color: #3E7F8C; }
+  /* "Interno" es la AUSENCIA de cliente: es lo menos informativo de la
+     tarjeta y estaba pintado de celeste, gritando más que los clientes
+     de verdad. Va callado. */
+  .pill.interno { background: none; color: var(--ink-mute); padding-left: 2px; padding-right: 4px; }
+  /* El estado se dice con un punto de color, no con un cartel de color.
+     Antes cada fila llevaba tres rellenos compitiendo entre sí y ninguno
+     ganaba. Ahora el color aparece en 7 píxeles y el texto es gris, como
+     todo lo demás que no es el título. */
   .estado-pill {
-    font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
-    padding: 3px 8px; border-radius: 12px; white-space: nowrap;
+    font-size: 11px; font-weight: 500; padding: 3px 2px; white-space: nowrap;
+    color: var(--ink-mute); background: none;
+    display: inline-flex; align-items: center; gap: 5px;
   }
-  .estado-pill.backlog    { background: var(--line-soft); color: var(--ink-mute); }
-  .estado-pill.pendiente  { background: var(--line-soft); color: var(--ink-soft); }
-  .estado-pill.curso      { background: var(--accent-soft); color: var(--ink); }
-  .estado-pill.revision   { background: var(--cyan-soft); color: #3E7F8C; }
-  .estado-pill.listo      { background: var(--good-soft); color: var(--ink); }
+  .estado-pill::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    background: #CFC9D6; flex-shrink: 0;
+  }
+  .estado-pill.curso::before    { background: var(--accent); }
+  .estado-pill.revision::before { background: #7EC8D8; }
+  .estado-pill.listo::before    { background: #AEE06B; }
 
+  /* El rosa quiere decir una sola cosa: esto es tuyo. Con TODOS los
+     avatares en rosa fuerte, el color no distinguía nada — era el
+     elemento más repetido de la pantalla. Ahora el tuyo resalta y el
+     del resto es tranquilo. */
+  .avatar-sm.otra { background: var(--line); color: var(--ink-soft); }
   .avatar-sm {
     width: 24px; height: 24px; border-radius: 50%;
     background: var(--accent); color: var(--ink);
@@ -374,7 +422,10 @@
   }
   .fecha.vencida { background: var(--warn-soft); color: var(--ink); }
   .fecha.hoy     { background: var(--accent-soft); color: var(--ink); }
-  .fecha.pronto  { background: var(--lime-soft); color: var(--ink); }
+  /* "pronto" es todo lo que vence dentro de la semana, o sea casi todo.
+     Pintado de verde, el verde dejaba de querer decir algo. Va sin
+     relleno: solo hoy y lo vencido se ganan un color. */
+  .fecha.pronto  { background: none; color: var(--ink-soft); font-weight: 600; }
 
 
   /* ── PROYECTOS ────────────────────────────── */
@@ -490,9 +541,11 @@
   .btn-fin.on { background: var(--good); border-color: var(--good); color: var(--ink); }
   .nav-vacio { font-size: 11px; color: var(--ink-mute); padding: 2px 10px 4px; font-style: italic; }
 
+  /* Sin relleno: el punto de color ya dice de qué proyecto es. Así queda
+     un solo elemento relleno por tarjeta (el cliente) en vez de tres. */
   .chip-proy {
-    font-size: 11px; color: var(--ink-soft); padding: 3px 8px 3px 6px;
-    border-radius: 12px; background: var(--line-soft); font-weight: 500;
+    font-size: 11px; color: var(--ink-soft); padding: 3px 4px 3px 2px;
+    border-radius: 12px; background: none; font-weight: 500;
     white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
   }
   .chip-proy .proy-dot { width: 7px; height: 7px; border-radius: 2px; }
@@ -872,6 +925,40 @@
   .llave { width: 12px; height: 12px; color: var(--ink-mute); flex-shrink: 0; vertical-align: -1px; }
 
   .res-alta { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+  .res-alta.plegada { display: none; }
+
+  /* La invitación reemplaza al formulario permanente. Un proyecto recién
+     creado ahora se lee como una ficha vacía —"cargá esto"— y no como
+     tres formularios esperando datos. */
+  .res-invita {
+    background: none; border: none; padding: 8px 0 2px; font: inherit;
+    font-size: 12.5px; color: var(--ink-mute); cursor: pointer; text-align: left;
+  }
+  .res-invita:hover { color: var(--accent); }
+
+  /* El estado que ponés vos. Solo el elegido se pinta: si los tres
+     tuvieran color, no se vería cuál está puesto. */
+  .salud-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .salud-btn {
+    background: none; border: 1px solid var(--line); border-radius: 20px;
+    padding: 5px 11px; font: inherit; font-size: 12px; color: var(--ink-mute);
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .12s;
+  }
+  .salud-btn::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #CFC9D6; }
+  .salud-btn:hover { border-color: var(--ink-mute); color: var(--ink); }
+  .salud-btn.curso.on   { background: var(--lime-soft); border-color: #AEE06B; color: var(--ink); }
+  .salud-btn.riesgo.on  { background: #FFF3D6;          border-color: #F0C24B; color: var(--ink); }
+  .salud-btn.retraso.on { background: var(--warn-soft); border-color: var(--warn); color: var(--ink); }
+  .salud-btn.curso.on::before   { background: #7CB342; }
+  .salud-btn.riesgo.on::before  { background: #E8A317; }
+  .salud-btn.retraso.on::before { background: var(--warn); }
+
+  .act-tarea {
+    color: var(--ink-soft); border-bottom: 1px dotted var(--ink-mute);
+    cursor: pointer; white-space: nowrap;
+  }
+  .act-tarea:hover { color: var(--accent); border-bottom-color: var(--accent); }
   .res-alta input[type=text] {
     flex: 1 1 130px; min-width: 0; border: 1px solid var(--line); border-radius: 8px;
     padding: 7px 9px; font-family: var(--body); font-size: 12px; outline: none;
@@ -1626,6 +1713,9 @@
   .cols-pago .nom .sub { display: block; }
 
   .pill.mas-cli { background: var(--line-soft); color: var(--ink-mute); margin-left: -3px; }
+  /* Lo urgente sí se gana un relleno: es la única cosa de la tarjeta que
+     pide que dejes lo que estás haciendo. */
+  .pill.urgente { background: var(--warn-soft); color: var(--ink); font-weight: 600; }
   .prop-nota { margin-top: 5px; line-height: 1.45; }
 
   /* Auditoría: la cuenta abierta */
@@ -1726,6 +1816,69 @@
   .ejec-pop .miembros { gap: 5px; }
   .ejec-pop .nota { font-size: 11px; color: var(--ink-mute); margin-top: 9px; line-height: 1.45; }
 
+
+  /* ═══════════════════════════════════════════════════════════════
+     VERSIÓN COMPACTA — elegida el 27/08/2026
+     Va como un bloque al final, no repartida entre las reglas de
+     arriba, y a propósito: si algún día no convence, se borra este
+     bloque entero y el panel vuelve a la versión "Serena" de antes,
+     sin tocar nada más. Las tres versiones que comparamos quedaron
+     en `look-variantes.html`.
+
+     La idea de fondo: fondo blanco liso, filas finas, sin descripción
+     en la lista. Entran unas 15 tareas donde antes entraban 7. Y en
+     el tablero se da vuelta el contraste como el de Asana: la COLUMNA
+     es la bandeja gris y la TARJETA va en blanco.
+     ═══════════════════════════════════════════════════════════════ */
+  body { background: #FFFFFF; }
+  .app::before,
+  .main::before { display: none !important; }
+  :root { --bg: #FFFFFF; --radius: 6px; --radius-lg: 8px; }
+
+  .grupo,
+  .res-card,
+  .columna {
+    box-shadow: none; border-radius: 6px;
+  }
+  .grupo { border: none; border-top: 1px solid var(--line); background: none; }
+  .grupo-head { padding: 10px 12px 6px; }
+  .fila { padding: 6px 12px; gap: 10px; }
+  .fila-titulo { font-size: 12.5px; margin-bottom: 0; }
+  .fila-desc { display: none; }        /* la descripción se lee al abrir */
+  .lista-head { padding: 0 12px 6px; }
+  .avatar-sm { width: 20px; height: 20px; font-size: 9px; }
+
+  /* El tablero se da vuelta, como el de Asana: la COLUMNA es la bandeja
+     gris y la TARJETA es la que está en blanco. Con el fondo de la página
+     ya en blanco, tarjeta blanca sobre columna casi blanca no se leía:
+     todo se empastaba. Ahora la tarjeta flota sobre la columna. */
+  .columna {
+    background: #F4F3F7; border-color: transparent; padding: 10px;
+    min-height: 240px; gap: 8px; border-radius: 8px;
+  }
+  /* Las columnas se cortan donde termina su contenido, en vez de estirarse
+     todas hasta el largo de la más llena. Con la columna en gris eso se
+     notaba: "En revisión" con una tarea era un rectángulo gris enorme. */
+  .kanban.active { align-items: start; }
+  .columna-head { padding-bottom: 8px; border-bottom: none; }
+  .columna-titulo { font-family: var(--body); font-size: 13px; font-weight: 600; }
+  .columna-count { background: none; padding: 2px 0; }
+  .columna-body { gap: 6px; }
+
+  .card-k {
+    background: #FFFFFF; border-color: #E7E4EC; padding: 8px 10px; border-radius: 6px;
+  }
+  .card-k-titulo { font-size: 12.5px; margin-bottom: 0; line-height: 1.3; }
+  .card-k-desc { display: none; }
+  .card-k-top { margin-bottom: 4px; }
+  .card-k-bottom { gap: 6px; margin-top: 6px; }
+  .card-k .avatar-sm { width: 20px; height: 20px; font-size: 9px; }
+  .card-k-fin { width: 18px; height: 18px; }
+
+  .topbar h1 { font-size: 26px; }
+  .main { padding-top: 22px; }
+  .sidebar { background: #FFFFFF; }
+
   /* ── RESPONSIVE ───────────────────────────── */
   @media (max-width: 1200px) { .kanban.active { grid-template-columns: repeat(3, minmax(210px,1fr)); } }
   @media (max-width: 900px) {
@@ -1741,7 +1894,8 @@
     .kanban.active { grid-template-columns: 1fr; }
     .columna { min-height: auto; }
     .fila { grid-template-columns: 24px 1fr auto; gap: 10px; }
-    .fila .pill, .fila .chip-proy, .fila .estado-pill, .fila .avatar-sm { display: none; }
+    .fila .fila-chips, .fila .estado-pill, .fila .avatar-sm { display: none; }
+    .lista-head { display: none; }
     .campo-row { grid-template-columns: 1fr; }
     /* Con "Resumen" son cuatro pestañas: que puedan bajar de línea
        en vez de estirar la grilla y generar scroll horizontal. */
@@ -1829,7 +1983,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 12:39</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 16:55</div>
     </div>
   </aside>
 
@@ -1873,30 +2027,30 @@
         <select class="sel" id="filtroCliente"><option value="">Todos los clientes</option></select>
         <button class="filter-btn" id="btnMias">Mías <span class="count" id="cMias">0</span></button>
         <button class="btn-ghost" id="btnLimpiar" style="display:none">Limpiar</button>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
         <select class="sel" id="agrupar" style="display:none">
           <option value="responsable">Agrupar por persona</option>
           <option value="cliente">Agrupar por cliente</option>
           <option value="proyecto">Agrupar por proyecto</option>
           <option value="estado">Agrupar por estado</option>
         </select>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
         <div class="view-toggle">
-          <button data-vista="resumen" id="btnVistaResumen" style="display:none">
+          <button data-vista="resumen" title="Resumen" id="btnVistaResumen" style="display:none">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-            Resumen
+            <span class="t">Resumen</span>
           </button>
-          <button class="active" data-vista="tablero">
+          <button class="active" data-vista="tablero" title="Tablero">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
-            Tablero
+            <span class="t">Tablero</span>
           </button>
-          <button data-vista="lista">
+          <button data-vista="lista" title="Lista">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-            Lista
+            <span class="t">Lista</span>
           </button>
-          <button data-vista="calendario">
+          <button data-vista="calendario" title="Calendario de la muerte">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            Calendario de la muerte
+            <span class="t">Calendario de la muerte</span>
           </button>
         </div>
       </div>
@@ -1908,7 +2062,7 @@
       <div class="res-col" id="resDer"></div>
     </div>
     <div class="kanban" id="kanban"></div>
-    <div class="lista" id="lista"></div>
+    <div class="lista lista-cols" id="lista"></div>
 
     <div class="calendario" id="calendario">
       <div class="cal-panel">
@@ -2694,6 +2848,37 @@
   let CLIENTES = [];
   let TAREAS = [];
   let VISTA = 'tablero';
+  // Ordenar la lista clickeando el encabezado. `campo` vacío = el orden de
+  // siempre (primero lo vencido, después por fecha).
+  let ORDEN = { campo: '', dir: 1 };
+
+  // ── La vista con la que dejaste cada proyecto ────────────────
+  //  Se guarda en el navegador, no en la base: es una preferencia de cada
+  //  una y de cada máquina, no un dato de la agencia. Si Delfi deja
+  //  San Eusebio en Tablero y Marti lo deja en Lista, cada una vuelve a
+  //  la suya. La contra: si entrás desde otra compu, arranca de cero.
+  const VISTA_LS = 'comakers.vista.v1';
+  let VISTAS = {};
+  function cargarVistas() {
+    try { VISTAS = JSON.parse(localStorage.getItem(VISTA_LS) || '{}') || {}; }
+    catch (e) { VISTAS = {}; }          // navegador en incógnito, storage lleno, lo que sea
+  }
+  function guardarVistas() {
+    try { localStorage.setItem(VISTA_LS, JSON.stringify(VISTAS)); } catch (e) {}
+  }
+  // Una clave por persona y por proyecto. Sin persona todavía, no guardamos.
+  function claveVista() {
+    if (!ME) return null;
+    return ME.id + '|' + (MODULO === 'tareas' && FILTRO.proyecto ? FILTRO.proyecto : '__todo');
+  }
+  function recordarVista() {
+    const k = claveVista();
+    if (!k) return;
+    VISTAS[k] = VISTA;
+    guardarVistas();
+  }
+
+  let FALTA_M32 = false;  // true si todavía no corrió migracion-interno-32-descripcion-objetivo.sql
   let FALTA_M8 = false;   // true si todavía no corrió migracion-interno-8-resumen.sql
   let FALTA_M10 = false;  // true si todavía no corrió migracion-interno-10-equipo.sql
   let FALTA_M11 = false;  // true si todavía no corrió migracion-interno-11-bandeja.sql
@@ -2891,6 +3076,7 @@
       return;
     }
     ME = prof;
+    cargarVistas();          // con qué vista dejaste cada proyecto la última vez
 
     $('#miNombre').textContent = prof.nombre || prof.email;
     $('#miAvatar').textContent = iniciales(prof.nombre, prof.email);
@@ -2952,9 +3138,19 @@
     // Pedimos primero las columnas del Resumen. Si todavía no corriste la
     // migración 8, la consulta entera falla: reintentamos sin ellas en vez
     // de quedarnos sin proyectos.
+    //
+    // Son tres escalones, del más nuevo al más viejo. Sin esto, correr el
+    // HTML nuevo antes que la migración deja el panel sin proyectos: no
+    // "falta un cuadro", desaparece todo.
     let { data, error } = await SB.from('proyecto')
-      .select(COLS_PROY + ', descripcion, salud')
+      .select(COLS_PROY + ', descripcion, salud, objetivo, brief')
       .eq('archivado', false).order('nombre');
+    if (error) {
+      const r32 = await SB.from('proyecto')
+        .select(COLS_PROY + ', descripcion, salud')
+        .eq('archivado', false).order('nombre');
+      if (!r32.error) { data = r32.data; FALTA_M32 = true; error = null; }
+    }
     if (error) {
       const r = await SB.from('proyecto').select(COLS_PROY).eq('archivado', false).order('nombre');
       if (!r.error) {
@@ -4601,6 +4797,21 @@
       .replace(/^\s*\d+[.)]\s+/gm, '');
   }
 
+  // Preview de una línea, para tarjetas y filas. Además del markdown, saca
+  // las URLs sueltas: una tarjeta cuya descripción era
+  // "https://drive.google.com/drive/folders/1ztjANFO…?usp=share_link"
+  // gastaba dos renglones para no decir nada. El link igual se cuenta
+  // aparte, con el 🔗 de abajo.
+  function resumenTexto(txt) {
+    return textoPlano(txt)
+      .replace(/https?:\/\/\S+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      // Si el texto era "mirá acá: <link>", al sacar el link quedaba
+      // colgando el dos puntos. Se limpia lo que quedó apuntando a nada.
+      .replace(/[\s:;,\-–—·]+$/, '');
+  }
+
   // Gancho para las pruebas automáticas. No expone datos ni permisos:
   // son dos funciones puras de texto.
   window.__panel = { renderTexto: renderTexto, textoPlano: textoPlano };
@@ -4610,7 +4821,7 @@
   let TOCANDO_HERRAMIENTA = false;
   document.addEventListener('mousedown', e => {
     TOCANDO_HERRAMIENTA = !!(e.target.closest &&
-      e.target.closest('#emojiPop, #ovLink, .d-tools, #resEmoji, #resLink, #wkEmoji, #wkLink'));
+      e.target.closest('#emojiPop, #ovLink, .d-tools, [data-restool], #wkEmoji, #wkLink'));
   }, true);
 
   function insertarEn(el, txt) {
@@ -4713,7 +4924,7 @@
   function guardarCampoDe(el) {
     if (!el) return;
     if (el.id === 'dDesc') guardarCampo('descripcion', el.value.trim() || null);
-    if (el.id === 'resBrief') guardarProyCampo('descripcion', el.value.trim() || null);
+    if (esTextoResumen(el)) guardarProyCampo(el.dataset.campo, el.value.trim() || null);
     if (el.id === 'wkCuerpo') guardarPagina('contenido', el.value.trim() || null);
   }
 
@@ -4753,7 +4964,7 @@
     el.value = el.value.slice(0, LK_INI) + md + el.value.slice(LK_FIN);
     cerrar('ovLink');
     if (el.id === 'dDesc') { entrarAEditarDesc(); guardarCampo('descripcion', el.value.trim() || null); }
-    if (el.id === 'resBrief') { entrarAEditarBrief(); guardarProyCampo('descripcion', el.value.trim() || null); }
+    if (esTextoResumen(el)) { entrarAEditarBrief(el); guardarProyCampo(el.dataset.campo, el.value.trim() || null); }
     if (el.id === 'wkCuerpo') { entrarAEditarWiki(); guardarPagina('contenido', el.value.trim() || null); }
     const c = LK_INI + md.length;
     el.focus();
@@ -7109,25 +7320,55 @@
     const escribiendo = !!ae && $('#resIzq').contains(ae) &&
       (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT' || ae.isContentEditable);
 
-    // ── Columna izquierda: brief + datos + links ──────────────
-    const hayBrief = !!(p.descripcion && p.descripcion.trim());
-    const brief =
-      '<div class="res-card">' +
-        '<h4>Brief' +
+    // ── Columna izquierda: los tres textos + datos + links ────
+    //  Los tres cuadros son el MISMO componente con distinto rótulo y
+    //  distinta columna en la base. Si mañana hace falta un cuarto, se
+    //  agrega una línea a esta lista y nada más.
+    const TEXTOS = [
+      { campo: 'objetivo',   titulo: 'Objetivo de la marca',
+        sub: 'A dónde quiere llegar el cliente. No qué hacemos nosotras: qué quiere lograr él.',
+        vacio: 'Vender más en temporada baja, dejar de depender de las reservas por teléfono, lo que sea…' },
+      { campo: 'descripcion', titulo: 'Descripción',
+        sub: 'Qué es, en dos renglones. Para que alguien que nunca lo tocó entienda de qué se trata.',
+        vacio: 'Quién es el cliente, a qué se dedica, dónde está…' },
+      // Antes de la 32, el brief todavía vive en `descripcion`: si no se
+      // apunta ahí, el texto que ya escribiste no aparece.
+      { campo: FALTA_M32 ? 'descripcion' : 'brief', titulo: 'Brief',
+        sub: 'Qué acordamos y cómo hablarle. Todo lo que el equipo tendría que saber antes de tocar el proyecto.',
+        vacio: 'Tono, acuerdos, lo que no se puede decir, cada cuánto se publica…' }
+    ];
+
+    const cuadroTexto = c => {
+      const val = p[c.campo] || '';
+      const hay = !!val.trim();
+      const id  = 'res_' + c.campo;
+      return '<div class="res-card" data-restxt="' + c.campo + '">' +
+        '<h4>' + esc(c.titulo) +
           '<span class="d-tools">' + BARRA_FORMATO +
-            '<button class="mini-btn" id="resEmoji" title="Poner un emoji">🙂</button>' +
-            '<button class="mini-btn" id="resLink" title="Poner un link (⌘K)">' +
+            '<button class="mini-btn" data-restool="emoji" title="Poner un emoji">🙂</button>' +
+            '<button class="mini-btn" data-restool="link" title="Poner un link (⌘K)">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>' +
             '</button>' +
           '</span>' +
         '</h4>' +
-        '<div class="res-sub">De qué se trata, qué acordamos, cómo hablarle. Se guarda solo.</div>' +
-        '<div class="res-brief-vista' + (hayBrief ? '' : ' vacia') + '" id="resBriefVista">' +
-          (hayBrief ? renderTexto(p.descripcion)
-                    : 'Escribí acá todo lo que el equipo tendría que saber antes de tocar este proyecto…') +
+        '<div class="res-sub">' + esc(c.sub) + '</div>' +
+        '<div class="res-brief-vista' + (hay ? '' : ' vacia') + '" data-resvista="' + c.campo + '">' +
+          (hay ? renderTexto(val) : esc(c.vacio)) +
         '</div>' +
-        '<textarea class="res-brief" id="resBrief" style="display:none">' + esc(p.descripcion || '') + '</textarea>' +
+        '<textarea class="res-brief res-txt" id="' + id + '" data-campo="' + c.campo + '" ' +
+          'data-vacio="' + esc(c.vacio) + '" style="display:none">' + esc(val) + '</textarea>' +
       '</div>';
+    };
+
+    // Si falta la migración 32, los dos cuadros nuevos no tienen dónde
+    // guardarse. Se muestran igual, pero avisando — es preferible a que
+    // escribas media página y se pierda al recargar.
+    const brief = (FALTA_M32
+        ? '<div class="res-card"><div class="res-falta">Falta correr ' +
+          '<code>migracion-interno-32-descripcion-objetivo.sql</code>. Hasta que la corras, ' +
+          '"Objetivo de la marca" y "Descripción" no se pueden guardar.</div></div>'
+        : '') +
+      TEXTOS.filter(c => !FALTA_M32 || c.titulo === 'Brief').map(cuadroTexto).join('');
 
     const datos =
       '<div class="res-card">' +
@@ -7135,9 +7376,13 @@
         '<div class="res-sub">Etiqueta y valor: contacto, CUIT, usuario de Instagram, lo que necesiten. ' +
           'Marcá “es un acceso” para que quede tapado.</div>' +
         ((FALTA_M8 || ERROR_RES) ? avisoMigracion()
-          : (RES_DATOS.length ? RES_DATOS.map(filaDato).join('')
-             : '<div class="res-vacio">Todavía no cargaste ningún dato.</div>') +
-            '<div class="res-alta">' +
+          : (RES_DATOS.length ? RES_DATOS.map(filaDato).join('') : '') +
+            // El formulario aparece recién cuando lo pedís. Mostrarlo
+            // siempre hacía que un proyecto vacío se leyera como una
+            // planilla de carga en vez de como una ficha para leer.
+            '<button class="res-invita" data-abrir="altaDato">' +
+              (RES_DATOS.length ? '+ Agregar otro dato' : '+ Cargar el primer dato del cliente') + '</button>' +
+            '<div class="res-alta plegada" id="altaDato">' +
               '<input type="text" id="nuEtiqueta" placeholder="Etiqueta (ej: Instagram)">' +
               '<input type="text" id="nuValor" placeholder="Valor">' +
               '<label class="chk-secreto"><input type="checkbox" id="nuSecreto"> es un acceso</label>' +
@@ -7156,9 +7401,10 @@
         '<h4>Links y archivos</h4>' +
         '<div class="res-sub">Drive, guion, planilla de pauta, carpeta de material.</div>' +
         ((FALTA_M8 || ERROR_RES) ? avisoMigracion()
-          : (RES_LINKS.length ? RES_LINKS.map(filaLink).join('')
-             : '<div class="res-vacio">Todavía no hay links.</div>') +
-            '<div class="res-alta">' +
+          : (RES_LINKS.length ? RES_LINKS.map(filaLink).join('') : '') +
+            '<button class="res-invita" data-abrir="altaLink">' +
+              (RES_LINKS.length ? '+ Agregar otro link' : '+ Agregar el Drive, el guion, la planilla…') + '</button>' +
+            '<div class="res-alta plegada" id="altaLink">' +
               '<input type="text" id="nuLinkTitulo" placeholder="Nombre (opcional)">' +
               '<input type="text" id="nuLinkUrl" placeholder="https://…">' +
               '<button class="btn-ghost" id="nuLinkBtn">Agregar</button>' +
@@ -7181,15 +7427,28 @@
         }).join('') + '</div>'
       : '<div class="res-vacio">Sin miembros: por ahora solo lo ve quien lo creó.</div>';
 
+    // El estado que ponés vos, arriba de todo: es lo que alguien que abre
+    // el proyecto quiere saber primero, y ningún contador se lo dice.
+    // Los tres números pasan abajo, como apoyo.
+    const salud = p.salud || '';
+    const SALUDES = [['curso', 'En curso'], ['riesgo', 'En riesgo'], ['retraso', 'Con retraso']];
+    const cajaSalud = FALTA_M8
+      ? ''
+      : '<div class="res-card">' +
+          '<h4>¿Cómo va?</h4>' +
+          '<div class="salud-btns">' +
+            SALUDES.map(x => '<button class="salud-btn ' + x[0] + (salud === x[0] ? ' on' : '') +
+              '" data-salud="' + x[0] + '">' + x[1] + '</button>').join('') +
+          '</div>' +
+          '<div class="res-nums">' +
+            '<div class="res-num"><b>' + abiertas.length + '</b><span>abiertas</span></div>' +
+            '<div class="res-num' + (vencidas.length ? ' alerta' : '') + '"><b>' + vencidas.length + '</b><span>vencidas</span></div>' +
+            '<div class="res-num"><b>' + listas.length + '</b><span>listas</span></div>' +
+          '</div>' +
+        '</div>';
+
     $('#resDer').innerHTML =
-      '<div class="res-card">' +
-        '<h4>Estado</h4>' +
-        '<div class="res-nums">' +
-          '<div class="res-num"><b>' + abiertas.length + '</b><span>abiertas</span></div>' +
-          '<div class="res-num' + (vencidas.length ? ' alerta' : '') + '"><b>' + vencidas.length + '</b><span>vencidas</span></div>' +
-          '<div class="res-num"><b>' + listas.length + '</b><span>listas</span></div>' +
-        '</div>' +
-      '</div>' +
+      cajaSalud +
       '<div class="res-card">' +
         '<h4>Equipo</h4>' +
         '<div class="res-sub">Solo estas personas ven el proyecto y sus tareas.</div>' +
@@ -7202,26 +7461,82 @@
           (p.cliente_id ? 'Cliente: <b>' + esc(nombreCliente(p.cliente_id)) + '</b>' : 'Proyecto interno (sin cliente)') +
           (p.finalizado_en ? '<br>Finalizado el ' + fechaCorta(p.finalizado_en.slice(0, 10)) : '') +
         '</div>' +
+      '</div>' +
+      '<div class="res-card">' +
+        '<h4>Últimos movimientos</h4>' +
+        '<div id="resActividad"><div class="vacio-mini">Cargando…</div></div>' +
       '</div>';
 
+    cargarActividadProyecto(p.id);
   }
 
-  function salirDeEditarBrief() {
-    const ta = $('#resBrief');
+  // La actividad de TODO el proyecto: lo mismo que ya se guarda por tarea,
+  // pero juntado. Es la respuesta a "¿qué pasó acá esta semana?" sin tener
+  // que abrir tarea por tarea.
+  //
+  // Se piden los ids de las tareas del proyecto desde lo que ya está
+  // cargado en memoria: la RLS igual filtra del otro lado, así que esto no
+  // decide permisos, solo evita una consulta de más.
+  async function cargarActividadProyecto(proyId) {
+    const cont = $('#resActividad');
+    if (!cont) return;
+    const ids = TAREAS.filter(t => tpEn(t.id, proyId)).map(t => t.id);
+    if (!ids.length) { cont.innerHTML = '<div class="vacio-mini">Todavía no pasó nada acá.</div>'; return; }
+    const { data, error } = await SB.from('actividad_tarea')
+      .select('id, tarea_id, actor_nombre, campo, valor_anterior, valor_nuevo, created_at')
+      .in('tarea_id', ids.slice(0, 200))
+      .order('created_at', { ascending: false })
+      .limit(8);
+    if (!$('#resActividad')) return;                 // te fuiste mientras cargaba
+    if (error) {
+      // Mismo criterio que en todo el panel: no inventar la causa.
+      $('#resActividad').innerHTML = faltaDeVerdad(error)
+        ? '<div class="vacio-mini">Falta la tabla <code>actividad_tarea</code> (migración 2).</div>'
+        : '<div class="vacio-mini">No se pudo leer. La base contestó: ' + esc(error.message) + '</div>';
+      return;
+    }
+    const arr = data || [];
+    if (!arr.length) { $('#resActividad').innerHTML = '<div class="vacio-mini">Todavía no pasó nada acá.</div>'; return; }
+    $('#resActividad').innerHTML = arr.map(a => {
+      const t = TAREAS.find(x => x.id === a.tarea_id);
+      return '<div class="act"><span class="punto"></span><span>' + textoActividad(a) +
+        (t ? ' <span class="act-tarea" data-irtarea="' + a.tarea_id + '">' + esc(recorte(t.titulo, 30)) + '</span>' : '') +
+        '</span><span class="cuando">' + hace(a.created_at) + '</span></div>';
+    }).join('');
+  }
+
+  // ── Los cuadros de texto del Resumen ─────────────────────────
+  //  Antes esto estaba atado a `#resBrief` en doce lugares. Ahora son
+  //  tres cuadros iguales (y mañana pueden ser cuatro), así que todo
+  //  pasa por el elemento y por su `data-campo`.
+  function vistaDe(ta) {
+    return ta ? $('#resIzq [data-resvista="' + ta.dataset.campo + '"]') : null;
+  }
+  function esTextoResumen(el) {
+    return !!(el && el.classList && el.classList.contains('res-txt'));
+  }
+  // El cuadro de texto de la tarjeta donde está ese botón.
+  function textoDeLaTarjeta(nodo) {
+    const card = nodo && nodo.closest ? nodo.closest('.res-card[data-restxt]') : null;
+    return card ? card.querySelector('.res-txt') : null;
+  }
+
+  function salirDeEditarBrief(ta) {
+    ta = ta || $('#resIzq .res-txt:not([style*="display: none"])');
     if (!ta) return;
     const txt = ta.value.trim();
-    const v = $('#resBriefVista');
-    v.innerHTML = txt ? renderTexto(txt)
-      : 'Escribí acá todo lo que el equipo tendría que saber antes de tocar este proyecto…';
+    const v = vistaDe(ta);
+    if (!v) return;
+    v.innerHTML = txt ? renderTexto(txt) : esc(ta.dataset.vacio || '');
     v.classList.toggle('vacia', !txt);
     v.style.display = '';
     ta.style.display = 'none';
   }
 
-  function entrarAEditarBrief() {
-    const ta = $('#resBrief');
+  function entrarAEditarBrief(ta) {
     if (!ta) return;
-    $('#resBriefVista').style.display = 'none';
+    const v = vistaDe(ta);
+    if (v) v.style.display = 'none';
     ta.style.display = '';
     autoGrow(ta);
     ta.focus();
@@ -7694,9 +8009,7 @@
     return out;
   }
 
-  function chipCliente(t) {
-    const cs = clientesDeTarea(t);
-    if (!cs.length) return '<span class="pill interno">Interno</span>';
+  function pillClientes(cs) {
     const nombres = cs.map(nombreCliente);
     if (cs.length === 1) return '<span class="pill">' + esc(nombres[0]) + '</span>';
     // Con más de uno se muestran dos y el resto se cuenta, para que la
@@ -7704,10 +8017,39 @@
     return '<span class="pill" title="' + esc(nombres.join(' · ')) + '">' + esc(nombres[0]) + '</span>' +
       '<span class="pill mas-cli" title="' + esc(nombres.slice(1).join(' · ')) + '">+' + (cs.length - 1) + '</span>';
   }
+  function chipCliente(t) {
+    const cs = clientesDeTarea(t);
+    return cs.length ? pillClientes(cs) : '<span class="pill interno">Interno</span>';
+  }
+
+  // Los chips de una tarjeta o de una fila, decididos JUNTOS para que no
+  // digan dos veces lo mismo. Pasa todo el tiempo: el proyecto "San Eusebio"
+  // del cliente "San Eusebio" pintaba dos chips idénticos, pegados uno al
+  // lado del otro. Si el chip del proyecto ya nombró al cliente, el del
+  // cliente no se dibuja.
+  function chipsDe(t, ctxProy) {
+    const ps = proyectosDe(t).filter(p => !ctxProy || p.id !== ctxProy.id);
+    const yaDicho = {};
+    ps.forEach(p => { yaDicho[normNombre(p.nombre)] = 1; });
+    const cs = clientesDeTarea(t);
+    const faltan = cs.filter(id => !yaDicho[normNombre(nombreCliente(id))]);
+    // Ojo con la diferencia: una tarea SIN cliente es "Interno". Una que sí
+    // tiene, pero cuyo nombre ya lo dijo el proyecto, no muestra nada — no
+    // es interna, es que ya está dicho.
+    //
+    // Y "Interno" solo se dice cuando no hay NADA más que decir: al lado de
+    // "Comakers – Socias" no agrega nada, el proyecto ya cuenta dónde vive.
+    const cli = cs.length
+      ? (faltan.length ? pillClientes(faltan) : '')
+      : (ps.length ? '' : '<span class="pill interno">Interno</span>');
+    return cli + ps.map(chipUnProyecto).join('');
+  }
   function avatarDe(t) {
     const n = nombrePersona(t.responsable_id);
     if (!n) return '<div class="avatar-sm sin" title="Sin responsable">?</div>';
-    return '<div class="avatar-sm" title="' + esc(n) + '">' + esc(iniciales(n, '')) + '</div>';
+    const mia = ME && t.responsable_id === ME.id;
+    return '<div class="avatar-sm' + (mia ? '' : ' otra') + '" title="' + esc(n) + '">'
+         + esc(iniciales(n, '')) + '</div>';
   }
 
   // Columnas del tablero: las secciones del proyecto activo, o los
@@ -7781,20 +8123,29 @@
   }
   function recorte(t, n) { return t.length > n ? t.slice(0, n - 1) + '…' : t; }
 
+  // El color del proyecto, publicado como variable CSS en cada fila y en
+  // cada tarjeta. La hoja de estilo decide si lo usa (barra al costado,
+  // puntito, o nada). Así el color vive en UN solo lugar del JS.
+  function varColor(t) {
+    const ps = proyectosDe(t);
+    return ps.length ? ' style="--proy-color:' + (COLORES[ps[0].color] || COLORES.gris) + '"' : '';
+  }
+
   function cardHTML(t, ctxProy) {
+    const desc = resumenTexto(t.descripcion);
     const f = fechaTxt(t.vence);
     const venc = estaVencida(t);
     const hecha = !!t.completada;
     return '' +
-      '<div class="card-k' + (venc ? ' vencida' : '') + (hecha ? ' hecha' : '') + '" draggable="true" data-id="' + t.id + '">' +
+      '<div class="card-k' + (venc ? ' vencida' : '') + (hecha ? ' hecha' : '') + '" draggable="true" data-id="' + t.id + '"' + varColor(t) + '>' +
         '<button class="card-k-fin" data-fin="' + t.id + '" title="' + (hecha ? 'Reabrir' : 'Marcar como finalizada') + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' +
         '</button>' +
-        '<div class="card-k-top">' + chipCliente(t) + chipsProyectos(t, ctxProy) +
-          (t.urgencia === 'urgente' ? '<span class="estado-pill" style="background:var(--warn-soft);color:var(--ink)">urgente</span>' : '') +
+        '<div class="card-k-top">' + chipsDe(t, ctxProy) +
+          (t.urgencia === 'urgente' ? '<span class="pill urgente">urgente</span>' : '') +
         '</div>' +
         '<div class="card-k-titulo">' + esc(t.titulo) + '</div>' +
-        (t.descripcion ? '<div class="card-k-desc">' + esc(textoPlano(t.descripcion)) + '</div>' : '') +
+        (desc ? '<div class="card-k-desc">' + esc(desc) + '</div>' : '') +
         '<div class="card-k-bottom">' +
           '<div class="card-k-meta">' + avatarDe(t) +
             (SUB_MAP[t.id] ? '<span class="mini-meta" title="Checklist">✓ ' + SUB_MAP[t.id].hechas + '/' + SUB_MAP[t.id].total + '</span>' : '') +
@@ -7820,7 +8171,8 @@
         return;
       }
       const sinSec = list.filter(t => { const x = tpEn(t.id, p.id); return x && !x.seccion_id; });
-      let html = secs.map(sec => bloqueSeccion(sec, list.filter(t => (tpEn(t.id, p.id) || {}).seccion_id === sec.id))).join('');
+      let html = encabezadoLista(false)
+        + secs.map(sec => bloqueSeccion(sec, list.filter(t => (tpEn(t.id, p.id) || {}).seccion_id === sec.id))).join('');
       if (sinSec.length) html += bloqueSeccion({ id: '__sinsec', nombre: 'Sin sección', tipo: 'pendiente' }, sinSec, true);
       html += '<button class="btn-ghost" id="btnNuevaSecLista" style="align-self:flex-start">+ Agregar sección</button>';
       $('#lista').innerHTML = html;
@@ -7862,7 +8214,7 @@
       return;
     }
 
-    $('#lista').innerHTML = claves.map(k => {
+    $('#lista').innerHTML = encabezadoLista(true) + claves.map(k => {
       const g = grupos[k];
       const vencidas = g.items.filter(estaVencida).length;
       const abiertas = g.items.filter(t => !t.completada).length;
@@ -7876,7 +8228,31 @@
     }).join('');
   }
 
+  // Con qué texto se ordena cada columna. Se compara siempre texto para no
+  // tener cuatro caminos distintos; las fechas ya vienen como AAAA-MM-DD,
+  // que ordena bien como texto. Lo que no tiene valor va al final SIEMPRE,
+  // suba o baje el orden: una tarea sin fecha no es "la más próxima".
+  function valorOrden(t, campo) {
+    if (campo === 'tarea')  return normNombre(t.titulo);
+    if (campo === 'cliente') {
+      const cs = clientesDeTarea(t);
+      return cs.length ? normNombre(nombreCliente(cs[0])) : '';
+    }
+    if (campo === 'estado')  return String(TIPOS.findIndex(e => e.id === tipoDe(t))).padStart(2, '0');
+    if (campo === 'persona') return normNombre(nombrePersona(t.responsable_id));
+    if (campo === 'fecha')   return t.vence || '';
+    return '';
+  }
   function ordenarFilas(items) {
+    if (ORDEN.campo) {
+      return items.slice().sort((a, b) => {
+        const av = valorOrden(a, ORDEN.campo), bv = valorOrden(b, ORDEN.campo);
+        if (!av && !bv) return 0;
+        if (!av) return 1;              // lo vacío al fondo, siempre
+        if (!bv) return -1;
+        return av.localeCompare(bv, 'es') * ORDEN.dir;
+      });
+    }
     return items.slice().sort((a, b) => {
       const av = estaVencida(a) ? 0 : 1, bv = estaVencida(b) ? 0 : 1;
       if (av !== bv) return av - bv;
@@ -7884,6 +8260,26 @@
       if (ad !== bd) return ad.localeCompare(bd);
       return (a.orden || 0) - (b.orden || 0);
     });
+  }
+
+  // El encabezado. Adentro de un proyecto el orden lo acomodás vos
+  // arrastrando, así que ahí las columnas NO se pueden clickear: un
+  // ordenamiento automático pelearía contra el que armaste a mano.
+  function encabezadoLista(clickeable) {
+    const col = (campo, txt, extra) => {
+      if (!clickeable) return '<span class="fija' + (extra || '') + '">' + txt + '</span>';
+      const on = ORDEN.campo === campo;
+      return '<button data-orden="' + campo + '" class="' + (on ? 'on' : '') + (extra || '') + '">' + txt +
+        (on ? '<span class="flecha">' + (ORDEN.dir > 0 ? '▲' : '▼') + '</span>' : '') + '</button>';
+    };
+    return '<div class="lista-head">' +
+      '<span></span>' +
+      col('tarea', 'Tarea') +
+      col('cliente', 'Cliente') +
+      col('estado', 'Estado') +
+      col('persona', '') +
+      col('fecha', 'Fecha', ' centro') +
+    '</div>';
   }
 
   function cabezaGrupo(label, vencidas, abiertas, total) {
@@ -7926,18 +8322,19 @@
   const MANO_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg>';
 
   function filaHTML(t, movible) {
+    const desc = resumenTexto(t.descripcion);
     const f = fechaTxt(t.vence);
     const done = !!t.completada;
     return '' +
-      '<div class="fila' + (done ? ' done' : '') + (movible ? ' mov' : '') + '" data-id="' + t.id + '">' +
+      '<div class="fila' + (done ? ' done' : '') + (movible ? ' mov' : '') + '" data-id="' + t.id + '"' + varColor(t) + '>' +
         (movible ? '<div class="fila-mano" title="Arrastrá para reordenar">' + MANO_SVG + '</div>' : '') +
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
         '<div class="fila-main">' +
           '<div class="fila-titulo">' + esc(t.titulo) +
             pillEspera(t) + '</div>' +
-          (t.descripcion ? '<div class="fila-desc">' + esc(textoPlano(t.descripcion)) + '</div>' : '') +
+          (desc ? '<div class="fila-desc">' + esc(desc) + '</div>' : '') +
         '</div>' +
-        chipCliente(t) + chipsProyectos(t, proyActivo()) +
+        '<div class="fila-chips">' + chipsDe(t, proyActivo()) + '</div>' +
         '<span class="estado-pill ' + tipoDe(t) + '">' + esc(TIPO_MAP[tipoDe(t)]) + '</span>' +
         avatarDe(t) +
         '<span class="fecha ' + f.clase + '">' + (f.txt || '—') + '</span>' +
@@ -9071,7 +9468,12 @@
   // ═══════════════ EVENTOS ═══════════════
   $('#btnNueva').addEventListener('click', () => abrirForm(null));
   $('#btnRefrescar').addEventListener('click', cargarTareas);
-  $('#navTablero').addEventListener('click', () => { MODULO = 'tareas'; FILTRO.proyecto = ''; render(); });
+  $('#navTablero').addEventListener('click', () => {
+    recordarVista();                       // con qué dejás el proyecto en el que estabas
+    MODULO = 'tareas'; FILTRO.proyecto = '';
+    VISTA = VISTAS[claveVista()] || 'tablero';
+    render();
+  });
   $('#navBandeja').addEventListener('click', () => cambiarModulo('bandeja'));
   $('#navClientes').addEventListener('click', () => cambiarModulo('clientes'));
   $('#navWiki').addEventListener('click', () => cambiarModulo('wiki'));
@@ -9150,8 +9552,9 @@
       return $('#dDesc');
     }
     if (boton.closest('#resumen')) {
-      if ($('#resBrief') && $('#resBrief').style.display === 'none') entrarAEditarBrief();
-      return $('#resBrief');
+      const ta = textoDeLaTarjeta(boton);
+      if (ta && ta.style.display === 'none') entrarAEditarBrief(ta);
+      return ta;
     }
     if (boton.closest('#modWiki')) {
       if ($('#wkCuerpo') && $('#wkCuerpo').style.display === 'none') entrarAEditarWiki();
@@ -9194,33 +9597,34 @@
     // porque el foco vuelve al campo y el blur puede tardar.
     if (el.id === 'dTitulo') guardarCampo('titulo', el.value.trim());
     if (el.id === 'dDesc') guardarCampo('descripcion', el.value.trim() || null);
-    if (el.id === 'resBrief') guardarProyCampo('descripcion', el.value.trim() || null);
+    if (esTextoResumen(el)) guardarProyCampo(el.dataset.campo, el.value.trim() || null);
     if (el.id === 'wkCuerpo') guardarPagina('contenido', el.value.trim() || null);
     el.focus();
   });
   document.addEventListener('mousedown', e => {
     if (!$('#emojiPop').classList.contains('on')) return;
-    if (e.target.closest('#emojiPop') || e.target.closest('[id^=dEmoji], [id^=fEmoji], #resEmoji')) return;
+    if (e.target.closest('#emojiPop') || e.target.closest('[id^=dEmoji], [id^=fEmoji], [data-restool="emoji"]')) return;
     cerrarEmojis();
   });
 
-  // ── Brief del proyecto: misma mecánica que el detalle ─────────
+  // ── Los textos del proyecto: misma mecánica que el detalle ────
   $('#resumen').addEventListener('click', e => {
-    if (e.target.closest('#resBriefVista') && !e.target.closest('a')) { entrarAEditarBrief(); return; }
-    if (e.target.closest('#resLink')) {
-      if ($('#resBrief') && $('#resBrief').style.display === 'none') entrarAEditarBrief();
-      pedirLink($('#resBrief'));
-      return;
-    }
-    if (e.target.closest('#resEmoji')) {
+    const vista = e.target.closest('[data-resvista]');
+    if (vista && !e.target.closest('a')) { entrarAEditarBrief(textoDeLaTarjeta(vista)); return; }
+
+    const tool = e.target.closest('[data-restool]');
+    if (tool) {
+      const ta = textoDeLaTarjeta(tool);
+      if (!ta) return;
+      if (ta.style.display === 'none') entrarAEditarBrief(ta);
+      if (tool.dataset.restool === 'link') { pedirLink(ta); return; }
       e.stopPropagation();
-      if ($('#resBrief') && $('#resBrief').style.display === 'none') entrarAEditarBrief();
-      abrirEmojis(e.target.closest('#resEmoji'), $('#resBrief'));
+      abrirEmojis(tool, ta);
       return;
     }
   });
   $('#resumen').addEventListener('keydown', e => {
-    if (e.target.id === 'resBrief') atajoLink(e);
+    if (esTextoResumen(e.target)) atajoLink(e);
   });
   $('#dResponsable').addEventListener('change', e => guardarCampo('responsable_id', e.target.value || null));
   // Elegir un cliente a mano marca la tarea: de ahí en más la
@@ -9334,11 +9738,16 @@
     const id = b.dataset.proy;
     // Segundo click sobre el mismo: entra a editarlo. Primero: filtra.
     if (FILTRO.proyecto === id && MODULO === 'tareas') { abrirProyecto(proyectoDe(id)); return; }
-    const primeraVez = !FILTRO.proyecto || MODULO !== 'tareas';
+    // Guardá con qué vista dejás DONDE ESTABAS —sea el tablero global u otro
+    // proyecto— y entrá al nuevo con la suya. Saltar de un proyecto a otro
+    // también cambia de contexto: si no se recuerda acá, te arrastra la vista
+    // del anterior.
+    recordarVista();
     MODULO = 'tareas';
     FILTRO.proyecto = id;
-    // Al entrar a un proyecto desde la vista global, arrancamos por el Resumen.
-    if (primeraVez) VISTA = 'resumen';
+    // La primera vez que entrás a un proyecto, al Resumen: ahí está el brief
+    // y los accesos, que es lo que necesitás antes de tocar nada.
+    VISTA = VISTAS[claveVista()] || 'resumen';
     render();
   }
 
@@ -9420,6 +9829,7 @@
     $$('.view-toggle button[data-vista]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     VISTA = b.dataset.vista;
+    recordarVista();
     render();
   }));
 
@@ -9465,6 +9875,17 @@
     const check = e.target.closest('[data-check]');
     if (check) { e.stopPropagation(); alternarCompletada(check.dataset.check); return; }
 
+    // Ordenar por columna. Segundo click en la misma: al revés.
+    const ord = e.target.closest('[data-orden]');
+    if (ord) {
+      const campo = ord.dataset.orden;
+      if (ORDEN.campo === campo && ORDEN.dir > 0) ORDEN.dir = -1;
+      else if (ORDEN.campo === campo) ORDEN = { campo: '', dir: 1 };   // vuelve al de siempre
+      else ORDEN = { campo: campo, dir: 1 };
+      render();
+      return;
+    }
+
     const head = e.target.closest('.grupo-head');
     if (head) {
       const g = head.closest('.grupo');
@@ -9500,19 +9921,46 @@
     const ld = e.target.closest('[data-linkdel]');
     if (ld) { borrarLink(ld.dataset.linkdel); return; }
 
+    // Abrir un formulario plegado del Resumen. No repinta nada: si
+    // repintara, el foco se iría y habría que volver a clickear.
+    const abrir = e.target.closest('[data-abrir]');
+    if (abrir) {
+      const caja = document.getElementById(abrir.dataset.abrir);
+      if (caja) {
+        caja.classList.remove('plegada');
+        abrir.style.display = 'none';
+        const inp = caja.querySelector('input');
+        if (inp) inp.focus();
+      }
+      return;
+    }
+    const sal = e.target.closest('[data-salud]');
+    if (sal) {
+      const p = proyActivo();
+      // Volver a clickear el que ya estaba puesto lo saca: no hay forma de
+      // "despintar" si no, y un estado viejo miente más que ninguno.
+      const nuevo = (p && p.salud === sal.dataset.salud) ? null : sal.dataset.salud;
+      // Se pinta al toque, a mano. El Resumen no se repinta entero a
+      // propósito: si lo hiciera, te borraría el brief a medio escribir.
+      $$('#resDer .salud-btn').forEach(b => b.classList.toggle('on', b.dataset.salud === nuevo));
+      guardarProyCampo('salud', nuevo);
+      return;
+    }
+    const ir = e.target.closest('[data-irtarea]');
+    if (ir) { abrirDrawer(ir.dataset.irtarea); return; }
     if (e.target.closest('#nuDatoBtn')) { agregarDato(); return; }
     if (e.target.closest('#nuLinkBtn')) { agregarLink(); return; }
     if (e.target.closest('#resEditarProy')) { const p = proyActivo(); if (p) abrirProyecto(p); return; }
   });
 
   $('#resumen').addEventListener('input', e => {
-    if (e.target.id === 'resBrief') autoGrow(e.target);
+    if (esTextoResumen(e.target)) autoGrow(e.target);
   });
 
   $('#resumen').addEventListener('blur', e => {
-    if (e.target.id === 'resBrief') {
-      guardarProyCampo('descripcion', e.target.value.trim() || null);
-      if (!TOCANDO_HERRAMIENTA) salirDeEditarBrief();
+    if (esTextoResumen(e.target)) {
+      guardarProyCampo(e.target.dataset.campo, e.target.value.trim() || null);
+      if (!TOCANDO_HERRAMIENTA) salirDeEditarBrief(e.target);
       return;
     }
     const ce = e.target.closest ? e.target.closest('[data-datocampo]') : null;
