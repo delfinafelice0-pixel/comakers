@@ -1830,7 +1830,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 00:33</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 11:21</div>
     </div>
   </aside>
 
@@ -3018,6 +3018,27 @@
     CLIENTES = (error || !data) ? [] : data;
   }
 
+  // ¿El error dice que algo NO EXISTE, o es otra cosa?
+  // Esta diferencia es la que me faltaba en todos los carteles del
+  // panel: si no la hago, cualquier error (un permiso, la caché de
+  // Supabase recargándose después de una migración, la red) termina
+  // diciendo "falta correr tal migración", que casi nunca es cierto y
+  // manda a correr de nuevo algo ya corrido.
+  function faltaDeVerdad(err) {
+    const m = String((err && err.message) || err || '');
+    return /does not exist|could not find|schema cache|undefined column|unknown column/i.test(m);
+  }
+  let ERROR_CARGA = null;   // el texto real del último error, si no era una migración faltante
+
+  function avisoFalta(archivo, queNoAnda) {
+    if (ERROR_CARGA) {
+      return '<div class="res-falta">No se pudo leer esto. La base contestó:<br>' +
+        '<code>' + esc(ERROR_CARGA) + '</code><br>No es que falte una migración — pasame este texto.</div>';
+    }
+    return '<div class="res-falta">Falta correr <code>' + esc(archivo) + '</code>. ' +
+           esc(queNoAnda) + '</div>';
+  }
+
   const COLS_TAREA = 'id, titulo, descripcion, cliente_id, responsable_id, responsable, ' +
     'responsable_tipo, proyecto, estado, urgencia, proyecto_id, empieza, vence, orden, ' +
     'visible_cliente, completada, completada_en, comentarios, created_at';
@@ -3028,18 +3049,31 @@
     // tablero.
     // Y `cliente_manual` es de la 26. Se pide de a una menos hasta que
     // entre, para que faltar una migración no deje el tablero vacío.
-    let { data, error } = await SB.from('tarea')
-      .select(COLS_TAREA + ', padre_id, cliente_manual')
+    // Se pide todo. Si falla, se van sacando columnas de a una — pero
+    // SOLO se marca "falta la migración" cuando el error dice que la
+    // columna no existe. Cualquier otro error se guarda tal cual y se
+    // muestra, en vez de inventarle una causa.
+    FALTA_M15 = false; FALTA_M26 = false; ERROR_CARGA = null;
+    const pedir = cols => SB.from('tarea').select(cols)
       .order('orden', { ascending: true, nullsFirst: false });
-    if (error) {
-      let r = await SB.from('tarea').select(COLS_TAREA + ', padre_id')
-        .order('orden', { ascending: true, nullsFirst: false });
+
+    let { data, error } = await pedir(COLS_TAREA + ', padre_id, cliente_manual');
+    if (error && faltaDeVerdad(error)) {
+      let r = await pedir(COLS_TAREA + ', padre_id');
       if (!r.error) { data = r.data; error = null; FALTA_M26 = true; }
-      else {
-        r = await SB.from('tarea').select(COLS_TAREA)
-          .order('orden', { ascending: true, nullsFirst: false });
+      else if (faltaDeVerdad(r.error)) {
+        r = await pedir(COLS_TAREA);
         if (!r.error) { data = r.data; error = null; FALTA_M15 = true; FALTA_M26 = true; }
-      }
+        else { error = r.error; }
+      } else { error = r.error; }
+    }
+    // Un tropezón que no es una columna faltante: se reintenta una vez
+    // (la caché de Supabase tarda un segundo después de una migración).
+    if (error && !faltaDeVerdad(error)) {
+      await new Promise(r => setTimeout(r, 400));
+      const r2 = await pedir(COLS_TAREA + ', padre_id, cliente_manual');
+      if (!r2.error) { data = r2.data; error = null; }
+      else { ERROR_CARGA = String(r2.error.message || r2.error); }
     }
 
     $('#cargando').style.display = 'none';
@@ -8781,10 +8815,9 @@
   // Ya no son un checklist: son TAREAS con `padre_id`. Eso les da
   // responsable, fecha, comentarios y panel propio, sin código nuevo.
   async function cargarSubtareas(tareaId) {
-    if (FALTA_M15) {
-      $('#dSubtareas').innerHTML = '<div class="vacio-mini">Falta correr ' +
-        '<code>migracion-interno-15-subtareas-distribucion.sql</code>. ' +
-        'Hasta que la corras, las subtareas no se pueden crear.</div>';
+    if (FALTA_M15 || ERROR_CARGA) {
+      $('#dSubtareas').innerHTML = avisoFalta('migracion-interno-15-subtareas-distribucion.sql',
+        'Hasta que la corras, las subtareas no se pueden crear.');
       $('#dProg').style.display = 'none';
       SUBS = [];
       return;
@@ -8833,7 +8866,11 @@
 
   async function agregarSubtarea(titulo) {
     if (!DETALLE || !titulo.trim()) return;
-    if (FALTA_M15) { toast('Primero corré migracion-interno-15', 'warn'); return; }
+    if (FALTA_M15 || ERROR_CARGA) {
+      toast(ERROR_CARGA ? ('La base contestó: ' + ERROR_CARGA)
+                        : 'Primero corré migracion-interno-15', 'warn');
+      return;
+    }
     const orden = SUBS.length ? Math.max.apply(null, SUBS.map(s => s.orden || 0)) + 100 : 100;
     const fila = {
       titulo: titulo.trim(),
