@@ -1629,6 +1629,12 @@
   .pill.mas-cli { background: var(--line-soft); color: var(--ink-mute); margin-left: -3px; }
   .prop-nota { margin-top: 5px; line-height: 1.45; }
 
+  /* Auditoría: la cuenta abierta */
+  .ok-verif { color: #4E7C1C; font-weight: 700; }
+  .dist-row.fila-mal { background: var(--warn-soft); }
+  .dist-row.fila-mal > div:first-child { background: var(--warn-soft); }
+  .dist-row .div { font-style: normal; font-size: 9.5px; color: var(--ink-mute); margin-left: 3px; }
+
   /* Filtro de la tabla de Pagos */
   .filtro-pago { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
   .filtro-pago button {
@@ -1824,7 +1830,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 00:02</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 00:33</div>
     </div>
   </aside>
 
@@ -4209,6 +4215,26 @@
     return data;
   }
 
+  async function alternarClienteActivo(id) {
+    const c = CLIENTES.find(x => x.id === id);
+    if (!c) return;
+    const inactivo = c.activo === false;
+    if (!inactivo) {
+      const cts = contratosDe(id).filter(x => x.activo !== false).length;
+      let msg = 'Marcar a ' + c.nombre + ' como inactivo.\n\n' +
+        'Sale de la tabla de arriba, deja de generar cobros y desaparece del panel de cliente.\n' +
+        'Lo que ya cobró sigue en Contabilidad.';
+      if (cts) msg += '\n\nOjo: tiene ' + cts + ' servicio(s) cargado(s).';
+      if (!confirm(msg)) return;
+    }
+    const { error } = await SB.from('clientes').update({ activo: inactivo }).eq('id', id);
+    if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
+    c.activo = inactivo;
+    llenarSelects();
+    render();
+    flashRes();
+  }
+
   async function guardarCliente(id, campo, valor) {
     const c = CLIENTES.find(x => x.id === id);
     if (!c) return;
@@ -4847,6 +4873,10 @@
     PLATA_CARGADA = true;
   }
 
+  // Gancho de pruebas: volver a leer la plata sin recargar la página.
+  // No expone datos — solo dispara la misma carga que hace el panel.
+  window.__refrescarPlata = function () { return refrescarPlata(); };
+
   function avisoM14() {
     return '<div class="res-falta">Falta correr <code>migracion-interno-14-plata.sql</code> en Supabase. ' +
            'Hasta que la corras, esta parte no tiene dónde guardar nada.</div>';
@@ -5060,6 +5090,7 @@
         '<div class="plata-tabs">' +
           distTab('trabajos', 'Trabajos', trabajosDelMes().length) +
           distTab('pagos', 'Pagos', null) +
+          distTab('auditoria', 'Cómo se calcula', null) +
         '</div>' +
         '<div class="der">' +
           '<div class="mes-nav">' +
@@ -5069,13 +5100,17 @@
             '<button data-dmes="0" title="Volver a este mes">Hoy</button>' +
           '</div>' +
           (DIST_TAB === 'trabajos'
-            ? '<button class="btn-primary" id="nuTrabajo">Nuevo trabajo</button>' : '') +
+            ? '<button class="btn-primary" id="nuTrabajo">Nuevo trabajo</button>'
+            : DIST_TAB === 'auditoria'
+            ? '<button class="btn-ghost" id="bajarAudit">Bajar a Excel</button>' : '') +
         '</div>' +
       '</div>';
 
     $('#modDist').innerHTML = barra +
       (FALTA_M16 ? '<div style="margin-bottom:16px">' + avisoM16() + '</div>' : '') +
-      (DIST_TAB === 'pagos' ? vistaPagos() : vistaTrabajos());
+      (DIST_TAB === 'pagos' ? vistaPagos()
+       : DIST_TAB === 'auditoria' ? vistaAuditoria()
+       : vistaTrabajos());
   }
 
   function distTab(id, txt, cuenta) {
@@ -5332,6 +5367,164 @@
     if (tot) tot.textContent = plata(pag);
     if (dif) { dif.textContent = plata(corr - pag); dif.classList.toggle('neg', corr - pag > 1); }
     if (est) est.innerHTML = estadoPago(corr, pag);
+  }
+
+  // ── Pestaña 3: la cuenta, paso por paso ──────────────────────
+  // Esto no calcula nada nuevo: muestra la MISMA cuenta que usa el
+  // panel, abierta en sus partes, para que se pueda seguir a mano.
+  // La columna de la derecha es el control: suma las partes y compara
+  // con el neto. Si algo no cierra, ahí salta.
+  function filasAuditoria() {
+    const socias = sociasOrdenadas();
+    return cobrosDelMes()
+      .filter(cb => cb.estado === 'cobrado')
+      .map(cb => {
+        const ct = contratoDe(cb.contrato_id);
+        const egresos = egresosDeCobro(cb.id);
+        const trabajos = egresos.reduce((a, m) => a + Number(m.monto || 0), 0);
+        const r = repartoDe(cb);
+        const ejec = (COBRO_EJ[cb.id] || []).filter(u => PERSONAS.some(p => p.id === u));
+        const parteEjec = r.neto * Number(REPARTO.pct_ejecutora) / 100;
+        const parteSoc = r.neto * Number(REPARTO.pct_socias) / 100;
+        const suma = Object.keys(r.personas).reduce((a, u) => a + r.personas[u], 0) + r.fondo;
+        return {
+          cb: cb,
+          nombre: nombreCliente(cb.cliente_id),
+          servicio: ct ? ct.nombre : '—',
+          cobrado: Number(cb.monto || 0),
+          trabajos: trabajos,
+          detalleTrabajos: egresos.map(m =>
+            (m.colaboradora || '?') + ': ' + plata(m.monto) + (m.concepto ? ' (' + m.concepto + ')' : '')).join(' · '),
+          neto: r.neto,
+          ejec: ejec.map(u => nombrePersona(u) || '?'),
+          parteEjec: parteEjec,
+          cadaUna: ejec.length ? parteEjec / ejec.length : 0,
+          parteSoc: parteSoc,
+          fondo: r.fondo,
+          personas: r.personas,
+          socias: socias,
+          suma: suma,
+          // Un peso de tolerancia: los porcentajes dan decimales y la
+          // plata se muestra redondeada.
+          cierra: Math.abs(suma - r.neto) < 1,
+          sinEjecutora: r.sinEjecutora
+        };
+      });
+  }
+
+  function vistaAuditoria() {
+    const socias = sociasOrdenadas();
+    const filas = filasAuditoria();
+    const malas = filas.filter(f => !f.cierra).length;
+    const pe = Number(REPARTO ? REPARTO.pct_ejecutora : 85);
+    const ps = Number(REPARTO ? REPARTO.pct_socias : 5);
+    const pf = Number(REPARTO ? REPARTO.pct_fondo : 10);
+
+    const explica =
+      '<div class="mod-head"><p>La cuenta que hace el panel, abierta. Se lee de izquierda a derecha:<br>' +
+      '<b>Cobrado</b> menos <b>los trabajos</b> de las colaboradoras da el <b>neto</b>. ' +
+      'Del neto sale <b>' + pe + '%</b> para quien ejecuta (dividido en partes iguales si son varias), ' +
+      '<b>' + ps + '%</b> para el pozo de socias (repartido ' +
+        socias.map(p => (SOCIA_PCT[p.id] || 0) + '% ' + esc(primerNombre(p.nombre || p.email))).join(' / ') +
+      ') y <b>' + pf + '%</b> al fondo.<br>' +
+      'La última columna es el control: suma todo lo repartido y lo compara con el neto. ' +
+      'Tiene que dar <b>✓</b> en todas.</p></div>';
+
+    const aviso = malas
+      ? '<div class="res-falta" style="margin-bottom:14px">Hay <b>' + malas + ' fila(s)</b> donde las partes ' +
+        'no suman el neto. Están marcadas abajo. Pasame una y la miro.</div>'
+      : '<div class="cel-ayuda">Las <b>' + filas.length + '</b> filas del mes cierran. ' +
+        'Lo repartido es exactamente el neto, sin pesos perdidos.</div>';
+
+    const anchos = ['minmax(180px,1.5fr)', '104px', '104px', '110px', 'minmax(110px,0.9fr)', '110px']
+      .concat(socias.map(() => '104px')).concat(['96px', '104px', '58px']);
+    const gt = ' style="grid-template-columns:' + anchos.join(' ') + '"';
+    const ancho = ' style="min-width:' + (180 + 104 * 2 + 110 + 110 + 110 + socias.length * 104 + 96 + 104 + 58 + 130) + 'px"';
+
+    const cab = '<div class="prow cab dist-row"' + gt + '>' +
+      '<div>Cliente · Servicio</div><div class="num">Cobrado</div>' +
+      '<div class="num">− Trabajos</div><div class="num">= Neto</div>' +
+      '<div>Ejecuta</div><div class="num">' + pe + '% c/u</div>' +
+      socias.map(p => '<div class="num">' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
+      '<div class="num">' + pf + '% fondo</div><div class="num">Suma</div><div>✓</div></div>';
+
+    const cuerpo = filas.map(f =>
+      '<div class="prow dist-row' + (f.cierra ? '' : ' fila-mal') + '"' + gt + '>' +
+        '<div class="celda-serv"><span class="nom">' + esc(f.nombre) + '</span>' +
+          '<span class="sub">' + esc(f.servicio) + '</span></div>' +
+        '<div class="num">' + plata(f.cobrado) + '</div>' +
+        '<div class="num"' + (f.detalleTrabajos ? ' title="' + esc(f.detalleTrabajos) + '"' : '') + '>' +
+          (f.trabajos ? '−' + plata(f.trabajos).slice(1) : '<span class="cel-nada">—</span>') + '</div>' +
+        '<div class="num"><b>' + plata(f.neto) + '</b></div>' +
+        '<div style="font-size:11.5px;color:var(--ink-mute);overflow:hidden;text-overflow:ellipsis">' +
+          (f.ejec.length ? esc(f.ejec.map(primerNombre).join('/'))
+            : '<span class="neg">sin asignar ←</span>') + '</div>' +
+        '<div class="num"' + (f.ejec.length > 1 ? ' title="' + plata(f.parteEjec) + ' entre ' + f.ejec.length + '"' : '') + '>' +
+          (f.cadaUna ? plata(f.cadaUna) : '<span class="cel-nada">—</span>') +
+          (f.ejec.length > 1 ? '<i class="div">÷' + f.ejec.length + '</i>' : '') + '</div>' +
+        socias.map(p => '<div class="num">' +
+          (f.personas[p.id] ? plata(f.personas[p.id]) : '<span class="cel-nada">—</span>') + '</div>').join('') +
+        '<div class="num">' + plata(f.fondo) + '</div>' +
+        '<div class="num"><b>' + plata(f.suma) + '</b></div>' +
+        '<div>' + (f.cierra ? '<span class="ok-verif">✓</span>' : '<span class="est vencido">≠</span>') + '</div>' +
+      '</div>').join('');
+
+    const tot = (campo) => filas.reduce((a, f) => a + (f[campo] || 0), 0);
+    const totSoc = {};
+    filas.forEach(f => socias.forEach(p => { totSoc[p.id] = (totSoc[p.id] || 0) + (f.personas[p.id] || 0); }));
+    const totales = '<div class="prow dist-row totales"' + gt + '>' +
+      '<div class="nom">TOTALES</div>' +
+      '<div class="num">' + plata(tot('cobrado')) + '</div>' +
+      '<div class="num">−' + plata(tot('trabajos')).slice(1) + '</div>' +
+      '<div class="num">' + plata(tot('neto')) + '</div>' +
+      '<div></div><div></div>' +
+      socias.map(p => '<div class="num">' + plata(totSoc[p.id] || 0) + '</div>').join('') +
+      '<div class="num">' + plata(tot('fondo')) + '</div>' +
+      '<div class="num">' + plata(tot('suma')) + '</div>' +
+      '<div>' + (Math.abs(tot('suma') - tot('neto')) < filas.length + 1 ? '<span class="ok-verif">✓</span>' : '≠') + '</div>' +
+    '</div>';
+
+    return explica + aviso +
+      '<div class="tabla-ancha"><div class="tabla"' + ancho + '>' + cab +
+        (cuerpo || '<div class="prow"><div class="res-vacio">No hay cobros cobrados este mes.</div></div>') +
+        (filas.length ? totales : '') +
+      '</div></div>' +
+      '<div class="cel-ayuda" style="margin-top:12px">«Bajar a Excel» te da esta misma tabla en un archivo. ' +
+        'Sirve para guardar una copia fuera del panel y para chequearla contra tu planilla.</div>';
+  }
+
+  // ── Bajar a Excel ────────────────────────────────────────────
+  // Punto y coma como separador: es lo que espera el Excel en español.
+  // El BOM del principio es para que no rompa los acentos.
+  function bajarCSV(nombre, filas) {
+    const csv = filas.map(f => f.map(c => {
+      const v = (c === null || c === undefined) ? '' : String(c);
+      return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    }).join(';')).join('\r\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
+  }
+
+  function exportarAuditoria() {
+    const socias = sociasOrdenadas();
+    const filas = filasAuditoria();
+    const num = n => String(Math.round(Number(n) || 0));
+    const cab = ['Cliente', 'Servicio', 'Fecha de cobro', 'Cobrado', 'Trabajos', 'Detalle de trabajos',
+                 'Neto', 'Ejecuta', 'Parte de cada ejecutora']
+      .concat(socias.map(p => p.nombre || p.email))
+      .concat(['Fondo', 'Suma repartida', 'Cierra']);
+    const cuerpo = filas.map(f => [
+      f.nombre, f.servicio, f.cb.fecha_cobro || '', num(f.cobrado), num(f.trabajos), f.detalleTrabajos,
+      num(f.neto), f.ejec.join(' / '), num(f.cadaUna)
+    ].concat(socias.map(p => num(f.personas[p.id] || 0)))
+     .concat([num(f.fondo), num(f.suma), f.cierra ? 'si' : 'NO']));
+    bajarCSV('comakers-cuentas-' + mesDe(PERIODO) + '.csv', [cab].concat(cuerpo));
+    toast('Bajado. Abrilo con Excel o subilo a Sheets.');
   }
 
   // ── Guardar una quincena ─────────────────────────────────────
@@ -5669,6 +5862,9 @@
         '<span class="pill">' + acc + ' con acceso</span>' +
         '<span class="pill">' + contratosDe(c.id).filter(x => x.activo !== false).length + ' servicio(s)</span>' +
         '<span class="pill">' + proyectosDeCliente(c.id) + ' proyecto' + (proyectosDeCliente(c.id) === 1 ? '' : 's') + '</span>' +
+        '<button class="est ' + (c.activo === false ? 'pendiente' : 'cobrado') + '" data-clactivo="' + c.id + '" ' +
+          'title="' + (c.activo === false ? 'Volver a activarlo' : 'Marcarlo inactivo: sale de la tabla de arriba y deja de generar cobros') + '">' +
+          (c.activo === false ? 'Inactivo' : 'Activo') + '</button>' +
       '</div>';
     };
 
@@ -5684,7 +5880,8 @@
       '</div>' +
       '<div class="mod-head" style="margin:26px 0 10px"><p>La ficha de cada cliente. Esta lista es ' +
         '<b>la misma</b> que ve el panel de cliente: los dos leen la misma tabla. Debajo del nombre está ' +
-        'su identificador, que es lo que usa el otro panel para encontrarlo.</p></div>' +
+        'su identificador, que es lo que usa el otro panel para encontrarlo. El botón de la derecha lo ' +
+        'pasa a <b>inactivo</b>: sale de la tabla de arriba y deja de generar cobros.</p></div>' +
       '<div class="tabla">' +
         (activos.length ? activos.map(fichaCliente).join('')
                         : '<div class="cliente-row"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
@@ -5696,7 +5893,9 @@
         '<div class="fila-inv"><button class="btn-primary" id="nuClienteBtn">Nuevo cliente</button></div>' +
       '</div>' +
       (guardados.length
-        ? '<div class="mod-head" style="margin:22px 0 10px"><p>En el archivo. No se les generan cobros.</p></div>' +
+        ? '<div class="mod-head" style="margin:22px 0 10px"><p><b>Inactivos.</b> No aparecen en la tabla de ' +
+            'arriba, no se les generan cobros y no se ven en el panel de cliente. Lo que ya cobraron sigue ' +
+            'en Contabilidad: darlos de baja no borra historia.</p></div>' +
           '<div class="tabla">' + guardados.map(fichaCliente).join('') + '</div>'
         : '');
   }
@@ -9402,6 +9601,7 @@
     if (pf) { PG_FILTRO = pf.dataset.pgfiltro; renderDist(); return; }
 
     if (e.target.closest('#verBajas')) { VER_BAJAS = true; renderDist(); return; }
+    if (e.target.closest('#bajarAudit')) { exportarAuditoria(); return; }
 
     const mes = e.target.closest('[data-dmes]');
     if (mes) {
@@ -9608,6 +9808,14 @@
 
   $('#modClientes').addEventListener('click', e => {
     if (e.target.closest('#nuClienteBtn')) { abrirCliente(null); return; }
+    // El botón Activo/Inactivo no abre la ficha: solo cambia el estado.
+    const act = e.target.closest('[data-clactivo]');
+    if (act) {
+      e.stopPropagation();
+      alternarClienteActivo(act.dataset.clactivo);
+      return;
+    }
+
     const fila = e.target.closest('[data-cabrir]');
     if (fila) {
       const c = CLIENTES.find(x => x.id === fila.dataset.cabrir);
