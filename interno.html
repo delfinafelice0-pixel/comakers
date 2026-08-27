@@ -1821,7 +1821,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 19:42</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 23:47</div>
     </div>
   </aside>
 
@@ -4413,12 +4413,33 @@
   // Marcas de formato. Son las de siempre (markdown) salvo el subrayado:
   // markdown no tiene, así que usamos __texto__ (que en markdown sería
   // negrita, pero acá la negrita es ** y no se pisan).
+  // Ojo con el `[\s\S]+?`: las marcas SÍ pueden cruzar renglones. Lo
+  // aprendí a los golpes — el `envolver()` viejo, al marcar una línea
+  // entera con su Enter incluido, dejaba el cierre en el renglón de
+  // abajo y el texto se veía con los asteriscos crudos. Eso lo arreglé,
+  // pero quedó todo lo ya escrito. En vez de pedir que se remarque a
+  // mano, es el que MUESTRA el que tiene que ser tolerante: si la marca
+  // abarca varias líneas, se aplica a cada una por separado.
+  // La bastardilla queda de una sola línea a propósito: el asterisco
+  // suelto aparece escrito de verdad mucho más seguido que `**` o `~~`.
   const FORMATO = [
-    { re: /\*\*([^\n*]+)\*\*/g,  a: '<strong>', z: '</strong>' },
-    { re: /__([^\n_]+)__/g,      a: '<u>',      z: '</u>' },
-    { re: /~~([^\n~]+)~~/g,      a: '<s>',      z: '</s>' },
+    { re: /\*\*([\s\S]+?)\*\*/g,  a: '<strong>', z: '</strong>' },
+    { re: /__([\s\S]+?)__/g,      a: '<u>',      z: '</u>' },
+    { re: /~~([\s\S]+?)~~/g,      a: '<s>',      z: '</s>' },
     { re: /(^|[^*])\*([^\n*]+)\*(?!\*)/g, a: '<em>', z: '</em>', pre: true }
   ];
+
+  // Aplica una marca respetando los renglones: cada línea se envuelve
+  // sola, y las vacías quedan vacías.
+  function marcarPorLinea(txt, a, z) {
+    if (txt.indexOf('\n') === -1) return a + txt + z;
+    return txt.split('\n').map(function (l) {
+      if (!l.trim()) return l;
+      const ini = l.length - l.replace(/^\s+/, '').length;
+      const fin = l.length - l.replace(/\s+$/, '').length;
+      return l.slice(0, ini) + a + l.slice(ini, l.length - fin) + z + l.slice(l.length - fin);
+    }).join('\n');
+  }
 
   // Un link a una tarea de este mismo panel se muestra como una
   // pastilla con el título, no como un URL kilométrico. Y al tocarla
@@ -4475,7 +4496,8 @@
     FORMATO.forEach(f => {
       h = f.pre
         ? h.replace(f.re, (m, antes, dentro) => antes + f.a + dentro + f.z)
-        : h.replace(f.re, (m, dentro) => f.a + dentro + f.z);
+        : h.replace(f.re, (m, dentro) =>
+            dentro.trim() ? marcarPorLinea(dentro, f.a, f.z) : m);
     });
 
     // Listas: líneas que arrancan con "- " o "1. "
@@ -4504,9 +4526,9 @@
     return (txt || '')
       .replace(RE_MENCION, '@$1')
       .replace(RE_LINK, '$1')
-      .replace(/\*\*([^\n*]+)\*\*/g, '$1')
-      .replace(/__([^\n_]+)__/g, '$1')
-      .replace(/~~([^\n~]+)~~/g, '$1')
+      .replace(/\*\*([\s\S]+?)\*\*/g, '$1')
+      .replace(/__([\s\S]+?)__/g, '$1')
+      .replace(/~~([\s\S]+?)~~/g, '$1')
       .replace(/(^|[^*])\*([^\n*]+)\*(?!\*)/g, '$1$2')
       .replace(/^\s*[-•]\s+/gm, '')
       .replace(/^\s*\d+[.)]\s+/gm, '');
@@ -4944,28 +4966,59 @@
 
   // Las colaboradoras de la tabla: las del Equipo + las que trabajaron
   // este mes aunque estén de baja o no tengan cuenta.
-  function colabsDelMes() {
+  // Las dadas de baja no aparecen: no se les carga trabajo nuevo. Pero
+  // si tienen trabajos ESTE MES, la plata existe igual, así que no
+  // desaparecen en silencio — la tabla avisa y se pueden mostrar.
+  let VER_BAJAS = false;
+
+  function colabsDelMes(incluirBajas) {
+    const verBajas = incluirBajas === undefined ? VER_BAJAS : incluirBajas;
     const out = [], visto = {};
     EQUIPO.filter(p => p.rol !== 'socia' && p.activo !== false).forEach(p => {
       const k = clavePersona(p); visto[k] = 1;
       out.push({ key: k, user_id: p.ext ? null : p.id, ext: !!p.ext, id: p.id,
                  nombre: p.nombre || p.email, baja: false, suelta: false });
     });
-    // Y las que estén de baja pero hayan trabajado este mes: si cobró,
-    // tiene que verse.
     trabajosDelMes().forEach(m => {
       const k = claveColab(m);
       if (visto[k]) return;
-      visto[k] = 1;
       const p = perfilDeMov(m);
+      const baja = p ? p.activo === false : false;
+      if (baja && !verBajas) return;      // ← no se marca en `visto`: se vuelve a evaluar
+      visto[k] = 1;
       out.push({
         key: k, user_id: p && !p.ext ? p.id : null, ext: !!(p && p.ext),
         id: p ? p.id : null,
         nombre: p ? (p.nombre || p.email) : (m.colaboradora || 'sin nombre'),
-        baja: p ? p.activo === false : false, suelta: !p
+        baja: baja, suelta: !p
       });
     });
     return out;
+  }
+
+  // Las que quedaron afuera por estar de baja, con lo que igual cobraron.
+  function bajasEscondidas() {
+    if (VER_BAJAS) return [];
+    const visibles = {};
+    colabsDelMes().forEach(c => { visibles[c.key] = 1; });
+    const por = {};
+    trabajosDelMes().forEach(m => {
+      const k = claveColab(m);
+      if (visibles[k]) return;
+      const p = perfilDeMov(m);
+      const x = por[k] || (por[k] = { nombre: p ? (p.nombre || p.email) : (m.colaboradora || '?'), total: 0 });
+      x.total += Number(m.monto || 0);
+    });
+    return Object.keys(por).map(k => por[k]);
+  }
+
+  function avisoBajas() {
+    const b = bajasEscondidas();
+    if (!b.length) return '';
+    return '<div class="cel-ayuda" style="margin-top:10px">No se muestra a <b>' +
+      b.map(x => esc(x.nombre) + '</b> (' + plata(x.total) + ')').join(', <b>') +
+      ' porque está dada de baja. La plata sigue descontada del neto igual. ' +
+      '<button class="mini-btn" id="verBajas">Mostrar de todos modos</button></div>';
   }
 
   function cobrosDelMes() {
@@ -5115,6 +5168,7 @@
     return kpis +
       '<div class="cel-ayuda">Tocá una celda de «Pago …» para ver o cargar lo que esa persona hizo ' +
         'para ese cliente. Si hizo dos trabajos, quedan los dos anotados adentro.</div>' +
+      avisoBajas() +
       '<div class="tabla-ancha"><div class="tabla"' + ancho + '>' + cab +
         (filas || '<div class="prow"><div class="res-vacio">No hay cobros cargados este mes.</div></div>') +
         (cobros.length ? totales : '') +
@@ -5237,6 +5291,7 @@
       '<div></div></div>';
 
     return kpis + filtro +
+      avisoBajas() +
       '<div class="cel-ayuda">«Le corresponde» lo calcula el panel: para las socias, el reparto de los ' +
         'cobros del mes; para las colaboradoras, la suma de sus trabajos. Las quincenas las escribís vos: ' +
         'tocá la celda y escribí el monto.</div>' +
@@ -7962,7 +8017,27 @@
   let SUBS = [];        // subtareas de la tarea abierta
   let ACT_TODO = false; // historial expandido
 
-  function autoGrow(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
+  // El contenedor que realmente scrollea arriba de este elemento.
+  function scrollerDe(el) {
+    let p = el && el.parentElement;
+    while (p && p !== document.body) {
+      const o = getComputedStyle(p).overflowY;
+      if (o === 'auto' || o === 'scroll') return p;
+      p = p.parentElement;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+
+  // Crecer con el texto sin mover la pantalla. El truco del `height:auto`
+  // colapsa el textarea por un instante, y en ese instante el navegador
+  // recalcula el scroll: por eso el texto "saltaba" mientras escribías.
+  function autoGrow(el) {
+    const sc = scrollerDe(el);
+    const y = sc.scrollTop;
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + 2) + 'px';
+    if (sc.scrollTop !== y) sc.scrollTop = y;
+  }
   function flashGuardado() {
     const g = $('#dGuardado');
     g.classList.add('on');
@@ -8199,15 +8274,84 @@
     $('#dHint').style.display = 'none';
   }
 
-  function entrarAEditarDesc() {
+  // Al pasar a editar, el bloque tiene que quedarse EXACTAMENTE donde
+  // estaba. Antes no: se enfocaba el textarea con el cursor al final, el
+  // navegador scrolleaba hasta el final del texto y lo que estabas
+  // leyendo se iba de la pantalla. Como en Asana: el texto no se mueve y
+  // el cursor cae donde clickeaste.
+  function entrarAEditarDesc(donde) {
     const ta = $('#dDesc');
-    $('#dDescVista').style.display = 'none';
+    const vista = $('#dDescVista');
+    const sc = scrollerDe(vista);
+    const antes = vista.getBoundingClientRect().top;
+
+    // Dónde clickeó, en cantidad de caracteres visibles.
+    const visIdx = (donde && typeof donde.x === 'number')
+      ? offsetVisible(vista, donde.x, donde.y) : null;
+
+    vista.style.display = 'none';
     ta.style.display = '';
     $('#dHint').style.display = '';
     autoGrow(ta);
-    ta.focus();
+
+    // Reponer el scroll: el bloque queda en el mismo lugar de la pantalla.
+    const despues = ta.getBoundingClientRect().top;
+    if (Math.abs(despues - antes) > 1) sc.scrollTop += (despues - antes);
+
+    try { ta.focus({ preventScroll: true }); } catch (_) { ta.focus(); }
     const n = ta.value.length;
-    try { ta.setSelectionRange(n, n); } catch (_) {}
+    const pos = (visIdx === null) ? n
+      : Math.min(n, crudoDesdeVisible(ta.value, visIdx));
+    try { ta.setSelectionRange(pos, pos); } catch (_) {}
+  }
+
+  // Cuántos caracteres VISIBLES hay antes del punto (x, y) dentro de un
+  // bloque ya renderizado. Los <br> y los saltos de bloque cuentan como
+  // un salto de línea, que es lo que hay en el texto crudo.
+  function offsetVisible(cont, x, y) {
+    let nodo = null, off = 0;
+    if (document.caretRangeFromPoint) {
+      const r = document.caretRangeFromPoint(x, y);
+      if (r) { nodo = r.startContainer; off = r.startOffset; }
+    } else if (document.caretPositionFromPoint) {
+      const p = document.caretPositionFromPoint(x, y);
+      if (p) { nodo = p.offsetNode; off = p.offset; }
+    }
+    if (!nodo || !cont.contains(nodo)) return null;
+
+    let total = 0, listo = false;
+    (function caminar(n) {
+      if (listo) return;
+      if (n.nodeType === 3) {
+        if (n === nodo) { total += off; listo = true; }
+        else total += n.nodeValue.length;
+        return;
+      }
+      if (n.nodeName === 'BR') { total += 1; return; }
+      for (let i = 0; i < n.childNodes.length && !listo; i++) caminar(n.childNodes[i]);
+      if (!listo && /^(LI|P|DIV|UL|OL)$/.test(n.nodeName)) total += 1;
+    })(cont);
+    return listo ? total : null;
+  }
+
+  // Del índice VISIBLE al índice en el texto crudo, salteando lo que no
+  // se ve: las marcas de formato y la sintaxis de links y menciones.
+  function crudoDesdeVisible(raw, visIdx) {
+    let i = 0, vis = 0;
+    while (i < raw.length && vis < visIdx) {
+      const resto = raw.slice(i);
+      let m;
+      if ((m = resto.match(/^@\[([^\]\n]*)\]\((?!https?:)[^\s)]{1,64}\)/))) {
+        vis += m[1].length + 1; i += m[0].length; continue;
+      }
+      if ((m = resto.match(/^\[([^\]\n]+)\]\(https?:\/\/[^\s)]+\)/))) {
+        vis += m[1].length; i += m[0].length; continue;
+      }
+      if (resto.slice(0, 2) === '**' || resto.slice(0, 2) === '__' || resto.slice(0, 2) === '~~') { i += 2; continue; }
+      if ((m = resto.match(/^\s*(?:[-•]|\d+[.)])\s+/)) && (i === 0 || raw[i - 1] === '\n')) { i += m[0].length; continue; }
+      i++; vis++;
+    }
+    return i;
   }
 
   function pintarBotonFin() {
@@ -8339,7 +8483,10 @@
       return;
     }
     flashGuardado();
-    cargarActividad(DETALLE.id);
+    // Entre el `await` de arriba y esta línea el drawer puede haberse
+    // cerrado (guardás y cerrás en el mismo gesto). Si se cerró, no hay
+    // actividad que recargar.
+    if (DETALLE) cargarActividad(DETALLE.id);
   }
 
   // ── Subtareas ────────────────────────────────────────────────
@@ -8659,7 +8806,7 @@
   });
   $('#dDescVista').addEventListener('click', e => {
     if (e.target.closest('a')) return;   // clickear un link lo abre, no edita
-    entrarAEditarDesc();
+    entrarAEditarDesc({ x: e.clientX, y: e.clientY });
   });
 
   // ⌘K / Ctrl+K sobre el texto seleccionado → poner un link
@@ -9143,6 +9290,8 @@
 
     const pf = e.target.closest('[data-pgfiltro]');
     if (pf) { PG_FILTRO = pf.dataset.pgfiltro; renderDist(); return; }
+
+    if (e.target.closest('#verBajas')) { VER_BAJAS = true; renderDist(); return; }
 
     const mes = e.target.closest('[data-dmes]');
     if (mes) {
