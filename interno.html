@@ -1626,6 +1626,9 @@
   }
   .cols-pago .nom .sub { display: block; }
 
+  .pill.mas-cli { background: var(--line-soft); color: var(--ink-mute); margin-left: -3px; }
+  .prop-nota { margin-top: 5px; line-height: 1.45; }
+
   /* Filtro de la tabla de Pagos */
   .filtro-pago { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
   .filtro-pago button {
@@ -1821,7 +1824,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/08 23:47</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 00:02</div>
     </div>
   </aside>
 
@@ -2557,7 +2560,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
           Cliente
         </div>
-        <div class="prop-val"><select id="dCliente"></select></div>
+        <div class="prop-val"><select id="dCliente"></select>
+          <div class="res-sub prop-nota" id="dClienteNota" style="display:none"></div></div>
       </div>
 
       <div class="prop">
@@ -3016,13 +3020,20 @@
     // `padre_id` es de la migración 15. Si todavía no corrió, la consulta
     // entera falla: reintentamos sin esa columna en vez de quedarnos sin
     // tablero.
+    // Y `cliente_manual` es de la 26. Se pide de a una menos hasta que
+    // entre, para que faltar una migración no deje el tablero vacío.
     let { data, error } = await SB.from('tarea')
-      .select(COLS_TAREA + ', padre_id')
+      .select(COLS_TAREA + ', padre_id, cliente_manual')
       .order('orden', { ascending: true, nullsFirst: false });
     if (error) {
-      const r = await SB.from('tarea').select(COLS_TAREA)
+      let r = await SB.from('tarea').select(COLS_TAREA + ', padre_id')
         .order('orden', { ascending: true, nullsFirst: false });
-      if (!r.error) { data = r.data; error = null; FALTA_M15 = true; }
+      if (!r.error) { data = r.data; error = null; FALTA_M26 = true; }
+      else {
+        r = await SB.from('tarea').select(COLS_TAREA)
+          .order('orden', { ascending: true, nullsFirst: false });
+        if (!r.error) { data = r.data; error = null; FALTA_M15 = true; FALTA_M26 = true; }
+      }
     }
 
     $('#cargando').style.display = 'none';
@@ -4741,6 +4752,7 @@
   let MOVIMIENTOS = [], REPARTO = null, SOCIA_PCT = {};
   let FALTA_M14 = false, PLATA_CARGADA = false;
   let FALTA_M15 = false, FALTA_M16 = false, FALTA_M17 = false, FALTA_M18 = false;
+  let FALTA_M26 = false;   // sin la 26 no existe `tarea.cliente_manual`
   let PERIODO = primerDelMes(new Date());
   let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
   let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
@@ -7439,9 +7451,30 @@
       + '<span>· Solo lo ven sus miembros</span>';
   }
 
+  // Los clientes de una tarea NO son un campo que se llena: son los de
+  // sus proyectos. Una tarea en dos proyectos tiene dos clientes, sin
+  // que nadie los anote. `cliente_id` es el principal, y solo manda por
+  // sí solo cuando la tarea no está en ningún proyecto (o cuando
+  // alguien lo eligió a mano, y ahí `cliente_manual` lo protege).
+  function clientesDeTarea(t) {
+    const out = [], visto = {};
+    tpDe(t.id).forEach(tp => {
+      const p = proyectoDe(tp.proyecto_id);
+      if (p && p.cliente_id && !visto[p.cliente_id]) { visto[p.cliente_id] = 1; out.push(p.cliente_id); }
+    });
+    if (t.cliente_id && !visto[t.cliente_id]) out.unshift(t.cliente_id);
+    return out;
+  }
+
   function chipCliente(t) {
-    if (!t.cliente_id) return '<span class="pill interno">Interno</span>';
-    return '<span class="pill">' + esc(nombreCliente(t.cliente_id)) + '</span>';
+    const cs = clientesDeTarea(t);
+    if (!cs.length) return '<span class="pill interno">Interno</span>';
+    const nombres = cs.map(nombreCliente);
+    if (cs.length === 1) return '<span class="pill">' + esc(nombres[0]) + '</span>';
+    // Con más de uno se muestran dos y el resto se cuenta, para que la
+    // tarjeta no se convierta en una lista de clientes.
+    return '<span class="pill" title="' + esc(nombres.join(' · ')) + '">' + esc(nombres[0]) + '</span>' +
+      '<span class="pill mas-cli" title="' + esc(nombres.slice(1).join(' · ')) + '">+' + (cs.length - 1) + '</span>';
   }
   function avatarDe(t) {
     const n = nombrePersona(t.responsable_id);
@@ -7963,6 +7996,7 @@
       responsable: respId ? nombrePersona(respId) : null,
       responsable_tipo: 'agencia',
       cliente_id: $('#fCliente').value || null,
+      cliente_manual: FALTA_M26 ? undefined : !!$('#fCliente').value,
       proyecto_id: proyId,
       proyecto: proyId ? nombreProyecto(proyId) : null,
       urgencia: $('#fPrioridad').value,
@@ -8239,9 +8273,14 @@
       + PERSONAS.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
     $('#dResponsable').value = t.responsable_id || '';
 
+    // El cliente lo trae el proyecto. El selector sigue estando para
+    // las tareas sueltas y para el caso raro de querer otro; si lo
+    // tocás, queda marcado como tuyo y la automatización no lo pisa.
+    const heredado = clienteHeredado(t);
     $('#dCliente').innerHTML = '<option value="">Interno (sin cliente)</option>'
       + clientesVivos().map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
     $('#dCliente').value = t.cliente_id || '';
+    pintarClienteTarea(t, heredado);
 
     $('#dEmpieza').value = t.empieza || '';
     $('#dVence').value = t.vence || '';
@@ -8257,6 +8296,38 @@
     $('#dPos').textContent = i >= 0 ? (i + 1) + ' de ' + ids.length : '';
     $('#dPrev').disabled = i <= 0;
     $('#dNext').disabled = i === -1 || i >= ids.length - 1;
+  }
+
+  // Qué cliente le correspondería por sus proyectos (manda el
+  // principal). Espejo de `cliente_por_proyecto()` en la base.
+  function clienteHeredado(t) {
+    const filas = tpDe(t.id).slice().sort((a, b) =>
+      (b.principal ? 1 : 0) - (a.principal ? 1 : 0) || (a.orden || 0) - (b.orden || 0));
+    for (let i = 0; i < filas.length; i++) {
+      const p = proyectoDe(filas[i].proyecto_id);
+      if (p && p.cliente_id) return p.cliente_id;
+    }
+    return null;
+  }
+
+  function pintarClienteTarea(t, heredado) {
+    const cont = $('#dClienteNota');
+    if (!cont) return;
+    const otros = clientesDeTarea(t).filter(c => c !== t.cliente_id);
+    let html = '';
+    if (t.cliente_manual && heredado && heredado !== t.cliente_id) {
+      html = 'Lo elegiste a mano. Por sus proyectos le tocaría <b>' +
+        esc(nombreCliente(heredado)) + '</b>. ' +
+        '<button class="mini-btn" id="dClienteAuto">Volver al del proyecto</button>';
+    } else if (heredado) {
+      html = 'Viene del proyecto. Si cambiás el proyecto, cambia solo.';
+    }
+    if (otros.length) {
+      html += (html ? '<br>' : '') + 'También es de <b>' +
+        otros.map(c => esc(nombreCliente(c))).join('</b>, <b>') + '</b>, por sus otros proyectos.';
+    }
+    cont.innerHTML = html;
+    cont.style.display = html ? '' : 'none';
   }
 
   // El detalle se ve renderizado (con los links andando) y se edita
@@ -8397,6 +8468,22 @@
       : '';
   }
 
+  // El cliente lo pone un trigger en la base, así que después de tocar
+  // los proyectos hay que volver a leer la tarea: si no, la pantalla
+  // sigue mostrando el cliente viejo aunque en la base ya cambió.
+  async function refrescarTarea(id) {
+    const cols = COLS_TAREA + (FALTA_M26 ? '' : ', cliente_manual');
+    const { data, error } = await SB.from('tarea').select(cols).eq('id', id).single();
+    if (error || !data) return;
+    const i = TAREAS.findIndex(x => x.id === id);
+    if (i !== -1) TAREAS[i] = data;
+    if (DETALLE && DETALLE.id === id) {
+      DETALLE = data;
+      $('#dCliente').value = data.cliente_id || '';
+      pintarClienteTarea(data, clienteHeredado(data));
+    }
+  }
+
   async function agregarAProyecto(proyId) {
     if (!DETALLE) return;
     const p = proyectoDe(proyId);
@@ -8418,6 +8505,7 @@
     if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
     if (!filas.length) await SB.from('tarea').update({ proyecto_id: proyId }).eq('id', DETALLE.id);
     await cargarExtras();
+    await refrescarTarea(DETALLE.id);
     pintarProyectosDrawer(); render(); cargarActividad(DETALLE.id);
     toast('Agregada a ' + (p ? p.nombre : 'el proyecto'));
   }
@@ -8428,6 +8516,7 @@
       .eq('tarea_id', DETALLE.id).eq('proyecto_id', proyId);
     if (error) { toast('No se pudo sacar: ' + error.message, 'warn'); return; }
     await cargarExtras();
+    await refrescarTarea(DETALLE.id);
     pintarProyectosDrawer(); render(); cargarActividad(DETALLE.id);
   }
 
@@ -8909,7 +8998,28 @@
     if (e.target.id === 'resBrief') atajoLink(e);
   });
   $('#dResponsable').addEventListener('change', e => guardarCampo('responsable_id', e.target.value || null));
-  $('#dCliente').addEventListener('change', e => guardarCampo('cliente_id', e.target.value || null));
+  // Elegir un cliente a mano marca la tarea: de ahí en más la
+  // automatización no la toca. Es lo mínimo para que el panel no te
+  // pise una decisión tuya.
+  $('#dCliente').addEventListener('change', async e => {
+    const v = e.target.value || null;
+    await guardarCampo('cliente_id', v);
+    if (DETALLE && !FALTA_M26) {
+      const propio = v !== clienteHeredado(DETALLE);
+      if (!!DETALLE.cliente_manual !== propio) await guardarCampo('cliente_manual', propio);
+    }
+    if (DETALLE) pintarClienteTarea(DETALLE, clienteHeredado(DETALLE));
+  });
+
+  // Volver al cliente del proyecto.
+  $('#dClienteNota').addEventListener('click', async e => {
+    if (!e.target.closest('#dClienteAuto') || !DETALLE) return;
+    await guardarCampo('cliente_manual', false);
+    await guardarCampo('cliente_id', clienteHeredado(DETALLE));
+    $('#dCliente').value = DETALLE.cliente_id || '';
+    pintarClienteTarea(DETALLE, clienteHeredado(DETALLE));
+    render();
+  });
   $('#dEmpieza').addEventListener('change', e => guardarCampo('empieza', e.target.value || null));
   $('#dVence').addEventListener('change', e => guardarCampo('vence', e.target.value || null));
   $('#dPrioridad').addEventListener('change', e => guardarCampo('urgencia', e.target.value));
