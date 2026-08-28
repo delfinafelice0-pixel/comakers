@@ -2221,7 +2221,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 12:04</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 12:39</div>
     </div>
   </aside>
 
@@ -2714,6 +2714,20 @@
     <div class="campo" id="clSlugWrap" style="display:none">
       <label class="campo-label">Identificador</label>
       <div class="res-sub" id="clSlug" style="margin:0"></div>
+    </div>
+    <!-- Fusionar y borrar: solo cuando estás EDITANDO uno que ya existe.
+         Al crear no tiene sentido y sería un botón peligroso al pedo. -->
+    <div class="campo" id="clPeligro" style="display:none">
+      <div class="sep-inv"></div>
+      <label class="campo-label">¿Está repetido?</label>
+      <div class="res-alta">
+        <select class="sel" id="clFusionCon" style="flex:1;min-width:0"></select>
+        <button class="btn-ghost" id="clFusionar">Fusionar</button>
+      </div>
+      <div class="res-sub" style="margin-top:6px">Pasa <b>todo</b> lo de este cliente al que elijas
+        —tareas, proyectos, contratos, cobros— y después borra la ficha repetida. No se pierde nada.</div>
+      <div class="res-sub" id="clCuelga" style="margin-top:10px"></div>
+      <button class="btn-danger" id="clBorrar" style="margin-top:8px">Borrar este cliente</button>
     </div>
     <div class="modal-foot">
       <button class="btn-danger" id="clArchivar" style="display:none">Guardar en el archivo</button>
@@ -4478,7 +4492,7 @@
   let MODULO = 'tareas';
   let SALUDO_BASE = '';
   let ACCESOS = {};                 // cliente_id → [user_id]
-  let CL_EDIT = null, CL_PERSONAS = [];
+  let CL_EDIT = null, CL_PERSONAS = [], CL_CUELGA = [];
   let EQUIPO = [];            // todo el equipo, incluidas las bajas
   let WIKI_CARPETAS = [], WIKI_PAGINAS = [], WIKI_SEL = null, WIKI_CARGADA = false;
 
@@ -4879,8 +4893,55 @@
     ba.style.display = c ? '' : 'none';
     ba.textContent = (c && c.activo === false) ? 'Sacar del archivo' : 'Guardar en el archivo';
     pintarClPersonas();
+    $('#clPeligro').style.display = c ? '' : 'none';
+    if (c) pintarPeligroCliente(c);
     abrir('ovCliente');
     setTimeout(() => $('#clNombre').focus(), 60);
+  }
+
+  // Qué cuelga del cliente y con cuál se puede fusionar. La cuenta la
+  // hace la BASE, no el navegador: acá adentro no tenemos cargadas ni la
+  // mitad de las tablas que lo referencian.
+  async function pintarPeligroCliente(c) {
+    // Los candidatos: primero los que se llaman igual, que es el caso
+    // real (un duplicado). Después el resto.
+    const otros = CLIENTES.filter(x => x.id !== c.id);
+    const mismos = otros.filter(x => normNombre(x.nombre) === normNombre(c.nombre));
+    const resto = otros.filter(x => normNombre(x.nombre) !== normNombre(c.nombre))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    $('#clFusionCon').innerHTML = '<option value="">Elegí con cuál…</option>' +
+      (mismos.length
+        ? '<optgroup label="Se llaman igual">' +
+            mismos.map(x => '<option value="' + x.id + '">' + esc(x.nombre) + '</option>').join('') +
+          '</optgroup>' : '') +
+      '<optgroup label="Todos">' +
+        resto.map(x => '<option value="' + x.id + '">' + esc(x.nombre) + '</option>').join('') +
+      '</optgroup>';
+    if (mismos.length === 1) $('#clFusionCon').value = mismos[0].id;
+
+    $('#clCuelga').textContent = 'Viendo qué tiene cargado…';
+    const { data, error } = await SB.rpc('que_cuelga_del_cliente', { c: c.id });
+    if (!CL_EDIT || CL_EDIT.id !== c.id) return;      // cerraste o cambiaste
+    if (error) {
+      $('#clCuelga').innerHTML = faltaDeVerdad(error)
+        ? 'Falta correr <code>migracion-interno-35-borrar-y-fusionar-clientes.sql</code>.'
+        : 'No se pudo consultar: ' + esc(error.message);
+      $('#clBorrar').disabled = true;
+      return;
+    }
+    const filas = data || [];
+    CL_CUELGA = filas;
+    if (!filas.length) {
+      $('#clCuelga').innerHTML = 'No tiene <b>nada</b> cargado: se puede borrar sin perder información.';
+      $('#clBorrar').disabled = false;
+      $('#clBorrar').textContent = 'Borrar este cliente';
+    } else {
+      $('#clCuelga').innerHTML = 'Tiene ' +
+        filas.map(f => '<b>' + f.cuantas + '</b> en ' + esc(f.tabla)).join(', ') +
+        '. Por eso no se puede borrar: fusionalo o archivalo.';
+      $('#clBorrar').disabled = true;
+      $('#clBorrar').textContent = 'No se puede borrar';
+    }
   }
 
   function pintarClPersonas() {
@@ -11360,6 +11421,47 @@
     guardarClienteModal().catch(e => toast('No se pudo guardar: ' + (e.message || e), 'warn'));
   });
   $('#clNombre').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); guardarClienteModal(); } });
+  $('#clBorrar').addEventListener('click', async () => {
+    if (!CL_EDIT) return;
+    if (!confirm('Borrar "' + CL_EDIT.nombre + '".\n\n' +
+        'No tiene nada cargado, así que no se pierde información. Igual no hay vuelta atrás.\n\n¿Seguimos?')) return;
+    $('#clBorrar').disabled = true;
+    // La borra la BASE, no el navegador: la función vuelve a chequear que
+    // no cuelgue nada antes de tocar la fila. Si desde que abriste el
+    // modal alguien le cargó una tarea, se frena ahí.
+    const { data, error } = await SB.rpc('borrar_cliente', { c: CL_EDIT.id });
+    if (error) { toast(error.message, 'warn'); $('#clBorrar').disabled = false; return; }
+    cerrar('ovCliente');
+    toast(data || 'Cliente borrado');
+    await cargarClientes(); render();
+  });
+
+  $('#clFusionar').addEventListener('click', async () => {
+    if (!CL_EDIT) return;
+    const dest = $('#clFusionCon').value;
+    if (!dest) { toast('Elegí con cuál lo fusionás', 'warn'); return; }
+    const d = CLIENTES.find(x => x.id === dest);
+    const cuenta = CL_CUELGA.length
+      ? CL_CUELGA.map(f => f.cuantas + ' en ' + f.tabla).join(', ')
+      : 'nada';
+    if (!confirm('Pasar TODO de "' + CL_EDIT.nombre + '" a "' + (d ? d.nombre : '') + '".\n\n' +
+        'Se mueve: ' + cuenta + '.\n' +
+        'Después la ficha de "' + CL_EDIT.nombre + '" se borra.\n\n' +
+        'No hay vuelta atrás. ¿Seguimos?')) return;
+    $('#clFusionar').disabled = true;
+    const { data, error } = await SB.rpc('fusionar_cliente', { origen: CL_EDIT.id, destino: dest });
+    $('#clFusionar').disabled = false;
+    if (error) { toast(error.message, 'warn'); return; }
+    cerrar('ovCliente');
+    toast(data || 'Clientes fusionados');
+    // Cambió medio panel: contratos, tareas, proyectos. Se recarga todo.
+    await cargarClientes();
+    await cargarProyectos();
+    await cargarTareas();
+    if (soySocia()) await refrescarPlata();
+    render();
+  });
+
   $('#clArchivar').addEventListener('click', async () => {
     if (!CL_EDIT) return;
     const archivar = CL_EDIT.activo !== false;
