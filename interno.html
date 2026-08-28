@@ -1983,7 +1983,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/08 17:46</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 03:28</div>
     </div>
   </aside>
 
@@ -7335,6 +7335,9 @@
     //  distinta columna en la base. Si mañana hace falta un cuarto, se
     //  agrega una línea a esta lista y nada más.
     const TEXTOS = [
+      { campo: 'descripcion', titulo: 'Descripción',
+        sub: 'Qué es, en dos renglones. Para que alguien que nunca lo tocó entienda de qué se trata.',
+        vacio: 'Quién es el cliente, a qué se dedica, dónde está…' },
       { campo: 'objetivo',   titulo: 'Objetivo de la marca',
         sub: 'Tiene que ser <b>medible y con plazo</b>: un número y una fecha. ' +
              '“Más presencia” no es un objetivo — “20 reservas por mes de acá a marzo” sí. ' +
@@ -7344,9 +7347,6 @@
         subHTML: true,
         vacio: 'Ej: llegar a 20 reservas por mes en temporada baja (hoy 8), antes de marzo 2027.\n' +
                'Ej: bajar el costo por consulta de $4.000 a $2.500 en tres meses de pauta.' },
-      { campo: 'descripcion', titulo: 'Descripción',
-        sub: 'Qué es, en dos renglones. Para que alguien que nunca lo tocó entienda de qué se trata.',
-        vacio: 'Quién es el cliente, a qué se dedica, dónde está…' },
       // Antes de la 32, el brief todavía vive en `descripcion`: si no se
       // apunta ahí, el texto que ya escribiste no aparece.
       { campo: FALTA_M32 ? 'descripcion' : 'brief', titulo: 'Brief',
