@@ -716,6 +716,79 @@
     background: var(--bg-elev); border: 1px solid var(--line);
     border-radius: var(--radius-lg); overflow: hidden;
   }
+  .mod-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .mod-sub { font-size: 12.5px; color: var(--ink-mute); line-height: 1.55; max-width: 640px; }
+  .mod-acc { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ── SERVICIOS ────────────────────────────── */
+  .serv-tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .serv-tabs button {
+    padding: 9px 14px; font-size: 13px; font-weight: 500; color: var(--ink-mute);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .serv-tabs button.on { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .serv-tabla .tabla-head,
+  .serv-fila {
+    display: grid;
+    grid-template-columns: minmax(0,1.5fr) minmax(0,1.6fr) 150px minmax(0,1.1fr) 96px 104px;
+    gap: 14px; align-items: center; padding: 12px 16px;
+  }
+  .serv-tabla .tabla-head {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    font-weight: 600; color: var(--ink-mute); border-bottom: 1px solid var(--line);
+    padding-top: 10px; padding-bottom: 10px;
+  }
+  .serv-fila { border-bottom: 1px solid var(--line-soft); cursor: pointer; }
+  .serv-fila:last-child { border-bottom: none; }
+  .serv-fila:hover { background: var(--line-soft); }
+  .serv-tabla .der { text-align: right; }
+  .serv-items { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pill.nadie { background: #FFF3D6; color: #7A5B12; }
+  .serv-nums { grid-template-columns: repeat(4, 1fr); }
+
+  .dep-barras { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .dep-n { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px; }
+  .dep-riel { height: 8px; border-radius: 5px; background: var(--line-soft); overflow: hidden; }
+  .dep-riel i { display: block; height: 100%; background: var(--accent); border-radius: 5px; }
+
+  /* ── QUIÉN HACE QUÉ ───────────────────────── */
+  .carga-lista { display: flex; flex-direction: column; gap: 8px; }
+  .carga-p { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+  .carga-head {
+    display: grid; grid-template-columns: 26px minmax(0,1.1fr) minmax(0,1.9fr) 120px 16px;
+    gap: 14px; align-items: center; padding: 12px 16px; cursor: pointer;
+  }
+  .carga-head:hover { background: var(--line-soft); }
+  .carga-n { display: flex; flex-direction: column; min-width: 0; }
+  .carga-n b { font-size: 13.5px; }
+  .carga-nums { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink-mute); }
+  .carga-nums .cn b { color: var(--ink); font-weight: 600; }
+  .carga-nums .cn.mal b { color: var(--warn); }
+  .carga-nums .cn.suave { opacity: .7; }
+  .carga-riel { height: 7px; border-radius: 5px; background: var(--line-soft); overflow: hidden; }
+  .carga-riel i { display: block; height: 100%; background: #CFC9D6; border-radius: 5px; }
+  .carga-riel i.mal { background: var(--warn); }
+  .carga-p.on .grupo-toggle { transform: rotate(180deg); }
+  .carga-body { padding: 4px 16px 14px; border-top: 1px solid var(--line-soft); }
+  .carga-cli { margin-top: 12px; }
+  .carga-cli-n {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ink-mute); font-weight: 600; display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .carga-t {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 6px 0; font-size: 13px; cursor: pointer;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .carga-t:last-child { border-bottom: none; }
+  .carga-t:hover span:first-child { color: var(--accent); }
+  @media (max-width: 900px) {
+    .carga-head { grid-template-columns: 26px 1fr 16px; row-gap: 8px; }
+    .carga-nums, .carga-riel { grid-column: 1 / -1; }
+  }
   .persona {
     display: grid; grid-template-columns: 34px minmax(0,1.6fr) minmax(0,1.4fr) 118px 108px auto;
     gap: 14px; align-items: center; padding: 13px 18px;
@@ -1254,6 +1327,30 @@
     width: 100%; max-width: 580px; max-height: 88vh; overflow-y: auto; padding: 26px;
     animation: modalIn 0.25s cubic-bezier(0.16,1,0.3,1);
   }
+  .modal.ancho { max-width: 780px; }
+
+  /* La tabla de costos: entregable · unidad · cuesta · horas · margen */
+  .cs-fila {
+    display: grid; grid-template-columns: minmax(0,1.4fr) 110px 120px 100px auto;
+    gap: 10px; align-items: center; padding: 8px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .cs-fila:last-child { border-bottom: none; }
+  .cs-head {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    font-weight: 600; color: var(--ink-mute);
+  }
+  .cs-fila input, .cs-fila select {
+    width: 100%; border: 1px solid var(--line); border-radius: 7px;
+    padding: 6px 8px; font: inherit; font-size: 12.5px; background: var(--bg-elev);
+  }
+  .cs-fila input:focus, .cs-fila select:focus { outline: none; border-color: var(--accent); }
+  .cs-fila .sis { font-size: 10px; color: var(--ink-mute); }
+  @media (max-width: 900px) {
+    .cs-fila { grid-template-columns: 1fr 1fr; }
+    .cs-head { display: none; }
+  }
+
   @keyframes modalIn {
     from { opacity: 0; transform: scale(0.96) translateY(8px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
@@ -2018,6 +2115,12 @@
     /* Las tablas anchas (contabilidad, distribución) se deslizan al
        costado en vez de romper el ancho de la página. */
     .tabla-ancha { overflow-x: auto; }
+    .serv-tabla .tabla-head, .serv-fila { grid-template-columns: minmax(240px,1.4fr) 130px 110px 96px; }
+    .serv-tabla .tabla-head > :nth-child(2), .serv-fila > :nth-child(2),
+    .serv-tabla .tabla-head > :nth-child(5), .serv-fila > :nth-child(5) { display: none; }
+    .mod-acc { width: 100%; }
+    .mod-acc button { flex: 1; justify-content: center; }
+    .serv-nums { grid-template-columns: repeat(2, 1fr); }
   }
 
 </style>
@@ -2082,6 +2185,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
           Clientes
         </button>
+        <button class="nav-item" id="navServicios" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          Servicios
+        </button>
         <button class="nav-item" id="navPlata" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
           Contabilidad
@@ -2114,7 +2221,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 04:11</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 12:04</div>
     </div>
   </aside>
 
@@ -2238,6 +2345,9 @@
     <!-- ═══════════ CLIENTES ═══════════ -->
     <div id="modClientes" style="display:none"></div>
 
+    <!-- ═══════════ SERVICIOS ═══════════ -->
+    <div id="modServicios" style="display:none"></div>
+
     <!-- ═══════════ CONTABILIDAD ═══════════ -->
     <div id="modPlata" style="display:none"></div>
 
@@ -2265,6 +2375,12 @@
         <input type="text" id="ctNombre" list="ctSugeridos" placeholder="Ej: CM, Landing, Pauta">
         <datalist id="ctSugeridos"></datalist>
       </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">¿Es alguno de tus planes?</label>
+      <select id="ctPlan"></select>
+      <div class="res-sub" style="margin-top:5px">Atarlo a un plan sirve para saber cuánto factura cada
+        uno y cuánto te deja. Un trabajo a medida puede quedar sin plan.</div>
     </div>
     <div class="campo">
       <label class="campo-label">Qué incluye</label>
@@ -2636,6 +2752,73 @@
 <!-- ═══════════ EMOJIS ═══════════ -->
 <div class="emoji-pop" id="emojiPop"></div>
 <div class="men-pop" id="menPop"></div>
+
+<!-- ═══════════ MODAL · PLAN ═══════════ -->
+<div class="overlay" id="ovServ">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="svTitulo">Nuevo plan</div>
+      <button class="modal-close" data-cerrar="ovServ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="campo">
+      <label class="campo-label">¿Cómo se llama?</label>
+      <input type="text" id="svNombre" placeholder="Ej: Community Management — Pro">
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">¿Cuánto sale?</label>
+        <input type="number" id="svPrecio" placeholder="0" min="0" step="1000">
+      </div>
+      <div>
+        <label class="campo-label">Cada</label>
+        <select id="svPeriodo">
+          <option value="mes">Por mes</option>
+          <option value="semana">Por semana</option>
+          <option value="unica">Pago único</option>
+        </select>
+      </div>
+    </div>
+    <div class="campo">
+      <label class="campo-label">Categoría (opcional)</label>
+      <input type="text" id="svCategoria" placeholder="Contenido, Ads, Consultoría…">
+    </div>
+    <div class="campo">
+      <label class="campo-label" style="display:flex;align-items:center;gap:8px;">¿Qué incluye?
+        <select class="sel" id="svAddItem" style="font-size:12px;padding:4px 8px;margin-left:auto;max-width:200px;"></select>
+      </label>
+      <div id="svItems"></div>
+      <div class="res-sub" style="margin-top:6px">Son los mismos entregables que repartís en Distribución.
+        Así "8 reels vendidos" y "8 reels hechos" se pueden comparar.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="svArchivar" style="display:none">Archivar</button>
+      <div class="der">
+        <button class="btn-ghost" data-cerrar="ovServ">Cancelar</button>
+        <button class="btn-primary" id="svGuardar">Guardar plan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL · COSTOS ═══════════ -->
+<div class="overlay" id="ovCostos">
+  <div class="modal ancho">
+    <div class="modal-head">
+      <div class="modal-title">Mis costos</div>
+      <button class="modal-close" data-cerrar="ovCostos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="res-sub">Lo que te cuesta producir cada cosa. Es lo que hace que el margen sea un número
+      de verdad y no uno inventado. Podés dejar vacío lo que no sepas: donde falta, el margen dice “—”.</div>
+    <div id="csLista" style="margin-top:14px"></div>
+    <div class="res-alta">
+      <input type="text" id="csNuevo" placeholder="Otro entregable (ej: Jornada de rodaje)">
+      <button class="btn-ghost" id="csAgregar">Agregar</button>
+    </div>
+    <div class="modal-foot">
+      <div class="der"><button class="btn-primary" data-cerrar="ovCostos">Listo</button></div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════ MODAL FORM ═══════════ -->
 <div class="overlay" id="ovForm">
@@ -3021,6 +3204,7 @@
 
   let FALTA_M32 = false;  // true si todavía no corrió migracion-interno-32-descripcion-objetivo.sql
   let FALTA_M33 = false;  // true si todavía no corrió migracion-interno-33-color-e-icono.sql
+  let ERROR_SERV = null;  // el texto que devolvió la base al leer Servicios
   let FALTA_M8 = false;   // true si todavía no corrió migracion-interno-8-resumen.sql
   let FALTA_M10 = false;  // true si todavía no corrió migracion-interno-10-equipo.sql
   let FALTA_M11 = false;  // true si todavía no corrió migracion-interno-11-bandeja.sql
@@ -3842,6 +4026,7 @@
       if (MODULO === 'bandeja') renderBandeja();
       else if (MODULO === 'equipo') renderEquipo();
       else if (MODULO === 'clientes') renderClientes();
+      else if (MODULO === 'servicios') renderServicios();
       else if (MODULO === 'plata') renderPlata();
       else if (MODULO === 'dist') renderDist();
       else if (MODULO === 'wiki') renderWiki();
@@ -4306,7 +4491,7 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo'
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -4327,7 +4512,8 @@
     // Equipo, Clientes y Contabilidad son de las socias. Esto es la
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
-    if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist') && !soySocia()) return;
+    if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
+         || m === 'servicios') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -4343,6 +4529,7 @@
     $('#navBandeja').classList.toggle('active', MODULO === 'bandeja');
     $('#modEquipo').style.display  = MODULO === 'equipo'   ? '' : 'none';
     $('#modClientes').style.display = MODULO === 'clientes' ? '' : 'none';
+    $('#modServicios').style.display = MODULO === 'servicios' ? '' : 'none';
     $('#modPlata').style.display   = MODULO === 'plata'    ? '' : 'none';
     $('#modDist').style.display    = MODULO === 'dist'     ? '' : 'none';
     $('#modWiki').style.display    = MODULO === 'wiki'     ? '' : 'none';
@@ -4350,11 +4537,13 @@
     $('#btnNueva').style.display = MODULO === 'tareas' ? '' : 'none';
     $('#navEquipo').style.display = soySocia() ? '' : 'none';
     $('#navClientes').style.display = soySocia() ? '' : 'none';
+    $('#navServicios').style.display = soySocia() ? '' : 'none';
     $('#navPlata').style.display  = soySocia() ? '' : 'none';
     $('#navDist').style.display   = soySocia() ? '' : 'none';
     $('#navTablero').classList.toggle('active', MODULO === 'tareas' && !FILTRO.proyecto);
     $('#navClientes').classList.toggle('active', MODULO === 'clientes');
     $('#navWiki').classList.toggle('active', MODULO === 'wiki');
+    $('#navServicios').classList.toggle('active', MODULO === 'servicios');
     $('#navPlata').classList.toggle('active', MODULO === 'plata');
     $('#navDist').classList.toggle('active', MODULO === 'dist');
     $('#navEquipo').classList.toggle('active', MODULO === 'equipo');
@@ -4371,10 +4560,11 @@
       bandeja:  ['Tu <em>bandeja</em>', 'Lo que te asignaron, lo que comentaron donde colaborás y dónde te mencionaron.'],
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
+      servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
       dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.']
-    }[MODULO];
+    }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página
     t.querySelector('h1').innerHTML = H[0];
     $('#saludo').textContent = H[1];
   }
@@ -4422,13 +4612,117 @@
       '</div>';
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  QUIÉN HACE QUÉ — la carga de cada una, hoy
+  //
+  //  Esto nació de una tarea que Delfi escribió a mano:
+  //  "Anotar qué flyers está haciendo Ludmi para San Eusebio", con la
+  //  lista de tres clientes en la descripción. Escribir a mano algo que
+  //  el panel ya sabe es la señal de que falta una vista, no una tarea:
+  //  esa nota queda vieja al día siguiente y nadie la actualiza.
+  //
+  //  No necesita migración: son las tareas que ya están, miradas por
+  //  persona y agrupadas por cliente.
+  // ═══════════════════════════════════════════════════════════════
+  let EQ_TAB = 'carga', EQ_ABIERTA = null;
+
+  function cargaDe(userId) {
+    const abiertas = TAREAS.filter(t => t.responsable_id === userId && !t.completada && !t.padre_id);
+    const hoy = hoyISO();
+    const en7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    return {
+      abiertas: abiertas,
+      vencidas: abiertas.filter(estaVencida),
+      semana:   abiertas.filter(t => t.vence && t.vence >= hoy && t.vence <= en7),
+      sinFecha: abiertas.filter(t => !t.vence),
+      // Lo que cerró en los últimos 30 días: sirve para no confundir
+      // "no tiene nada" con "ya lo terminó todo".
+      cerradas: TAREAS.filter(t => t.responsable_id === userId && t.completada &&
+        t.completada_en && t.completada_en.slice(0, 10) >= new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)).length
+    };
+  }
+
+  // El desglose que Delfi escribía a mano: por cliente, qué hay.
+  function porClienteDe(tareas) {
+    const g = {};
+    tareas.forEach(t => {
+      const cs = clientesDeTarea(t);
+      const k = cs.length ? cs[0] : '__interno';
+      (g[k] = g[k] || []).push(t);
+    });
+    return Object.keys(g)
+      .map(k => ({ k: k, nombre: k === '__interno' ? 'Interno' : nombreCliente(k), tareas: g[k] }))
+      .sort((a, b) => b.tareas.length - a.tareas.length);
+  }
+
+  function renderCargaEquipo() {
+    const gente = EQUIPO.filter(p => p.activo !== false);
+    if (!gente.length) return '<div class="res-vacio">No hay nadie activo en el equipo.</div>';
+    const cargas = gente.map(p => ({ p: p, c: cargaDe(p.id) }));
+    const tope = Math.max(1, ...cargas.map(x => x.c.abiertas.length));
+
+    return '<div class="mod-head"><p>Qué tiene cada una entre manos <b>ahora</b>, en todos los clientes. ' +
+        'Sale solo de las tareas: no hay nada que anotar a mano.</p></div>' +
+      '<div class="carga-lista">' +
+      cargas.map(({ p, c }) => {
+        const n = p.nombre || p.email;
+        const ab = EQ_ABIERTA === p.id;
+        const pct = Math.round(c.abiertas.length / tope * 100);
+        return '<div class="carga-p' + (ab ? ' on' : '') + '" data-carga="' + p.id + '">' +
+          '<div class="carga-head">' +
+            '<div class="avatar-sm' + (ME && p.id === ME.id ? '' : ' otra') + '">' + esc(iniciales(n, '')) + '</div>' +
+            '<div class="carga-n"><b>' + esc(n) + '</b>' +
+              '<span class="res-sub">' + (p.rol === 'socia' ? 'socia' : 'equipo') +
+              (p.ext ? ' · sin cuenta' : '') + '</span></div>' +
+            '<div class="carga-nums">' +
+              '<span class="cn"><b>' + c.abiertas.length + '</b> abiertas</span>' +
+              (c.vencidas.length ? '<span class="cn mal"><b>' + c.vencidas.length + '</b> vencidas</span>' : '') +
+              '<span class="cn"><b>' + c.semana.length + '</b> esta semana</span>' +
+              '<span class="cn suave"><b>' + c.cerradas + '</b> cerradas en 30 días</span>' +
+            '</div>' +
+            '<div class="carga-riel"><i style="width:' + pct + '%"' +
+              (c.vencidas.length ? ' class="mal"' : '') + '></i></div>' +
+            '<svg class="grupo-toggle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
+          '</div>' +
+          (ab ? '<div class="carga-body">' +
+            (c.abiertas.length
+              ? porClienteDe(c.abiertas).map(g =>
+                  '<div class="carga-cli">' +
+                    '<div class="carga-cli-n">' + esc(g.nombre) +
+                      '<span class="grupo-count">' + g.tareas.length + '</span></div>' +
+                    g.tareas.slice(0, 8).map(t =>
+                      '<div class="carga-t" data-irtarea="' + t.id + '">' +
+                        '<span>' + esc(t.titulo) + '</span>' +
+                        (t.vence ? '<span class="fecha ' + fechaTxt(t.vence).clase + '">' +
+                          fechaTxt(t.vence).txt + '</span>' : '<span class="res-sub">sin fecha</span>') +
+                      '</div>').join('') +
+                    (g.tareas.length > 8 ? '<div class="res-sub">y ' + (g.tareas.length - 8) + ' más…</div>' : '') +
+                  '</div>').join('')
+              : '<div class="res-vacio">Sin tareas abiertas. ' +
+                 (c.cerradas ? 'Cerró ' + c.cerradas + ' en los últimos 30 días.' : '') + '</div>') +
+          '</div>' : '') +
+        '</div>';
+      }).join('') + '</div>';
+  }
+
   function renderEquipo() {
     if (!soySocia()) { $('#modEquipo').innerHTML = ''; return; }
     const activas = EQUIPO.filter(p => p.activo !== false);
     const bajas = EQUIPO.filter(p => p.activo === false);
     const socias = activas.filter(p => p.rol === 'socia').length;
 
-    $('#modEquipo').innerHTML =
+    const tabs =
+      '<div class="serv-tabs">' +
+        '<button data-eqtab="carga" class="' + (EQ_TAB === 'carga' ? 'on' : '') + '">Quién hace qué</button>' +
+        '<button data-eqtab="gente" class="' + (EQ_TAB === 'gente' ? 'on' : '') + '">Permisos y altas</button>' +
+      '</div>';
+
+    if (EQ_TAB === 'carga') {
+      $('#modEquipo').innerHTML = tabs + renderCargaEquipo();
+      return;
+    }
+
+    $('#modEquipo').innerHTML = tabs +
       (FALTA_M10 ? '<div class="res-falta" style="margin-bottom:16px">Falta correr ' +
         '<code>migracion-interno-10-equipo.sql</code>. Hasta que la corras, los roles y las bajas no se guardan.</div>' : '') +
       '<div class="mod-head"><p>Las <b>socias</b> ven este módulo, invitan gente y cambian permisos. ' +
@@ -6495,6 +6789,321 @@
   }
   function enRango(iso, r) { return iso >= r[0] && iso < r[1]; }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  SERVICIOS — qué vendemos, a quién y cuánto nos deja
+  //
+  //  Tres cosas que conviene tener claras leyendo esto:
+  //   · SERVICIO es el precio de lista. CONTRATO es lo que le cobrás a
+  //     un cliente concreto. Son tablas distintas a propósito: tocar el
+  //     precio de lista no le reescribe la factura a nadie.
+  //   · Los ENTREGABLES son los mismos que los de Distribución. Una
+  //     sola lista, para que "8 reels vendidos" y "8 reels hechos" se
+  //     puedan comparar.
+  //   · Los COSTOS pueden estar vacíos. Cuando lo están, el margen
+  //     dice "—" en vez de inventar un cero.
+  // ═══════════════════════════════════════════════════════════════
+  let SERV_CARGADO = false, FALTA_M34 = false;
+  let ENTREGABLES = [], SERVICIOS = [], SERV_ITEMS = [];
+  let CT_SERVICIO = null;   // el plan al que está atado el contrato que estás editando
+  let SERV_TAB = 'catalogo';
+
+  async function cargarServicios() {
+    const q = (t, cols, ord) => SB.from(t).select(cols).order(ord);
+    // Los CONTRATOS no se cargan acá: ya los tiene Contabilidad, en la
+    // tabla `contrato` de la migración 14. Servicios usa esos mismos.
+    // Dos listas de contratos serían dos verdades distintas de cuánto
+    // facturás, y en un mes no coincidirían.
+    const [e, sv, si] = await Promise.all([
+      q('entregable', 'id, nombre, unidad, cuesta, horas, sistema, activo, orden', 'orden'),
+      q('servicio', 'id, nombre, categoria, descripcion, precio, periodo, archivado, orden', 'orden'),
+      q('servicio_item', 'id, servicio_id, entregable_id, cantidad, orden', 'orden')
+    ]);
+    // Si falta la migración, las cuatro fallan por lo mismo. No se
+    // adivina la causa: se muestra el texto de la base si es otra cosa.
+    if (e.error || sv.error) {
+      FALTA_M34 = faltaDeVerdad(e.error || sv.error);
+      ERROR_SERV = FALTA_M34 ? null : String((e.error || sv.error).message);
+      SERV_CARGADO = true; render(); return;
+    }
+    ENTREGABLES = e.data || []; SERVICIOS = sv.data || []; SERV_ITEMS = si.data || [];
+    SERV_CARGADO = true;
+    if (!PLATA_CARGADA) await cargarPlata();   // los contratos viven ahí
+    render();
+  }
+
+  // Vigente = el mismo criterio que usa Contabilidad. No inventamos uno
+  // nuevo: si acá dijéramos otra cosa, los dos módulos mostrarían
+  // números distintos para la misma pregunta.
+  function contratoVivo(c) { return c.activo !== false; }
+  function contratosDeServicio(servId) {
+    return CONTRATOS.filter(c => c.servicio_id === servId && contratoVivo(c));
+  }
+  function itemsDe(servId) {
+    return SERV_ITEMS.filter(i => i.servicio_id === servId)
+      .map(i => ({ ...i, ent: ENTREGABLES.find(e => e.id === i.entregable_id) }))
+      .filter(i => i.ent);
+  }
+  // Lo que cuesta producir un plan. Devuelve null si falta AL MENOS un
+  // costo: un margen a medias es peor que no tener margen.
+  function costoDe(servId) {
+    const its = itemsDe(servId);
+    if (!its.length) return null;
+    let total = 0;
+    for (const i of its) {
+      if (i.ent.cuesta == null) return null;
+      total += Number(i.ent.cuesta) * Number(i.cantidad || 1);
+    }
+    return total;
+  }
+  // Lo que ese contrato deja por mes. Un contrato en cuotas reparte el
+  // total entre las cuotas: si sumáramos el total entero, la facturación
+  // mensual saldría inflada.
+  function montoMes(c) {
+    const v = Number(c.monto || 0);
+    if (c.tipo === 'cuotas' && c.cuotas_total > 0) return v / c.cuotas_total;
+    return v;
+  }
+  const PERIODO_TXT = { mes: '/ mes', semana: '/ semana', unica: 'pago único' };
+
+  function renderServicios() {
+    if (!soySocia()) { $('#modServicios').innerHTML = ''; return; }
+    if (!SERV_CARGADO) { $('#modServicios').innerHTML = '<div class="cargando">Cargando servicios…</div>'; return; }
+    if (FALTA_M34) {
+      $('#modServicios').innerHTML = '<div class="res-falta">Falta correr ' +
+        '<code>migracion-interno-34-servicios.sql</code> en Supabase.</div>'; return;
+    }
+    if (ERROR_SERV) {
+      $('#modServicios').innerHTML = '<div class="res-falta">No se pudo leer. La base contestó:<br>' +
+        '<code>' + esc(ERROR_SERV) + '</code></div>'; return;
+    }
+
+    const vivos = SERVICIOS.filter(x => !x.archivado);
+    const mrr = CONTRATOS.filter(contratoVivo).reduce((a, c) => a + montoMes(c), 0);
+    const conCliente = CONTRATOS.filter(contratoVivo).length;
+    const sinCosto = vivos.filter(x => costoDe(x.id) === null).length;
+
+    $('#modServicios').innerHTML =
+      // Sin título propio: la cabecera de arriba ya dice "Los servicios"
+      // y la misma bajada. Repetirlo era ruido puro.
+      '<div class="mod-head" style="justify-content:flex-end">' +
+        '<div class="mod-acc">' +
+          '<button class="btn-ghost" id="svCostos">Mis costos</button>' +
+          '<button class="btn-primary" id="svNuevo">+ Nuevo plan</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="serv-tabs">' +
+        '<button data-svtab="catalogo" class="' + (SERV_TAB === 'catalogo' ? 'on' : '') + '">Planes ' +
+          '<span class="grupo-count">' + vivos.length + '</span></button>' +
+        '<button data-svtab="proyeccion" class="' + (SERV_TAB === 'proyeccion' ? 'on' : '') + '">Proyección</button>' +
+      '</div>' +
+      (SERV_TAB === 'catalogo' ? tablaServicios(vivos) : proyeccionServicios(mrr, conCliente, sinCosto));
+  }
+
+  function tablaServicios(vivos) {
+    if (!vivos.length) {
+      return '<div class="vacio"><h3>Todavía no cargaste ningún plan</h3>' +
+        '<p>Un plan es lo que ofrecés: cómo se llama, qué incluye y cuánto sale. ' +
+        'Después se lo asignás a los clientes que lo tienen contratado.</p>' +
+        '<button class="btn-primary" id="svNuevo2">+ Crear el primero</button></div>';
+    }
+    return '<div class="tabla-ancha"><div class="tabla serv-tabla">' +
+      '<div class="tabla-head">' +
+        '<div>Plan</div><div>Incluye</div><div class="der">Precio</div>' +
+        '<div>Clientes</div><div class="der">Por mes</div><div></div>' +
+      '</div>' +
+      vivos.map(sv => {
+        const its = itemsDe(sv.id);
+        const cs = contratosDeServicio(sv.id);
+        const mes = cs.reduce((a, c) => a + montoMes(c), 0);
+        const costo = costoDe(sv.id);
+        return '<div class="tabla-fila serv-fila" data-serv="' + sv.id + '">' +
+          '<div><b>' + esc(sv.nombre) + '</b>' +
+            (sv.categoria ? '<div class="res-sub">' + esc(sv.categoria) + '</div>' : '') + '</div>' +
+          '<div class="serv-items">' +
+            (its.length
+              ? its.slice(0, 3).map(i => '<span class="pill">' + esc(cantTxt(i)) + '</span>').join('') +
+                (its.length > 3 ? '<span class="pill mas-cli">+' + (its.length - 3) + '</span>' : '')
+              : '<span class="res-sub">sin detalle</span>') +
+          '</div>' +
+          '<div class="der"><b>' + plata(sv.precio) + '</b> ' +
+            '<span class="res-sub">' + (PERIODO_TXT[sv.periodo] || '') + '</span>' +
+            (costo === null
+              ? '<div class="res-sub" title="Falta cargar el costo de algún entregable">margen: —</div>'
+              : '<div class="res-sub">te queda ' + plata(Number(sv.precio || 0) - costo) + '</div>') +
+          '</div>' +
+          '<div>' + (cs.length
+              ? cs.slice(0, 2).map(c => '<span class="pill">' + esc(nombreCliente(c.cliente_id)) + '</span>').join('') +
+                (cs.length > 2 ? '<span class="pill mas-cli">+' + (cs.length - 2) + '</span>' : '')
+              : '<span class="pill nadie">Nadie todavía</span>') + '</div>' +
+          '<div class="der">' + (mes ? plata(mes) : '—') + '</div>' +
+          '<div class="der"><button class="btn-ghost" data-svcli="' + sv.id + '">+ Cliente</button></div>' +
+        '</div>';
+      }).join('') +
+      '</div></div>';
+  }
+  function cantTxt(i) {
+    // El nombre va tal cual lo escribiste. Nada de pluralizar solo: en
+    // castellano no hay una regla que sirva para "story" y "carrusel" a
+    // la vez, y salía "16 storys · 4 carrusels". Si querés el plural,
+    // llamá al entregable "Reels" y listo.
+    return Number(i.cantidad || 1) + ' ' + i.ent.nombre;
+  }
+
+  function proyeccionServicios(mrr, conCliente, sinCosto) {
+    // Los de cuotas se muestran aparte: no son plata que se repite.
+    const enCuotas = CONTRATOS.filter(c => contratoVivo(c) && c.tipo === 'cuotas');
+    const unicos = enCuotas.reduce((a, c) => a + Number(c.monto || 0), 0);
+    // Cuánto dependés de cada cliente. Es el número que nadie mira hasta
+    // que se va el grande.
+    const porCli = {};
+    CONTRATOS.filter(contratoVivo).forEach(c => {
+      porCli[c.cliente_id] = (porCli[c.cliente_id] || 0) + montoMes(c);
+    });
+    const orden = Object.keys(porCli).sort((a, b) => porCli[b] - porCli[a]);
+    const mayor = orden.length ? porCli[orden[0]] : 0;
+
+    return '<div class="res-nums serv-nums">' +
+        '<div class="res-num"><b>' + plata(mrr) + '</b><span>por mes, si nada cambia</span></div>' +
+        '<div class="res-num"><b>' + plata(mrr * 12) + '</b><span>en un año</span></div>' +
+        '<div class="res-num"><b>' + conCliente + '</b><span>contratos vigentes</span></div>' +
+        '<div class="res-num' + (sinCosto ? ' alerta' : '') + '"><b>' + sinCosto + '</b><span>planes sin costo cargado</span></div>' +
+      '</div>' +
+      (unicos ? '<div class="res-sub" style="margin-top:8px">Hay ' + enCuotas.length +
+        ' contrato(s) en cuotas por ' + plata(unicos) + ' en total. En el "por mes" entra ' +
+        'solo la cuota, no el total: si no, la facturación mensual saldría inflada.</div>' : '') +
+      '<div class="res-card" style="margin-top:16px">' +
+        '<h4>Cuánto dependés de cada cliente</h4>' +
+        '<div class="res-sub">Si se va el más grande, cuánto se te cae.</div>' +
+        (orden.length
+          ? '<div class="dep-barras">' + orden.map(id => {
+              const v = porCli[id], pc = mrr ? Math.round(v / mrr * 100) : 0;
+              return '<div class="dep-b">' +
+                '<div class="dep-n"><span>' + esc(nombreCliente(id)) + '</span>' +
+                  '<b>' + pc + '%</b></div>' +
+                '<div class="dep-riel"><i style="width:' + pc + '%"></i></div>' +
+                '<div class="res-sub">' + plata(v) + ' por mes</div>' +
+              '</div>';
+            }).join('') + '</div>' +
+            (mayor && mrr && mayor / mrr > 0.33
+              ? '<div class="aviso-secreto">Si se va <b>' + esc(nombreCliente(orden[0])) + '</b> perdés ' +
+                plata(mayor) + ' por mes — más de un tercio de lo que facturás.</div>'
+              : '')
+          : '<div class="res-vacio">Todavía no hay contratos cargados.</div>') +
+      '</div>';
+  }
+
+  // ── El modal del plan ────────────────────────────────────────
+  let SV_EDIT = null, SV_ITEMS_TMP = [];
+
+  function abrirServicio(sv) {
+    SV_EDIT = sv;
+    SV_ITEMS_TMP = sv ? itemsDe(sv.id).map(i => ({ entregable_id: i.entregable_id, cantidad: i.cantidad })) : [];
+    $('#svTitulo').textContent = sv ? 'Editar plan' : 'Nuevo plan';
+    $('#svNombre').value = sv ? (sv.nombre || '') : '';
+    $('#svPrecio').value = sv ? (sv.precio ?? '') : '';
+    $('#svPeriodo').value = sv ? (sv.periodo || 'mes') : 'mes';
+    $('#svCategoria').value = sv ? (sv.categoria || '') : '';
+    $('#svArchivar').style.display = sv ? '' : 'none';
+    pintarItemsServicio();
+    abrir('ovServ');
+    setTimeout(() => $('#svNombre').focus(), 60);
+  }
+
+  function pintarItemsServicio() {
+    const usados = SV_ITEMS_TMP.map(i => i.entregable_id);
+    $('#svItems').innerHTML = SV_ITEMS_TMP.length
+      ? SV_ITEMS_TMP.map(i => {
+          const e = ENTREGABLES.find(x => x.id === i.entregable_id);
+          if (!e) return '';
+          return '<div class="cs-fila" style="grid-template-columns:60px 1fr auto">' +
+            '<input type="number" min="1" step="1" value="' + Number(i.cantidad || 1) + '" data-svcant="' + e.id + '">' +
+            '<div>' + esc(e.nombre) + ' <span class="sis">· ' + esc(e.unidad) + '</span></div>' +
+            '<button type="button" class="mini-btn del" data-svdel="' + e.id + '" title="Sacar">' + TACHO_SVG + '</button>' +
+          '</div>';
+        }).join('')
+      : '<div class="res-vacio">Sin detalle. Está bien: una consultoría o un trabajo puntual no siempre lo necesitan.</div>';
+    const libres = ENTREGABLES.filter(e => e.activo !== false && usados.indexOf(e.id) === -1);
+    $('#svAddItem').innerHTML = '<option value="">+ Agregar entregable</option>'
+      + libres.map(e => '<option value="' + e.id + '">' + esc(e.nombre) + '</option>').join('');
+    $('#svAddItem').value = '';
+  }
+
+  async function guardarServicio() {
+    const nombre = $('#svNombre').value.trim();
+    if (!nombre) { toast('Ponele un nombre al plan', 'warn'); $('#svNombre').focus(); return; }
+    const fila = {
+      nombre: nombre,
+      precio: $('#svPrecio').value === '' ? null : Number($('#svPrecio').value),
+      periodo: $('#svPeriodo').value,
+      categoria: $('#svCategoria').value.trim() || null
+    };
+    $('#svGuardar').disabled = true;
+    try {
+      let id;
+      if (SV_EDIT) {
+        const { error } = await SB.from('servicio').update(fila).eq('id', SV_EDIT.id);
+        if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+        id = SV_EDIT.id;
+        await SB.from('servicio_item').delete().eq('servicio_id', id);
+      } else {
+        fila.orden = Date.now() / 1000;
+        const { data, error } = await SB.from('servicio').insert(fila).select('id').single();
+        if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
+        id = data.id;
+      }
+      if (SV_ITEMS_TMP.length) {
+        const { error: e2 } = await SB.from('servicio_item').insert(
+          SV_ITEMS_TMP.map((i, n) => ({ servicio_id: id, entregable_id: i.entregable_id,
+                                        cantidad: Number(i.cantidad || 1), orden: (n + 1) * 100 })));
+        if (e2) toast('El plan se guardó, pero no lo que incluye: ' + e2.message, 'warn');
+      }
+      cerrar('ovServ');
+      toast(SV_EDIT ? 'Plan actualizado' : 'Plan creado');
+      await cargarServicios();
+    } finally { $('#svGuardar').disabled = false; }
+  }
+
+  // ── El modal de costos ───────────────────────────────────────
+  const UNIDADES = ['pieza', 'campaña', 'entrega', 'reunión', 'hora'];
+
+  function abrirCostos() { pintarCostos(); abrir('ovCostos'); }
+
+  function pintarCostos() {
+    const vivos = ENTREGABLES.filter(e => e.activo !== false);
+    $('#csLista').innerHTML =
+      '<div class="cs-fila cs-head"><div>Entregable</div><div>Unidad</div>' +
+        '<div>Me cuesta</div><div>Me lleva (hs)</div><div></div></div>' +
+      vivos.map(e =>
+        '<div class="cs-fila" data-ent="' + e.id + '">' +
+          '<div><input type="text" value="' + esc(e.nombre) + '" data-cs="nombre">' +
+            (e.sistema ? '<span class="sis">de fábrica</span>' : '') + '</div>' +
+          '<select data-cs="unidad">' + UNIDADES.map(u =>
+            '<option value="' + u + '"' + (e.unidad === u ? ' selected' : '') + '>' + u + '</option>').join('') + '</select>' +
+          '<input type="number" min="0" step="100" value="' + (e.cuesta ?? '') + '" placeholder="—" data-cs="cuesta">' +
+          '<input type="number" min="0" step="0.5" value="' + (e.horas ?? '') + '" placeholder="—" data-cs="horas">' +
+          '<button type="button" class="mini-btn del" data-csdel="' + e.id + '" title="' +
+            (e.sistema ? 'Esconder (no se borra: hay planes que lo nombran)' : 'Borrar') + '">' + TACHO_SVG + '</button>' +
+        '</div>').join('') +
+      '<div class="res-sub" style="margin-top:10px">El costo puede incluir cosas que no son tiempo (música, ' +
+        'un banco de imágenes, una freelance). Por eso va como número aparte de las horas.</div>';
+  }
+
+  async function guardarCosto(entId, campo, valor) {
+    const e = ENTREGABLES.find(x => x.id === entId);
+    if (!e) return;
+    let v = valor;
+    if (campo === 'cuesta' || campo === 'horas') v = (valor === '' ? null : Number(valor));
+    if (campo === 'nombre') { v = String(valor).trim(); if (!v) { pintarCostos(); return; } }
+    if ((e[campo] ?? null) === (v ?? null)) return;
+    const antes = e[campo];
+    e[campo] = v;
+    const patch = {}; patch[campo] = v;
+    const { error } = await SB.from('entregable').update(patch).eq('id', entId);
+    if (error) { e[campo] = antes; toast('No se pudo guardar: ' + error.message, 'warn'); pintarCostos(); return; }
+    flashGuardado();
+    if (campo === 'cuesta') render();     // el margen de los planes cambia
+  }
+
   function renderPlata() {
     if (!soySocia()) { $('#modPlata').innerHTML = ''; return; }
     if (FALTA_M14) { $('#modPlata').innerHTML = avisoM14(); return; }
@@ -6738,17 +7347,22 @@
   }
 
   // ── Servicio contratado ──────────────────────────────────────
-  function abrirContrato(ct, clienteId) {
+  // `servPre` llega cuando venís desde Servicios: precarga el nombre y el
+  // monto de lista del plan, y deja el contrato atado a ese servicio.
+  function abrirContrato(ct, clienteId, servPre) {
     if (FALTA_M14) { toast('Primero corré migracion-interno-14-plata.sql', 'warn'); return; }
     CT_EDIT = ct;
+    CT_SERVICIO = ct ? (ct.servicio_id || null) : (servPre ? servPre.id : null);
     CT_EJECUTAN = ct ? (CONTRATO_EJ[ct.id] || []).slice() : (ME ? [ME.id] : []);
     $('#ctTitulo').textContent = ct ? 'Editar servicio' : 'Nuevo servicio';
     $('#ctCliente').innerHTML = CLIENTES.filter(c => c.activo !== false)
       .map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
     $('#ctCliente').value = ct ? ct.cliente_id : (clienteId || '');
-    $('#ctNombre').value = ct ? ct.nombre : '';
+    $('#ctNombre').value = ct ? ct.nombre : (servPre ? servPre.nombre : '');
     $('#ctDetalle').value = ct ? (ct.detalle || '') : '';
-    $('#ctMonto').value = ct ? ct.monto : '';
+    // El monto arranca en el de lista pero se puede pisar: por eso el
+    // precio vive en el contrato y no se hereda para siempre del plan.
+    $('#ctMonto').value = ct ? ct.monto : (servPre && servPre.precio != null ? servPre.precio : '');
     $('#ctTipo').value = ct ? ct.tipo : 'mensual';
     $('#ctCuotas').value = ct ? (ct.cuotas_total || '') : '';
     $('#ctCuotaDesde').value = ct ? (ct.cuota_desde || '') : '';
@@ -6759,6 +7373,7 @@
     $('#ctNotas').value = ct ? (ct.notas || '') : '';
     $('#ctArchivar').style.display = ct ? '' : 'none';
     $('#ctArchivar').textContent = (ct && ct.activo === false) ? 'Reactivar' : 'Dar de baja';
+    pintarPlanDelContrato(servPre);
     // Cargar el segundo y el tercer servicio de un cliente es lo que más
     // se repite: el botón solo aparece cuando estás creando.
     $('#ctGuardarOtro').style.display = ct ? 'none' : '';
@@ -6769,6 +7384,19 @@
   }
   function pintarCuotas() {
     $('#ctCuotasWrap').style.display = $('#ctTipo').value === 'cuotas' ? '' : 'none';
+  }
+  // Qué plan del catálogo es este contrato. Puede no ser ninguno: un
+  // trabajo a medida no tiene por qué estar en la lista de precios.
+  function pintarPlanDelContrato(servPre) {
+    const el = $('#ctPlan');
+    if (!el) return;
+    if (FALTA_M34 || !SERVICIOS.length) { el.closest('.campo').style.display = 'none'; return; }
+    el.closest('.campo').style.display = '';
+    el.innerHTML = '<option value="">Sin plan (a medida)</option>' +
+      SERVICIOS.filter(x => !x.archivado)
+        .map(x => '<option value="' + x.id + '">' + esc(x.nombre) +
+              (x.precio != null ? ' · ' + plata(x.precio) : '') + '</option>').join('');
+    el.value = CT_SERVICIO || '';
   }
   function pintarEjecutan() {
     $('#ctEjecutan').innerHTML = PERSONAS.map(p => {
@@ -6814,6 +7442,9 @@
       ajuste_pct: numOrNull('#ctAjustePct'),
       notas: $('#ctNotas').value.trim() || null
     };
+    // A qué plan del catálogo pertenece. Si todavía no corriste la 34 la
+    // columna no existe, y mandarla haría fallar el guardado entero.
+    if (!FALTA_M34) fila.servicio_id = ($('#ctPlan') && $('#ctPlan').value) || null;
 
     $('#ctGuardar').disabled = true;
     try {
@@ -6840,6 +7471,7 @@
 
       toast(CT_EDIT ? 'Servicio actualizado' : 'Servicio creado');
       await refrescarPlata();
+      if (MODULO === 'servicios') render();   // cambió lo que factura el plan
 
       if (seguir && !CT_EDIT) {
         // Queda el mismo cliente y las mismas ejecutoras: lo que cambia
@@ -10360,6 +10992,17 @@
 
   // ── Equipo ───────────────────────────────────────────────────
   $('#modEquipo').addEventListener('click', e => {
+    const tb = e.target.closest('[data-eqtab]');
+    if (tb) { EQ_TAB = tb.dataset.eqtab; render(); return; }
+    const ir = e.target.closest('[data-irtarea]');
+    if (ir) { abrirDrawer(ir.dataset.irtarea); return; }
+    const cp = e.target.closest('[data-carga]');
+    if (cp) {
+      // Se abre una sola por vez: la gracia es mirar a UNA persona, no
+      // tener las cinco desplegadas y volver al mismo ruido de antes.
+      EQ_ABIERTA = (EQ_ABIERTA === cp.dataset.carga) ? null : cp.dataset.carga;
+      render(); return;
+    }
     const b = e.target.closest('[data-pbaja]');
     if (b) { alternarBaja(b.dataset.pbaja); return; }
     if (e.target.closest('#invBtn')) { invitar(); return; }
@@ -10461,6 +11104,90 @@
   });
 
   // ── Eventos de la plata ──────────────────────────────────────
+  $('#navServicios').addEventListener('click', () => {
+    if (!SERV_CARGADO) cargarServicios();
+    cambiarModulo('servicios');
+  });
+  // ── Servicios ────────────────────────────────────────────────
+  $('#modServicios').addEventListener('click', e => {
+    if (e.target.closest('#svNuevo') || e.target.closest('#svNuevo2')) { abrirServicio(null); return; }
+    if (e.target.closest('#svCostos')) { abrirCostos(); return; }
+    const tab = e.target.closest('[data-svtab]');
+    if (tab) { SERV_TAB = tab.dataset.svtab; render(); return; }
+    // El "+ Cliente" está adentro de la fila, así que se atiende ANTES:
+    // si no, clickearlo abriría también el plan.
+    const cli = e.target.closest('[data-svcli]');
+    if (cli) {
+      e.stopPropagation();
+      // Se abre el MISMO modal de Contabilidad, con el plan precargado.
+      // Dos editores de contrato serían dos formas de cargar lo mismo, y
+      // tarde o temprano una de las dos se olvidaría de algún campo.
+      abrirContrato(null, null, SERVICIOS.find(x => x.id === cli.dataset.svcli));
+      return;
+    }
+    const fila = e.target.closest('[data-serv]');
+    if (fila) { abrirServicio(SERVICIOS.find(x => x.id === fila.dataset.serv)); return; }
+  });
+
+  $('#svAddItem').addEventListener('change', e => {
+    const id = e.target.value;
+    if (id && !SV_ITEMS_TMP.some(i => i.entregable_id === id)) SV_ITEMS_TMP.push({ entregable_id: id, cantidad: 1 });
+    pintarItemsServicio();
+  });
+  $('#svItems').addEventListener('click', e => {
+    const d = e.target.closest('[data-svdel]');
+    if (!d) return;
+    SV_ITEMS_TMP = SV_ITEMS_TMP.filter(i => i.entregable_id !== d.dataset.svdel);
+    pintarItemsServicio();
+  });
+  // La cantidad se guarda en memoria mientras editás; recién va a la base
+  // al Guardar. Si repintáramos acá, perderías el foco en cada tecla.
+  $('#svItems').addEventListener('input', e => {
+    const c = e.target.closest('[data-svcant]');
+    if (!c) return;
+    const it = SV_ITEMS_TMP.find(i => i.entregable_id === c.dataset.svcant);
+    if (it) it.cantidad = Math.max(1, Number(c.value || 1));
+  });
+  $('#svGuardar').addEventListener('click', guardarServicio);
+  $('#svNombre').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); guardarServicio(); } });
+  $('#svArchivar').addEventListener('click', async () => {
+    if (!SV_EDIT) return;
+    const cs = contratosDeServicio(SV_EDIT.id);
+    if (cs.length && !confirm('Hay ' + cs.length + ' contrato(s) vigente(s) con este plan.\n\n' +
+        'Archivarlo lo saca de la lista pero NO da de baja los contratos: se siguen cobrando.\n\n¿Seguimos?')) return;
+    const { error } = await SB.from('servicio').update({ archivado: true }).eq('id', SV_EDIT.id);
+    if (error) { toast('No se pudo archivar: ' + error.message, 'warn'); return; }
+    cerrar('ovServ'); toast('Plan archivado'); await cargarServicios();
+  });
+
+  $('#csLista').addEventListener('change', e => {
+    const campo = e.target.dataset && e.target.dataset.cs;
+    const fila = e.target.closest('[data-ent]');
+    if (!campo || !fila) return;
+    guardarCosto(fila.dataset.ent, campo, e.target.value);
+  });
+  $('#csLista').addEventListener('click', async e => {
+    const d = e.target.closest('[data-csdel]');
+    if (!d) return;
+    const ent = ENTREGABLES.find(x => x.id === d.dataset.csdel);
+    if (!ent) return;
+    // Los de fábrica NO se borran: se esconden. Borrarlos rompería los
+    // planes viejos que los nombran.
+    const { error } = await SB.from('entregable').update({ activo: false }).eq('id', ent.id);
+    if (error) { toast('No se pudo sacar: ' + error.message, 'warn'); return; }
+    ent.activo = false; pintarCostos(); render();
+  });
+  $('#csAgregar').addEventListener('click', async () => {
+    const nombre = $('#csNuevo').value.trim();
+    if (!nombre) { $('#csNuevo').focus(); return; }
+    const { error } = await SB.from('entregable')
+      .insert({ nombre: nombre, unidad: 'pieza', orden: Date.now() / 1000 });
+    if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
+    $('#csNuevo').value = '';
+    await cargarServicios(); pintarCostos();
+  });
+  $('#csNuevo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#csAgregar').click(); } });
+
   $('#navPlata').addEventListener('click', () => cambiarModulo('plata'));
 
   $('#modClientes').addEventListener('click', e => {
