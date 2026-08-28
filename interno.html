@@ -941,14 +941,24 @@
   .emoji-pop {
     position: fixed; z-index: 200; background: var(--bg-elev);
     border: 1px solid var(--line); border-radius: var(--radius-lg);
-    box-shadow: 0 12px 32px rgba(27,22,32,.16); padding: 10px 12px 12px;
-    width: 268px; display: none;
+    box-shadow: 0 12px 32px rgba(27,22,32,.16); padding: 10px 4px 10px 12px;
+    width: 328px; display: none;
   }
   .emoji-pop.on { display: block; }
+  .emoji-buscar { padding-right: 8px; margin-bottom: 8px; }
+  .emoji-buscar input {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 10px; font: inherit; font-size: 12.5px; background: var(--bg-elev);
+  }
+  .emoji-buscar input:focus { outline: none; border-color: var(--accent); }
+  /* Alto fijo con scroll: con mil emojis, sin esto el popup mide dos
+     pantallas y no se ve ni dónde empieza. */
+  .emoji-scroll { max-height: 320px; overflow-y: auto; padding-right: 8px; }
+  .emoji-nada { font-size: 12px; color: var(--ink-mute); padding: 10px 2px; line-height: 1.5; }
   .emoji-grupo { font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
                  color: var(--ink-mute); font-weight: 600; margin: 8px 0 4px; }
   .emoji-grupo:first-child { margin-top: 0; }
-  .emoji-fila { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; }
+  .emoji-fila { display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; }
   .emoji-fila button {
     border: none; background: none; cursor: pointer; font-size: 17px;
     line-height: 1; padding: 4px 0; border-radius: 6px;
@@ -2221,7 +2231,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 12:39</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 22:25</div>
     </div>
   </aside>
 
@@ -5553,27 +5563,97 @@
   }
 
   // ═══════════════ EMOJIS ═══════════════
-  const EMOJIS = [
-    ['Trabajo',    ['✅','☑️','📌','📎','🗂️','📝','📅','⏰','⚠️','🚨','🔥','⭐','🎯','🔁','⏳','🚀']],
-    ['Producción', ['🎬','🎥','📸','📷','🎞️','🎙️','🎧','💡','🎨','✂️','🖥️','📱','🔊','🪄','🧩','📦']],
-    ['Pauta y plata', ['💰','💵','📈','📉','📊','🧾','💳','🏷️','🤝','🧮','🪙','🔍']],
-    ['Gente y ánimo', ['🙂','😅','🎉','👏','🙌','👀','🧠','💬','❤️','🌟','🫶','😬']],
-    ['Otros',      ['🌱','🌍','🐴','☀️','🌙','📍','🔗','🔒','🗑️','❓','☕','🍀']]
+  // ═══════════════════════════════════════════════════════════════
+  //  EMOJIS
+  //  Cada grupo es 'emoji palabras clave|emoji palabras clave|…'.
+  //  Las palabras están en castellano y son para BUSCAR, no se ven:
+  //  escribís "auto" y aparece 🚗. Sin eso, mil emojis son un pajar.
+  //
+  //  Los primeros dos grupos no salen de ningún estándar: son los que
+  //  ya venías usando (Trabajo, Producción, Plata) más los que más se
+  //  tocan. Van arriba para que lo de siempre quede a un click, y el
+  //  resto está para cuando hace falta un auto o una casa.
+  // ═══════════════════════════════════════════════════════════════
+  const EMOJIS_BASE = [
+    ['Trabajo', '✅ listo hecho|📌 fijar importante|📎 adjunto|🗂️ carpeta archivos|📝 nota escribir|📅 calendario fecha|⏰ alarma recordatorio|⚠️ atencion alerta|🚨 urgente|🔥 fuego urgente|⭐ estrella destacado|🎯 objetivo meta|🔁 recurrente repetir|⏳ esperando|🚀 lanzamiento'],
+    ['Producción', '🎬 rodaje video claqueta|🎥 camara video|📸 foto camara|🎞️ pelicula|🎙️ micro podcast|🎧 audio|💡 idea|🎨 diseno arte|✂️ edicion cortar|🖥️ compu|📱 celular|🪄 magia|🧩 pieza|📦 entrega paquete'],
+    ['Pauta y plata', '💰 plata dinero|💵 billete|📈 sube crece|📉 baja|📊 metricas grafico|🧾 factura|💳 pago tarjeta|🏷️ precio|🤝 acuerdo trato|🪙 moneda|🔍 buscar analizar']
   ];
+
+  const EMOJIS_MAS = [
+    ['Caras', '😀 sonrisa feliz|😃 sonrisa alegre|😄 risa feliz|😁 sonrisa dientes|😆 risa carcajada|😅 risa nervios sudor|🤣 carcajada piso|😂 llorar risa|🙂 sonrisa simple|🙃 al reves|😉 guino|😊 timida contenta|😇 angel santo|🥰 enamorada amor|😍 corazones ojos|🤩 estrellas wow|😘 beso|😗 beso|😚 beso|😋 rica lengua|😛 lengua|🤪 loca|😜 lengua guino|🤨 ceja duda|🧐 monoculo mirar|🤓 nerd lentes|😎 lentes sol copado|🥸 disfraz|🤠 vaquero|🥳 fiesta cumple|😏 picara|😒 fastidio|😞 triste|😔 triste pensativa|😟 preocupada|🙁 triste|😣 esfuerzo|😖 angustia|😫 cansada|😩 cansada|🥺 suplica ojitos|😢 llorar|😭 llorar mucho|😤 bronca vapor|😠 enojada|😡 furiosa roja|🤬 puteada|🤯 explota cabeza|😳 sorprendida colorada|🥵 calor|🥶 frio|😱 grito miedo|😨 miedo|😰 nervios|😥 alivio triste|😓 sudor|🤗 abrazo|🤔 pensando duda|🤭 ups tapa boca|🤫 silencio shh|🤥 mentira|😶 sin palabras|😐 neutral|😑 sin expresion|😬 incomoda|🙄 ojos arriba|😯 sorpresa|😦 sorpresa|😧 angustia|😮 boca abierta|😲 asombro|🥱 bostezo aburrida|😴 dormida|🤤 baba|😪 sueno|😵 mareada|🤐 boca cerrada|🥴 mareada|🤢 asco|🤮 vomito|🤧 estornudo|😷 barbijo|🤒 fiebre enferma|🤕 golpe herida|🤑 plata dolares|🤠 vaquero|😈 diablo travieso|👿 diablo enojado|👻 fantasma|💀 calavera|☠️ peligro muerte|👽 alien|🤖 robot|🎃 calabaza halloween|💩 caca|🤡 payaso'],
+    ['Gestos y personas', '👋 hola saludo chau|🤚 mano|✋ mano alto|🖐️ mano|👌 ok perfecto|🤌 italiana dedos|🤏 poquito|✌️ paz victoria|🤞 dedos cruzados suerte|🤟 te quiero|🤘 rock cuernos|🤙 llamame|👈 izquierda|👉 derecha|👆 arriba|👇 abajo|☝️ arriba uno|👍 pulgar arriba bien|👎 pulgar abajo mal|✊ puno|👊 puno golpe|🤛 puno|🤜 puno|👏 aplausos|🙌 manos arriba festejo|👐 manos abiertas|🤲 manos juntas|🤝 apreton manos acuerdo trato|🙏 gracias rezar porfa|✍️ escribir|💅 unas|🤳 selfie|💪 fuerza musculo|🧠 cerebro idea|👀 ojos mirar|👁️ ojo|👄 boca|👶 bebe|🧒 nene|👧 nena|🧑 persona|👱 rubia|👨 hombre|🧔 barba|👩 mujer|🧓 abuela abuelo|👴 abuelo|👵 abuela|🙍 preocupada|🙎 puchero|🙅 no negacion|🙆 si ok|💁 informacion mostrar|🙋 mano levantada pregunta|🧏 sorda|🙇 reverencia perdon|🤦 facepalm no puedo|🤷 no se hombros|👮 policia|🕵️ detective investigar|💂 guardia|👷 obra casco|🤴 principe|👸 princesa|👰 novia casamiento|🤵 novio traje|🎅 papa noel navidad|🦸 heroe|🦹 villano|🧙 mago|🧚 hada|🧛 vampiro|🧜 sirena|🧝 elfo|🧞 genio|🧟 zombie|💆 masaje relax|💇 peluqueria corte pelo|🚶 caminar|🧍 parada|🧎 arrodillada|🏃 correr apurada|💃 bailar|🕺 bailar|👯 gemelas fiesta|🧖 spa sauna|🧘 yoga meditar calma|🛀 bano relax|🛌 cama dormir|👭 amigas|👫 pareja|👬 amigos|💏 beso pareja|💑 pareja amor|👪 familia|🗣️ hablar|👤 usuario perfil|👥 usuarios equipo|👣 pasos huellas'],
+    ['Animales y naturaleza', '🐶 perro|🐱 gato|🐭 raton|🐹 hamster|🐰 conejo|🦊 zorro|🐻 oso|🐼 panda|🐨 koala|🐯 tigre|🦁 leon|🐮 vaca|🐷 cerdo chancho|🐸 rana|🐵 mono|🙈 mono ojos|🙉 mono oidos|🙊 mono boca|🐒 mono|🐔 gallina|🐧 pinguino|🐦 pajaro|🐤 pollito|🦆 pato|🦅 aguila|🦉 buho|🦇 murcielago|🐺 lobo|🐗 jabali|🐴 caballo|🦄 unicornio|🐝 abeja|🐛 gusano|🦋 mariposa|🐌 caracol|🐞 vaquita mariquita|🐜 hormiga|🦗 grillo|🕷️ arana|🦂 escorpion|🐢 tortuga|🐍 serpiente|🦎 lagarto|🦖 dinosaurio|🐙 pulpo|🦑 calamar|🦐 camaron|🦀 cangrejo|🐡 pez globo|🐠 pez tropical|🐟 pez|🐬 delfin|🐳 ballena|🦈 tiburon|🐊 cocodrilo|🐅 tigre|🐆 leopardo|🦓 cebra|🦍 gorila|🐘 elefante|🦏 rinoceronte|🐪 camello|🦙 llama|🦒 jirafa|🐃 bufalo|🐄 vaca|🐎 caballo carrera|🐖 cerdo|🐏 carnero|🐑 oveja|🐐 cabra|🦌 ciervo|🐕 perro|🐩 caniche|🦮 perro guia|🐈 gato|🐓 gallo|🦃 pavo|🦚 pavo real|🦜 loro|🦢 cisne|🐇 conejo|🦝 mapache|🦡 tejon|🦔 erizo|🐁 raton|🐀 rata|🐿️ ardilla|🦥 perezoso|🦦 nutria|🐾 huellas patitas|🌵 cactus|🎄 arbol navidad|🌲 pino|🌳 arbol|🌴 palmera|🌱 planta brote crecer|🌿 hierba planta|☘️ trebol|🍀 trebol suerte|🍃 hojas|🍂 otono hojas|🍁 hoja|🌾 trigo espiga|🌷 tulipan flor|🌹 rosa flor|🥀 flor marchita|🌺 flor|🌸 flor cerezo|🌼 margarita flor|🌻 girasol|🌞 sol cara|🌝 luna cara|🌚 luna oscura|🌙 luna noche|⭐ estrella|🌟 estrella brillo|✨ brillo magia|⚡ rayo energia rapido|🔥 fuego llama|💥 explosion boom|☄️ cometa|🌈 arcoiris|☀️ sol|🌤️ sol nubes|⛅ nublado|☁️ nube|🌧️ lluvia|⛈️ tormenta|🌩️ rayo tormenta|❄️ nieve frio|☃️ muneco nieve|💨 viento|🌪️ tornado|🌊 ola mar agua|💧 gota agua|🫧 burbujas'],
+    ['Comida y bebida', '🍏 manzana verde|🍎 manzana|🍐 pera|🍊 naranja|🍋 limon|🍌 banana|🍉 sandia|🍇 uvas|🍓 frutilla|🫐 arandanos|🍈 melon|🍒 cerezas|🍑 durazno|🥭 mango|🍍 ananá|🥥 coco|🥝 kiwi|🍅 tomate|🍆 berenjena|🥑 palta|🥦 brocoli|🥬 verdura|🥒 pepino|🌶️ aji picante|🌽 choclo|🥕 zanahoria|🧄 ajo|🧅 cebolla|🥔 papa|🍠 batata|🥐 medialuna croissant|🥯 rosca|🍞 pan|🥖 baguette|🥨 pretzel|🧀 queso|🥚 huevo|🍳 huevo frito desayuno|🧈 manteca|🥞 panqueques|🧇 waffle|🥓 panceta|🥩 carne|🍗 pollo|🍖 carne hueso|🌭 pancho|🍔 hamburguesa|🍟 papas fritas|🍕 pizza|🥪 sandwich|🥙 shawarma|🧆 falafel|🌮 taco|🌯 burrito|🥗 ensalada|🥘 guiso|🍲 sopa|🍜 fideos ramen|🍝 pasta|🍛 curry|🍣 sushi|🍱 vianda|🥟 empanada|🍤 langostino|🍚 arroz|🍥 pescado|🥮 torta luna|🍢 brochette|🍡 dulce|🍧 granizado|🍨 helado|🍦 helado|🥧 tarta|🧁 cupcake|🍰 torta porcion|🎂 torta cumple|🍮 flan|🍭 chupetin|🍬 caramelo|🍫 chocolate|🍿 pochoclo|🍩 dona|🍪 galletita|🌰 castana|🥜 mani|🍯 miel|🥛 leche|🍼 mamadera|☕ cafe|🫖 tetera|🍵 te mate|🧉 mate|🥤 gaseosa vaso|🧃 jugo|🧋 bubble tea|🍶 sake|🍺 cerveza|🍻 brindis cerveza|🥂 brindis copas festejo|🍷 vino|🥃 whisky|🍸 trago|🍹 trago tropical|🧊 hielo|🥄 cuchara|🍴 cubiertos comer|🍽️ plato comida|🥢 palitos'],
+    ['Actividades', '⚽ futbol pelota|🏀 basquet|🏈 futbol americano|⚾ beisbol|🎾 tenis|🏐 voley|🏉 rugby|🥏 frisbee|🎱 pool billar|🪀 yoyo|🏓 ping pong|🏸 badminton|🏒 hockey|🥅 arco|⛳ golf|🏹 arco flecha objetivo|🎣 pesca|🥊 boxeo|🥋 karate|🎽 running|🛹 skate|🛼 patines|🛷 trineo|⛸️ patin hielo|🥌 curling|🎿 esqui|⛷️ esquiar|🏂 snowboard|🏋️ pesas gimnasio|🤼 lucha|🤸 gimnasia|⛹️ basquet jugar|🤺 esgrima|🤾 handball|🏌️ golf jugar|🏇 hipismo|🧘 yoga meditar|🏄 surf|🏊 natacion nadar|🤽 waterpolo|🚣 remo|🧗 escalar|🚵 bici montana|🚴 bici ciclismo|🏆 trofeo ganar premio|🥇 oro primero|🥈 plata segundo|🥉 bronce tercero|🏅 medalla|🎖️ medalla honor|🏵️ roseta|🎗️ cinta|🎫 entrada ticket|🎟️ entrada|🎪 circo carpa|🤹 malabares|🎭 teatro mascaras|🩰 ballet|🎨 arte pintura diseno|🎬 cine claqueta rodaje video|🎤 microfono cantar|🎧 auriculares audio|🎼 partitura musica|🎹 piano teclado|🥁 bateria tambor|🎷 saxo|🎺 trompeta|🎸 guitarra|🪕 banjo|🎻 violin|🎲 dado juego|♟️ ajedrez estrategia|🎯 dardos objetivo meta|🎳 bowling|🎮 videojuego|🕹️ joystick|🎰 tragamonedas|🧩 rompecabezas puzzle|🧸 peluche|🪄 varita magia|🎁 regalo|🎈 globo festejo|🎉 fiesta festejo|🎊 confeti|🎀 mono lazo|🎏 banderines|🎐 campana|🎑 luna|🧧 sobre rojo|🪅 pinata'],
+    ['Lugares y viajes', '🚗 auto coche|🚕 taxi|🚙 camioneta suv|🚌 colectivo bondi|🚎 trole|🏎️ auto carrera|🚓 patrullero policia|🚑 ambulancia|🚒 bomberos|🚐 combi van|🛻 camioneta pickup|🚚 camion|🚛 camion grande|🚜 tractor|🏍️ moto|🛵 scooter|🚲 bici|🛴 monopatin|🛺 tuk tuk|🚨 sirena urgente|🚔 policia|🚍 colectivo|🚘 auto|🚖 taxi|🚡 teleferico|🚠 telecabina|🚟 tren suspendido|🚃 vagon|🚋 tranvia|🚞 tren montana|🚝 monorriel|🚄 tren bala|🚅 tren rapido|🚈 tren liviano|🚂 locomotora tren|🚆 tren|🚇 subte metro|🚊 tranvia|🚉 estacion|✈️ avion viaje vuelo|🛫 despegue|🛬 aterrizaje|🛩️ avioneta|💺 asiento|🚁 helicoptero|🚀 cohete lanzamiento|🛸 ovni|🛶 canoa|⛵ velero|🚤 lancha|🛥️ yate|🛳️ crucero|⛴️ ferry|🚢 barco|⚓ ancla|⛽ nafta estacion|🚧 obra construccion|🚦 semaforo|🚥 semaforo|🗺️ mapa|🗿 estatua|🗽 estatua libertad|🗼 torre tokio|🏰 castillo|🏯 castillo japones|🏟️ estadio|🎡 vuelta al mundo|🎢 montana rusa|🎠 calesita|⛲ fuente|⛱️ sombrilla playa|🏖️ playa|🏝️ isla|🏜️ desierto|🌋 volcan|⛰️ montana|🏔️ montana nieve|🗻 fuji|🏕️ camping carpa|⛺ carpa|🏠 casa hogar|🏡 casa jardin|🏘️ casas barrio|🏚️ casa vieja|🏗️ construccion obra|🏭 fabrica|🏢 oficina edificio empresa|🏬 tienda grande|🏣 correo|🏤 correo|🏥 hospital salud|🏦 banco|🏨 hotel|🏪 kiosco tienda|🏫 escuela colegio|🏩 hotel amor|💒 iglesia casamiento|🏛️ museo institucion|⛪ iglesia|🕌 mezquita|🕍 sinagoga|🛕 templo|🕋 kaaba|⛩️ torii|🛤️ vias|🛣️ ruta autopista|🗾 mapa japon|🎑 luna|🏞️ parque naturaleza|🌅 amanecer|🌄 amanecer montana|🌠 estrella fugaz|🎇 fuegos artificiales|🎆 fuegos artificiales|🌇 atardecer ciudad|🌆 ciudad tarde|🏙️ ciudad|🌃 noche ciudad|🌌 via lactea|🌉 puente noche|🌁 niebla'],
+    ['Objetos', '⌚ reloj pulsera|📱 celular telefono movil|📲 celular llamada|💻 notebook computadora laptop|⌨️ teclado|🖥️ monitor pantalla computadora|🖨️ impresora|🖱️ mouse|🖲️ trackball|💽 disco|💾 disquete guardar|💿 cd|📀 dvd|🧮 abaco calculo|🎥 camara video filmar|🎞️ pelicula rollo|📽️ proyector|🎬 claqueta rodaje|📸 camara foto|📷 camara foto|📹 filmadora|📼 vhs cassette|🔍 lupa buscar|🔎 lupa buscar|🕯️ vela|💡 idea lampara luz|🔦 linterna|🏮 farol|🪔 lampara|📔 cuaderno|📕 libro|📖 libro abierto leer|📗 libro|📘 libro|📙 libro|📚 libros biblioteca wiki|📓 cuaderno|📒 libreta|📃 papel|📜 pergamino|📄 documento hoja|📰 diario noticias prensa|🗞️ diario|📑 marcadores|🔖 marcador|🏷️ etiqueta precio tag|💰 plata bolsa dinero|🪙 moneda|💴 yen|💵 dolar plata billete|💶 euro|💷 libra|💸 plata volando gasto|💳 tarjeta credito pago|🧾 factura recibo comprobante|💹 grafico plata|✉️ sobre mail correo|📧 mail email|📨 mail entrante|📩 mail|📤 enviar|📥 recibir bandeja|📦 paquete caja envio|📫 buzon|📪 buzon|📬 buzon|📭 buzon|📮 buzon correo|🗳️ urna voto|✏️ lapiz escribir|✒️ pluma|🖋️ lapicera|🖊️ birome lapicera|🖌️ pincel|🖍️ crayon|📝 nota escribir anotar|💼 maletin trabajo portafolio|📁 carpeta|📂 carpeta abierta|🗂️ archivos separadores|📅 calendario fecha|📆 calendario|🗒️ bloc notas|🗓️ calendario|📇 fichero|📈 grafico subir crecer|📉 grafico bajar caer|📊 grafico barras metricas|📋 portapapeles checklist|📌 chinche fijar|📍 pin ubicacion lugar|📎 clip adjunto|🖇️ clips|📏 regla|📐 escuadra|✂️ tijera cortar editar|🗃️ cajon archivo|🗄️ archivero|🗑️ tacho basura borrar|🔒 candado cerrado privado|🔓 candado abierto|🔏 candado lapiz|🔐 candado llave|🔑 llave acceso|🗝️ llave vieja|🔨 martillo|🪓 hacha|⛏️ pico|⚒️ herramientas|🛠️ herramientas configurar|🗡️ daga|⚔️ espadas|🔧 llave herramienta arreglar|🔩 tuerca tornillo|⚙️ engranaje configuracion ajustes|🗜️ prensa|⚖️ balanza justicia legal|🦯 baston|🔗 link enlace cadena|⛓️ cadena|🧰 caja herramientas|🧲 iman|🧪 tubo ensayo prueba|🧫 placa petri|🧬 adn|🔬 microscopio|🔭 telescopio|📡 antena satelite|💉 jeringa|🩸 sangre|💊 pastilla|🩹 curita|🩺 estetoscopio salud|🚪 puerta|🪑 silla|🛏️ cama|🛋️ sillon|🪞 espejo|🪟 ventana|🚽 inodoro|🚿 ducha|🛁 banera|🧴 crema|🧷 alfiler|🧹 escoba limpiar|🧺 canasto|🧻 papel|🧼 jabon|🧽 esponja|🪣 balde|🧯 matafuego|🛒 carrito compras|🚬 cigarrillo|⚰️ ataud|🪦 lapida|🗿 estatua'],
+    ['Símbolos', '❤️ corazon amor rojo|🧡 corazon naranja|💛 corazon amarillo|💚 corazon verde|💙 corazon azul|💜 corazon violeta|🖤 corazon negro|🤍 corazon blanco|🤎 corazon marron|💔 corazon roto|❣️ corazon|💕 corazones|💞 corazones|💓 corazon latido|💗 corazon crece|💖 corazon brillo|💘 corazon flecha|💝 corazon regalo|💟 corazon|☮️ paz|✝️ cruz|☪️ islam|🕉️ om|☸️ dharma|✡️ david|🔯 estrella|🕎 menora|☯️ yin yang|☦️ cruz|⛎ ofiuco|♈ aries|♉ tauro|♊ geminis|♋ cancer|♌ leo|♍ virgo|♎ libra|♏ escorpio|♐ sagitario|♑ capricornio|♒ acuario|♓ piscis|🆔 id|⚛️ atomo|🉑 aceptar|☢️ radiactivo|☣️ biologico|📴 apagado|📳 vibrar|🈶 no gratis|🈚 gratis|🈸 aplicar|🈺 abierto|🈷️ mes|✴️ estrella|🆚 vs contra|💮 flor|🉐 ganga|㊙️ secreto|㊗️ felicitaciones|🈴 aprobado|🈵 lleno|🔴 circulo rojo|🟠 circulo naranja|🟡 circulo amarillo|🟢 circulo verde|🔵 circulo azul|🟣 circulo violeta|⚫ circulo negro|⚪ circulo blanco|🟤 circulo marron|🔺 triangulo rojo|🔻 triangulo|🔸 rombo naranja|🔹 rombo azul|🔶 rombo grande|🔷 rombo grande azul|🔳 cuadrado|🔲 cuadrado|▪️ cuadrado|▫️ cuadrado|◾ cuadrado|◽ cuadrado|🟥 cuadrado rojo|🟧 cuadrado naranja|🟨 cuadrado amarillo|🟩 cuadrado verde|🟦 cuadrado azul|🟪 cuadrado violeta|⬛ cuadrado negro|⬜ cuadrado blanco|🟫 cuadrado marron|🔈 volumen|🔉 volumen|🔊 sonido audio altavoz|🔇 mudo silencio|📢 megafono anuncio|📣 megafono|📯 corneta|🔔 campana aviso notificacion|🔕 campana silencio|🎵 nota musical|🎶 musica|💯 cien perfecto|✅ tilde listo hecho ok|☑️ tilde caja|✔️ tilde|❌ cruz error no|❎ cruz|➕ mas sumar|➖ menos restar|➗ dividir|✖️ por multiplicar|♾️ infinito|‼️ atencion|⁉️ duda|❓ pregunta duda|❔ pregunta|❗ atencion importante|❕ atencion|⭕ circulo|🚫 prohibido|⛔ prohibido|📛 nombre|💠 rombo|♻️ reciclar|⚜️ flor de lis|🔱 tridente|📶 senal|🈁 aca|🔤 abc letras|🔡 letras|🔠 letras|🔣 simbolos|🅰️ a|🅱️ b|🆎 ab|🅾️ o|🆑 cl|🆘 sos ayuda|🆖 ng|🆗 ok|🆙 up nuevo|🆒 cool|🆕 nuevo|🆓 gratis|0️⃣ cero|1️⃣ uno|2️⃣ dos|3️⃣ tres|4️⃣ cuatro|5️⃣ cinco|6️⃣ seis|7️⃣ siete|8️⃣ ocho|9️⃣ nueve|🔟 diez|⏱️ cronometro tiempo|⏲️ timer|⏰ despertador alarma recordatorio|⌛ reloj arena esperar|⏳ reloj arena tiempo|⏩ adelantar|⏪ atras|⏫ arriba|⏬ abajo|▶️ play|⏸️ pausa|⏹️ stop parar|⏺️ grabar|⏭️ siguiente|⏮️ anterior|🔀 aleatorio shuffle|🔁 repetir loop recurrente|🔂 repetir uno|🔄 actualizar refrescar sincronizar|🔃 actualizar|↩️ volver|↪️ ir|⤴️ subir|⤵️ bajar|⬆️ arriba|⬇️ abajo|⬅️ izquierda|➡️ derecha|↗️ subir diagonal|↘️ bajar|↙️ izquierda|↖️ arriba|↕️ vertical|↔️ horizontal|🔝 top arriba|🔙 volver atras|🔛 on|🔜 pronto proximo|🔚 fin|✳️ asterisco|✴️ estrella|❇️ destello|©️ copyright|®️ registrado|™️ marca|🔺 alerta|⚠️ atencion cuidado alerta|🚸 cuidado|⚕️ salud medicina|♿ accesible|🚻 bano|🚹 bano hombres|🚺 bano mujeres|🅿️ estacionamiento|🛗 ascensor|🚼 bebe|⚧️ trans|🏳️‍🌈 orgullo arcoiris|🏁 meta bandera fin|🚩 bandera marcar|🏴 bandera negra|🏳️ bandera blanca'],
+  ];
+  const EMOJIS = EMOJIS_BASE.concat(EMOJIS_MAS);
   let EMOJI_DESTINO = null;
 
-  function pintarEmojis() {
+  // El emoji y sus palabras, ya separados. Se arma una sola vez.
+  const EMO_INDEX = (() => {
+    const out = [];
+    EMOJIS.forEach(g => {
+      g[1].split('|').forEach(par => {
+        const i = par.indexOf(' ');
+        const e = i === -1 ? par : par.slice(0, i);
+        const k = i === -1 ? '' : par.slice(i + 1);
+        if (e) out.push({ grupo: g[0], e: e, k: k });
+      });
+    });
+    return out;
+  })();
+
+  // Los últimos que usaste, arriba de todo. Con mil emojis, sin esto
+  // volvés a scrollear hasta el mismo lugar cada vez.
+  const EMO_LS = 'comakers.emojis.v1';
+  let EMO_RECIENTES = (() => {
+    try { return JSON.parse(localStorage.getItem(EMO_LS) || '[]') || []; } catch (e) { return []; }
+  })();
+  function anotarEmoji(e) {
+    EMO_RECIENTES = [e].concat(EMO_RECIENTES.filter(x => x !== e)).slice(0, 16);
+    try { localStorage.setItem(EMO_LS, JSON.stringify(EMO_RECIENTES)); } catch (_) {}
+  }
+
+  function botonesEmoji(lista) {
+    return '<div class="emoji-fila">' + lista.map(x =>
+      '<button type="button" data-emoji="' + esc(x.e) + '" title="' + esc(x.k) + '">' + x.e + '</button>'
+    ).join('') + '</div>';
+  }
+
+  function pintarEmojis(filtro) {
     const pop = $('#emojiPop');
-    if (pop.dataset.listo) return;
-    pop.innerHTML = EMOJIS.map(g =>
-      '<div class="emoji-grupo">' + esc(g[0]) + '</div>' +
-      '<div class="emoji-fila">' + g[1].map(e => '<button type="button" data-emoji="' + e + '">' + e + '</button>').join('') + '</div>'
-    ).join('');
-    pop.dataset.listo = '1';
+    const q = normNombre(filtro || '');
+    let cuerpo;
+
+    if (q) {
+      // Busca por palabra clave Y por el principio de la palabra, para que
+      // "auto" encuentre 🚗 y "cal" encuentre 📅 sin escribir todo.
+      const hits = EMO_INDEX.filter(x => x.k.split(' ').some(w => w.indexOf(q) === 0));
+      cuerpo = hits.length
+        ? '<div class="emoji-grupo">' + hits.length + ' resultado' + (hits.length === 1 ? '' : 's') + '</div>' + botonesEmoji(hits)
+        : '<div class="emoji-nada">Nada con “' + esc(filtro) + '”. Probá con otra palabra: auto, casa, plata, fuego…</div>';
+    } else {
+      const rec = EMO_RECIENTES.map(e => EMO_INDEX.find(x => x.e === e) || { e: e, k: '' });
+      cuerpo =
+        (rec.length ? '<div class="emoji-grupo">Los últimos</div>' + botonesEmoji(rec) : '') +
+        EMOJIS.map(g => {
+          const ls = EMO_INDEX.filter(x => x.grupo === g[0]);
+          return '<div class="emoji-grupo">' + esc(g[0]) + '</div>' + botonesEmoji(ls);
+        }).join('');
+    }
+
+    pop.innerHTML =
+      '<div class="emoji-buscar"><input type="text" id="emoBuscar" placeholder="Buscar: auto, casa, plata…" ' +
+        'value="' + esc(filtro || '') + '" autocomplete="off"></div>' +
+      '<div class="emoji-scroll">' + cuerpo + '</div>';
   }
 
   function abrirEmojis(boton, destino) {
-    pintarEmojis();
+    pintarEmojis('');
     EMOJI_DESTINO = destino;
     const pop = $('#emojiPop');
     const r = boton.getBoundingClientRect();
@@ -5584,6 +5664,10 @@
     let left = Math.min(r.left, window.innerWidth - ancho - 8);
     pop.style.top = top + 'px';
     pop.style.left = Math.max(8, left) + 'px';
+    // Foco en el buscador: con mil emojis, escribir es más rápido que
+    // scrollear. `preventScroll` para que no salte la página de atrás.
+    const inp = $('#emoBuscar');
+    if (inp) setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (_) { inp.focus(); } }, 30);
   }
 
   function cerrarEmojis() {
@@ -10580,9 +10664,28 @@
   $('#fDesc').addEventListener('keydown', atajoLink);
   $('#fTitulo').addEventListener('keydown', atajoLink);
 
+  $('#emojiPop').addEventListener('input', e => {
+    if (e.target.id !== 'emoBuscar') return;
+    const v = e.target.value;
+    pintarEmojis(v);
+    const inp = $('#emoBuscar');
+    if (inp) { inp.focus(); try { inp.setSelectionRange(v.length, v.length); } catch (_) {} }
+  });
+  $('#emojiPop').addEventListener('keydown', e => {
+    if (e.target.id !== 'emoBuscar') return;
+    if (e.key === 'Escape') { e.stopPropagation(); cerrarEmojis(); return; }
+    // Enter pone el primero de la búsqueda: es lo que uno espera.
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const b = $('#emojiPop [data-emoji]');
+      if (b) b.click();
+    }
+  });
+
   $('#emojiPop').addEventListener('click', e => {
     const b = e.target.closest('[data-emoji]');
     if (!b || !EMOJI_DESTINO) return;
+    anotarEmoji(b.dataset.emoji);
     // El ícono del proyecto no es un campo de texto: es un valor suelto.
     // Se atiende antes que todo lo demás.
     if (EMOJI_DESTINO.__proyIcono) {
