@@ -445,6 +445,13 @@
   .nav-item.proy .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nav-item.nuevo-proy { color: var(--ink-mute); font-size: 12px; }
   .nav-item.proy.fin { opacity: 0.5; }
+  /* Arrastrar para ordenar. El que estás moviendo se apaga; la línea
+     marca dónde va a caer. */
+  .nav-item.proy.arrastrando { opacity: 0.35; }
+  .nav-linea {
+    height: 2px; background: var(--accent); border-radius: 2px;
+    margin: 1px 8px; pointer-events: none;
+  }
   .nav-item.proy.fin .nom { text-decoration: line-through; }
   .nav-sub-label {
     font-size: 9px; color: var(--ink-mute); letter-spacing: 0.1em;
@@ -789,6 +796,70 @@
     .carga-head { grid-template-columns: 26px 1fr 16px; row-gap: 8px; }
     .carga-nums, .carga-riel { grid-column: 1 / -1; }
   }
+
+  /* La barra de arriba de "Quién hace qué": el texto a la izquierda y
+     el mes a la derecha, sin que el texto empuje al selector. */
+  .eq-barra {
+    display: flex; align-items: flex-start; gap: 20px;
+    margin-bottom: 16px;
+  }
+  .eq-barra p { margin: 0; max-width: 62ch; font-size: 13px; color: var(--ink-mute); line-height: 1.55; }
+  .eq-barra .mes-nav { margin-left: auto; flex-shrink: 0; }
+  .carga-t.hecha span:first-child { color: var(--ink-mute); text-decoration: line-through; }
+  /* El tilde va en gris, no en verde: el lima de la paleta sobre blanco
+     casi no se ve, y un verde nuevo sería un color de más. */
+  .tilde-mini { width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; color: var(--ink-mute); }
+  @media (max-width: 760px) {
+    .eq-barra { flex-direction: column; gap: 12px; }
+    .eq-barra .mes-nav { margin-left: 0; }
+  }
+
+  /* ── A PAGAR ──────────────────────────────── */
+  /* El contador de la solapa: cuántos trabajos hay sin saldar. */
+  .tab-n {
+    display: inline-block; margin-left: 7px; min-width: 17px; padding: 0 5px;
+    border-radius: 9px; background: var(--accent); color: #fff;
+    font-size: 10.5px; font-weight: 700; line-height: 17px; text-align: center;
+  }
+  .pagar-lista { display: flex; flex-direction: column; gap: 10px; }
+  .pagar-p { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+  .pagar-head {
+    display: grid; grid-template-columns: 26px minmax(0,1fr) auto;
+    gap: 14px; align-items: center; padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .pagar-tot { font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  /* Anchos fijos: cada fila es su propia grilla, así que con `auto` las
+     columnas quedarían desparejas entre una fila y la siguiente. */
+  .pagar-t {
+    display: grid; grid-template-columns: minmax(0,1fr) 150px 120px 84px;
+    gap: 12px; align-items: center; padding: 9px 16px; font-size: 13px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .pagar-t:last-child { border-bottom: none; }
+  .pagar-q { overflow-wrap: anywhere; cursor: pointer; }
+  .pagar-q:hover { color: var(--accent); }
+  .pagar-cli { font-size: 12px; color: var(--ink-mute); overflow-wrap: anywhere; }
+  .cols-pagado { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.6fr) 70px 110px; gap: 12px; }
+
+  /* El bloque dentro de la tarea */
+  .pago-ap {
+    display: grid; grid-template-columns: 26px minmax(0,1fr) 110px auto auto;
+    gap: 10px; align-items: center;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 10px 12px;
+  }
+  .pago-ap.ok { grid-template-columns: 26px minmax(0,1fr) auto; }
+  .pago-ap-n { display: flex; flex-direction: column; min-width: 0; }
+  .pago-ap-m { font-weight: 700; font-variant-numeric: tabular-nums; }
+  @media (max-width: 900px) {
+    .pagar-t { grid-template-columns: minmax(0,1fr) 84px; row-gap: 8px; }
+    .pagar-cli { grid-column: 1 / -1; }
+    .cols-pagado { grid-template-columns: minmax(0,1fr) 100px; }
+    .cols-pagado div:nth-child(2) { grid-column: 1 / -1; order: 3; }
+    .pago-ap { grid-template-columns: 26px minmax(0,1fr) auto; row-gap: 8px; }
+  }
+
   .persona {
     display: grid; grid-template-columns: 34px minmax(0,1.6fr) minmax(0,1.4fr) 118px 108px auto;
     gap: 14px; align-items: center; padding: 13px 18px;
@@ -2231,7 +2302,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v28/08 22:25</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/08 00:09</div>
     </div>
   </aside>
 
@@ -3117,6 +3188,14 @@
         de su responsable: no aparece en el “Mías” de las colaboradoras.</div>
     </div>
 
+    <!-- Solo lo ven las socias. No es un `display:none` decorativo: la
+         tabla `trabajo_extra` tiene RLS de socias, así que para el resto
+         del equipo esto queda vacío aunque abran el inspector. -->
+    <div class="d-sec" id="dSecPago" style="display:none">
+      <div class="d-sec-head"><div class="sec-title">Se paga aparte</div></div>
+      <div id="dPagoAparte"></div>
+    </div>
+
     <div class="d-sec">
       <div class="d-sec-head"><div class="sec-title">Depende de</div></div>
       <div id="dDeps"></div>
@@ -3228,6 +3307,7 @@
 
   let FALTA_M32 = false;  // true si todavía no corrió migracion-interno-32-descripcion-objetivo.sql
   let FALTA_M33 = false;  // true si todavía no corrió migracion-interno-33-color-e-icono.sql
+  let FALTA_M37 = false;  // true si todavía no corrió migracion-interno-37-orden-de-proyectos.sql
   let ERROR_SERV = null;  // el texto que devolvió la base al leer Servicios
   let FALTA_M8 = false;   // true si todavía no corrió migracion-interno-8-resumen.sql
   let FALTA_M10 = false;  // true si todavía no corrió migracion-interno-10-equipo.sql
@@ -3500,7 +3580,27 @@
 
   const COLS_PROY = 'id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por';
 
+  // El orden que elegiste vos, y el alfabético como red: un proyecto
+  // recién creado todavía no tiene número, y sin este desempate
+  // aparecería en un lugar distinto cada vez que abrís el panel.
+  function ordenarProyectos(lista) {
+    return lista.slice().sort((a, b) => {
+      const oa = a.orden == null ? Infinity : Number(a.orden);
+      const ob = b.orden == null ? Infinity : Number(b.orden);
+      if (oa !== ob) return oa - ob;
+      return (a.nombre || '').localeCompare(b.nombre || '', 'es');
+    });
+  }
+
   async function cargarProyectos() {
+    // ¿Existe `orden`? Se PREGUNTA, no se deduce de que falló otra
+    // consulta más grande. Deducir la causa es cómo se termina mandando
+    // a correr la migración equivocada: la consulta de abajo pide siete
+    // columnas y cualquiera de las siete podría ser la que falta.
+    const sonda = await SB.from('proyecto').select('id, orden').limit(1);
+    FALTA_M37 = !!sonda.error;
+    const ORD = FALTA_M37 ? '' : ', orden';
+
     // Pedimos primero las columnas del Resumen. Si todavía no corriste la
     // migración 8, la consulta entera falla: reintentamos sin ellas en vez
     // de quedarnos sin proyectos.
@@ -3509,23 +3609,23 @@
     // HTML nuevo antes que la migración deja el panel sin proyectos: no
     // "falta un cuadro", desaparece todo.
     let { data, error } = await SB.from('proyecto')
-      .select(COLS_PROY + ', descripcion, salud, objetivo, brief, color_hex, icono')
+      .select(COLS_PROY + ', descripcion, salud, objetivo, brief, color_hex, icono' + ORD)
       .eq('archivado', false).order('nombre');
     if (error) {
       const r32 = await SB.from('proyecto')
-        .select(COLS_PROY + ', descripcion, salud, color_hex, icono')
+        .select(COLS_PROY + ', descripcion, salud, color_hex, icono' + ORD)
         .eq('archivado', false).order('nombre');
       if (!r32.error) { data = r32.data; FALTA_M32 = true; error = null; }
       else {
         // Ni la 32 ni la 33: se cae al escalón de solo la 8.
         const r33 = await SB.from('proyecto')
-          .select(COLS_PROY + ', descripcion, salud')
+          .select(COLS_PROY + ', descripcion, salud' + ORD)
           .eq('archivado', false).order('nombre');
         if (!r33.error) { data = r33.data; FALTA_M32 = true; FALTA_M33 = true; error = null; }
       }
     }
     if (error) {
-      const r = await SB.from('proyecto').select(COLS_PROY).eq('archivado', false).order('nombre');
+      const r = await SB.from('proyecto').select(COLS_PROY + ORD).eq('archivado', false).order('nombre');
       if (!r.error) {
         // Si sin `descripcion, salud` anda, es que esas columnas no
         // están: ahí sí falta la 8. Se deja dicho cuál fue el error
@@ -3538,7 +3638,7 @@
       }
     }
     if (error) { PROYECTOS = []; avisarFalla('proyectos', error); }
-    else PROYECTOS = data || [];
+    else PROYECTOS = ordenarProyectos(data || []);
 
     MIEMBROS = {};
     const { data: ms, error: eM } = await SB.from('proyecto_miembro').select('proyecto_id, user_id');
@@ -3744,7 +3844,13 @@
     const abiertas = TAREAS.filter(t => !t.completada && tpEn(t.id, p.id)).length;
     const fin = !!p.finalizado_en;
     const fav = esFav(p.id);
-    return '<button class="nav-item proy' + (FILTRO.proyecto === p.id ? ' active' : '') + (fin ? ' fin' : '') + '" data-proy="' + p.id + '">' +
+    // `grupo` es de qué lista es este ítem. Se puede reordenar dentro de
+    // su lista, no saltar de una a otra: arrastrar un proyecto activo al
+    // medio de los finalizados le daría un número que después no se ve
+    // reflejado en ningún lado, porque igual se dibuja arriba.
+    const grupo = fav ? 'fav' : (fin ? 'fin' : 'act');
+    return '<button class="nav-item proy' + (FILTRO.proyecto === p.id ? ' active' : '') + (fin ? ' fin' : '') + '"' +
+             ' draggable="true" data-grupo="' + grupo + '" data-proy="' + p.id + '">' +
              puntoProy(p) +
              '<span class="nom">' + esc(p.nombre) + '</span>' +
              (!fin && abiertas ? '<span class="soon-tag">' + abiertas + '</span>' : '') +
@@ -3772,7 +3878,11 @@
     $('#proyCuantos').textContent = PROY_PLEGADO && resto.length ? '(' + resto.length + ')' : '';
 
     const cont = $('#navProyectos');
-    if (PROY_PLEGADO) { cont.innerHTML = ''; cont.style.display = 'none'; return; }
+    if (PROY_PLEGADO) {
+      cont.innerHTML = ''; cont.style.display = 'none';
+      activarDnDProyectos();   // los favoritos siguen arriba y se mueven igual
+      return;
+    }
     cont.style.display = '';
 
     let items = activos.map(itemProyecto).join('');
@@ -3785,7 +3895,175 @@
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
           'Nuevo proyecto' +
         '</button>';
+
+    // Los oyentes se enganchan de nuevo porque el HTML se rehizo entero.
+    activarDnDProyectos();
   }
+
+  // ═══════════════ ORDENAR LOS PROYECTOS A MANO ═══════════════
+  //  Alfabético no es un orden: es no haber elegido ninguno. Acá los
+  //  arrastrás donde los querés y queda guardado para todo el equipo.
+  //
+  //  El número es `numeric` justamente para esto: para meter uno entre
+  //  otros dos se escribe UNA fila (el promedio de sus vecinos) en vez
+  //  de renumerar toda la lista. Si renumeráramos, cada movimiento
+  //  serían ocho escrituras y bastaría que una fallara para dejar la
+  //  lista mezclada.
+  let DRAG_PROY = null, DRAG_GRUPO = null;
+
+  function limpiarLineaNav() { $$('.nav-linea').forEach(l => l.remove()); }
+
+  // Dónde caería, mirando la mitad de cada ítem del mismo grupo.
+  function refNav(cont, grupo, y) {
+    const items = Array.from(cont.querySelectorAll('.nav-item.proy[data-grupo="' + grupo + '"]'))
+      .filter(el => el.dataset.proy !== DRAG_PROY);
+    for (let i = 0; i < items.length; i++) {
+      const r = items[i].getBoundingClientRect();
+      if (y < r.top + r.height / 2) return items[i];
+    }
+    return null;
+  }
+
+  function activarDnDProyectos() {
+    ['#navFavoritos', '#navProyectos'].forEach(sel => {
+      const cont = $(sel);
+      if (!cont) return;
+
+      cont.querySelectorAll('.nav-item.proy').forEach(el => {
+        el.addEventListener('dragstart', e => {
+          DRAG_PROY = el.dataset.proy;
+          DRAG_GRUPO = el.dataset.grupo;
+          el.classList.add('arrastrando');
+          e.dataTransfer.effectAllowed = 'move';
+          try { e.dataTransfer.setData('text/plain', DRAG_PROY); } catch (_) {}
+        });
+        el.addEventListener('dragend', () => {
+          el.classList.remove('arrastrando');
+          limpiarLineaNav();
+          DRAG_PROY = null; DRAG_GRUPO = null;
+        });
+      });
+
+      // Los del contenedor se enganchan UNA sola vez. Los ítems se
+      // rehacen en cada dibujado, el contenedor no: sin esta marca se
+      // irían apilando oyentes en cada render hasta que un solo soltar
+      // dispare veinte guardados.
+      if (cont.dataset.dnd === '1') return;
+      cont.dataset.dnd = '1';
+
+      cont.addEventListener('dragover', e => {
+        if (!DRAG_PROY) return;
+        // Solo si el grupo de destino es el mismo del que salió.
+        const sobre = e.target.closest ? e.target.closest('.nav-item.proy') : null;
+        if (sobre && sobre.dataset.grupo !== DRAG_GRUPO) return;
+        if (!sobre && !cont.querySelector('[data-grupo="' + DRAG_GRUPO + '"]')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        limpiarLineaNav();
+        const ref = refNav(cont, DRAG_GRUPO, e.clientY);
+        const linea = document.createElement('div');
+        linea.className = 'nav-linea';
+        if (ref) cont.insertBefore(linea, ref);
+        else {
+          const mismos = cont.querySelectorAll('[data-grupo="' + DRAG_GRUPO + '"]');
+          const ultimo = mismos[mismos.length - 1];
+          if (ultimo) ultimo.after(linea); else cont.appendChild(linea);
+        }
+      });
+      cont.addEventListener('dragleave', e => {
+        if (!cont.contains(e.relatedTarget)) limpiarLineaNav();
+      });
+      cont.addEventListener('drop', async e => {
+        e.preventDefault();
+        const id = DRAG_PROY || (e.dataTransfer ? e.dataTransfer.getData('text/plain') : null);
+        const grupo = DRAG_GRUPO;
+        const ref = grupo ? refNav(cont, grupo, e.clientY) : null;
+        limpiarLineaNav();
+        if (id && grupo) await soltarProyecto(id, grupo, ref ? ref.dataset.proy : null);
+      });
+    });
+  }
+
+  // `antesDe` es el proyecto delante del cual queda. Si es null, va al
+  // final de su grupo.
+  async function soltarProyecto(id, grupo, antesDe) {
+    if (id === antesDe) return;
+    if (FALTA_M37) {
+      toast('Primero corré migracion-interno-37-orden-de-proyectos.sql', 'warn');
+      return;
+    }
+    // La lista del grupo, sin el que estás moviendo.
+    const del = p => (esFav(p.id) ? 'fav' : (p.finalizado_en ? 'fin' : 'act'));
+    const grupoLista = PROYECTOS.filter(p => del(p) === grupo && p.id !== id);
+    const i = antesDe ? grupoLista.findIndex(p => p.id === antesDe) : grupoLista.length;
+    if (antesDe && i === -1) return;
+
+    const antes = i > 0 ? Number(grupoLista[i - 1].orden) : null;
+    const desp  = i < grupoLista.length ? Number(grupoLista[i].orden) : null;
+
+    let nuevo;
+    if (antes == null && desp == null) nuevo = 1000;
+    else if (antes == null) nuevo = desp - 1000;
+    else if (desp == null)  nuevo = antes + 1000;
+    else nuevo = (antes + desp) / 2;
+
+    // Si dos vecinos quedaron con el mismo número —puede pasar después de
+    // muchos movimientos— el promedio da uno de los dos y el orden se
+    // vuelve impredecible. Ahí sí se renumera el grupo entero, una vez.
+    if (antes != null && desp != null && !(nuevo > antes && nuevo < desp)) {
+      await renumerarGrupo(grupoLista, id, i);
+      return;
+    }
+
+    const p = PROYECTOS.find(x => x.id === id);
+    if (!p) return;
+    const previo = p.orden;
+    p.orden = nuevo;
+    PROYECTOS = ordenarProyectos(PROYECTOS);
+    renderProyectosSidebar();
+
+    const { error } = await SB.from('proyecto').update({ orden: nuevo }).eq('id', id);
+    if (error) {
+      p.orden = previo;
+      PROYECTOS = ordenarProyectos(PROYECTOS);
+      renderProyectosSidebar();
+      toast('No se pudo guardar el orden: ' + error.message, 'warn');
+    }
+  }
+
+  // El caso raro: no hay hueco entre dos vecinos. Se reparte el grupo de
+  // mil en mil y listo. Pasa una vez cada muchísimos movimientos.
+  async function renumerarGrupo(grupoLista, id, pos) {
+    const movido = PROYECTOS.find(x => x.id === id);
+    if (!movido) return;
+    const nueva = grupoLista.slice();
+    nueva.splice(pos, 0, movido);
+
+    const previos = nueva.map(p => p.orden);
+    nueva.forEach((p, k) => { p.orden = (k + 1) * 1000; });
+    PROYECTOS = ordenarProyectos(PROYECTOS);
+    renderProyectosSidebar();
+
+    for (let k = 0; k < nueva.length; k++) {
+      const { error } = await SB.from('proyecto')
+        .update({ orden: nueva[k].orden }).eq('id', nueva[k].id);
+      if (error) {
+        nueva.forEach((p, j) => { p.orden = previos[j]; });
+        PROYECTOS = ordenarProyectos(PROYECTOS);
+        renderProyectosSidebar();
+        toast('No se pudo guardar el orden: ' + error.message, 'warn');
+        return;
+      }
+    }
+  }
+
+  // Gancho de pruebas: soltar un proyecto sin tener que simular un
+  // arrastre del navegador, que en una prueba automática es frágil.
+  // No expone datos ni saltea ningún permiso: llama a lo mismo que el
+  // arrastre, y la base decide igual si deja guardar.
+  window.__soltarProyecto = function (id, grupo, antesDe) {
+    return soltarProyecto(id, grupo, antesDe);
+  };
 
   function plegarProyectos() {
     PROY_PLEGADO = !PROY_PLEGADO;
@@ -4406,6 +4684,193 @@
     if (error) { COLABS[DETALLE.id] = antes; pintarColabs(); toast('No se pudo sacar: ' + error.message, 'warn'); }
   }
 
+  // ── SE PAGA APARTE ───────────────────────────────────────────
+  //  Subir el video al feed ya está adentro de lo que le pagás todos
+  //  los meses. Diseñar ese carrusel, no. Esto es la libretita del
+  //  segundo caso: qué le debés a quién, por qué trabajo.
+  //
+  //  Vive en `trabajo_extra`, que es de socias. Por eso el bloque
+  //  entero no se dibuja para el resto del equipo: si el monto
+  //  estuviera en la tarea, cualquiera vería lo que cobra la otra.
+  //
+  //  Y no reemplaza a Contabilidad: cuando se paga, se crea el
+  //  movimiento de siempre y esta fila queda apuntando a él. La plata
+  //  se carga UNA vez.
+  function pintarPagoAparte() {
+    const el = $('#dPagoAparte'), sec = $('#dSecPago');
+    if (!el || !sec || !DETALLE) return;
+    if (!soySocia()) { sec.style.display = 'none'; el.innerHTML = ''; return; }
+    sec.style.display = '';
+
+    if (FALTA_M36) {
+      el.innerHTML = avisoFalta('migracion-interno-36-trabajos-aparte.sql',
+        'Hasta que la corras, esto no tiene dónde guardarse.');
+      return;
+    }
+
+    const t = trabExDeTarea(DETALLE.id);
+
+    if (!t) {
+      const gente = EQUIPO.filter(p => p.activo !== false);
+      el.innerHTML =
+        '<div class="add-row">' +
+          '<select id="dPagoQuien" class="corto">' +
+            gente.map(p => '<option value="' + clavePersona(p) + '"' +
+              (DETALLE.responsable_id === p.id ? ' selected' : '') + '>' +
+              esc(p.nombre || p.email) + '</option>').join('') +
+          '</select>' +
+          '<input type="number" step="0.01" min="0" id="dPagoMonto" class="corto" placeholder="Cuánto (podés dejarlo)">' +
+          '<button id="dPagoAdd">Se paga aparte</button>' +
+        '</div>' +
+        '<div class="res-sub" style="margin-top:8px">Para el trabajo suelto, <b>fuera</b> de lo que ya se le paga ' +
+          'todos los meses. El monto lo podés dejar vacío y ponerlo cuando lo arreglen. ' +
+          'Esto lo ven <b>solo las socias</b>.</div>';
+      return;
+    }
+
+    const pagado = trabExPagado(t);
+    const nom = (personaDe(t.colaboradora_id, t.persona_ext_id, t.persona) || {}).nombre || t.persona;
+
+    el.innerHTML =
+      '<div class="pago-ap' + (pagado ? ' ok' : '') + '">' +
+        '<div class="avatar-sm">' + esc(iniciales(nom, '')) + '</div>' +
+        '<div class="pago-ap-n"><b>' + esc(nom) + '</b>' +
+          '<span class="res-sub">' + (pagado
+            ? 'Pagado' + (t.pagado_en ? ' el ' + esc(fechaCortaDia(t.pagado_en)) : '') + ' · ya está en Contabilidad'
+            : 'Se le debe') + '</span></div>' +
+        (pagado
+          ? '<div class="pago-ap-m">' + plata(t.monto) + '</div>'
+          : '<input type="number" step="0.01" min="0" class="td-inp num" id="dPagoEdit" ' +
+              'value="' + esc(t.monto == null ? '' : String(t.monto)) + '" placeholder="sin monto">') +
+        (pagado ? '' :
+          '<button class="mini-btn" id="dPagoCobrar" title="Cargarlo en Contabilidad">Marcar pagado</button>' +
+          '<button class="mini-del" id="dPagoDel" title="Sacarlo de la lista">×</button>') +
+      '</div>' +
+      (pagado ? '' :
+        '<div class="res-sub" style="margin-top:8px">Cuando marques pagado se carga solo en Contabilidad ' +
+        'como egreso de colaboradoras, colgado del cobro del cliente — así baja el neto ' +
+        '<b>antes</b> del reparto. No lo cargues también a mano.</div>');
+  }
+
+  async function agregarPagoAparte() {
+    if (!DETALLE || FALTA_M36) return;
+    const sel = $('#dPagoQuien') ? $('#dPagoQuien').value : '';
+    const f = EQUIPO.find(p => clavePersona(p) === sel);
+    if (!f) { toast('¿A quién se le paga?', 'warn'); return; }
+    const monto = numOrNull('#dPagoMonto');
+    if (monto != null && monto < 0) { toast('Ese monto no se entiende', 'warn'); return; }
+
+    const fila = Object.assign({
+      tarea_id: DETALLE.id,
+      titulo_tarea: textoPlano(DETALLE.titulo).slice(0, 300),
+      persona: f.nombre || f.email,
+      cliente_id: DETALLE.cliente_id || clienteHeredado(DETALLE) || null,
+      concepto: textoPlano(DETALLE.titulo).slice(0, 300),
+      monto: monto
+    }, comoGuardar(f));
+
+    const { data, error } = await SB.from('trabajo_extra').insert(fila).select();
+    if (error) { toast('No se pudo anotar: ' + error.message, 'warn'); return; }
+    if (data && data[0]) TRABAJOS_EX.unshift(data[0]);
+    pintarPagoAparte();
+    flashGuardado();
+  }
+
+  // El mismo guardado sirve para el detalle de la tarea y para la lista
+  // de Equipo: una sola función, para que no se separen con el tiempo.
+  async function guardarMontoTrabEx(id, valor, repintar) {
+    const t = TRABAJOS_EX.find(x => x.id === id);
+    if (!t || trabExPagado(t)) return;
+    const v = String(valor).trim() === '' ? null : Number(valor);
+    if (v != null && (isNaN(v) || v < 0)) { toast('Ese monto no se entiende', 'warn'); render(); return; }
+    const antes = t.monto;
+    t.monto = v;
+    const { error } = await SB.from('trabajo_extra').update({ monto: v }).eq('id', t.id);
+    if (error) {
+      t.monto = antes;
+      toast('No se pudo guardar: ' + error.message, 'warn');
+      if (repintar) repintar(); else render();
+      return;
+    }
+    flashGuardado();
+    // El botón de "Pagado" arranca bloqueado hasta que hay monto: hay
+    // que redibujar para que se destrabe.
+    if (repintar) repintar(); else render();
+  }
+
+  function guardarMontoPagoAparte(valor) {
+    if (!DETALLE) return;
+    const t = trabExDeTarea(DETALLE.id);
+    if (t) guardarMontoTrabEx(t.id, valor, pintarPagoAparte);
+  }
+
+  async function sacarPagoAparte() {
+    if (!DETALLE) return;
+    const t = trabExDeTarea(DETALLE.id);
+    if (!t) return;
+    // Si ya se pagó no se borra desde acá: eso sería borrar la libretita
+    // dejando el movimiento suelto en Contabilidad.
+    if (trabExPagado(t)) { toast('Ya está pagado. Se saca desde Contabilidad.', 'warn'); return; }
+    const { error } = await SB.from('trabajo_extra').delete().eq('id', t.id);
+    if (error) { toast('No se pudo sacar: ' + error.message, 'warn'); return; }
+    TRABAJOS_EX = TRABAJOS_EX.filter(x => x.id !== t.id);
+    pintarPagoAparte();
+  }
+
+  // El cobro del mes de ese cliente, si hay UNO solo. Con dos contratos
+  // vivos no se adivina a cuál colgarlo: entra como gasto suelto y el
+  // panel lo dice, en vez de bajarle el neto al contrato equivocado.
+  function cobrosDelCliente(clienteId, periodo) {
+    if (!clienteId) return [];
+    return CONTRATOS.filter(c => c.cliente_id === clienteId && c.activo !== false)
+      .map(c => cobroDe(c.id, periodo)).filter(Boolean);
+  }
+
+  // Acá es donde la libretita se convierte en plata de verdad.
+  async function pagarTrabajoExtra(t) {
+    if (!t || trabExPagado(t)) return;
+    if (t.monto == null || Number(t.monto) <= 0) {
+      toast('Poné cuánto se le paga antes de marcarlo', 'warn');
+      return;
+    }
+    const cbs = cobrosDelCliente(t.cliente_id, PERIODO);
+    const cb = cbs.length === 1 ? cbs[0] : null;
+
+    const mov = Object.assign({
+      fecha: hoyISO(),
+      tipo: 'egreso', categoria: 'Colaboradoras',
+      concepto: t.concepto,
+      monto: Number(t.monto),
+      colaboradora: t.persona,
+      cliente_id: t.cliente_id || null,
+      cobro_id: cb ? cb.id : null
+    }, FALTA_M16 ? {} : { colaboradora_id: t.colaboradora_id || null },
+       FALTA_M17 ? {} : { persona_ext_id: t.persona_ext_id || null });
+
+    const { data, error } = await SB.from('movimiento').insert(mov).select();
+    if (error) { toast('No se pudo cargar el pago: ' + error.message, 'warn'); return; }
+    const m = data && data[0];
+    if (m) MOVIMIENTOS.unshift(m);
+
+    // Recién ahora se marca. Si esto fallara, la libretita sigue
+    // diciendo "se debe" — que es el error seguro: como mucho lo mirás
+    // dos veces. Al revés te olvidarías de pagarle.
+    const hoy = hoyISO();
+    const { error: e2 } = await SB.from('trabajo_extra')
+      .update({ movimiento_id: m ? m.id : null, pagado_en: hoy }).eq('id', t.id);
+    if (e2) {
+      toast('El pago se cargó, pero no pude marcarlo acá: ' + e2.message, 'warn');
+      return;
+    }
+    t.movimiento_id = m ? m.id : null;
+    t.pagado_en = hoy;
+
+    toast(cb ? 'Pagado y cargado en el cobro del mes'
+             : 'Pagado. Quedó como gasto suelto: ese cliente no tiene un solo cobro este mes.');
+    if (DETALLE) pintarPagoAparte();
+    render();
+  }
+
   // ── MENCIONES ────────────────────────────────────────────────
   // Se guardan como @[Nombre](uuid): así el texto sobrevive a un
   // cambio de nombre y no hay que adivinar quién es "@marti".
@@ -4649,20 +5114,39 @@
   //  persona y agrupadas por cliente.
   // ═══════════════════════════════════════════════════════════════
   let EQ_TAB = 'carga', EQ_ABIERTA = null;
+  let EQ_MES = primerDelMes(new Date());
 
-  function cargaDe(userId) {
-    const abiertas = TAREAS.filter(t => t.responsable_id === userId && !t.completada && !t.padre_id);
-    const hoy = hoyISO();
-    const en7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const TILDE_SVG = '<svg class="tilde-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+  // ── QUÉ TAREA ES "DE ESTE MES" ───────────────────────────────
+  //  Una tarea entra en el mes que estás mirando si:
+  //   · está LISTA y se cerró en ese mes  → lo que se hizo
+  //   · está ABIERTA y vence en ese mes   → lo que hay que hacer
+  //   · está ABIERTA y no tiene fecha, y el mes es el de hoy
+  //
+  //  Ese último caso es el que hay que explicar: una tarea sin fecha no
+  //  pertenece a ningún mes. Mostrarla en TODOS sería peor —agosto y
+  //  septiembre dirían lo mismo y ninguno serviría— así que aparece solo
+  //  cuando mirás el mes corriente, que es cuando de verdad la tenés
+  //  entre manos. El cartel de arriba lo aclara para que no parezca que
+  //  se perdió algo.
+  function esDelMes(t, mes) {
+    if (t.completada) return !!t.completada_en && mesDe(t.completada_en) === mes;
+    if (t.vence) return mesDe(t.vence) === mes;
+    return mes === mesDe(primerDelMes(new Date()));
+  }
+
+  function cargaDe(userId, mes) {
+    mes = mes || mesDe(EQ_MES);
+    const suyas = TAREAS.filter(t => t.responsable_id === userId && !t.padre_id && esDelMes(t, mes));
+    const abiertas = suyas.filter(t => !t.completada);
     return {
+      todas:    suyas,
       abiertas: abiertas,
+      listas:   suyas.filter(t => t.completada),
       vencidas: abiertas.filter(estaVencida),
-      semana:   abiertas.filter(t => t.vence && t.vence >= hoy && t.vence <= en7),
-      sinFecha: abiertas.filter(t => !t.vence),
-      // Lo que cerró en los últimos 30 días: sirve para no confundir
-      // "no tiene nada" con "ya lo terminó todo".
-      cerradas: TAREAS.filter(t => t.responsable_id === userId && t.completada &&
-        t.completada_en && t.completada_en.slice(0, 10) >= new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)).length
+      sinFecha: abiertas.filter(t => !t.vence)
     };
   }
 
@@ -4682,51 +5166,172 @@
   function renderCargaEquipo() {
     const gente = EQUIPO.filter(p => p.activo !== false);
     if (!gente.length) return '<div class="res-vacio">No hay nadie activo en el equipo.</div>';
-    const cargas = gente.map(p => ({ p: p, c: cargaDe(p.id) }));
-    const tope = Math.max(1, ...cargas.map(x => x.c.abiertas.length));
+    const mes = mesDe(EQ_MES);
+    const esteMes = mes === mesDe(primerDelMes(new Date()));
+    const cargas = gente.map(p => ({ p: p, c: cargaDe(p.id, mes) }));
+    const tope = Math.max(1, ...cargas.map(x => x.c.todas.length));
 
-    return '<div class="mod-head"><p>Qué tiene cada una entre manos <b>ahora</b>, en todos los clientes. ' +
-        'Sale solo de las tareas: no hay nada que anotar a mano.</p></div>' +
+    const nav =
+      '<div class="mes-nav">' +
+        '<button data-eqmes="-1" title="Mes anterior">\u2039</button>' +
+        '<span class="mes-txt">' + mesLargo(EQ_MES) + '</span>' +
+        '<button data-eqmes="1" title="Mes siguiente">\u203a</button>' +
+        '<button data-eqmes="0" title="Volver a este mes">Hoy</button>' +
+      '</div>';
+
+    return '<div class="eq-barra">' +
+        '<p>Qu\u00e9 tuvo cada una entre manos en <b>' + esc(mesLargo(EQ_MES)) + '</b>, en todos los clientes \u2014 ' +
+          'lo que hizo y lo que le queda. Sale solo de las tareas: no hay nada que anotar a mano.' +
+          (esteMes
+            ? ' Las que no tienen fecha aparecen ac\u00e1, en el mes corriente.'
+            : ' Las tareas <b>sin fecha</b> no se muestran en un mes pasado: no pertenecen a ninguno. ' +
+              'Est\u00e1n en el mes de hoy.') +
+        '</p>' + nav +
+      '</div>' +
       '<div class="carga-lista">' +
       cargas.map(({ p, c }) => {
         const n = p.nombre || p.email;
         const ab = EQ_ABIERTA === p.id;
-        const pct = Math.round(c.abiertas.length / tope * 100);
+        const pct = Math.round(c.todas.length / tope * 100);
+        // Las listas primero abajo de todo no: van al final de su cliente,
+        // para que el bloque se lea como "esto qued\u00f3 hecho" despu\u00e9s de
+        // "esto falta".
+        const orden = c.abiertas.concat(c.listas);
         return '<div class="carga-p' + (ab ? ' on' : '') + '" data-carga="' + p.id + '">' +
           '<div class="carga-head">' +
             '<div class="avatar-sm' + (ME && p.id === ME.id ? '' : ' otra') + '">' + esc(iniciales(n, '')) + '</div>' +
             '<div class="carga-n"><b>' + esc(n) + '</b>' +
               '<span class="res-sub">' + (p.rol === 'socia' ? 'socia' : 'equipo') +
-              (p.ext ? ' · sin cuenta' : '') + '</span></div>' +
+              (p.ext ? ' \u00b7 sin cuenta' : '') + '</span></div>' +
             '<div class="carga-nums">' +
               '<span class="cn"><b>' + c.abiertas.length + '</b> abiertas</span>' +
               (c.vencidas.length ? '<span class="cn mal"><b>' + c.vencidas.length + '</b> vencidas</span>' : '') +
-              '<span class="cn"><b>' + c.semana.length + '</b> esta semana</span>' +
-              '<span class="cn suave"><b>' + c.cerradas + '</b> cerradas en 30 días</span>' +
+              '<span class="cn suave"><b>' + c.listas.length + '</b> listas</span>' +
             '</div>' +
             '<div class="carga-riel"><i style="width:' + pct + '%"' +
               (c.vencidas.length ? ' class="mal"' : '') + '></i></div>' +
             '<svg class="grupo-toggle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
           '</div>' +
           (ab ? '<div class="carga-body">' +
-            (c.abiertas.length
-              ? porClienteDe(c.abiertas).map(g =>
+            (orden.length
+              ? porClienteDe(orden).map(g =>
                   '<div class="carga-cli">' +
                     '<div class="carga-cli-n">' + esc(g.nombre) +
                       '<span class="grupo-count">' + g.tareas.length + '</span></div>' +
-                    g.tareas.slice(0, 8).map(t =>
-                      '<div class="carga-t" data-irtarea="' + t.id + '">' +
-                        '<span>' + esc(t.titulo) + '</span>' +
-                        (t.vence ? '<span class="fecha ' + fechaTxt(t.vence).clase + '">' +
-                          fechaTxt(t.vence).txt + '</span>' : '<span class="res-sub">sin fecha</span>') +
+                    g.tareas.map(t =>
+                      '<div class="carga-t' + (t.completada ? ' hecha' : '') + '" data-irtarea="' + t.id + '">' +
+                        '<span>' + (t.completada ? TILDE_SVG : '') + esc(textoPlano(t.titulo)) + '</span>' +
+                        (t.completada
+                          ? '<span class="res-sub">' + (t.completada_en ? fechaCortaDia(t.completada_en) : 'lista') + '</span>'
+                          : t.vence
+                            ? '<span class="fecha ' + fechaTxt(t.vence).clase + '">' + fechaTxt(t.vence).txt + '</span>'
+                            : '<span class="res-sub">sin fecha</span>') +
                       '</div>').join('') +
-                    (g.tareas.length > 8 ? '<div class="res-sub">y ' + (g.tareas.length - 8) + ' más…</div>' : '') +
                   '</div>').join('')
-              : '<div class="res-vacio">Sin tareas abiertas. ' +
-                 (c.cerradas ? 'Cerró ' + c.cerradas + ' en los últimos 30 días.' : '') + '</div>') +
+              : '<div class="res-vacio">Nada en ' + esc(mesLargo(EQ_MES)) + '.</div>') +
           '</div>' : '') +
         '</div>';
       }).join('') + '</div>';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  A PAGAR — la libretita de los trabajos sueltos
+  //
+  //  Lo que se le debe a cada colaboradora por fuera de su fijo. Se
+  //  anota desde la tarea y se salda acá: al marcar pagado se crea el
+  //  movimiento en Contabilidad y la fila queda apuntando a él.
+  //
+  //  Por qué el total dice aparte cuántos están "sin monto": si
+  //  contáramos los vacíos como cero, el total diría que le debés
+  //  menos de lo que le debés. Un número que miente para abajo en algo
+  //  que se paga es peor que no tener número.
+  // ═══════════════════════════════════════════════════════════════
+  function pendientesTrabEx() { return TRABAJOS_EX.filter(t => !trabExPagado(t)); }
+
+  function renderAPagar() {
+    if (FALTA_M36) {
+      return avisoFalta('migracion-interno-36-trabajos-aparte.sql',
+        'Hasta que la corras, no hay dónde anotar lo que se paga aparte.');
+    }
+    const pend = pendientesTrabEx();
+    const pagados = TRABAJOS_EX.filter(trabExPagado);
+
+    const cabeza = '<div class="mod-head"><p>Los trabajos que se pagan <b>por fuera</b> del fijo. ' +
+      'Se anotan desde la tarea, con el botón <b>“Se paga aparte”</b>. ' +
+      'Al marcarlos pagados se cargan solos en Contabilidad: no los cargues dos veces.</p></div>';
+
+    if (!pend.length && !pagados.length) {
+      return cabeza + '<div class="res-vacio">Todavía no hay nada anotado. ' +
+        'Abrí una tarea y usá “Se paga aparte”.</div>';
+    }
+
+    // Agrupadas por persona, la que más debe primero.
+    const por = {};
+    pend.forEach(t => {
+      const k = claveTrabEx(t);
+      const p = personaDe(t.colaboradora_id, t.persona_ext_id, t.persona);
+      (por[k] = por[k] || { nombre: (p && p.nombre) || t.persona || '?', trabajos: [] }).trabajos.push(t);
+    });
+    const grupos = Object.keys(por).map(k => por[k])
+      .sort((a, b) => sumaTrabEx(b.trabajos) - sumaTrabEx(a.trabajos));
+
+    const totalPend = sumaTrabEx(pend);
+    const faltan = sinMonto(pend);
+
+    const resumen = '<div class="kpis">' +
+      kpi('Se debe hoy', plata(totalPend),
+        faltan ? faltan + ' sin monto todavía' : 'todo con su número') +
+      kpi('Trabajos abiertos', String(pend.length),
+        grupos.length + ' persona' + (grupos.length === 1 ? '' : 's')) +
+      kpi('Ya pagado', plata(sumaTrabEx(pagados)),
+        pagados.length + ' cargado' + (pagados.length === 1 ? '' : 's') + ' en Contabilidad') +
+      '</div>';
+
+    const lista = grupos.map(g => {
+      const tot = sumaTrabEx(g.trabajos);
+      const nf = sinMonto(g.trabajos);
+      return '<div class="pagar-p">' +
+        '<div class="pagar-head">' +
+          '<div class="avatar-sm">' + esc(iniciales(g.nombre, '')) + '</div>' +
+          '<div class="carga-n"><b>' + esc(g.nombre) + '</b>' +
+            '<span class="res-sub">' + g.trabajos.length + ' trabajo' +
+              (g.trabajos.length === 1 ? '' : 's') +
+              (nf ? ' · ' + nf + ' sin monto' : '') + '</span></div>' +
+          '<div class="pagar-tot">' + plata(tot) + '</div>' +
+        '</div>' +
+        g.trabajos.map(t =>
+          '<div class="pagar-t" data-trabex="' + t.id + '">' +
+            '<div class="pagar-q"' + (t.tarea_id ? ' data-irtarea="' + t.tarea_id + '"' : '') + '>' +
+              esc(t.concepto || t.titulo_tarea || 'sin nombre') +
+              (t.tarea_id ? '' : '<span class="res-sub"> · la tarea ya no está</span>') +
+            '</div>' +
+            '<div class="pagar-cli">' + esc(t.cliente_id ? nombreCliente(t.cliente_id) : 'Interno') + '</div>' +
+            '<input type="number" step="0.01" min="0" class="td-inp num" ' +
+              'data-trabmonto="' + t.id + '" value="' + esc(t.monto == null ? '' : String(t.monto)) +
+              '" placeholder="sin monto">' +
+            '<button class="mini-btn" data-trabpagar="' + t.id + '"' +
+              (t.monto == null || Number(t.monto) <= 0 ? ' disabled title="Poné el monto primero"' : '') +
+              '>Pagado</button>' +
+          '</div>').join('') +
+        '</div>';
+    }).join('');
+
+    const yaEsta = pagados.length
+      ? '<div class="mod-head" style="margin:22px 0 10px"><p>Ya pagados. Cada uno tiene su movimiento ' +
+          'en Contabilidad — se sacan desde ahí, no desde acá.</p></div>' +
+        '<div class="tabla">' + pagados.slice(0, 30).map(t =>
+          '<div class="prow cols-pagado">' +
+            '<div>' + esc(t.persona) + '</div>' +
+            '<div>' + esc(t.concepto || '') + '</div>' +
+            '<div class="res-sub">' + esc(t.pagado_en ? fechaCortaDia(t.pagado_en) : '') + '</div>' +
+            '<div class="num">' + plata(t.monto) + '</div>' +
+          '</div>').join('') + '</div>'
+      : '';
+
+    return cabeza + resumen +
+      (pend.length ? '<div class="pagar-lista">' + lista + '</div>'
+                   : '<div class="res-vacio">No se le debe nada a nadie. </div>') +
+      yaEsta;
   }
 
   function renderEquipo() {
@@ -4738,11 +5343,18 @@
     const tabs =
       '<div class="serv-tabs">' +
         '<button data-eqtab="carga" class="' + (EQ_TAB === 'carga' ? 'on' : '') + '">Quién hace qué</button>' +
+        '<button data-eqtab="pagar" class="' + (EQ_TAB === 'pagar' ? 'on' : '') + '">A pagar' +
+          (pendientesTrabEx().length ? '<span class="tab-n">' + pendientesTrabEx().length + '</span>' : '') +
+        '</button>' +
         '<button data-eqtab="gente" class="' + (EQ_TAB === 'gente' ? 'on' : '') + '">Permisos y altas</button>' +
       '</div>';
 
     if (EQ_TAB === 'carga') {
       $('#modEquipo').innerHTML = tabs + renderCargaEquipo();
+      return;
+    }
+    if (EQ_TAB === 'pagar') {
+      $('#modEquipo').innerHTML = tabs + renderAPagar();
       return;
     }
 
@@ -5684,6 +6296,10 @@
   let FALTA_M14 = false, PLATA_CARGADA = false;
   let FALTA_M15 = false, FALTA_M16 = false, FALTA_M17 = false, FALTA_M18 = false;
   let FALTA_M26 = false;   // sin la 26 no existe `tarea.cliente_manual`
+  let FALTA_M36 = false;   // sin la 36 no existe `trabajo_extra`
+  // Lo que se le debe a cada colaboradora por trabajos sueltos. Solo lo
+  // cargan las socias: la consulta ni se dispara para el resto.
+  let TRABAJOS_EX = [];
   let PERIODO = primerDelMes(new Date());
   let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
   let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
@@ -5774,6 +6390,17 @@
       PAGOS_PERSONA = (ps && ps.data) ? ps.data : [];
     }
 
+    // La libretita de lo que se paga aparte. Va acá y no en la carga
+    // general porque es plata: si no sos socia, esta consulta ni se
+    // hace. Y si falta la 36, el resto de Contabilidad anda igual.
+    const te = await SB.from('trabajo_extra').select('*').order('created_at', { ascending: false });
+    if (te.error) {
+      FALTA_M36 = faltaDeVerdad(te.error);
+      TRABAJOS_EX = [];
+    } else {
+      FALTA_M36 = false;
+      TRABAJOS_EX = te.data || [];
+    }
 
     PLATA_CARGADA = true;
   }
@@ -5898,6 +6525,21 @@
   }
   function claveColab(m) { return claveDe(m.colaboradora_id, m.persona_ext_id, m.colaboradora); }
   function clavePago(p)  { return claveDe(p.user_id, p.persona_ext_id, p.persona); }
+  function claveTrabEx(t) { return claveDe(t.colaboradora_id, t.persona_ext_id, t.persona); }
+
+  // ── Trabajos que se pagan aparte (migración 36) ──────────────
+  // Saldado = ya tiene su movimiento en Contabilidad. Ese es el único
+  // criterio: no hay un tilde de "pagado" acá que pueda decir una cosa
+  // distinta de lo que dice la plata.
+  function trabExPagado(t) { return !!t.movimiento_id; }
+  function trabExDeTarea(id) { return TRABAJOS_EX.find(t => t.tarea_id === id) || null; }
+  function trabExDe(clave) { return TRABAJOS_EX.filter(t => claveTrabEx(t) === clave); }
+  function sumaTrabEx(lista) {
+    return lista.reduce((a, t) => a + Number(t.monto || 0), 0);
+  }
+  // Cuántos están anotados sin número todavía: el total de abajo miente
+  // si no se dice cuántos faltan.
+  function sinMonto(lista) { return lista.filter(t => t.monto == null).length; }
 
   // Las tres columnas que identifican a una persona en la base, según
   // de dónde salga. Se usa para insertar sin repetir el criterio.
@@ -9969,6 +10611,7 @@
     pintarProyectosDrawer();
     pintarColabs();
     pintarVenceTag();
+    pintarPagoAparte();
 
     const ids = idsVisibles();
     const i = ids.indexOf(t.id);
@@ -11129,6 +11772,28 @@
     if (b) sacarColab(b.dataset.colabdel);
   });
 
+  // ── Se paga aparte ───────────────────────────────────────────
+  // Todo delegado en el contenedor: el bloque se redibuja entero cada
+  // vez, así que enganchar cada botón por id se perdería al segundo
+  // repintado.
+  $('#dPagoAparte').addEventListener('click', e => {
+    if (e.target.closest('#dPagoAdd'))    { agregarPagoAparte(); return; }
+    if (e.target.closest('#dPagoDel'))    { sacarPagoAparte(); return; }
+    if (e.target.closest('#dPagoCobrar')) {
+      const t = DETALLE ? trabExDeTarea(DETALLE.id) : null;
+      if (t) pagarTrabajoExtra(t);
+      return;
+    }
+  });
+  $('#dPagoAparte').addEventListener('change', e => {
+    if (e.target.id === 'dPagoEdit') guardarMontoPagoAparte(e.target.value);
+  });
+  $('#dPagoAparte').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (e.target.id === 'dPagoMonto') { e.preventDefault(); agregarPagoAparte(); }
+    if (e.target.id === 'dPagoEdit')  { e.preventDefault(); e.target.blur(); }
+  });
+
   // ── Colaboradoras en el modal de alta ────────────────────────
   $('#fAddColab').addEventListener('change', e => {
     const id = e.target.value;
@@ -11158,6 +11823,20 @@
   $('#modEquipo').addEventListener('click', e => {
     const tb = e.target.closest('[data-eqtab]');
     if (tb) { EQ_TAB = tb.dataset.eqtab; render(); return; }
+    // Pagar va ANTES de `data-irtarea`: la fila entera lleva a la tarea,
+    // y sin esto el click en "Pagado" abriría el cajón en vez de pagar.
+    const pg = e.target.closest('[data-trabpagar]');
+    if (pg) {
+      const t = TRABAJOS_EX.find(x => x.id === pg.dataset.trabpagar);
+      if (t) pagarTrabajoExtra(t);
+      return;
+    }
+    const ms = e.target.closest('[data-eqmes]');
+    if (ms) {
+      const d = Number(ms.dataset.eqmes);
+      EQ_MES = d === 0 ? primerDelMes(new Date()) : sumarMeses(EQ_MES, d);
+      render(); return;
+    }
     const ir = e.target.closest('[data-irtarea]');
     if (ir) { abrirDrawer(ir.dataset.irtarea); return; }
     const cp = e.target.closest('[data-carga]');
@@ -11177,7 +11856,9 @@
   });
   $('#modEquipo').addEventListener('change', e => {
     const sel = e.target.closest('[data-prol]');
-    if (sel) guardarPersona(sel.dataset.prol, 'rol', sel.value);
+    if (sel) { guardarPersona(sel.dataset.prol, 'rol', sel.value); return; }
+    const mo = e.target.closest('[data-trabmonto]');
+    if (mo) guardarMontoTrabEx(mo.dataset.trabmonto, mo.value);
   });
   $('#modEquipo').addEventListener('blur', e => {
     const ce = e.target.closest ? e.target.closest('[data-pcampo]') : null;
