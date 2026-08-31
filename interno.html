@@ -2302,7 +2302,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/08 00:09</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/08 00:49</div>
     </div>
   </aside>
 
@@ -3307,7 +3307,9 @@
 
   let FALTA_M32 = false;  // true si todavía no corrió migracion-interno-32-descripcion-objetivo.sql
   let FALTA_M33 = false;  // true si todavía no corrió migracion-interno-33-color-e-icono.sql
-  let FALTA_M37 = false;  // true si todavía no corrió migracion-interno-37-orden-de-proyectos.sql
+  let FALTA_M38 = false;  // true si todavía no corrió migracion-interno-38-orden-propio.sql
+  // El orden de la lista del costado, el TUYO: { proyecto_id: número }.
+  let ORDEN_PROY = {};
   let ERROR_SERV = null;  // el texto que devolvió la base al leer Servicios
   let FALTA_M8 = false;   // true si todavía no corrió migracion-interno-8-resumen.sql
   let FALTA_M10 = false;  // true si todavía no corrió migracion-interno-10-equipo.sql
@@ -3531,7 +3533,12 @@
     SALUDO_BASE = 'Hola ' + primer + ' 👋 — todo lo que el equipo tiene entre manos.';
     $('#saludo').textContent = SALUDO_BASE;
 
-    await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos(), cargarFavoritos()]);
+    await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos(),
+                       cargarFavoritos(), cargarOrdenProyectos()]);
+    // Las cinco salen juntas para no encadenar esperas, así que el orden
+    // puede llegar después de los proyectos. Se reordena acá, ya con las
+    // dos cosas en la mano.
+    PROYECTOS = ordenarProyectos(PROYECTOS);
     await cargarPlata();
     llenarSelects();
     await cargarTareas();
@@ -3580,27 +3587,27 @@
 
   const COLS_PROY = 'id, nombre, cliente_id, color, privado, archivado, finalizado_en, creado_por';
 
-  // El orden que elegiste vos, y el alfabético como red: un proyecto
-  // recién creado todavía no tiene número, y sin este desempate
-  // aparecería en un lugar distinto cada vez que abrís el panel.
+  // El orden que elegiste VOS. Un proyecto que todavía no moviste no
+  // tiene número, y va al final ordenado por nombre: si los nuevos
+  // cayeran arriba, cada proyecto que se crea te desarmaría la lista
+  // que armaste. El desempate por nombre es para que dos sin número no
+  // salgan en distinto lugar cada vez que abrís el panel.
+  function ordenDe(p) {
+    const o = ORDEN_PROY[p.id];
+    return o == null ? Infinity : o;
+  }
   function ordenarProyectos(lista) {
     return lista.slice().sort((a, b) => {
-      const oa = a.orden == null ? Infinity : Number(a.orden);
-      const ob = b.orden == null ? Infinity : Number(b.orden);
+      const oa = ordenDe(a), ob = ordenDe(b);
       if (oa !== ob) return oa - ob;
       return (a.nombre || '').localeCompare(b.nombre || '', 'es');
     });
   }
 
   async function cargarProyectos() {
-    // ¿Existe `orden`? Se PREGUNTA, no se deduce de que falló otra
-    // consulta más grande. Deducir la causa es cómo se termina mandando
-    // a correr la migración equivocada: la consulta de abajo pide siete
-    // columnas y cualquiera de las siete podría ser la que falta.
-    const sonda = await SB.from('proyecto').select('id, orden').limit(1);
-    FALTA_M37 = !!sonda.error;
-    const ORD = FALTA_M37 ? '' : ', orden';
-
+    // El orden ya NO sale de `proyecto`: es de cada una y vive en
+    // `proyecto_orden` (migración 38). Acá no se pide ninguna columna
+    // de orden, así que este paso no depende de esa migración.
     // Pedimos primero las columnas del Resumen. Si todavía no corriste la
     // migración 8, la consulta entera falla: reintentamos sin ellas en vez
     // de quedarnos sin proyectos.
@@ -3609,23 +3616,23 @@
     // HTML nuevo antes que la migración deja el panel sin proyectos: no
     // "falta un cuadro", desaparece todo.
     let { data, error } = await SB.from('proyecto')
-      .select(COLS_PROY + ', descripcion, salud, objetivo, brief, color_hex, icono' + ORD)
+      .select(COLS_PROY + ', descripcion, salud, objetivo, brief, color_hex, icono')
       .eq('archivado', false).order('nombre');
     if (error) {
       const r32 = await SB.from('proyecto')
-        .select(COLS_PROY + ', descripcion, salud, color_hex, icono' + ORD)
+        .select(COLS_PROY + ', descripcion, salud, color_hex, icono')
         .eq('archivado', false).order('nombre');
       if (!r32.error) { data = r32.data; FALTA_M32 = true; error = null; }
       else {
         // Ni la 32 ni la 33: se cae al escalón de solo la 8.
         const r33 = await SB.from('proyecto')
-          .select(COLS_PROY + ', descripcion, salud' + ORD)
+          .select(COLS_PROY + ', descripcion, salud')
           .eq('archivado', false).order('nombre');
         if (!r33.error) { data = r33.data; FALTA_M32 = true; FALTA_M33 = true; error = null; }
       }
     }
     if (error) {
-      const r = await SB.from('proyecto').select(COLS_PROY + ORD).eq('archivado', false).order('nombre');
+      const r = await SB.from('proyecto').select(COLS_PROY).eq('archivado', false).order('nombre');
       if (!r.error) {
         // Si sin `descripcion, salud` anda, es que esas columnas no
         // están: ahí sí falta la 8. Se deja dicho cuál fue el error
@@ -3986,20 +3993,28 @@
 
   // `antesDe` es el proyecto delante del cual queda. Si es null, va al
   // final de su grupo.
+  //
+  //  El número que se escribe es TUYO: va a `proyecto_orden` con tu
+  //  user_id, no a la ficha del proyecto. Marti puede tener el mismo
+  //  proyecto tercero y a vos quedarte primero.
   async function soltarProyecto(id, grupo, antesDe) {
     if (id === antesDe) return;
-    if (FALTA_M37) {
-      toast('Primero corré migracion-interno-37-orden-de-proyectos.sql', 'warn');
+    if (FALTA_M38) {
+      toast('Primero corré migracion-interno-38-orden-propio.sql', 'warn');
       return;
     }
-    // La lista del grupo, sin el que estás moviendo.
+    if (!ME) return;
+
+    // La lista del grupo, sin el que estás moviendo. Ya viene ordenada
+    // como la ves, así que los vecinos son los de al lado de verdad.
     const del = p => (esFav(p.id) ? 'fav' : (p.finalizado_en ? 'fin' : 'act'));
     const grupoLista = PROYECTOS.filter(p => del(p) === grupo && p.id !== id);
     const i = antesDe ? grupoLista.findIndex(p => p.id === antesDe) : grupoLista.length;
     if (antesDe && i === -1) return;
 
-    const antes = i > 0 ? Number(grupoLista[i - 1].orden) : null;
-    const desp  = i < grupoLista.length ? Number(grupoLista[i].orden) : null;
+    const numDe = p => { const o = ORDEN_PROY[p.id]; return o == null ? null : Number(o); };
+    const antes = i > 0 ? numDe(grupoLista[i - 1]) : null;
+    const desp  = i < grupoLista.length ? numDe(grupoLista[i]) : null;
 
     let nuevo;
     if (antes == null && desp == null) nuevo = 1000;
@@ -4007,53 +4022,55 @@
     else if (desp == null)  nuevo = antes + 1000;
     else nuevo = (antes + desp) / 2;
 
-    // Si dos vecinos quedaron con el mismo número —puede pasar después de
-    // muchos movimientos— el promedio da uno de los dos y el orden se
-    // vuelve impredecible. Ahí sí se renumera el grupo entero, una vez.
+    // Si los dos vecinos quedaron con el mismo número, o el promedio no
+    // cae entre ellos —pasa después de muchísimos movimientos, o cuando
+    // los de al lado todavía no tienen número— se renumera el grupo
+    // entero una vez y listo.
     if (antes != null && desp != null && !(nuevo > antes && nuevo < desp)) {
       await renumerarGrupo(grupoLista, id, i);
       return;
     }
+    if (desp == null && i < grupoLista.length) { await renumerarGrupo(grupoLista, id, i); return; }
+    if (antes == null && i > 0) { await renumerarGrupo(grupoLista, id, i); return; }
 
-    const p = PROYECTOS.find(x => x.id === id);
-    if (!p) return;
-    const previo = p.orden;
-    p.orden = nuevo;
-    PROYECTOS = ordenarProyectos(PROYECTOS);
-    renderProyectosSidebar();
-
-    const { error } = await SB.from('proyecto').update({ orden: nuevo }).eq('id', id);
-    if (error) {
-      p.orden = previo;
-      PROYECTOS = ordenarProyectos(PROYECTOS);
-      renderProyectosSidebar();
-      toast('No se pudo guardar el orden: ' + error.message, 'warn');
-    }
+    await guardarOrden([{ id: id, orden: nuevo }]);
   }
 
-  // El caso raro: no hay hueco entre dos vecinos. Se reparte el grupo de
-  // mil en mil y listo. Pasa una vez cada muchísimos movimientos.
+  // El caso raro: no hay hueco entre dos vecinos, o los vecinos todavía
+  // no tienen número. Se reparte el grupo de mil en mil, una vez.
   async function renumerarGrupo(grupoLista, id, pos) {
     const movido = PROYECTOS.find(x => x.id === id);
     if (!movido) return;
     const nueva = grupoLista.slice();
     nueva.splice(pos, 0, movido);
+    await guardarOrden(nueva.map((p, k) => ({ id: p.id, orden: (k + 1) * 1000 })));
+  }
 
-    const previos = nueva.map(p => p.orden);
-    nueva.forEach((p, k) => { p.orden = (k + 1) * 1000; });
+  // Se pinta primero y se guarda después: arrastrar tiene que responder
+  // en el momento. Si la base rechaza, vuelve solo a como estaba.
+  async function guardarOrden(filas) {
+    const previo = {};
+    filas.forEach(f => { previo[f.id] = ORDEN_PROY[f.id]; });
+
+    filas.forEach(f => { ORDEN_PROY[f.id] = f.orden; });
     PROYECTOS = ordenarProyectos(PROYECTOS);
     renderProyectosSidebar();
 
-    for (let k = 0; k < nueva.length; k++) {
-      const { error } = await SB.from('proyecto')
-        .update({ orden: nueva[k].orden }).eq('id', nueva[k].id);
-      if (error) {
-        nueva.forEach((p, j) => { p.orden = previos[j]; });
-        PROYECTOS = ordenarProyectos(PROYECTOS);
-        renderProyectosSidebar();
-        toast('No se pudo guardar el orden: ' + error.message, 'warn');
-        return;
-      }
+    // Una sola ida a la base aunque sean ocho filas: si fueran ocho
+    // pedidos sueltos y el quinto fallara, la lista quedaría a medio
+    // ordenar y sin forma de saber por dónde iba.
+    const { error } = await SB.from('proyecto_orden').upsert(
+      filas.map(f => ({ user_id: ME.id, proyecto_id: f.id, orden: f.orden })),
+      { onConflict: 'user_id,proyecto_id' });
+
+    if (error) {
+      filas.forEach(f => {
+        if (previo[f.id] == null) delete ORDEN_PROY[f.id];
+        else ORDEN_PROY[f.id] = previo[f.id];
+      });
+      PROYECTOS = ordenarProyectos(PROYECTOS);
+      renderProyectosSidebar();
+      toast('No se pudo guardar el orden: ' + error.message, 'warn');
     }
   }
 
@@ -4095,6 +4112,20 @@
       .select('proyecto_id').eq('user_id', ME.id);
     if (error) { FALTA_M18 = true; FAVORITOS = []; return; }
     FAVORITOS = (data || []).map(x => x.proyecto_id);
+  }
+
+  // ── El orden de la lista, que es TUYO ────────────────────────
+  //  Igual que los favoritos: cada una arma la lista según los
+  //  clientes que atiende, así que lo que a una le ordena a otra le
+  //  desordena. La base solo te devuelve tus filas.
+  async function cargarOrdenProyectos() {
+    if (!ME) return;
+    const { data, error } = await SB.from('proyecto_orden')
+      .select('proyecto_id, orden').eq('user_id', ME.id);
+    if (error) { FALTA_M38 = true; ORDEN_PROY = {}; return; }
+    FALTA_M38 = false;
+    ORDEN_PROY = {};
+    (data || []).forEach(x => { ORDEN_PROY[x.proyecto_id] = Number(x.orden); });
   }
 
   let PROY_EDIT = null;
