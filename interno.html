@@ -93,6 +93,21 @@
     display: flex; flex-direction: column; gap: 20px;
     position: sticky; top: 0; height: 100vh;
   }
+  /* Con treinta proyectos la lista no entra en la pantalla. El que
+     scrollea es SOLO este bloque: la marca arriba y tu ficha abajo se
+     quedan quietas. Si scrolleara la barra entera, para cerrar sesión
+     habría que bajar hasta el final de los proyectos.
+     `min-height: 0` no es decorativo: sin eso, un hijo de un flex
+     column no achica por debajo de su contenido y el scroll no
+     aparece nunca, por más `overflow` que le pongas. */
+  .nav-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+  /* Una barrita finita, que no tape el nombre del proyecto. */
+  .nav-scroll { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .nav-scroll::-webkit-scrollbar { width: 7px; }
+  .nav-scroll::-webkit-scrollbar-track { background: transparent; }
+  .nav-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .nav-scroll:hover::-webkit-scrollbar-thumb { background: #DAD6E0; }
+
   .brand { padding: 4px 8px 16px; border-bottom: 1px solid var(--line); }
   .brand-name {
     font-family: var(--body); font-size: 19px; font-weight: 700;
@@ -2139,6 +2154,13 @@
       box-shadow: 8px 0 40px rgba(26,22,32,0.14);
     }
     .sidebar.abierto { transform: none; }
+    /* Acá scrollea la barra entera, así que el bloque de adentro no
+       tiene que scrollear también: dos scrolls anidados con el dedo
+       son una pelea. */
+    /* Los dos ejes: si uno queda en `hidden`, el navegador convierte el
+       otro en `auto` solo, y volvés a tener el scroll anidado sin
+       haberlo pedido. */
+    .nav-scroll { overflow: visible; flex: 0 0 auto; }
     .tapa-menu {
       position: fixed; inset: 0; background: rgba(26,22,32,0.35); z-index: 95;
       opacity: 0; pointer-events: none; transition: opacity .2s;
@@ -2260,7 +2282,7 @@
       </button>
     </nav>
 
-    <div>
+    <div class="nav-scroll">
       <nav class="nav-group" id="navFavoritos"></nav>
       <div class="nav-label-row">
         <button class="nav-label plegar" id="btnPlegarProy" title="Minimizar">
@@ -2294,7 +2316,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/08 16:22</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/08 18:03</div>
     </div>
   </aside>
 
