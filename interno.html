@@ -2316,7 +2316,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/08 18:03</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/08 18:13</div>
     </div>
   </aside>
 
@@ -4073,6 +4073,16 @@
         const { data, error } = await SB.from('proyecto').insert(fila).select('id').single();
         if (error) { toast('No se pudo crear: ' + error.message, 'warn'); return; }
         id = data.id;
+
+        // Un proyecto nuevo nace con las cuatro columnas de siempre.
+        // Antes nacía vacío y lo primero que veías era un cartel
+        // pidiéndote que apretaras un botón: un paso que el panel
+        // podía dar solo. Si querés otras columnas, las cambiás — y si
+        // esto fallara, el proyecto queda creado igual y el cartel
+        // vuelve a aparecer, así que no se pierde nada.
+        const { error: sErr } = await SB.from('seccion').insert(
+          SECS_DEFECTO.map(x => ({ proyecto_id: id, nombre: x.nombre, tipo: x.tipo, orden: x.orden })));
+        if (sErr) toast('Proyecto creado, pero sin las columnas: ' + sErr.message, 'warn');
       }
 
       // Sincronizar miembros: borro los que sacaste, agrego los nuevos
