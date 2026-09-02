@@ -844,6 +844,21 @@
   .puerta-caja p { font-size: 13.5px; line-height: 1.6; color: var(--ink-mute); margin-bottom: 22px; }
   .puerta-caja .btn-primary { display: inline-flex; text-decoration: none; }
 
+  /* Una subtarea, colgando de la suya en la lista. Se corre a la
+     derecha y se ata con una línea: sin eso, con veinte filas seguidas
+     no se entiende de cuál cuelga. */
+  .fila.sub { padding-left: 34px; position: relative; }
+  .fila.sub .fila-titulo { font-size: 13px; }
+  .fila-rama {
+    position: absolute; left: 16px; top: 0; bottom: 50%;
+    width: 10px; border-left: 1.5px solid var(--line);
+    border-bottom: 1.5px solid var(--line); border-bottom-left-radius: 6px;
+    pointer-events: none;
+  }
+  /* Dos subtareas seguidas: la línea de la de arriba llega hasta la de
+     abajo, así se lee como una sola rama y no como dos ganchos sueltos. */
+  .fila.sub + .fila.sub .fila-rama { top: -50%; }
+
   /* ── A PAGAR ──────────────────────────────── */
   /* El contador de la solapa: cuántos trabajos hay sin saldar. */
   .tab-n {
@@ -2316,7 +2331,7 @@
         </div>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/08 18:13</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v02/09 15:37</div>
     </div>
   </aside>
 
@@ -4175,15 +4190,13 @@
   function subtareasDe(id) { return TAREAS.filter(t => t.padre_id === id); }
   function madreDe(t) { return t && t.padre_id ? TAREAS.find(x => x.id === t.padre_id) : null; }
 
-  function visibles() {
+  // ¿Esta tarea pasa los filtros de arriba? Separado de `visibles()`
+  // porque lo necesitan dos cosas: la lista general y las subtareas que
+  // cuelgan de cada fila. Si cada una tuviera su copia, filtrar por
+  // persona te mostraría igual la subtarea de otra colgando de tu tarea.
+  function pasaFiltros(t) {
     const q = FILTRO.texto.trim().toLowerCase();
-    // Las subtareas no salen como tarjetas sueltas en el tablero: se ven
-    // adentro de su tarea madre, igual que en Asana. Sí aparecen cuando
-    // estás mirando lo de UNA persona (o lo tuyo), que es donde importa
-    // saber que tenés un paso asignado.
-    const porPersona = !!(FILTRO.mias || FILTRO.persona || FILTRO.texto.trim());
-    return TAREAS.filter(t => {
-      if (t.padre_id && !porPersona) return false;
+    {
       if (q) {
         const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
@@ -4199,10 +4212,29 @@
 
       if (FILTRO.mias && ME && t.responsable_id !== ME.id) return false;
 
-
       return true;
+    }
+  }
+
+  function visibles() {
+    // Las subtareas no salen como filas sueltas: se ven colgando de la
+    // suya. Sí aparecen por su cuenta cuando estás mirando lo de UNA
+    // persona, que es donde importa saber que tenés un paso asignado —
+    // y ahí puede que su madre no esté en pantalla.
+    const porPersona = !!(FILTRO.mias || FILTRO.persona || FILTRO.texto.trim());
+    return TAREAS.filter(t => {
+      if (t.padre_id && !porPersona) return false;
+      return pasaFiltros(t);
     });
   }
+
+  // Las subtareas que se dibujan colgando de una fila: las suyas, pero
+  // solo las que pasan los mismos filtros que todo lo demás.
+  function subsVisibles(id) {
+    return subtareasDe(id).filter(pasaFiltros)
+      .slice().sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  }
+
   function hayFiltro() {
     return !!(FILTRO.texto || FILTRO.persona || FILTRO.cliente || FILTRO.proyecto || FILTRO.mias);
   }
@@ -6336,8 +6368,26 @@
       '</div>';
   }
 
-  function renderLista(list) {
+  function renderLista(listaCruda) {
     const p = proyActivo();
+
+    // Una subtarea se dibuja colgando de la suya. Si además viniera en
+    // la lista por su cuenta —pasa al filtrar por persona— saldría dos
+    // veces. Se saca de arriba SOLO cuando su madre también está en
+    // vista; si la madre no está, la subtarea se queda como fila propia
+    // para que no desaparezca de "Mías".
+    const enVista = {};
+    listaCruda.forEach(t => { enVista[t.id] = 1; });
+    const list = listaCruda.filter(t => !(t.padre_id && enVista[t.padre_id]));
+
+    // Para contar: las subtareas que se van a ver colgando cuentan en el
+    // número de arriba. Si no, la sección diría "2 abiertas" mostrando
+    // tres casilleros sin tildar.
+    const conSubs = items => {
+      const out = [];
+      items.forEach(t => { out.push(t); subsVisibles(t.id).forEach(x => out.push(x)); });
+      return out;
+    };
 
     // Dentro de un proyecto la lista se agrupa por sección, con una
     // fila para agregar tarea al final de cada una — como Asana.
@@ -6350,8 +6400,8 @@
       }
       const sinSec = list.filter(t => { const x = tpEn(t.id, p.id); return x && !x.seccion_id; });
       let html = encabezadoLista(false)
-        + secs.map(sec => bloqueSeccion(sec, list.filter(t => (tpEn(t.id, p.id) || {}).seccion_id === sec.id))).join('');
-      if (sinSec.length) html += bloqueSeccion({ id: '__sinsec', nombre: 'Sin sección', tipo: 'pendiente' }, sinSec, true);
+        + secs.map(sec => bloqueSeccion(sec, list.filter(t => (tpEn(t.id, p.id) || {}).seccion_id === sec.id), false, conSubs)).join('');
+      if (sinSec.length) html += bloqueSeccion({ id: '__sinsec', nombre: 'Sin sección', tipo: 'pendiente' }, sinSec, true, conSubs);
       html += '<button class="btn-ghost" id="btnNuevaSecLista" style="align-self:flex-start">+ Agregar sección</button>';
       $('#lista').innerHTML = html;
       const b = $('#btnNuevaSecLista');
@@ -6394,13 +6444,14 @@
 
     $('#lista').innerHTML = encabezadoLista(true) + claves.map(k => {
       const g = grupos[k];
-      const vencidas = g.items.filter(estaVencida).length;
-      const abiertas = g.items.filter(t => !t.completada).length;
+      const todos = conSubs(g.items);
+      const vencidas = todos.filter(estaVencida).length;
+      const abiertas = todos.filter(t => !t.completada).length;
       const items = ordenarFilas(g.items);
       const col = COLAPSADOS[k] ? ' collapsed' : '';
       return '' +
         '<div class="grupo' + col + '" data-grupo="' + esc(k) + '">' +
-          cabezaGrupo(g.label, vencidas, abiertas, g.items.length) +
+          cabezaGrupo(g.label, vencidas, abiertas, todos.length) +
           '<div class="grupo-body">' + items.map(filaHTML).join('') + '</div>' +
         '</div>';
     }).join('');
@@ -6478,14 +6529,16 @@
     return items.slice().sort((a, b) => ordenDe(a, proyId) - ordenDe(b, proyId));
   }
 
-  function bloqueSeccion(sec, items, sinSeccion) {
+  function bloqueSeccion(sec, items, sinSeccion, conSubs) {
     const p = proyActivo();
-    const vencidas = items.filter(estaVencida).length;
-    const abiertas = items.filter(t => !t.completada).length;
+    // Se cuenta lo que de verdad se ve: la tarea y sus subtareas.
+    const todos = conSubs ? conSubs(items) : items;
+    const vencidas = todos.filter(estaVencida).length;
+    const abiertas = todos.filter(t => !t.completada).length;
     const col = COLAPSADOS[sec.id] ? ' collapsed' : '';
     const movible = !!p && !sinSeccion;
     return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '">' +
-      cabezaGrupo(sec.nombre, vencidas, abiertas, items.length) +
+      cabezaGrupo(sec.nombre, vencidas, abiertas, todos.length) +
       '<div class="grupo-body" data-col="' + esc(sec.id) + '" data-tipo="' + esc(sec.tipo || '') + '">' +
         (p ? ordenManual(items, p.id) : ordenarFilas(items)).map(t => filaHTML(t, movible)).join('') +
         (sinSeccion ? '' :
@@ -6499,12 +6552,28 @@
 
   const MANO_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg>';
 
+  // Una tarea en la lista, con sus subtareas colgando debajo.
+  //
+  //  Las subtareas SON tareas (tienen `padre_id`), pero no salen como
+  //  filas sueltas: aparecen indentadas abajo de la suya. Antes no
+  //  aparecían en ningún lado de la lista y había que abrir la tarea
+  //  para saber que existían.
+  //
+  //  No se pueden arrastrar: su lugar lo decide de quién cuelgan, no
+  //  el orden de la sección.
   function filaHTML(t, movible) {
+    return filaSola(t, movible) +
+      subsVisibles(t.id).map(s => filaSola(s, false, true)).join('');
+  }
+
+  function filaSola(t, movible, esSub) {
     const desc = resumenTexto(t.descripcion);
     const f = fechaTxt(t.vence);
     const done = !!t.completada;
     return '' +
-      '<div class="fila' + (done ? ' done' : '') + (movible ? ' mov' : '') + '" data-id="' + t.id + '"' + varColor(t) + '>' +
+      '<div class="fila' + (done ? ' done' : '') + (movible ? ' mov' : '') +
+        (esSub ? ' sub' : '') + '" data-id="' + t.id + '"' + varColor(t) + '>' +
+        (esSub ? '<div class="fila-rama" aria-hidden="true"></div>' : '') +
         (movible ? '<div class="fila-mano" title="Arrastrá para reordenar">' + MANO_SVG + '</div>' : '') +
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
         '<div class="fila-main">' +
