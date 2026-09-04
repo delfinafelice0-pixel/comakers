@@ -68,7 +68,12 @@
     --linea-fuerte: #DAD6E0;      /* bordes que sí se tienen que ver */
     --punto: #CFC9D6;             /* los puntitos y las barritas neutras */
     --sobre-acento: #FFFFFF;      /* texto ARRIBA del rosa o del ink */
-    --sobre-rosa: #1B1620;        /* y el que va sobre el rosa lleno, en los dos modos */
+    /* El texto que va ARRIBA de un color de marca lleno —el rosa, el
+       verde, el coral—. Es oscuro en los DOS modos y no cambia nunca:
+       esos colores son los mismos en claro y en oscuro, así que si acá
+       usáramos `--ink` en oscuro quedaría casi blanco sobre rosa y no
+       se leería. Fue justo lo que pasó con el botón "Finalizada". */
+    --sobre-lleno: #1B1620;
     --verde-txt: #4E7C1C;         /* el verde que se lee, no el de fondo */
     --ambar: #FFF3D6;
     --ambar-txt: #7A5B12;
@@ -158,20 +163,25 @@
      oscuro: el rosa de la marca es el mismo en los dos, así que si acá
      usáramos `--ink` en oscuro quedaría casi blanco sobre rosa y no se
      leería. */
-  .nav-item.active { background: var(--accent); color: var(--sobre-rosa); }
+  .nav-item.active { background: var(--accent); color: var(--sobre-lleno); }
   .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-mute); }
   .nav-item.active svg { color: inherit; }
   .nav-item.soon { opacity: 0.4; cursor: default; }
   .nav-item.soon:hover { background: none; color: var(--ink-soft); }
   .nav-item .badge {
-    margin-left: auto; background: var(--warn); color: var(--sobre-rosa);
+    margin-left: auto; background: var(--warn); color: var(--sobre-lleno);
     font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px;
   }
-  .nav-item.active .badge { background: var(--sobre-rosa); color: var(--accent); }
+  .nav-item.active .badge { background: var(--sobre-lleno); color: var(--accent); }
   .nav-item .soon-tag {
     margin-left: auto; font-size: 9px; letter-spacing: 0.06em;
     text-transform: uppercase; color: var(--ink-mute);
   }
+  /* Cuántas abiertas tiene el proyecto en el que estás parada. Sobre el
+     rosa del proyecto activo, el gris apagado no se leía —ni en claro ni
+     en oscuro—: sobre un color lleno va el texto oscuro, con un poco de
+     transparencia para que siga siendo un dato secundario. */
+  .nav-item.active .soon-tag { color: var(--sobre-lleno); opacity: 0.7; }
 
   .sidebar-footer {
     margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line);
@@ -180,7 +190,7 @@
   .user-card { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
   .avatar {
     width: 32px; height: 32px; border-radius: 50%;
-    background: var(--accent); color: var(--ink);
+    background: var(--accent); color: var(--sobre-lleno);
     display: flex; align-items: center; justify-content: center;
     font-weight: 600; font-size: 13px; flex-shrink: 0;
   }
@@ -221,7 +231,7 @@
     padding: 9px 14px; font-size: 13px; font-weight: 600;
     display: flex; align-items: center; gap: 6px; transition: all 0.15s;
   }
-  .btn-primary:hover { background: var(--accent); color: var(--ink); }
+  .btn-primary:hover { background: var(--accent); color: var(--sobre-lleno); }
   .btn-primary svg { width: 14px; height: 14px; }
   .btn-ghost {
     border: 1px solid var(--line); background: var(--bg-elev);
@@ -449,7 +459,7 @@
   .avatar-sm.otra { background: var(--line); color: var(--ink-soft); }
   .avatar-sm {
     width: 24px; height: 24px; border-radius: 50%;
-    background: var(--accent); color: var(--ink);
+    background: var(--accent); color: var(--sobre-lleno);
     display: flex; align-items: center; justify-content: center;
     font-weight: 600; font-size: 11px; flex-shrink: 0;
   }
@@ -584,7 +594,7 @@
   }
   .btn-fin:hover { border-color: var(--good); background: var(--good-soft); color: var(--ink); }
   .btn-fin svg { width: 13px; height: 13px; }
-  .btn-fin.on { background: var(--good); border-color: var(--good); color: var(--ink); }
+  .btn-fin.on { background: var(--good); border-color: var(--good); color: var(--sobre-lleno); }
   .nav-vacio { font-size: 11px; color: var(--ink-mute); padding: 2px 10px 4px; font-style: italic; }
 
   /* Sin relleno: el punto de color ya dice de qué proyecto es. Así queda
@@ -668,7 +678,7 @@
 
   /* ── BANDEJA · COLABORADORAS · MENCIONES ─── */
   .nav-item .badge-nov {
-    margin-left: auto; background: var(--accent); color: var(--ink);
+    margin-left: auto; background: var(--accent); color: var(--sobre-lleno);
     font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px;
   }
   .bandeja-filtros { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -1789,7 +1799,7 @@
     background: var(--ink); color: var(--bg-elev); border-radius: 8px;
     padding: 7px 12px; font-size: 12px; font-weight: 600; flex-shrink: 0;
   }
-  .add-row button:hover { background: var(--accent); color: var(--ink); }
+  .add-row button:hover { background: var(--accent); color: var(--sobre-lleno); }
 
   /* adjuntos */
   .adj { display: flex; align-items: center; gap: 9px; padding: 8px 10px; margin: 0 -10px; border-radius: 8px; }
@@ -1833,7 +1843,7 @@
     font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(26,26,23,0.18);
     animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1); max-width: 340px;
   }
-  .toast.warn { background: var(--warn); color: var(--ink); }
+  .toast.warn { background: var(--warn); color: var(--sobre-lleno); }
   @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .toast.out { opacity: 0; transform: translateY(6px); transition: all 0.3s; }
 
@@ -2267,7 +2277,7 @@
     .barra-movil .bm-nueva { background: var(--ink); color: var(--bg-elev); }
     .barra-movil .bm-nov {
       position: absolute; top: 6px; left: 30px; min-width: 16px; height: 16px;
-      border-radius: 10px; background: var(--warn); color: var(--ink);
+      border-radius: 10px; background: var(--warn); color: var(--sobre-lleno);
       font-size: 9px; font-weight: 700; display: flex; align-items: center;
       justify-content: center; padding: 0 4px;
     }
@@ -2529,7 +2539,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v03/09 12:40</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 12:32</div>
     </div>
   </aside>
 
