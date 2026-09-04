@@ -769,6 +769,52 @@
   }
   .men-pop button:hover, .men-pop button.sel { background: var(--line-soft); }
   .men-pop .vacio-men { font-size: 12px; color: var(--ink-mute); padding: 8px; }
+  .men-pop .crear-etq { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 7px; }
+  .men-pop .crear-etq b { font-weight: 600; }
+
+  /* ── ETIQUETAS ─────────────────────────────
+     La pastilla se pinta con el color de la etiqueta al 18% y el texto
+     con el color pleno: así se distinguen de un vistazo sin que seis
+     etiquetas juntas parezcan un semáforo. */
+  .etqs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .etq {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 20px; padding: 2px 4px 2px 9px;
+    font-size: 11.5px; font-weight: 600; line-height: 1.6;
+    border: 1px solid transparent; white-space: nowrap;
+  }
+  .etq .quitar {
+    border: none; background: none; cursor: pointer; color: inherit;
+    font-size: 13px; line-height: 1; padding: 0 3px 1px; opacity: 0.45;
+  }
+  .etq .quitar:hover { opacity: 1; }
+  .etq.solo { padding: 2px 9px; }
+  .etq-punto { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .etq-vacio { font-size: 12px; color: var(--ink-mute); font-style: italic; }
+
+  /* La tabla de administración */
+  .etq-fila {
+    display: grid; grid-template-columns: minmax(140px, 1fr) 150px 90px 34px;
+    align-items: center; gap: 10px; padding: 9px 12px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .etq-fila:last-child { border-bottom: none; }
+  .etq-fila:hover { background: var(--line-soft); }
+  .etq-fila .nombre-fila { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .etq-fila .nombre-etq {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    border: 1px solid transparent; border-radius: 6px; padding: 3px 6px; margin: 0 -6px;
+    outline: none;
+  }
+  .etq-fila .nombre-etq:hover { border-color: var(--line); }
+  .etq-fila .nombre-etq:focus { background: var(--bg); border-color: var(--accent); }
+  .etq-fila .cuantas { font-size: 12px; color: var(--ink-mute); text-align: right; }
+  .etq-colores { display: flex; gap: 4px; }
+  .etq-colores button {
+    width: 17px; height: 17px; border-radius: 5px; border: 2px solid transparent;
+    padding: 0; cursor: pointer;
+  }
+  .etq-colores button.on { border-color: var(--ink); }
 
   /* ── EQUIPO · CLIENTES · WIKI ─────────────── */
   .mod-head { margin-bottom: 18px; }
@@ -2513,6 +2559,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
           Servicios
         </button>
+        <button class="nav-item" id="navEtiquetas" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V3h10z"></path><circle cx="7.5" cy="7.5" r="1.4"></circle></svg>
+          Etiquetas
+        </button>
         <button class="nav-item" id="navPlata" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
           Contabilidad
@@ -2553,7 +2603,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 12:32</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 13:04</div>
     </div>
   </aside>
 
@@ -2583,6 +2633,9 @@
 
     <!-- ═══════════ SERVICIOS ═══════════ -->
     <div id="modServicios" style="display:none"></div>
+
+    <!-- ═══════════ ETIQUETAS ═══════════ -->
+    <div id="modEtiquetas" style="display:none"></div>
 
     <!-- ═══════════ CONTABILIDAD ═══════════ -->
     <div id="modPlata" style="display:none"></div>
@@ -3077,6 +3130,11 @@
 <!-- ═══════════ MODAL FINALIZAR PROYECTO ═══════════ -->
 
 
+<!-- El buscador de etiquetas. Va suelto al final del body, como el de
+     menciones: adentro del panel de la tarea quedaría cortado por el
+     borde del panel. -->
+<div class="men-pop" id="etqPop"></div>
+
 <div class="toasts" id="toasts"></div>
 
 <script>
@@ -3094,6 +3152,7 @@
   // paga desde administración.
   let FALTA_M15 = false, FALTA_M18 = false;
   let FALTA_M26 = false;   // sin la 26 no existe `tarea.cliente_manual`
+  let FALTA_M42 = false;   // sin la 42 no hay etiquetas ni memoria de sección
   let FALTA_M36 = false;   // sin la 36 no existe `trabajo_extra`
   let TRABAJOS_EX = [];
 
@@ -3691,8 +3750,11 @@
     $('#saludo').textContent = SALUDO_BASE;
 
     await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos(),
-                       cargarFavoritos(), cargarOrdenProyectos()]);
-    // Las cinco salen juntas para no encadenar esperas, así que el orden
+                       cargarFavoritos(), cargarOrdenProyectos(), cargarEtiquetas()]);
+    // Las de las tareas van después: necesitan saber si la migración 42
+    // está corrida, y eso lo contesta `cargarEtiquetas`.
+    await cargarTareaEtiquetas();
+    // Salen todas juntas para no encadenar esperas, así que el orden
     // puede llegar después de los proyectos. Se reordena acá, ya con las
     // dos cosas en la mano.
     PROYECTOS = ordenarProyectos(PROYECTOS);
@@ -3826,7 +3888,16 @@
   }
 
   async function cargarTP() {
-    const { data, error } = await SB.from('tarea_proyecto').select('tarea_id, proyecto_id, seccion_id, orden, principal');
+    // `seccion_previa` es de la migración 42: es lo que se acuerda de
+    // dónde estaba la tarea antes de finalizarla. Si todavía no corrió,
+    // se pide sin ella en vez de quedarnos sin tablero.
+    const COLS_TP = 'tarea_id, proyecto_id, seccion_id, orden, principal';
+    let { data, error } = await SB.from('tarea_proyecto').select(COLS_TP + ', seccion_previa');
+    if (error && faltaDeVerdad(error)) {
+      FALTA_M42 = true;
+      const r = await SB.from('tarea_proyecto').select(COLS_TP);
+      if (!r.error) { data = r.data; error = null; }
+    }
     if (error) avisarFalla('vínculos tarea-proyecto', error);
     TP = data || [];
   }
@@ -4269,6 +4340,84 @@
     }
   }
 
+  // ═══════════════ ETIQUETAS ═══════════════
+  //
+  //  Una etiqueta agrupa cosas que no son un proyecto ni un cliente:
+  //  "esperando al cliente", "hay que facturar". Están pensadas para
+  //  que más adelante disparen automatizaciones, y por eso CREARLAS es
+  //  solo de las socias: si cualquiera puede inventar una, en un mes
+  //  hay tres que dicen casi lo mismo y ninguna regla pega. Ponerlas y
+  //  sacarlas de una tarea, en cambio, la puede cualquiera: eso es
+  //  trabajo diario.
+  //
+  //  El candado de verdad está en la base (migración 42). Lo de acá es
+  //  la cortesía de no mostrar un botón que no lleva a ningún lado.
+  let ETIQUETAS = [];       // todas las de la agencia
+  let TE = [];              // qué tarea tiene qué etiqueta
+
+  // El color va acá arriba, con el resto de lo compartido: la pastilla
+  // se dibuja en la tarea (panel) y en la lista de administración.
+  function colorEtq(e) { return COLORES[e && e.color] || COLORES.gris; }
+  function etiquetaDe(id) { return ETIQUETAS.find(x => x.id === id) || null; }
+  function etiquetasDe(tareaId) {
+    return TE.filter(x => x.tarea_id === tareaId)
+      .map(x => etiquetaDe(x.etiqueta_id)).filter(Boolean)
+      .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+  }
+  // Para comparar nombres: sin mayúsculas y sin los espacios de las
+  // puntas, igual que el índice único de la base. Si acá comparáramos
+  // distinto, el panel dejaría crear "Urgente" teniendo "urgente" y la
+  // base lo rechazaría con un error que no dice nada.
+  function normEtq(s) { return String(s || '').trim().toLowerCase(); }
+
+  async function cargarEtiquetas() {
+    const { data, error } = await SB.from('etiqueta')
+      .select('id, nombre, color, creado_por').order('nombre');
+    if (error) { FALTA_M42 = true; ETIQUETAS = []; return; }
+    ETIQUETAS = data || [];
+  }
+
+  // Crear una etiqueta. Vive acá, en la parte que comparten las dos
+  // páginas, porque se crea desde los dos lados: escribiendo el nombre
+  // en una tarea (panel) y con el botón de la lista (administración).
+  //
+  // Solo crea y devuelve la etiqueta. Ponerla en una tarea es otra
+  // cosa y la hace quien la llamó: administración no tiene tareas.
+  async function crearEtiqueta(nombre) {
+    const limpio = String(nombre || '').trim();
+    if (!limpio) return null;
+    if (!soySocia()) { toast('Las etiquetas nuevas las crean las socias', 'warn'); return null; }
+    // Escrita distinto pero es la misma: se devuelve la que ya existe.
+    // No es un error — es lo que la persona quería.
+    const repetida = ETIQUETAS.find(e => normEtq(e.nombre) === normEtq(limpio));
+    if (repetida) return repetida;
+    // Un color distinto al de la anterior, para que no salgan todas iguales.
+    const paleta = Object.keys(COLORES).filter(c => c !== 'gris');
+    const color = paleta[ETIQUETAS.length % paleta.length];
+    const { data, error } = await SB.from('etiqueta')
+      .insert({ nombre: limpio, color: color, creado_por: ME ? ME.id : null })
+      .select().single();
+    if (error || !data) {
+      toast('No se pudo crear la etiqueta: ' + ((error && error.message) || ''), 'warn');
+      return null;
+    }
+    ETIQUETAS.push(data);
+    ETIQUETAS.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+    return data;
+  }
+
+  // Gancho para las pruebas: crear una etiqueta sin pasar por la
+  // pantalla. No expone datos ni saltea permisos — la base sigue
+  // decidiendo, esto solo llama a la misma función que el botón.
+  window.__panelEtq = { crear: crearEtiqueta };
+
+  async function cargarTareaEtiquetas() {
+    if (FALTA_M42) { TE = []; return; }
+    const { data, error } = await SB.from('tarea_etiqueta').select('tarea_id, etiqueta_id');
+    if (error) { TE = []; return; }
+    TE = data || [];
+  }
+
   async function cargarFavoritos() {
     if (!ME) return;
     const { data, error } = await SB.from('proyecto_favorito')
@@ -4526,7 +4675,10 @@
     const q = FILTRO.texto.trim().toLowerCase();
     {
       if (q) {
-        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
+        // Las etiquetas entran en la búsqueda de siempre en vez de tener
+        // su propio filtro: escribís "facturar" y aparecen las que
+        // tienen esa etiqueta, sin aprender un control nuevo.
+        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '') + ' ' + etiquetasDe(t.id).map(e => e.nombre).join(' ')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
       }
       if (FILTRO.persona === '__sin') { if (t.responsable_id) return false; }
@@ -5265,7 +5417,8 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios'
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios',
+    etiquetas: 'Etiquetas'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -5287,7 +5440,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'servicios') && !soySocia()) return;
+         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -5322,6 +5475,7 @@
     mostrar('#modEquipo',    MODULO === 'equipo');
     mostrar('#modClientes',  MODULO === 'clientes');
     mostrar('#modServicios', MODULO === 'servicios');
+    mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
     mostrar('#modWiki',      MODULO === 'wiki');
@@ -5334,7 +5488,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
         .forEach(sel => mostrar(sel, true));
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
@@ -5349,6 +5503,7 @@
     activar('#navClientes', MODULO === 'clientes');
     activar('#navWiki',     MODULO === 'wiki');
     activar('#navServicios', MODULO === 'servicios');
+    activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
     activar('#navDist',     MODULO === 'dist');
     activar('#navEquipo',   MODULO === 'equipo');
@@ -5369,7 +5524,8 @@
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
       dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
-      wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.']
+      wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
+      etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página
     t.querySelector('h1').innerHTML = H[0];
     $('#saludo').textContent = H[1];
@@ -8134,6 +8290,100 @@
   }
   const PERIODO_TXT = { mes: '/ mes', semana: '/ semana', unica: 'pago único' };
 
+  // ═══════════════ ETIQUETAS (administración) ═══════════════
+  //  Acá se renombran, se les cambia el color y se borran. Crearlas se
+  //  puede desde acá y también desde la tarea, escribiendo el nombre.
+  //
+  //  Está en administración y no en el panel del equipo porque es lo
+  //  único que las colaboradoras NO pueden hacer con las etiquetas: la
+  //  base no las deja, y mostrarles la pantalla sería mentirles.
+  MODULOS.etiquetas = renderEtiquetas;
+  function renderEtiquetas() {
+    const cont = $si('#modEtiquetas');
+    if (!cont) return;
+    if (!soySocia()) { cont.innerHTML = ''; return; }
+    if (FALTA_M42) {
+      cont.innerHTML = '<div class="res-falta">Falta correr ' +
+        '<code>migracion-interno-42-etiquetas.sql</code> en Supabase: las etiquetas todavía no existen en la base.</div>';
+      return;
+    }
+
+    const cuantas = e => TE.filter(x => x.etiqueta_id === e.id).length;
+    const paleta = Object.keys(COLORES);
+
+    cont.innerHTML =
+      '<div class="mod-head" style="justify-content:flex-end">' +
+        '<div class="mod-acc"><button class="btn-primary" id="etqNueva">+ Nueva etiqueta</button></div>' +
+      '</div>' +
+      (ETIQUETAS.length
+        ? '<div class="tabla">' + ETIQUETAS.map(e =>
+            '<div class="etq-fila" data-etqfila="' + e.id + '">' +
+              '<div class="nombre-fila">' +
+                '<span class="etq-punto" style="background:' + colorEtq(e) + '"></span>' +
+                '<div class="nombre-etq" contenteditable="true" data-etqnom="' + e.id + '" ' +
+                  'spellcheck="false">' + esc(e.nombre) + '</div>' +
+              '</div>' +
+              '<div class="etq-colores">' +
+                paleta.map(c => '<button data-etqcolor="' + e.id + '|' + c + '"' +
+                  (c === e.color ? ' class="on"' : '') +
+                  ' style="background:' + COLORES[c] + '" title="' + c + '"></button>').join('') +
+              '</div>' +
+              '<div class="cuantas">' + cuantas(e) + (cuantas(e) === 1 ? ' tarea' : ' tareas') + '</div>' +
+              '<button class="mini-del" data-etqborrar="' + e.id + '" title="Borrar esta etiqueta" style="opacity:1">×</button>' +
+            '</div>').join('') + '</div>'
+        : '<div class="vacio"><h3>Todavía no hay etiquetas</h3>' +
+          '<p>Una etiqueta agrupa cosas que no son un proyecto ni un cliente: “esperando al cliente”, “hay que facturar”.</p></div>');
+  }
+
+  async function renombrarEtiqueta(id, nombre) {
+    const e = etiquetaDe(id);
+    if (!e) return;
+    const limpio = String(nombre || '').trim();
+    if (!limpio) { renderEtiquetas(); toast('El nombre no puede quedar vacío', 'warn'); return; }
+    if (normEtq(limpio) === normEtq(e.nombre)) { e.nombre = limpio; return; }
+    if (ETIQUETAS.some(x => x.id !== id && normEtq(x.nombre) === normEtq(limpio))) {
+      renderEtiquetas();
+      toast('Ya hay una etiqueta que se llama así', 'warn');
+      return;
+    }
+    const antes = e.nombre;
+    e.nombre = limpio;
+    const { error } = await SB.from('etiqueta').update({ nombre: limpio }).eq('id', id);
+    if (error) { e.nombre = antes; renderEtiquetas(); toast('No se pudo renombrar: ' + error.message, 'warn'); return; }
+    ETIQUETAS.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+    renderEtiquetas();
+  }
+
+  async function colorearEtiqueta(id, color) {
+    const e = etiquetaDe(id);
+    if (!e || e.color === color) return;
+    const antes = e.color;
+    e.color = color;
+    renderEtiquetas();
+    const { error } = await SB.from('etiqueta').update({ color: color }).eq('id', id);
+    if (error) { e.color = antes; renderEtiquetas(); toast('No se pudo cambiar el color: ' + error.message, 'warn'); }
+  }
+
+  async function borrarEtiqueta(id) {
+    const e = etiquetaDe(id);
+    if (!e) return;
+    const n = TE.filter(x => x.etiqueta_id === id).length;
+    // Se dice cuántas tareas la tienen ANTES de preguntar: borrar una
+    // etiqueta que está en treinta tareas no es lo mismo que borrar una
+    // que no usó nadie, y quien confirma tiene que saber cuál es cuál.
+    const aviso = n
+      ? 'La etiqueta "' + e.nombre + '" está puesta en ' + n + (n === 1 ? ' tarea' : ' tareas') +
+        '.\n\nAl borrarla se saca de todas. Las tareas no se tocan.\n\n¿Seguro?'
+      : 'Borrar la etiqueta "' + e.nombre + '"?';
+    if (!confirm(aviso)) return;
+    const { error } = await SB.from('etiqueta').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    ETIQUETAS = ETIQUETAS.filter(x => x.id !== id);
+    TE = TE.filter(x => x.etiqueta_id !== id);
+    renderEtiquetas();
+    toast('Etiqueta borrada');
+  }
+
   MODULOS.servicios = renderServicios;
   function renderServicios() {
     if (!soySocia()) { $('#modServicios').innerHTML = ''; return; }
@@ -9590,6 +9840,35 @@
     }
     const i = e.target.closest('[data-tdid]');
     if (i) { e.preventDefault(); i.blur(); }
+  });
+
+  // ── Etiquetas (administración) ───────────────────────────────
+  on('#navEtiquetas', 'click', () => cambiarModulo('etiquetas'));
+  on('#modEtiquetas', 'click', e => {
+    if (e.target.closest('#etqNueva')) {
+      const nombre = prompt('¿Cómo se llama la etiqueta nueva?');
+      if (nombre) crearEtiqueta(nombre).then(x => { if (x) renderEtiquetas(); });
+      return;
+    }
+    const col = e.target.closest('[data-etqcolor]');
+    if (col) {
+      const [id, c] = col.dataset.etqcolor.split('|');
+      colorearEtiqueta(id, c);
+      return;
+    }
+    const del = e.target.closest('[data-etqborrar]');
+    if (del) borrarEtiqueta(del.dataset.etqborrar);
+  });
+  // El nombre se guarda al salir del casillero, como el de los clientes.
+  on('#modEtiquetas', 'blur', e => {
+    const n = e.target.closest && e.target.closest('[data-etqnom]');
+    if (n) renombrarEtiqueta(n.dataset.etqnom, n.textContent);
+  }, true);
+  on('#modEtiquetas', 'keydown', e => {
+    const n = e.target.closest && e.target.closest('[data-etqnom]');
+    if (!n) return;
+    if (e.key === 'Enter') { e.preventDefault(); n.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); renderEtiquetas(); }
   });
 
   // ── Eventos de la plata ──────────────────────────────────────

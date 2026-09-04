@@ -769,6 +769,52 @@
   }
   .men-pop button:hover, .men-pop button.sel { background: var(--line-soft); }
   .men-pop .vacio-men { font-size: 12px; color: var(--ink-mute); padding: 8px; }
+  .men-pop .crear-etq { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 7px; }
+  .men-pop .crear-etq b { font-weight: 600; }
+
+  /* ── ETIQUETAS ─────────────────────────────
+     La pastilla se pinta con el color de la etiqueta al 18% y el texto
+     con el color pleno: así se distinguen de un vistazo sin que seis
+     etiquetas juntas parezcan un semáforo. */
+  .etqs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .etq {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 20px; padding: 2px 4px 2px 9px;
+    font-size: 11.5px; font-weight: 600; line-height: 1.6;
+    border: 1px solid transparent; white-space: nowrap;
+  }
+  .etq .quitar {
+    border: none; background: none; cursor: pointer; color: inherit;
+    font-size: 13px; line-height: 1; padding: 0 3px 1px; opacity: 0.45;
+  }
+  .etq .quitar:hover { opacity: 1; }
+  .etq.solo { padding: 2px 9px; }
+  .etq-punto { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .etq-vacio { font-size: 12px; color: var(--ink-mute); font-style: italic; }
+
+  /* La tabla de administración */
+  .etq-fila {
+    display: grid; grid-template-columns: minmax(140px, 1fr) 150px 90px 34px;
+    align-items: center; gap: 10px; padding: 9px 12px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .etq-fila:last-child { border-bottom: none; }
+  .etq-fila:hover { background: var(--line-soft); }
+  .etq-fila .nombre-fila { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .etq-fila .nombre-etq {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    border: 1px solid transparent; border-radius: 6px; padding: 3px 6px; margin: 0 -6px;
+    outline: none;
+  }
+  .etq-fila .nombre-etq:hover { border-color: var(--line); }
+  .etq-fila .nombre-etq:focus { background: var(--bg); border-color: var(--accent); }
+  .etq-fila .cuantas { font-size: 12px; color: var(--ink-mute); text-align: right; }
+  .etq-colores { display: flex; gap: 4px; }
+  .etq-colores button {
+    width: 17px; height: 17px; border-radius: 5px; border: 2px solid transparent;
+    padding: 0; cursor: pointer;
+  }
+  .etq-colores button.on { border-color: var(--ink); }
 
   /* ── EQUIPO · CLIENTES · WIKI ─────────────── */
   .mod-head { margin-bottom: 18px; }
@@ -2539,7 +2585,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 12:32</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 13:04</div>
     </div>
   </aside>
 
@@ -2949,6 +2995,19 @@
            pero ocupaban más lugar que el campo que explicaban. -->
       <div class="prop prop-alto">
         <div class="prop-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V3h10z"></path><circle cx="7.5" cy="7.5" r="1.4"></circle></svg>
+          Etiquetas
+          <button type="button" class="info" data-info="Para agrupar cosas que no son un proyecto ni un cliente: “esperando al cliente”, “hay que facturar”. Ponerlas y sacarlas la puede cualquiera; crear una nueva, solo las socias.">i</button>
+        </div>
+        <div class="prop-val prop-col">
+          <div class="etqs" id="dEtiquetas"></div>
+          <input type="text" id="dEtqBuscar" class="sel-campo" autocomplete="off"
+                 placeholder="Buscar una etiqueta…">
+        </div>
+      </div>
+
+      <div class="prop prop-alto">
+        <div class="prop-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><circle cx="4" cy="6" r="1.6"></circle><circle cx="4" cy="18" r="1.6"></circle><path d="M4 7.6v8.8"></path></svg>
           Depende de
           <button type="button" class="info" data-info="Avisa, no traba: podés marcarla finalizada igual. Si pegás el link de una tarea en cualquier texto, queda como pastilla y te lleva de una.">i</button>
@@ -3073,6 +3132,11 @@
   </div>
 </aside>
 
+<!-- El buscador de etiquetas. Va suelto al final del body, como el de
+     menciones: adentro del panel de la tarea quedaría cortado por el
+     borde del panel. -->
+<div class="men-pop" id="etqPop"></div>
+
 <div class="toasts" id="toasts"></div>
 
 <script>
@@ -3090,6 +3154,7 @@
   // paga desde administración.
   let FALTA_M15 = false, FALTA_M18 = false;
   let FALTA_M26 = false;   // sin la 26 no existe `tarea.cliente_manual`
+  let FALTA_M42 = false;   // sin la 42 no hay etiquetas ni memoria de sección
   let FALTA_M36 = false;   // sin la 36 no existe `trabajo_extra`
   let TRABAJOS_EX = [];
 
@@ -3678,8 +3743,11 @@
     $('#saludo').textContent = SALUDO_BASE;
 
     await Promise.all([cargarPersonas(), cargarClientes(), cargarProyectos(),
-                       cargarFavoritos(), cargarOrdenProyectos()]);
-    // Las cinco salen juntas para no encadenar esperas, así que el orden
+                       cargarFavoritos(), cargarOrdenProyectos(), cargarEtiquetas()]);
+    // Las de las tareas van después: necesitan saber si la migración 42
+    // está corrida, y eso lo contesta `cargarEtiquetas`.
+    await cargarTareaEtiquetas();
+    // Salen todas juntas para no encadenar esperas, así que el orden
     // puede llegar después de los proyectos. Se reordena acá, ya con las
     // dos cosas en la mano.
     PROYECTOS = ordenarProyectos(PROYECTOS);
@@ -3817,7 +3885,16 @@
   }
 
   async function cargarTP() {
-    const { data, error } = await SB.from('tarea_proyecto').select('tarea_id, proyecto_id, seccion_id, orden, principal');
+    // `seccion_previa` es de la migración 42: es lo que se acuerda de
+    // dónde estaba la tarea antes de finalizarla. Si todavía no corrió,
+    // se pide sin ella en vez de quedarnos sin tablero.
+    const COLS_TP = 'tarea_id, proyecto_id, seccion_id, orden, principal';
+    let { data, error } = await SB.from('tarea_proyecto').select(COLS_TP + ', seccion_previa');
+    if (error && faltaDeVerdad(error)) {
+      FALTA_M42 = true;
+      const r = await SB.from('tarea_proyecto').select(COLS_TP);
+      if (!r.error) { data = r.data; error = null; }
+    }
     if (error) avisarFalla('vínculos tarea-proyecto', error);
     TP = data || [];
   }
@@ -4260,6 +4337,84 @@
     }
   }
 
+  // ═══════════════ ETIQUETAS ═══════════════
+  //
+  //  Una etiqueta agrupa cosas que no son un proyecto ni un cliente:
+  //  "esperando al cliente", "hay que facturar". Están pensadas para
+  //  que más adelante disparen automatizaciones, y por eso CREARLAS es
+  //  solo de las socias: si cualquiera puede inventar una, en un mes
+  //  hay tres que dicen casi lo mismo y ninguna regla pega. Ponerlas y
+  //  sacarlas de una tarea, en cambio, la puede cualquiera: eso es
+  //  trabajo diario.
+  //
+  //  El candado de verdad está en la base (migración 42). Lo de acá es
+  //  la cortesía de no mostrar un botón que no lleva a ningún lado.
+  let ETIQUETAS = [];       // todas las de la agencia
+  let TE = [];              // qué tarea tiene qué etiqueta
+
+  // El color va acá arriba, con el resto de lo compartido: la pastilla
+  // se dibuja en la tarea (panel) y en la lista de administración.
+  function colorEtq(e) { return COLORES[e && e.color] || COLORES.gris; }
+  function etiquetaDe(id) { return ETIQUETAS.find(x => x.id === id) || null; }
+  function etiquetasDe(tareaId) {
+    return TE.filter(x => x.tarea_id === tareaId)
+      .map(x => etiquetaDe(x.etiqueta_id)).filter(Boolean)
+      .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+  }
+  // Para comparar nombres: sin mayúsculas y sin los espacios de las
+  // puntas, igual que el índice único de la base. Si acá comparáramos
+  // distinto, el panel dejaría crear "Urgente" teniendo "urgente" y la
+  // base lo rechazaría con un error que no dice nada.
+  function normEtq(s) { return String(s || '').trim().toLowerCase(); }
+
+  async function cargarEtiquetas() {
+    const { data, error } = await SB.from('etiqueta')
+      .select('id, nombre, color, creado_por').order('nombre');
+    if (error) { FALTA_M42 = true; ETIQUETAS = []; return; }
+    ETIQUETAS = data || [];
+  }
+
+  // Crear una etiqueta. Vive acá, en la parte que comparten las dos
+  // páginas, porque se crea desde los dos lados: escribiendo el nombre
+  // en una tarea (panel) y con el botón de la lista (administración).
+  //
+  // Solo crea y devuelve la etiqueta. Ponerla en una tarea es otra
+  // cosa y la hace quien la llamó: administración no tiene tareas.
+  async function crearEtiqueta(nombre) {
+    const limpio = String(nombre || '').trim();
+    if (!limpio) return null;
+    if (!soySocia()) { toast('Las etiquetas nuevas las crean las socias', 'warn'); return null; }
+    // Escrita distinto pero es la misma: se devuelve la que ya existe.
+    // No es un error — es lo que la persona quería.
+    const repetida = ETIQUETAS.find(e => normEtq(e.nombre) === normEtq(limpio));
+    if (repetida) return repetida;
+    // Un color distinto al de la anterior, para que no salgan todas iguales.
+    const paleta = Object.keys(COLORES).filter(c => c !== 'gris');
+    const color = paleta[ETIQUETAS.length % paleta.length];
+    const { data, error } = await SB.from('etiqueta')
+      .insert({ nombre: limpio, color: color, creado_por: ME ? ME.id : null })
+      .select().single();
+    if (error || !data) {
+      toast('No se pudo crear la etiqueta: ' + ((error && error.message) || ''), 'warn');
+      return null;
+    }
+    ETIQUETAS.push(data);
+    ETIQUETAS.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+    return data;
+  }
+
+  // Gancho para las pruebas: crear una etiqueta sin pasar por la
+  // pantalla. No expone datos ni saltea permisos — la base sigue
+  // decidiendo, esto solo llama a la misma función que el botón.
+  window.__panelEtq = { crear: crearEtiqueta };
+
+  async function cargarTareaEtiquetas() {
+    if (FALTA_M42) { TE = []; return; }
+    const { data, error } = await SB.from('tarea_etiqueta').select('tarea_id, etiqueta_id');
+    if (error) { TE = []; return; }
+    TE = data || [];
+  }
+
   async function cargarFavoritos() {
     if (!ME) return;
     const { data, error } = await SB.from('proyecto_favorito')
@@ -4517,7 +4672,10 @@
     const q = FILTRO.texto.trim().toLowerCase();
     {
       if (q) {
-        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '')).toLowerCase();
+        // Las etiquetas entran en la búsqueda de siempre en vez de tener
+        // su propio filtro: escribís "facturar" y aparecen las que
+        // tienen esa etiqueta, sin aprender un control nuevo.
+        const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '') + ' ' + etiquetasDe(t.id).map(e => e.nombre).join(' ')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
       }
       if (FILTRO.persona === '__sin') { if (t.responsable_id) return false; }
@@ -5261,7 +5419,8 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios'
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios',
+    etiquetas: 'Etiquetas'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -5283,7 +5442,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'servicios') && !soySocia()) return;
+         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -5317,6 +5476,7 @@
     mostrar('#modEquipo',    MODULO === 'equipo');
     mostrar('#modClientes',  MODULO === 'clientes');
     mostrar('#modServicios', MODULO === 'servicios');
+    mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
     mostrar('#modWiki',      MODULO === 'wiki');
@@ -5329,7 +5489,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
         .forEach(sel => mostrar(sel, true));
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
@@ -5344,6 +5504,7 @@
     activar('#navClientes', MODULO === 'clientes');
     activar('#navWiki',     MODULO === 'wiki');
     activar('#navServicios', MODULO === 'servicios');
+    activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
     activar('#navDist',     MODULO === 'dist');
     activar('#navEquipo',   MODULO === 'equipo');
@@ -5364,7 +5525,8 @@
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
       dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
-      wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.']
+      wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
+      etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página
     t.querySelector('h1').innerHTML = H[0];
     $('#saludo').textContent = H[1];
@@ -7842,6 +8004,7 @@
     $('#dVence').value = t.vence || '';
     $('#dPrioridad').value = t.urgencia || 'normal';
     pintarBotonFin();
+    pintarEtiquetasDrawer();
     pintarProyectosDrawer();
     pintarColabs();
     pintarVenceTag();
@@ -7936,6 +8099,134 @@
     $('#dFinalizar').classList.toggle('on', hecha);
     $('#dFinTxt').textContent = hecha ? 'Finalizada' : 'Marcar como finalizada';
     $('#dFinalizar').title = hecha ? 'Reabrir tarea' : 'Marcar como finalizada';
+  }
+
+  // ── Las etiquetas de la tarea ────────────────────────────────
+  // El fondo de la pastilla: el color de la etiqueta, muy transparente.
+  // Se arma con `color-mix` y no con un hex fijo por dos motivos: el
+  // color lo elige cada una, y así el mismo CSS anda en claro y en
+  // oscuro sin escribir dos veces cada pastilla.
+  function chipEtq(e, conQuitar) {
+    const c = colorEtq(e);
+    return '<span class="etq' + (conQuitar ? '' : ' solo') + '"' +
+      ' style="background:color-mix(in srgb, ' + c + ' 18%, transparent);' +
+      ' border-color:color-mix(in srgb, ' + c + ' 40%, transparent); color:var(--ink)">' +
+      '<span class="etq-punto" style="background:' + c + '"></span>' +
+      esc(e.nombre) +
+      (conQuitar ? '<button class="quitar" data-etqdel="' + e.id + '" title="Sacar esta etiqueta">×</button>' : '') +
+    '</span>';
+  }
+
+  function pintarEtiquetasDrawer() {
+    if (!DETALLE) return;
+    const cont = $si('#dEtiquetas');
+    if (!cont) return;
+    if (FALTA_M42) {
+      cont.innerHTML = '<div class="etq-vacio">Falta correr <code>migracion-interno-42-etiquetas.sql</code>.</div>';
+      mostrar('#dEtqBuscar', false);
+      return;
+    }
+    mostrar('#dEtqBuscar', true);
+    const mias = etiquetasDe(DETALLE.id);
+    cont.innerHTML = mias.length
+      ? mias.map(e => chipEtq(e, true)).join('')
+      : '<div class="etq-vacio">Sin etiquetas.</div>';
+    const inp = $si('#dEtqBuscar');
+    if (inp) inp.placeholder = soySocia()
+      ? 'Buscar una etiqueta, o escribir una nueva…'
+      : 'Buscar una etiqueta…';
+  }
+
+  // ── El buscador de etiquetas ─────────────────────────────────
+  //  Igual que el de menciones: se abre debajo del campo y se maneja
+  //  con las flechas y Enter. Lo que cambia es que si sos socia y lo
+  //  que escribiste no existe todavía, la última opción es crearla.
+  let ETQ_LISTA = [], ETQ_SEL = 0;
+
+  function cerrarEtqPop() {
+    const p = $si('#etqPop');
+    if (p) p.classList.remove('on');
+    ETQ_LISTA = [];
+  }
+
+  function abrirEtqPop() {
+    const inp = $si('#dEtqBuscar');
+    const pop = $si('#etqPop');
+    if (!inp || !pop || !DETALLE) return;
+    const q = normEtq(inp.value);
+    const puestas = TE.filter(x => x.tarea_id === DETALLE.id).map(x => x.etiqueta_id);
+
+    ETQ_LISTA = ETIQUETAS
+      .filter(e => puestas.indexOf(e.id) === -1)
+      .filter(e => !q || normEtq(e.nombre).indexOf(q) !== -1)
+      .slice(0, 8)
+      .map(e => ({ etiqueta: e }));
+
+    // ¿Se puede crear la que escribió? Solo si es socia, escribió algo,
+    // y no existe ya una que se llame igual —esté puesta o no—.
+    const yaExiste = q && ETIQUETAS.some(e => normEtq(e.nombre) === q);
+    if (q && soySocia() && !yaExiste) ETQ_LISTA.push({ crear: inp.value.trim() });
+
+    if (!ETQ_LISTA.length) {
+      pop.innerHTML = '<div class="vacio-men">' +
+        (q ? (soySocia() ? 'Ya está puesta.' : 'No hay ninguna con ese nombre. Las etiquetas nuevas las crean las socias.')
+           : 'Todavía no hay etiquetas.') + '</div>';
+      pop.classList.add('on');
+      ubicarPop(pop, inp);
+      return;
+    }
+
+    ETQ_SEL = 0;
+    pop.innerHTML = ETQ_LISTA.map((x, i) => {
+      const sel = i === 0 ? ' sel' : '';
+      if (x.crear) {
+        return '<button type="button" class="crear-etq' + sel + '" data-etqcrear="1">' +
+          '+ Crear <b>' + esc(x.crear) + '</b></button>';
+      }
+      const c = colorEtq(x.etiqueta);
+      return '<button type="button" class="' + sel.trim() + '" data-etqpon="' + x.etiqueta.id + '">' +
+        '<span class="etq-punto" style="background:' + c + '"></span>' + esc(x.etiqueta.nombre) + '</button>';
+    }).join('');
+    pop.classList.add('on');
+    ubicarPop(pop, inp);
+  }
+
+  // Dónde cae el desplegable: debajo del campo, y si no entra, arriba.
+  function ubicarPop(pop, ancla) {
+    const r = ancla.getBoundingClientRect();
+    let top = r.bottom + 4;
+    if (top + pop.offsetHeight > window.innerHeight - 8) top = Math.max(8, r.top - pop.offsetHeight - 4);
+    pop.style.top = top + 'px';
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8)) + 'px';
+  }
+
+  async function ponerEtiqueta(etqId) {
+    if (!DETALLE) return;
+    const tareaId = DETALLE.id;
+    if (TE.some(x => x.tarea_id === tareaId && x.etiqueta_id === etqId)) return;
+    TE.push({ tarea_id: tareaId, etiqueta_id: etqId });
+    pintarEtiquetasDrawer(); render();
+    const { error } = await SB.from('tarea_etiqueta')
+      .insert({ tarea_id: tareaId, etiqueta_id: etqId, puesta_por: ME ? ME.id : null });
+    if (error) {
+      TE = TE.filter(x => !(x.tarea_id === tareaId && x.etiqueta_id === etqId));
+      pintarEtiquetasDrawer(); render();
+      toast('No se pudo poner la etiqueta: ' + error.message, 'warn');
+    }
+  }
+
+  async function sacarEtiqueta(etqId) {
+    if (!DETALLE) return;
+    const tareaId = DETALLE.id;
+    const antes = TE.slice();
+    TE = TE.filter(x => !(x.tarea_id === tareaId && x.etiqueta_id === etqId));
+    pintarEtiquetasDrawer(); render();
+    const { error } = await SB.from('tarea_etiqueta').delete()
+      .eq('tarea_id', tareaId).eq('etiqueta_id', etqId);
+    if (error) {
+      TE = antes; pintarEtiquetasDrawer(); render();
+      toast('No se pudo sacar la etiqueta: ' + error.message, 'warn');
+    }
   }
 
   // Los proyectos donde vive la tarea, cada uno con su sección
@@ -8327,18 +8618,73 @@
   }
 
   // ═══════════════ TOGGLE COMPLETADA ═══════════════
+  // Qué columnas hay que mover cuando una tarea se finaliza o se reabre.
+  //
+  //  Al finalizar: a la columna de tipo `listo` de CADA proyecto donde
+  //  vive —una tarea puede estar en varios— y se anota de dónde vino.
+  //  Al reabrir: vuelve exactamente a esa columna, no a "Por hacer": si
+  //  estaba en "En revisión" cuando la cerraste, ahí vuelve.
+  //
+  //  Lo que no hace: si el proyecto no tiene columna de tipo `listo`, la
+  //  tarea se marca hecha y se queda donde está. No se inventa una
+  //  columna que nadie pidió.
+  function mudanzaPorFinalizar(tareaId, finalizando) {
+    const pasos = [];
+    tpDe(tareaId).forEach(f => {
+      if (finalizando) {
+        const listo = seccionesDe(f.proyecto_id).find(x => x.tipo === 'listo');
+        if (!listo || f.seccion_id === listo.id) return;
+        pasos.push({ fila: f, seccion_id: listo.id, seccion_previa: f.seccion_id || null });
+      } else {
+        // Sin memoria —porque se finalizó antes de la migración 42— se
+        // queda donde está. Adivinar una columna sería peor que no mover.
+        if (!f.seccion_previa) return;
+        pasos.push({ fila: f, seccion_id: f.seccion_previa, seccion_previa: null });
+      }
+    });
+    return pasos;
+  }
+
   async function alternarCompletada(id) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
     const nuevo = !t.completada;
     const prev = t.completada, prevComp = t.completada_en;
+
+    const pasos = FALTA_M42 ? [] : mudanzaPorFinalizar(id, nuevo);
+    const comoEstaba = pasos.map(p => ({
+      fila: p.fila, seccion_id: p.fila.seccion_id, seccion_previa: p.fila.seccion_previa
+    }));
+
     t.completada = nuevo;
     t.completada_en = nuevo ? new Date().toISOString() : null;
+    pasos.forEach(p => { p.fila.seccion_id = p.seccion_id; p.fila.seccion_previa = p.seccion_previa; });
     render();
-    if (DETALLE && DETALLE.id === id) pintarBotonFin();
+    if (DETALLE && DETALLE.id === id) { pintarBotonFin(); pintarProyectosDrawer(); }
+
+    const volverAtras = () => {
+      t.completada = prev; t.completada_en = prevComp;
+      comoEstaba.forEach(c => { c.fila.seccion_id = c.seccion_id; c.fila.seccion_previa = c.seccion_previa; });
+      render();
+      if (DETALLE && DETALLE.id === id) { pintarBotonFin(); pintarProyectosDrawer(); }
+    };
+
     const { error } = await SB.from('tarea')
       .update({ completada: nuevo, completada_en: t.completada_en }).eq('id', id);
-    if (error) { t.completada = prev; t.completada_en = prevComp; render(); toast('No se pudo actualizar: ' + error.message, 'warn'); return; }
+    if (error) { volverAtras(); toast('No se pudo actualizar: ' + error.message, 'warn'); return; }
+
+    // La mudanza va DESPUÉS de que la tarea quedó guardada: si esto
+    // fallara, lo peor que pasa es que quedó hecha pero en su columna
+    // vieja. Al revés —movida pero sin cerrar— sería más confuso.
+    for (const p of pasos) {
+      const { error: eMov } = await SB.from('tarea_proyecto')
+        .update({ seccion_id: p.seccion_id, seccion_previa: p.seccion_previa })
+        .eq('tarea_id', id).eq('proyecto_id', p.fila.proyecto_id);
+      if (eMov) {
+        toast('Quedó ' + (nuevo ? 'finalizada' : 'reabierta') + ', pero no se pudo mover de columna: ' + eMov.message, 'warn');
+        break;
+      }
+    }
     if (DETALLE && DETALLE.id === id) cargarActividad(id);
   }
 
@@ -8395,6 +8741,59 @@
     b.style.display = 'none';
     const foco = b.dataset.foco ? $si(b.dataset.foco) : caja.querySelector('input, textarea');
     if (foco) foco.focus();
+  });
+
+  // ── Etiquetas de la tarea ────────────────────────────────────
+  on('#dEtqBuscar', 'input', abrirEtqPop);
+  on('#dEtqBuscar', 'focus', abrirEtqPop);
+  on('#dEtqBuscar', 'blur', () => setTimeout(cerrarEtqPop, 160));
+  on('#dEtqBuscar', 'keydown', e => {
+    const pop = $si('#etqPop');
+    if (!pop || !pop.classList.contains('on') || !ETQ_LISTA.length) {
+      if (e.key === 'Escape') cerrarEtqPop();
+      return;
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      ETQ_SEL = (ETQ_SEL + (e.key === 'ArrowDown' ? 1 : ETQ_LISTA.length - 1)) % ETQ_LISTA.length;
+      $$('#etqPop button').forEach((b, i) => b.classList.toggle('sel', i === ETQ_SEL));
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      elegirDeEtqPop(ETQ_LISTA[ETQ_SEL]);
+      return;
+    }
+    if (e.key === 'Escape') { e.preventDefault(); cerrarEtqPop(); }
+  });
+
+  async function elegirDeEtqPop(x) {
+    if (!x) return;
+    const inp = $si('#dEtqBuscar');
+    cerrarEtqPop();
+    if (inp) inp.value = '';
+    if (x.crear) {
+      const nueva = await crearEtiqueta(x.crear);
+      if (nueva) await ponerEtiqueta(nueva.id);
+    } else {
+      await ponerEtiqueta(x.etiqueta.id);
+    }
+    if (inp) inp.focus();
+  }
+
+  // mousedown y no click: el `blur` del campo cierra el desplegable
+  // antes de que llegue el click, y no pasaría nada.
+  on('#etqPop', 'mousedown', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    e.preventDefault();
+    if (b.dataset.etqcrear) { elegirDeEtqPop(ETQ_LISTA.find(x => x.crear)); return; }
+    if (b.dataset.etqpon) elegirDeEtqPop({ etiqueta: etiquetaDe(b.dataset.etqpon) });
+  });
+
+  on('#dEtiquetas', 'click', e => {
+    const b = e.target.closest('[data-etqdel]');
+    if (b) sacarEtiqueta(b.dataset.etqdel);
   });
 
   on('#dNuevoCom', 'keydown', e => {
