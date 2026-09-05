@@ -2585,7 +2585,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 13:04</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 19:03</div>
     </div>
   </aside>
 
@@ -8628,12 +8628,36 @@
   //  Lo que no hace: si el proyecto no tiene columna de tipo `listo`, la
   //  tarea se marca hecha y se queda donde está. No se inventa una
   //  columna que nadie pidió.
+  // Cuál es la columna "Listo" de un proyecto.
+  //
+  //  Primero busca por TIPO, que es lo que el panel entiende de verdad
+  //  y lo que alimenta las métricas. Pero si el proyecto no tiene
+  //  ninguna de ese tipo y sí una que SE LLAMA "Listo" —pasa cuando la
+  //  columna se creó a mano— vale esa. Antes no: veías una columna
+  //  "Listo" en pantalla, el panel no la reconocía, y finalizar una
+  //  tarea no hacía nada sin decir por qué.
+  const NOMBRES_LISTO = ['listo', 'listos', 'hecho', 'hecha', 'hechos', 'hechas',
+                         'terminado', 'terminada', 'terminados', 'terminadas',
+                         'completado', 'completada', 'finalizado', 'finalizada', 'done'];
+  function columnaListo(proyId) {
+    const secs = seccionesDe(proyId);
+    return secs.find(x => x.tipo === 'listo')
+        || secs.find(x => NOMBRES_LISTO.indexOf(String(x.nombre || '').trim().toLowerCase()) !== -1)
+        || null;
+  }
+
   function mudanzaPorFinalizar(tareaId, finalizando) {
     const pasos = [];
+    const sinColumna = [];      // proyectos que no tienen adónde mandarla
     tpDe(tareaId).forEach(f => {
       if (finalizando) {
-        const listo = seccionesDe(f.proyecto_id).find(x => x.tipo === 'listo');
-        if (!listo || f.seccion_id === listo.id) return;
+        const listo = columnaListo(f.proyecto_id);
+        if (!listo) {
+          const p = proyectoDe(f.proyecto_id);
+          if (p) sinColumna.push(p.nombre);
+          return;
+        }
+        if (f.seccion_id === listo.id) return;
         pasos.push({ fila: f, seccion_id: listo.id, seccion_previa: f.seccion_id || null });
       } else {
         // Sin memoria —porque se finalizó antes de la migración 42— se
@@ -8642,7 +8666,27 @@
         pasos.push({ fila: f, seccion_id: f.seccion_previa, seccion_previa: null });
       }
     });
+    pasos.sinColumna = sinColumna;
     return pasos;
+  }
+
+  // Por qué no se movió nada. Se dice UNA vez, cuando vos finalizás —
+  // no al cargar la página—, y solo si hay algo que explicar. Que no
+  // pase nada y no se sepa por qué es peor que la propia falla.
+  function avisarPorQueNoSeMovio(tareaId, pasos) {
+    if (pasos.length) return;                       // sí se movió: nada que decir
+    if (FALTA_M42) {
+      toast('Para que finalizar la mande a "Listo" falta correr la migración 42', 'warn');
+      return;
+    }
+    const t = TAREAS.find(x => x.id === tareaId);
+    // Una subtarea vieja no vive adentro del proyecto: cuelga de su
+    // madre y en la lista se dibuja debajo de ella, en la columna de la
+    // madre. No hay columna propia que mover, y no es una falla.
+    if (t && t.padre_id && !tpDe(tareaId).length) return;
+    if (pasos.sinColumna && pasos.sinColumna.length) {
+      toast('Quedó finalizada. "' + pasos.sinColumna[0] + '" no tiene una columna "Listo", así que se queda donde está.', 'warn');
+    }
   }
 
   async function alternarCompletada(id) {
@@ -8672,6 +8716,7 @@
     const { error } = await SB.from('tarea')
       .update({ completada: nuevo, completada_en: t.completada_en }).eq('id', id);
     if (error) { volverAtras(); toast('No se pudo actualizar: ' + error.message, 'warn'); return; }
+    if (nuevo) avisarPorQueNoSeMovio(id, pasos);
 
     // La mudanza va DESPUÉS de que la tarea quedó guardada: si esto
     // fallara, lo peor que pasa es que quedó hecha pero en su columna
