@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reportes · CoMakers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #EFEEF2;
+    --bg-elev: #FFFFFF;
+    --ink: #1B1620;
+    --ink-soft: #5B525E;
+    --ink-mute: #938C99;
+    --line: #ECEAF0;
+    --line-soft: #F3F1F6;
+    --accent: #FF82FF;
+    --accent-soft: #FFE9FE;
+    --lime: #D3FF99;
+    --lime-soft: #ECFBD4;
+    --coral: #F26A8D;
+    --coral-soft: #FDE4EB;
+    --cyan: #CBEEF3;
+    --cyan-soft: #EAF8FB;
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'DM Sans', system-ui, sans-serif;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: var(--body);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  a { color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ── Barra superior ── */
+  .top {
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--line);
+    padding: 0 28px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+  }
+  .logo {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 19px;
+    background: var(--lime);
+    padding: 4px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--accent); }
+  .top-cliente { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .top-cliente .nombre { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-cliente select {
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    border-radius: 8px;
+    padding: 7px 10px;
+    max-width: 260px;
+  }
+  .top-user { display: flex; align-items: center; gap: 14px; color: var(--ink-soft); font-size: 14px; white-space: nowrap; }
+  .top-user button { background: none; border: none; cursor: pointer; color: var(--ink-mute); }
+  .top-user button:hover { color: var(--ink); }
+
+  /* ── Cuerpo ── */
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 36px 28px 80px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+  aside h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 17px;
+    margin-bottom: 12px;
+  }
+  .meses { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .meses button {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-soft);
+  }
+  .meses button:hover { background: var(--bg-elev); }
+  .meses button.activo { background: var(--bg-elev); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(27,22,32,.06); }
+  .meses .borr { font-size: 11px; color: var(--ink-mute); }
+  .meses .nuevo { color: var(--ink-mute); margin-top: 6px; }
+  .meses .nuevo:hover { color: var(--ink); }
+  .meses-mobile { display: none; }
+
+  main { min-width: 0; }
+  .cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
+  .cabecera h1 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .cabecera h1 em { font-style: italic; color: var(--accent); }
+  .cabecera .sub { color: var(--ink-soft); margin-top: 6px; }
+  .acciones { display: flex; gap: 8px; flex-shrink: 0; padding-top: 8px; }
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--line-soft);
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .pill.pub { background: var(--lime-soft); color: var(--ink); }
+  .btn {
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    border-radius: 9px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .btn:hover { border-color: var(--ink-mute); }
+  .btn.primario { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.primario:hover { background: #2a2331; }
+  .btn.lima { background: var(--lime); border-color: var(--lime); }
+  .btn.chico { padding: 5px 10px; font-size: 13px; }
+  .btn.quieto { border: none; background: none; color: var(--ink-mute); }
+  .btn.quieto:hover { color: var(--coral); }
+  .btn[disabled] { opacity: .5; cursor: default; }
+
+  .prosa { max-width: 62ch; white-space: pre-wrap; color: var(--ink); }
+  .prosa.mute { color: var(--ink-soft); }
+  .bloque { margin-top: 38px; }
+  .bloque h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+  .bloque h2 small { font-family: var(--body); font-size: 13px; color: var(--ink-mute); font-weight: 400; margin-left: 10px; }
+
+  .metricas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 10px;
+  }
+  .met {
+    background: var(--bg-elev);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px 14px;
+    border: 1px solid var(--line);
+  }
+  .met .et { font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
+  .met .val { font-family: var(--display); font-size: 27px; font-weight: 500; line-height: 1; letter-spacing: -0.01em; }
+  .met .delta { font-size: 12px; margin-top: 8px; display: inline-block; padding: 2px 7px; border-radius: 6px; }
+  .met .delta.bien { background: var(--lime-soft); }
+  .met .delta.mal  { background: var(--coral-soft); color: #B2405E; }
+  .met .delta.nada { color: var(--ink-mute); padding-left: 0; }
+
+  .destacados { list-style: none; display: flex; flex-direction: column; }
+  .destacados li {
+    display: grid;
+    grid-template-columns: 8px 1fr auto;
+    gap: 14px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .destacados li:last-child { border-bottom: 1px solid var(--line); }
+  .destacados .punto { width: 8px; height: 8px; border-radius: 50%; position: relative; top: -1px; }
+  .punto.logro { background: var(--lime); box-shadow: 0 0 0 3px var(--lime-soft); }
+  .punto.alerta { background: var(--coral); box-shadow: 0 0 0 3px var(--coral-soft); }
+  .punto.dato { background: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
+  .destacados .txt { max-width: 62ch; }
+  .destacados .mod { font-size: 12px; color: var(--ink-mute); margin-top: 2px; }
+  .destacados .num { font-family: var(--display); font-size: 24px; font-weight: 500; white-space: nowrap; }
+
+  .vacio {
+    padding: 48px 0;
+    max-width: 48ch;
+  }
+  .vacio h1 { font-family: var(--display); font-weight: 500; font-size: 32px; margin-bottom: 10px; }
+  .vacio p { color: var(--ink-soft); margin-bottom: 20px; }
+
+  /* ── Editor (solo agencia) ── */
+  .editor { display: flex; flex-direction: column; gap: 28px; }
+  .campo label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .campo input[type=text], .campo input[type=number], .campo input[type=month], .campo select, .campo textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    border-radius: 9px;
+    padding: 9px 12px;
+  }
+  .campo textarea { min-height: 110px; resize: vertical; line-height: 1.5; }
+  .campo .ayuda { font-size: 12px; color: var(--ink-mute); margin-top: 5px; }
+  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .ed-modulo { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 20px; }
+  .ed-modulo header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .ed-modulo header h3 { font-family: var(--display); font-weight: 500; font-size: 20px; }
+  .ed-modulo header label { font-size: 13px; color: var(--ink-soft); display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  .ed-modulo.apagado .grilla, .ed-modulo.apagado .agregar { display: none; }
+  .grilla { display: flex; flex-direction: column; gap: 6px; }
+  .grilla .r {
+    display: grid;
+    grid-template-columns: 1fr 130px 92px 118px 30px;
+    gap: 8px;
+    align-items: center;
+  }
+  .grilla .r.cab { font-size: 12px; color: var(--ink-mute); }
+  .grilla input, .grilla select { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; width: 100%; background: var(--bg-elev); }
+  .grilla .r.dest { grid-template-columns: 110px 1fr 130px 30px; }
+  .agregar { margin-top: 10px; }
+  .pie { display: flex; gap: 10px; align-items: center; padding-top: 8px; border-top: 1px solid var(--line); }
+  .pie .der { margin-left: auto; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 10px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  }
+  .toast.ver { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.mal { background: var(--coral); }
+
+  @media (max-width: 760px) {
+    .top { padding: 0 16px; gap: 12px; }
+    .top-user .nom { display: none; }
+    .wrap { grid-template-columns: 1fr; gap: 22px; padding: 22px 16px 60px; }
+    aside .meses, aside h2 { display: none; }
+    .meses-mobile { display: block; }
+    .meses-mobile select { width: 100%; border: 1px solid var(--line); background: var(--bg-elev); border-radius: 9px; padding: 9px 12px; }
+    .cabecera { flex-direction: column; }
+    .cabecera h1 { font-size: 32px; }
+    .fila { grid-template-columns: 1fr; }
+    .grilla .r, .grilla .r.dest { grid-template-columns: 1fr 1fr; }
+    .grilla .r.cab { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo">CoMakers<span>.</span></div>
+  <div class="top-cliente" id="topCliente"></div>
+  <div class="top-user">
+    <span class="nom" id="userNombre"></span>
+    <button type="button" id="btnSalir">Cerrar sesión</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside>
+    <h2>Meses</h2>
+    <ul class="meses" id="meses"></ul>
+    <div class="meses-mobile"><select id="mesesMobile"></select></div>
+  </aside>
+  <main id="main">
+    <div class="vacio"><p>Cargando…</p></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Conexión ────────────────────────────────────────────────
+  const LOGIN = 'login-comakers.html';
+  const SB = supabase.createClient(
+    'https://ggcstolnadkkqhsqpzql.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs'
+  );
+
+  // ── Estado ──────────────────────────────────────────────────
+  let YO = null;            // perfil
+  let AGENCIA = false;      // ¿puede editar?
+  let CLIENTES = [];
+  let CLIENTE = null;
+  let MODULOS = { organico: true, pauta: true };   // qué servicios tiene el cliente
+  let REPORTES = [];        // [{id, mes:'YYYY-MM', estado, resumen, proximos_pasos, metricas:[], destacados:[]}]
+  let MES = null;           // 'YYYY-MM' seleccionado
+  let EDITANDO = false;
+  let BORRADOR = null;      // el reporte en edición (copia)
+
+  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const NOMBRE_MOD = { organico: 'Orgánico', pauta: 'Pauta' };
+
+  // Métricas con las que arranca un mes cuando no hay mes anterior que copiar.
+  const DEFAULTS = {
+    organico: [
+      { clave: 'seguidores',    etiqueta: 'Seguidores',         unidad: 'num', mejor: 'sube' },
+      { clave: 'alcance',       etiqueta: 'Alcance',            unidad: 'num', mejor: 'sube' },
+      { clave: 'interacciones', etiqueta: 'Interacciones',      unidad: 'num', mejor: 'sube' },
+      { clave: 'guardados',     etiqueta: 'Guardados',          unidad: 'num', mejor: 'sube' },
+      { clave: 'posteos',       etiqueta: 'Posteos publicados', unidad: 'num', mejor: 'sube' }
+    ],
+    pauta: [
+      { clave: 'inversion',          etiqueta: 'Inversión',           unidad: 'ars', mejor: 'sube' },
+      { clave: 'resultados',         etiqueta: 'Resultados',          unidad: 'num', mejor: 'sube' },
+      { clave: 'costo_por_resultado',etiqueta: 'Costo por resultado', unidad: 'ars', mejor: 'baja' },
+      { clave: 'alcance',            etiqueta: 'Alcance',             unidad: 'num', mejor: 'sube' },
+      { clave: 'impresiones',        etiqueta: 'Impresiones',         unidad: 'num', mejor: 'sube' }
+    ]
+  };
+
+  // ── Utilidades ──────────────────────────────────────────────
+  const $ = (s, el) => (el || document).querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const mesLabel = m => { const [y, mm] = m.split('-'); return MESES_ES[parseInt(mm, 10) - 1] + ' ' + y; };
+  const mesCorto = m => { const [y, mm] = m.split('-'); return MESES_ES[parseInt(mm, 10) - 1].slice(0, 3) + ' ' + y.slice(2); };
+  const slug = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'metrica';
+  const mesActual = () => new Date().toISOString().slice(0, 7);
+
+  function fmt(v, u) {
+    v = Number(v) || 0;
+    if (u === 'ars') return '$' + v.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+    if (u === 'pct') return v.toLocaleString('es-AR', { maximumFractionDigits: 1 }) + '%';
+    return v.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+  }
+
+  // Variación contra el mes anterior. Se calcula acá, nunca se guarda.
+  function delta(m, prevVal) {
+    if (prevVal == null) return { txt: 'sin mes anterior', clase: 'nada' };
+    const cur = Number(m.valor) || 0, prev = Number(prevVal) || 0;
+    let d, txt;
+    if (m.unidad === 'pct') { d = cur - prev; txt = (d >= 0 ? '+' : '') + d.toFixed(1).replace('.', ',') + ' pts'; }
+    else if (prev === 0) { return { txt: 'antes 0', clase: 'nada' }; }
+    else { d = (cur - prev) / prev * 100; txt = (d >= 0 ? '+' : '') + d.toFixed(1).replace('.', ',') + '%'; }
+    if (Math.abs(d) < 0.05) return { txt: 'igual', clase: 'nada' };
+    const bien = (d > 0) === (m.mejor !== 'baja');
+    return { txt, clase: bien ? 'bien' : 'mal' };
+  }
+
+  let toastT;
+  function toast(msg, mal) {
+    const t = $('#toast');
+    t.textContent = msg; t.className = 'toast ver' + (mal ? ' mal' : '');
+    clearTimeout(toastT); toastT = setTimeout(() => t.className = 'toast', 2800);
+  }
+
+  // ── Arranque ────────────────────────────────────────────────
+  async function init() {
+    const { data: { session } } = await SB.auth.getSession();
+    if (!session) { location.replace(LOGIN); return; }
+
+    const { data: perfil } = await SB.from('profiles').select('id, nombre, tipo, super_admin').eq('id', session.user.id).single();
+    YO = perfil || { id: session.user.id, nombre: '' };
+    AGENCIA = !!(YO.tipo === 'agencia' || YO.super_admin);
+    $('#userNombre').textContent = YO.nombre || '';
+
+    const { data: cls, error } = await SB.from('clientes').select('id, nombre, slug, activo').eq('activo', true).order('nombre');
+    if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
+    CLIENTES = cls || [];
+    if (!CLIENTES.length) { $('#main').innerHTML = vacio('Tu usuario no tiene ningún cliente asignado', 'Pedile a la agencia que te dé acceso.'); return; }
+
+    const q = new URLSearchParams(location.search).get('c');
+    CLIENTE = CLIENTES.find(c => c.slug === q) || CLIENTES[0];
+    renderTopCliente();
+    await cargarCliente();
+  }
+
+  function renderTopCliente() {
+    const el = $('#topCliente');
+    if (CLIENTES.length === 1) { el.innerHTML = '<span class="nombre">' + esc(CLIENTE.nombre) + '</span>'; return; }
+    el.innerHTML = '<select id="selCliente" aria-label="Cliente">' +
+      CLIENTES.map(c => '<option value="' + esc(c.slug) + '"' + (c.id === CLIENTE.id ? ' selected' : '') + '>' + esc(c.nombre) + '</option>').join('') +
+      '</select>';
+    $('#selCliente').addEventListener('change', async e => {
+      CLIENTE = CLIENTES.find(c => c.slug === e.target.value);
+      history.replaceState(null, '', '?c=' + encodeURIComponent(CLIENTE.slug));
+      EDITANDO = false;
+      await cargarCliente();
+    });
+  }
+
+  async function cargarCliente() {
+    $('#main').innerHTML = '<div class="vacio"><p>Cargando…</p></div>';
+
+    // Qué servicios tiene: sin fila = prendido.
+    MODULOS = { organico: true, pauta: true };
+    const { data: mods } = await SB.from('cliente_modulo').select('modulo, activo').eq('cliente_id', CLIENTE.id);
+    (mods || []).forEach(m => { if (m.modulo in MODULOS) MODULOS[m.modulo] = m.activo !== false; });
+
+    const { data: reps, error } = await SB.from('reporte')
+      .select('id, mes, estado, resumen, proximos_pasos, publicado_en')
+      .eq('cliente_id', CLIENTE.id).order('mes', { ascending: false });
+    if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
+
+    REPORTES = (reps || []).map(r => ({
+      id: r.id, mes: String(r.mes).slice(0, 7), estado: r.estado === 'publicado' ? 'publicado' : 'borrador',
+      resumen: r.resumen || '', proximos_pasos: r.proximos_pasos || '', publicado_en: r.publicado_en,
+      metricas: [], destacados: []
+    }));
+    const ids = REPORTES.map(r => r.id);
+    if (ids.length) {
+      const [{ data: mets }, { data: dest }] = await Promise.all([
+        SB.from('reporte_metrica').select('*').in('reporte_id', ids).order('orden'),
+        SB.from('reporte_destacado').select('*').in('reporte_id', ids).order('orden')
+      ]);
+      const porId = Object.fromEntries(REPORTES.map(r => [r.id, r]));
+      (mets || []).forEach(m => porId[m.reporte_id] && porId[m.reporte_id].metricas.push(m));
+      (dest || []).forEach(d => porId[d.reporte_id] && porId[d.reporte_id].destacados.push(d));
+    }
+
+    if (!MES || !REPORTES.some(r => r.mes === MES)) MES = REPORTES.length ? REPORTES[0].mes : mesActual();
+    render();
+  }
+
+  // ── Render ──────────────────────────────────────────────────
+  const reporteDe = mes => REPORTES.find(r => r.mes === mes) || null;
+  const anteriorA = mes => REPORTES.filter(r => r.mes < mes).sort((a, b) => (a.mes < b.mes ? 1 : -1))[0] || null;
+
+  function render() {
+    renderMeses();
+    if (EDITANDO) renderEditor(); else renderReporte();
+  }
+
+  function renderMeses() {
+    const lista = REPORTES.map(r => r.mes);
+    if (!lista.includes(MES)) lista.unshift(MES);
+    $('#meses').innerHTML = lista.map(m => {
+      const r = reporteDe(m);
+      return '<li><button type="button" data-mes="' + m + '" class="' + (m === MES ? 'activo' : '') + '">' +
+        '<span>' + esc(mesLabel(m)) + '</span>' +
+        (r && r.estado === 'borrador' && AGENCIA ? '<span class="borr">borrador</span>' : '') +
+        (!r ? '<span class="borr">vacío</span>' : '') +
+        '</button></li>';
+    }).join('') + (AGENCIA ? '<li><button type="button" class="nuevo" id="btnNuevoMes">+ Otro mes</button></li>' : '');
+
+    $('#mesesMobile').innerHTML = lista.map(m => '<option value="' + m + '"' + (m === MES ? ' selected' : '') + '>' + esc(mesLabel(m)) + '</option>').join('') +
+      (AGENCIA ? '<option value="__nuevo">+ Otro mes</option>' : '');
+
+    $('#meses').querySelectorAll('button[data-mes]').forEach(b => b.addEventListener('click', () => elegirMes(b.dataset.mes)));
+    const bn = $('#btnNuevoMes'); if (bn) bn.addEventListener('click', nuevoMes);
+    $('#mesesMobile').onchange = e => { if (e.target.value === '__nuevo') nuevoMes(); else elegirMes(e.target.value); };
+  }
+
+  function elegirMes(m) {
+    if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) { renderMeses(); return; }
+    EDITANDO = false; MES = m; render();
+  }
+
+  function nuevoMes() {
+    if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) { renderMeses(); return; }
+    const m = prompt('¿Qué mes? (formato 2026-10)', mesActual());
+    if (!m || !/^\d{4}-(0[1-9]|1[0-2])$/.test(m.trim())) { renderMeses(); return; }
+    MES = m.trim(); EDITANDO = false;
+    if (reporteDe(MES)) { render(); return; }
+    abrirEditor();
+  }
+
+  function vacio(titulo, texto, boton) {
+    return '<div class="vacio"><h1>' + esc(titulo) + '</h1><p>' + esc(texto) + '</p>' + (boton || '') + '</div>';
+  }
+
+  function renderReporte() {
+    const r = reporteDe(MES);
+    const main = $('#main');
+
+    if (!r) {
+      main.innerHTML = vacio(
+        'Todavía no hay reporte de ' + mesLabel(MES),
+        AGENCIA ? 'Cargá los números del mes y escribí qué pasó. El cliente no lo ve hasta que lo publiques.'
+                : 'Cuando la agencia lo publique, lo vas a ver acá.',
+        AGENCIA ? '<button type="button" class="btn primario" id="btnCargar">Cargar el reporte de ' + esc(mesLabel(MES)) + '</button>' : ''
+      );
+      const b = $('#btnCargar'); if (b) b.addEventListener('click', abrirEditor);
+      return;
+    }
+
+    const prev = anteriorA(MES);
+    const prevVal = (mod, clave) => {
+      if (!prev) return null;
+      const pm = prev.metricas.find(x => x.modulo === mod && x.clave === clave);
+      return pm ? pm.valor : null;
+    };
+
+    const [y, mm] = MES.split('-');
+    let html = '<div class="cabecera"><div>' +
+      '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mm, 10) - 1]) + '</em> ' + esc(y) + '</h1>' +
+      '<div class="sub">' + esc(CLIENTE.nombre) +
+      (AGENCIA ? ' <span class="pill' + (r.estado === 'publicado' ? ' pub' : '') + '">' + (r.estado === 'publicado' ? 'publicado' : 'borrador, el cliente no lo ve') + '</span>' : '') +
+      (prev ? '<span style="color:var(--ink-mute)"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +
+      '</div></div>' +
+      (AGENCIA ? '<div class="acciones"><button type="button" class="btn" id="btnEditar">Editar</button>' +
+        (r.estado === 'publicado' ? '<button type="button" class="btn" id="btnDespublicar">Volver a borrador</button>'
+                                  : '<button type="button" class="btn lima" id="btnPublicar">Publicar</button>') +
+        '</div>' : '') +
+      '</div>';
+
+    if (r.resumen) html += '<p class="prosa">' + esc(r.resumen) + '</p>';
+    else if (AGENCIA) html += '<p class="prosa mute">Falta escribir qué pasó este mes.</p>';
+
+    ['organico', 'pauta'].forEach(mod => {
+      const ms = r.metricas.filter(m => m.modulo === mod);
+      if (!ms.length) return;
+      html += '<section class="bloque"><h2>' + NOMBRE_MOD[mod] + '</h2><div class="metricas">' +
+        ms.map(m => {
+          const d = delta(m, prevVal(mod, m.clave));
+          return '<div class="met"><div class="et">' + esc(m.etiqueta) + '</div>' +
+            '<div class="val">' + esc(fmt(m.valor, m.unidad)) + '</div>' +
+            '<div class="delta ' + d.clase + '">' + esc(d.txt) + '</div></div>';
+        }).join('') + '</div></section>';
+    });
+
+    if (r.destacados.length) {
+      html += '<section class="bloque"><h2>Lo que vale la pena mirar</h2><ul class="destacados">' +
+        r.destacados.map(d => '<li><span class="punto ' + esc(d.tipo) + '"></span><div class="txt">' + esc(d.texto) +
+          (d.modulo ? '<div class="mod">' + NOMBRE_MOD[d.modulo] + '</div>' : '') + '</div>' +
+          '<div class="num">' + esc(d.valor || '') + '</div></li>').join('') +
+        '</ul></section>';
+    }
+
+    if (r.proximos_pasos) html += '<section class="bloque"><h2>Qué hacemos el mes que viene</h2><p class="prosa">' + esc(r.proximos_pasos) + '</p></section>';
+
+    main.innerHTML = html;
+    const be = $('#btnEditar'); if (be) be.addEventListener('click', abrirEditor);
+    const bp = $('#btnPublicar'); if (bp) bp.addEventListener('click', () => cambiarEstado(r, 'publicado'));
+    const bd = $('#btnDespublicar'); if (bd) bd.addEventListener('click', () => cambiarEstado(r, 'borrador'));
+  }
+
+  async function cambiarEstado(r, estado) {
+    const fila = { estado, actualizado_en: new Date().toISOString() };
+    if (estado === 'publicado') fila.publicado_en = new Date().toISOString().slice(0, 10);
+    const { error } = await SB.from('reporte').update(fila).eq('id', r.id);
+    if (error) { toast('No se pudo cambiar: ' + error.message, true); return; }
+    toast(estado === 'publicado' ? 'Publicado. El cliente ya lo ve.' : 'Volvió a borrador.');
+    await cargarCliente();
+  }
+
+  // ── Editor ──────────────────────────────────────────────────
+  function abrirEditor() {
+    const r = reporteDe(MES);
+    const prev = anteriorA(MES);
+    BORRADOR = {
+      id: r ? r.id : null,
+      mes: MES,
+      estado: r ? r.estado : 'borrador',
+      resumen: r ? r.resumen : '',
+      proximos_pasos: r ? r.proximos_pasos : '',
+      incluye: { organico: r ? r.metricas.some(m => m.modulo === 'organico') : MODULOS.organico,
+                 pauta:    r ? r.metricas.some(m => m.modulo === 'pauta')    : MODULOS.pauta },
+      metricas: { organico: [], pauta: [] },
+      destacados: r ? r.destacados.map(d => ({ tipo: d.tipo, texto: d.texto, valor: d.valor || '', modulo: d.modulo || '' })) : []
+    };
+    ['organico', 'pauta'].forEach(mod => {
+      // Las métricas de un mes nuevo se copian del anterior (mismas claves,
+      // valor vacío) para que el mes siguiente pueda compararse. Si no hay
+      // anterior, arrancan las de fábrica.
+      const base = r ? r.metricas.filter(m => m.modulo === mod)
+                 : (prev && prev.metricas.some(m => m.modulo === mod)) ? prev.metricas.filter(m => m.modulo === mod).map(m => ({ ...m, valor: '' }))
+                 : DEFAULTS[mod].map(m => ({ ...m, valor: '' }));
+      BORRADOR.metricas[mod] = base.map(m => ({ clave: m.clave, etiqueta: m.etiqueta, valor: m.valor === '' ? '' : m.valor, unidad: m.unidad, mejor: m.mejor }));
+    });
+    EDITANDO = true;
+    render();
+  }
+
+  function renderEditor() {
+    const b = BORRADOR;
+    const opU = u => ['num', 'ars', 'pct'].map(x => '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + ({ num: 'cantidad', ars: 'pesos', pct: '%' }[x]) + '</option>').join('');
+    const opM = m => ['sube', 'baja'].map(x => '<option value="' + x + '"' + (x === m ? ' selected' : '') + '>' + (x === 'sube' ? 'más es mejor' : 'menos es mejor') + '</option>').join('');
+    const opT = t => ['logro', 'alerta', 'dato'].map(x => '<option value="' + x + '"' + (x === t ? ' selected' : '') + '>' + x + '</option>').join('');
+
+    const filasMet = mod => b.metricas[mod].map((m, i) =>
+      '<div class="r" data-mod="' + mod + '" data-i="' + i + '">' +
+        '<input type="text" value="' + esc(m.etiqueta) + '" data-f="etiqueta" placeholder="Nombre">' +
+        '<input type="number" step="any" value="' + esc(m.valor) + '" data-f="valor" placeholder="0">' +
+        '<select data-f="unidad">' + opU(m.unidad) + '</select>' +
+        '<select data-f="mejor">' + opM(m.mejor) + '</select>' +
+        '<button type="button" class="btn quieto chico" data-quitar title="Quitar">×</button>' +
+      '</div>').join('');
+
+    const html = '<div class="cabecera"><div><h1>' + (b.id ? 'Editar' : 'Cargar') + ' <em>' + esc(mesLabel(b.mes)) + '</em></h1>' +
+      '<div class="sub">' + esc(CLIENTE.nombre) + '</div></div></div>' +
+      '<div class="editor">' +
+      '<div class="campo"><label for="edResumen">Qué pasó este mes</label>' +
+      '<textarea id="edResumen" placeholder="Dos o tres párrafos. Qué se movió, por qué, y qué significa para el negocio. Los números ya están abajo: acá va la interpretación.">' + esc(b.resumen) + '</textarea></div>' +
+
+      ['organico', 'pauta'].map(mod =>
+        '<div class="ed-modulo' + (b.incluye[mod] ? '' : ' apagado') + '" id="edMod-' + mod + '">' +
+          '<header><h3>' + NOMBRE_MOD[mod] + '</h3>' +
+          '<label><input type="checkbox" data-incluye="' + mod + '"' + (b.incluye[mod] ? ' checked' : '') + '> este mes va en el reporte</label></header>' +
+          '<div class="grilla"><div class="r cab"><span>Métrica</span><span>Valor</span><span>Unidad</span><span>Sentido</span><span></span></div>' +
+          filasMet(mod) + '</div>' +
+          '<button type="button" class="btn chico agregar" data-agregar="' + mod + '">+ Agregar métrica</button>' +
+        '</div>').join('') +
+
+      '<div class="ed-modulo"><header><h3>Lo que vale la pena mirar</h3></header>' +
+        '<div class="grilla" id="edDest">' +
+          (b.destacados.length ? '<div class="r dest cab"><span>Tipo</span><span>Qué pasó</span><span>Número grande</span><span></span></div>' : '') +
+          b.destacados.map((d, i) =>
+            '<div class="r dest" data-i="' + i + '">' +
+              '<select data-f="tipo">' + opT(d.tipo) + '</select>' +
+              '<input type="text" value="' + esc(d.texto) + '" data-f="texto" placeholder="El reel del viñedo fue el más guardado del trimestre">' +
+              '<input type="text" value="' + esc(d.valor) + '" data-f="valor" placeholder="84.2K">' +
+              '<button type="button" class="btn quieto chico" data-quitar-dest title="Quitar">×</button>' +
+            '</div>').join('') +
+        '</div>' +
+        '<button type="button" class="btn chico agregar" id="btnAgregarDest">+ Agregar destacado</button>' +
+        '<div class="ayuda" style="font-size:12px;color:var(--ink-mute);margin-top:8px">Logro: algo que salió bien. Alerta: algo que hay que mirar. Dato: contexto sin juicio.</div>' +
+      '</div>' +
+
+      '<div class="campo"><label for="edProx">Qué hacemos el mes que viene</label>' +
+      '<textarea id="edProx" placeholder="Tres decisiones concretas. Qué se mantiene, qué se cambia, qué se prueba.">' + esc(b.proximos_pasos) + '</textarea></div>' +
+
+      '<div class="pie">' +
+        '<button type="button" class="btn quieto" id="edCancelar">Cancelar</button>' +
+        '<div class="der"></div>' +
+        '<button type="button" class="btn" id="edGuardar">Guardar borrador</button>' +
+        '<button type="button" class="btn lima" id="edPublicar">Guardar y publicar</button>' +
+      '</div></div>';
+
+    const main = $('#main');
+    main.innerHTML = html;
+
+    // ── eventos del editor: todo escribe sobre BORRADOR ──
+    main.querySelectorAll('[data-incluye]').forEach(ch => ch.addEventListener('change', e => {
+      const mod = e.target.dataset.incluye; b.incluye[mod] = e.target.checked;
+      $('#edMod-' + mod).classList.toggle('apagado', !e.target.checked);
+    }));
+    main.querySelectorAll('.grilla .r[data-mod] [data-f]').forEach(inp => inp.addEventListener('input', e => {
+      const r = e.target.closest('.r'); b.metricas[r.dataset.mod][+r.dataset.i][e.target.dataset.f] = e.target.value;
+    }));
+    main.querySelectorAll('[data-quitar]').forEach(bt => bt.addEventListener('click', e => {
+      const r = e.target.closest('.r'); leerTextos(); b.metricas[r.dataset.mod].splice(+r.dataset.i, 1); renderEditor();
+    }));
+    main.querySelectorAll('[data-agregar]').forEach(bt => bt.addEventListener('click', e => {
+      leerTextos(); b.metricas[e.target.dataset.agregar].push({ clave: '', etiqueta: '', valor: '', unidad: 'num', mejor: 'sube' }); renderEditor();
+      const filas = $('#edMod-' + e.target.dataset.agregar).querySelectorAll('.r[data-mod]'); const ult = filas[filas.length - 1]; if (ult) ult.querySelector('input').focus();
+    }));
+    main.querySelectorAll('#edDest .r[data-i] [data-f]').forEach(inp => inp.addEventListener('input', e => {
+      const r = e.target.closest('.r'); b.destacados[+r.dataset.i][e.target.dataset.f] = e.target.value;
+    }));
+    main.querySelectorAll('[data-quitar-dest]').forEach(bt => bt.addEventListener('click', e => {
+      leerTextos(); b.destacados.splice(+e.target.closest('.r').dataset.i, 1); renderEditor();
+    }));
+    $('#btnAgregarDest').addEventListener('click', () => { leerTextos(); b.destacados.push({ tipo: 'dato', texto: '', valor: '', modulo: '' }); renderEditor(); });
+    $('#edCancelar').addEventListener('click', () => { if (confirm('¿Salir sin guardar?')) { EDITANDO = false; render(); } });
+    $('#edGuardar').addEventListener('click', () => guardar('borrador'));
+    $('#edPublicar').addEventListener('click', () => guardar('publicado'));
+
+    function leerTextos() { b.resumen = $('#edResumen').value; b.proximos_pasos = $('#edProx').value; }
+    b._leer = leerTextos;
+  }
+
+  async function guardar(estado) {
+    const b = BORRADOR; b._leer();
+    const btns = ['#edGuardar', '#edPublicar'].map(s => $(s)); btns.forEach(x => x.disabled = true);
+
+    try {
+      // Métricas que van: solo de los módulos incluidos, con nombre.
+      const metricas = [];
+      ['organico', 'pauta'].forEach(mod => {
+        if (!b.incluye[mod]) return;
+        const vistas = {};
+        b.metricas[mod].forEach((m, i) => {
+          const etiqueta = (m.etiqueta || '').trim(); if (!etiqueta) return;
+          let clave = m.clave || slug(etiqueta); if (vistas[clave]) clave += '_' + i; vistas[clave] = 1;
+          metricas.push({ modulo: mod, clave, etiqueta, valor: Number(String(m.valor).replace(',', '.')) || 0, unidad: m.unidad || 'num', mejor: m.mejor || 'sube', orden: i });
+        });
+      });
+      const destacados = b.destacados
+        .map((d, i) => ({ tipo: d.tipo || 'dato', texto: (d.texto || '').trim(), valor: (d.valor || '').trim() || null, modulo: d.modulo || null, orden: i }))
+        .filter(d => d.texto);
+
+      const fila = {
+        cliente_id: CLIENTE.id, mes: b.mes + '-01', estado,
+        resumen: b.resumen.trim() || null, proximos_pasos: b.proximos_pasos.trim() || null,
+        actualizado_en: new Date().toISOString(),
+        publicado_en: estado === 'publicado' ? new Date().toISOString().slice(0, 10) : null
+      };
+
+      let id = b.id;
+      if (id) {
+        const { error } = await SB.from('reporte').update(fila).eq('id', id); if (error) throw error;
+      } else {
+        fila.generado_por = YO.nombre || 'Agencia';
+        const { data, error } = await SB.from('reporte').insert(fila).select('id').single(); if (error) throw error;
+        id = data.id;
+      }
+
+      // Se reemplaza todo: es más simple que reconciliar, y son pocas filas.
+      let r = await SB.from('reporte_metrica').delete().eq('reporte_id', id); if (r.error) throw r.error;
+      r = await SB.from('reporte_destacado').delete().eq('reporte_id', id); if (r.error) throw r.error;
+      if (metricas.length)   { r = await SB.from('reporte_metrica').insert(metricas.map(m => ({ ...m, reporte_id: id })));     if (r.error) throw r.error; }
+      if (destacados.length) { r = await SB.from('reporte_destacado').insert(destacados.map(d => ({ ...d, reporte_id: id }))); if (r.error) throw r.error; }
+
+      toast(estado === 'publicado' ? 'Publicado. El cliente ya lo ve.' : 'Guardado como borrador.');
+      EDITANDO = false; MES = b.mes;
+      await cargarCliente();
+    } catch (e) {
+      toast('No se pudo guardar: ' + (e.message || e), true);
+      btns.forEach(x => x.disabled = false);
+    }
+  }
+
+  // ── Sesión ──────────────────────────────────────────────────
+  $('#btnSalir').addEventListener('click', async () => { try { await SB.auth.signOut(); } finally { location.replace(LOGIN); } });
+
+  init().catch(e => { $('#main').innerHTML = vacio('Algo falló al cargar', e.message || String(e)); });
+})();
+</script>
+</body>
+</html>
