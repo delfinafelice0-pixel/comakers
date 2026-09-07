@@ -234,7 +234,7 @@
   // Cliente → su panel de reportes.
   // Si el perfil no se puede leer, cae al panel de cliente (lo más restrictivo).
   async function irAlPanel(session) {
-    let destino = 'panel-comakers.html';
+    let destino = 'panel.html';
     try {
       const { data: perfil } = await sb
         .from('profiles')
