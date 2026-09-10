@@ -1,0 +1,10 @@
+# Basura de macOS
+.DS_Store
+
+# Caché local del CLI de Supabase: apunta a la instalación de esta
+# máquina (ref del proyecto, URL del pooler, versiones). No es código.
+supabase/.temp/
+
+# Nunca
+.env
+.env.*

@@ -184,6 +184,11 @@
   .met .delta.bien { background: var(--lime-soft); }
   .met .delta.mal  { background: var(--coral-soft); color: #B2405E; }
   .met .delta.nada { color: var(--ink-mute); padding-left: 0; }
+  /* Métricas que trae el pull de Instagram, y huecos honestos. */
+  .met .fuente { display: block; margin-top: 4px; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-mute); }
+  .met .val.vacio { color: var(--ink-mute); font-weight: 400; }
+  .met .nota { font-size: 11px; line-height: 1.35; color: var(--ink-mute); margin-top: 8px; }
+  .bloque .sincro { font-size: 12px; color: var(--ink-mute); margin: -4px 0 14px; }
 
   .destacados { list-style: none; display: flex; flex-direction: column; }
   .destacados li {
@@ -412,13 +417,15 @@
     (mods || []).forEach(m => { if (m.modulo in MODULOS) MODULOS[m.modulo] = m.activo !== false; });
 
     const { data: reps, error } = await SB.from('reporte')
-      .select('id, mes, estado, resumen, proximos_pasos, publicado_en')
+      .select('id, mes, estado, resumen, proximos_pasos, publicado_en, fuente, sincronizado_en, ' +
+              'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes')
       .eq('cliente_id', CLIENTE.id).order('mes', { ascending: false });
     if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
 
     REPORTES = (reps || []).map(r => ({
       id: r.id, mes: String(r.mes).slice(0, 7), estado: r.estado === 'publicado' ? 'publicado' : 'borrador',
       resumen: r.resumen || '', proximos_pasos: r.proximos_pasos || '', publicado_en: r.publicado_en,
+      fuente: r.fuente || 'manual', sincronizado_en: r.sincronizado_en || null, cols: r,
       metricas: [], destacados: []
     }));
     const ids = REPORTES.map(r => r.id);
@@ -431,6 +438,10 @@
       (mets || []).forEach(m => porId[m.reporte_id] && porId[m.reporte_id].metricas.push(m));
       (dest || []).forEach(d => porId[d.reporte_id] && porId[d.reporte_id].destacados.push(d));
     }
+
+    // Los meses que trajo el pull muestran las columnas *_org en lugar
+    // de lo cargado a mano. Corre siempre, haya o no filas manuales.
+    REPORTES.forEach(mezclarInstagram);
 
     if (!MES || !REPORTES.some(r => r.mes === MES)) MES = REPORTES.length ? REPORTES[0].mes : mesActual();
     render();
@@ -483,6 +494,64 @@
     return '<div class="vacio"><h1>' + esc(titulo) + '</h1><p>' + esc(texto) + '</p>' + (boton || '') + '</div>';
   }
 
+  // ── Instagram → filas de la sección Orgánico ────────────────
+  // El pull escribe columnas (`views_org`, `reach_org`, …) pero la vista
+  // muestra filas de métrica. Esto traduce lo uno en lo otro, y solo
+  // cuando la fila dice que vino de Instagram.
+  const MAPA_IG = [
+    { clave: 'seguidores',      etiqueta: 'Seguidores',      col: c => c.follows_mes },
+    { clave: 'alcance',         etiqueta: 'Alcance',         col: c => c.reach_org },
+    { clave: 'visualizaciones', etiqueta: 'Visualizaciones', col: c => c.views_org },
+    { clave: 'interacciones',   etiqueta: 'Interacciones',
+      col: c => sumaONull([c.likes_org, c.comments_org, c.shares_org, c.saves_org]) },
+    { clave: 'guardados',       etiqueta: 'Guardados',       col: c => c.saves_org }
+  ];
+
+  // Suma solo lo que existe. Si no existe nada, devuelve null (vacío),
+  // nunca 0: un 0 diría que no hubo interacciones, y lo que pasa es
+  // que no sabemos.
+  function sumaONull(xs) {
+    const hay = xs.filter(x => x != null);
+    return hay.length ? hay.reduce((a, b) => a + Number(b), 0) : null;
+  }
+
+  function mezclarInstagram(r) {
+    if (r.fuente !== 'instagram') return;
+    const c = r.cols || {};
+    const manual = r.metricas.filter(m => m.modulo === 'organico');
+    const resto  = r.metricas.filter(m => m.modulo !== 'organico');
+
+    const deIG = MAPA_IG.map((def, i) => {
+      const previa = manual.find(m => m.clave === def.clave);
+      const v = def.col(c);
+      return {
+        modulo: 'organico',
+        clave: def.clave,
+        etiqueta: previa ? previa.etiqueta : def.etiqueta,
+        valor: v == null ? null : Number(v),
+        unidad: 'num',
+        mejor: 'sube',
+        orden: i,
+        origen: 'instagram'
+      };
+    });
+
+    // Lo cargado a mano que no tiene columna equivalente (Posteos
+    // publicados, por ejemplo) se conserva, detrás de lo de Instagram.
+    const cubiertas = MAPA_IG.map(d => d.clave);
+    const sobran = manual
+      .filter(m => cubiertas.indexOf(m.clave) === -1)
+      .map((m, i) => ({ ...m, orden: MAPA_IG.length + i }));
+
+    r.metricas = resto.concat(deIG, sobran);
+  }
+
+  const fechaHora = iso => {
+    const d = new Date(iso);
+    return isNaN(d) ? '' : d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' }) +
+      ' a las ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  };
+
   function renderReporte() {
     const r = reporteDe(MES);
     const main = $('#main');
@@ -502,7 +571,7 @@
     const prevVal = (mod, clave) => {
       if (!prev) return null;
       const pm = prev.metricas.find(x => x.modulo === mod && x.clave === clave);
-      return pm ? pm.valor : null;
+      return (pm && pm.valor != null && pm.valor !== '') ? pm.valor : null;
     };
 
     const [y, mm] = MES.split('-');
@@ -524,10 +593,24 @@
     ['organico', 'pauta'].forEach(mod => {
       const ms = r.metricas.filter(m => m.modulo === mod);
       if (!ms.length) return;
-      html += '<section class="bloque"><h2>' + NOMBRE_MOD[mod] + '</h2><div class="metricas">' +
+      const sincro = (mod === 'organico' && r.fuente === 'instagram' && r.sincronizado_en)
+        ? '<div class="sincro">Traído de Instagram el ' + esc(fechaHora(r.sincronizado_en)) + '</div>'
+        : '';
+      html += '<section class="bloque"><h2>' + NOMBRE_MOD[mod] + '</h2>' + sincro + '<div class="metricas">' +
         ms.map(m => {
+          // Sin dato es sin dato: se muestra vacío y se dice por qué.
+          // Un 0 acá afirmaría algo que nadie midió.
+          const sinDato = m.valor == null || m.valor === '';
+          const rotulo = m.origen === 'instagram' ? '<span class="fuente">desde Instagram</span>' : '';
+          if (sinDato) {
+            return '<div class="met"><div class="et">' + esc(m.etiqueta) + rotulo + '</div>' +
+              '<div class="val vacio">—</div>' +
+              '<div class="nota">' + (m.origen === 'instagram'
+                ? 'Instagram no devolvió un dato confiable este mes'
+                : 'sin cargar') + '</div></div>';
+          }
           const d = delta(m, prevVal(mod, m.clave));
-          return '<div class="met"><div class="et">' + esc(m.etiqueta) + '</div>' +
+          return '<div class="met"><div class="et">' + esc(m.etiqueta) + rotulo + '</div>' +
             '<div class="val">' + esc(fmt(m.valor, m.unidad)) + '</div>' +
             '<div class="delta ' + d.clase + '">' + esc(d.txt) + '</div></div>';
         }).join('') + '</div></section>';
@@ -577,7 +660,7 @@
       // Las métricas de un mes nuevo se copian del anterior (mismas claves,
       // valor vacío) para que el mes siguiente pueda compararse. Si no hay
       // anterior, arrancan las de fábrica.
-      const base = r ? r.metricas.filter(m => m.modulo === mod)
+      const base = r ? r.metricas.filter(m => m.modulo === mod && m.origen !== 'instagram')
                  : (prev && prev.metricas.some(m => m.modulo === mod)) ? prev.metricas.filter(m => m.modulo === mod).map(m => ({ ...m, valor: '' }))
                  : DEFAULTS[mod].map(m => ({ ...m, valor: '' }));
       BORRADOR.metricas[mod] = base.map(m => ({ clave: m.clave, etiqueta: m.etiqueta, valor: m.valor === '' ? '' : m.valor, unidad: m.unidad, mejor: m.mejor }));
