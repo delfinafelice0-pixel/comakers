@@ -112,8 +112,6 @@
   .meses button:hover { background: var(--bg-elev); }
   .meses button.activo { background: var(--bg-elev); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(27,22,32,.06); }
   .meses .borr { font-size: 11px; color: var(--ink-mute); }
-  .meses .nuevo { color: var(--ink-mute); margin-top: 6px; }
-  .meses .nuevo:hover { color: var(--ink); }
   .meses-mobile { display: none; }
 
   main { min-width: 0; }
@@ -503,7 +501,12 @@
 
     await cargarPosts();
 
-    if (!MES || !REPORTES.some(r => r.mes === MES)) MES = REPORTES.length ? REPORTES[0].mes : mesActual();
+    // Qué mes se abre. La agencia arranca en el mes en curso, que es
+    // donde está la acción: el cron lo va llenando todos los días. El
+    // cliente arranca en su último reporte, que es lo que vino a ver.
+    if (!MES || !mesesAListar().includes(MES)) {
+      MES = AGENCIA ? mesActual() : (REPORTES.length ? REPORTES[0].mes : mesActual());
+    }
     render();
   }
 
@@ -548,38 +551,54 @@
     if (EDITANDO) renderEditor(); else renderReporte();
   }
 
+  // Qué meses se listan.
+  //
+  //  Agencia: los últimos 12 meses siempre, más cualquier mes viejo
+  //  que ya tenga reporte. El mes en curso está desde el día 1 y se
+  //  va llenando solo con lo que trae el cron de la madrugada.
+  //
+  //  Cliente: solo los meses que tienen reporte. Si le mostráramos el
+  //  mes en curso vería un reporte a medio hacer que todavía no
+  //  revisaste.
+  function mesesAListar() {
+    const conReporte = REPORTES.map(r => r.mes);
+    if (!AGENCIA) return conReporte;
+
+    const ult12 = [];
+    const hoy = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth() - i, 1));
+      ult12.push(d.toISOString().slice(0, 7));
+    }
+    const todos = ult12.concat(conReporte, MES ? [MES] : []);
+    return todos.filter((m, i) => m && todos.indexOf(m) === i).sort().reverse();
+  }
+
   function renderMeses() {
-    const lista = REPORTES.map(r => r.mes);
-    if (!lista.includes(MES)) lista.unshift(MES);
+    const lista = mesesAListar();
+    const hayPosts = m => POSTS.some(p => p.mes === m);
+
     $('#meses').innerHTML = lista.map(m => {
       const r = reporteDe(m);
+      let marca = '';
+      if (r && r.estado === 'borrador' && AGENCIA) marca = 'borrador';
+      else if (!r && AGENCIA) marca = hayPosts(m) ? 'en curso' : 'vacío';
       return '<li><button type="button" data-mes="' + m + '" class="' + (m === MES ? 'activo' : '') + '">' +
         '<span>' + esc(mesLabel(m)) + '</span>' +
-        (r && r.estado === 'borrador' && AGENCIA ? '<span class="borr">borrador</span>' : '') +
-        (!r ? '<span class="borr">vacío</span>' : '') +
+        (marca ? '<span class="borr">' + marca + '</span>' : '') +
         '</button></li>';
-    }).join('') + (AGENCIA ? '<li><button type="button" class="nuevo" id="btnNuevoMes">+ Otro mes</button></li>' : '');
+    }).join('');
 
-    $('#mesesMobile').innerHTML = lista.map(m => '<option value="' + m + '"' + (m === MES ? ' selected' : '') + '>' + esc(mesLabel(m)) + '</option>').join('') +
-      (AGENCIA ? '<option value="__nuevo">+ Otro mes</option>' : '');
+    $('#mesesMobile').innerHTML = lista.map(m =>
+      '<option value="' + m + '"' + (m === MES ? ' selected' : '') + '>' + esc(mesLabel(m)) + '</option>').join('');
 
     $('#meses').querySelectorAll('button[data-mes]').forEach(b => b.addEventListener('click', () => elegirMes(b.dataset.mes)));
-    const bn = $('#btnNuevoMes'); if (bn) bn.addEventListener('click', nuevoMes);
-    $('#mesesMobile').onchange = e => { if (e.target.value === '__nuevo') nuevoMes(); else elegirMes(e.target.value); };
+    $('#mesesMobile').onchange = e => elegirMes(e.target.value);
   }
 
   function elegirMes(m) {
     if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) { renderMeses(); return; }
     EDITANDO = false; MES = m; render();
-  }
-
-  function nuevoMes() {
-    if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) { renderMeses(); return; }
-    const m = prompt('¿Qué mes? (formato 2026-10)', mesActual());
-    if (!m || !/^\d{4}-(0[1-9]|1[0-2])$/.test(m.trim())) { renderMeses(); return; }
-    MES = m.trim(); EDITANDO = false;
-    if (reporteDe(MES)) { render(); return; }
-    abrirEditor();
   }
 
   function vacio(titulo, texto, boton) {
@@ -789,6 +808,32 @@
     const main = $('#main');
 
     if (!r) {
+      // Sin reporte, pero puede haber contenido ya traído por el cron.
+      // La agencia ve el mes irse llenando; el cliente no ve nada
+      // hasta que el reporte exista y esté publicado.
+      const enCurso = AGENCIA ? postsDelMes(MES) : [];
+      if (enCurso.length) {
+        const [ya, ym] = MES.split('-');
+        main.innerHTML =
+          '<div class="cabecera"><div>' +
+          '<h1><em>' + esc(MESES_ES[parseInt(ym, 10) - 1]) + '</em> ' + esc(ya) + '</h1>' +
+          '<div class="sub">' + esc(CLIENTE.nombre) +
+          ' <span class="pill">todavía sin reporte, el cliente no ve nada</span></div></div>' +
+          '<div class="acciones"><button type="button" class="btn primario" id="btnCargar">Cargar el reporte</button></div>' +
+          '</div>' +
+          '<p class="prosa mute">Esto es lo que se publicó hasta ahora. Se actualiza solo todas las noches.</p>' +
+          renderPosts(enCurso);
+
+        main.querySelectorAll('[data-criterio]').forEach(b => b.addEventListener('click', () => {
+          CRITERIO = b.dataset.criterio;
+          main.querySelectorAll('[data-criterio]').forEach(x => x.classList.toggle('activo', x === b));
+          const cont = $('#listaPosts');
+          if (cont) cont.innerHTML = renderListaPosts(enCurso);
+        }));
+        $('#btnCargar').addEventListener('click', abrirEditor);
+        return;
+      }
+
       main.innerHTML = vacio(
         'Todavía no hay reporte de ' + mesLabel(MES),
         AGENCIA ? 'Cargá los números del mes y escribí qué pasó. El cliente no lo ve hasta que lo publiques.'
