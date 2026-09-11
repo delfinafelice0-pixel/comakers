@@ -692,15 +692,6 @@
     return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
   }
 
-  // Con 3 a 9 posts por mes, un post que explota corre el promedio
-  // muy lejos del post típico. La mediana dice qué pasa en el medio.
-  function mediana(xs) {
-    const v = soloNums(xs).sort((a, b) => a - b);
-    if (!v.length) return null;
-    const m = Math.floor(v.length / 2);
-    return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
-  }
-
   // Reel y video van juntos: desde 2022 casi todo el video de
   // Instagram entra como reel, y el video suelto de feed que queda es
   // lo mismo para el cliente. En la base se guardan separados por si
@@ -765,9 +756,8 @@
       return {
         etiqueta: f.etiqueta,
         n: dels.length,
-        alcanceMed: mediana(dels.map(p => p.reach)),
-        alcancePro: promedio(dels.map(p => p.reach)),
-        engMed: mediana(dels.map(engagement))
+        alcance: promedio(dels.map(p => p.reach)),
+        eng: promedio(dels.map(engagement))
       };
     }).filter(f => f.n > 0);
 
@@ -778,19 +768,32 @@
       f.n < MIN_N || v == null ? '<td class="flojo">—</td>' : '<td>' + esc(formato(v)) + '</td>';
 
     return '<section class="bloque"><h2>Rendimiento por formato</h2>' +
+      '<div class="sincro">Últimos 90 días, no solo este mes: con los posts de un mes solo, los promedios se mueven demasiado.</div>' +
       '<table class="formatos"><thead><tr>' +
-        '<th>Formato</th><th>Alcance típico</th><th>Alcance promedio</th><th>Engagement típico</th>' +
+        '<th>Formato</th><th>Alcance promedio</th><th>Engagement promedio</th>' +
       '</tr></thead><tbody>' +
       filas.map(f =>
         '<tr><td>' + esc(f.etiqueta) + '<span class="n-chico">' + f.n + (f.n === 1 ? ' post' : ' posts') + '</span></td>' +
-        celda(f, f.alcanceMed, v => fmt(Math.round(v), 'num')) +
-        celda(f, f.alcancePro, v => fmt(Math.round(v), 'num')) +
-        celda(f, f.engMed, v => v.toFixed(1).replace('.', ',') + '%') +
+        celda(f, f.alcance, v => fmt(Math.round(v), 'num')) +
+        celda(f, f.eng, v => v.toFixed(1).replace('.', ',') + '%') +
         '</tr>').join('') +
       '</tbody></table>' +
-      '<p class="nota-bloque">El alcance típico es la mediana: el post del medio. Se muestra junto al promedio porque una publicación que explota mueve el promedio y no el resto.' +
-      (pocos ? ' Los formatos con menos de ' + MIN_N + ' publicaciones no muestran números: con tan pocos datos, un promedio no dice nada.' : '') +
-      '</p></section>';
+      (pocos ? '<p class="nota-bloque">Los formatos con menos de ' + MIN_N +
+               ' publicaciones no muestran números: con tan pocos datos, un promedio no dice nada.</p>' : '') +
+      '</section>';
+  }
+
+  // Los últimos 90 días contados desde el final del mes que se está
+  // mirando. Si mirás agosto, son junio a agosto: no tendría sentido
+  // mostrar septiembre en el reporte de agosto.
+  function postsUltimos90(mes) {
+    const [y, m] = mes.split('-').map(Number);
+    const hasta = Math.min(Date.UTC(m === 12 ? y + 1 : y, m === 12 ? 0 : m, 1), Date.now());
+    const desde = hasta - 90 * 86400000;
+    return POSTS.filter(p => {
+      const t = Date.parse(p.publicado_en);
+      return t >= desde && t < hasta;
+    });
   }
 
   function renderPosts(posts) {
@@ -800,7 +803,7 @@
         '<button type="button" data-criterio="' + c.clave + '" class="' + (c.clave === CRITERIO ? 'activo' : '') + '">' +
         esc(c.etiqueta) + '</button>').join('') + '</div>' +
       '<div id="listaPosts">' + renderListaPosts(posts) + '</div>' +
-      '</section>' + renderPorFormato(posts);
+      '</section>' + renderPorFormato(postsUltimos90(MES));
   }
 
   function renderReporte() {
