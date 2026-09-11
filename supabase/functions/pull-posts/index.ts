@@ -190,6 +190,79 @@ Deno.serve(async (req) => {
       if (p.thumb_path) thumbsQueYaTengo.set(String(p.media_id), String(p.thumb_path));
     }
 
+    // ═══════════════════════════════════════════════════════════
+    //  MODO DIAGNÓSTICO  ·  body { debug: true }
+    //  Temporal: pide la primera página de /media y la devuelve
+    //  cruda, sin filtrar por fecha y sin escribir nada en la base.
+    //  Sacar cuando se entienda por qué julio y agosto dieron cero.
+    // ═══════════════════════════════════════════════════════════
+    if (body?.debug === true) {
+      const diag: Record<string, unknown> = {
+        mes,
+        ventana: {
+          desde_ms: desde,
+          hasta_ms: hasta,
+          desde_iso: new Date(desde).toISOString(),
+          hasta_iso: new Date(hasta).toISOString(),
+          dias: Math.round((hasta - desde) / 86400000),
+        },
+        ig_user_id: igId,
+      };
+
+      // (a) La cuenta responde? Campos mínimos, sin insights.
+      try {
+        diag.cuenta = await graph(`/${igId}?fields=id,username,media_count`, token);
+      } catch (err) {
+        diag.cuenta_error = err instanceof ErrorMeta ? err.aJSON() : String(err);
+      }
+
+      // (b) /media con todos los campos que pide la función.
+      const qsCompleta = `fields=${CAMPOS_MEDIA}&limit=${POR_PAGINA}`;
+      diag.url_completa = `/${igId}/media?${qsCompleta}`;
+      try {
+        const p = await graph(`/${igId}/media?${qsCompleta}`, token);
+        const items = p?.data ?? [];
+        diag.media_completa = {
+          cantidad: items.length,
+          tiene_paging_next: Boolean(p?.paging?.next),
+          cursor_after: p?.paging?.cursors?.after ?? null,
+          primeros_10: items.slice(0, 10).map((m: any) => ({
+            id: m.id,
+            timestamp: m.timestamp,
+            parseado_ms: Date.parse(m.timestamp ?? ''),
+            cae_en_la_ventana:
+              Date.parse(m.timestamp ?? '') >= desde && Date.parse(m.timestamp ?? '') < hasta,
+            media_type: m.media_type,
+            media_product_type: m.media_product_type,
+            clasificado_como: clasificar(m),
+            tiene_thumb: Boolean(urlMiniatura(m)),
+          })),
+        };
+      } catch (err) {
+        diag.media_completa_error = err instanceof ErrorMeta ? err.aJSON() : String(err);
+      }
+
+      // (c) /media pelada. Si esta anda y la de arriba no, el
+      //     problema es alguno de los campos que estoy pidiendo.
+      try {
+        const p = await graph(`/${igId}/media?fields=id,timestamp&limit=5`, token);
+        diag.media_minima = {
+          cantidad: (p?.data ?? []).length,
+          crudo: p,
+        };
+      } catch (err) {
+        diag.media_minima_error = err instanceof ErrorMeta ? err.aJSON() : String(err);
+      }
+
+      return json({
+        ok: true,
+        modo: 'diagnostico — no se escribió nada en la base',
+        version_api: V,
+        ...diag,
+        cuota: cuota(),
+      });
+    }
+
     // ── 4. Recorrer /media hasta salir del mes ────────────────
     // Meta acepta since/until acá pero los respeta mal. Más confiable
     // es pedir las páginas en orden descendente (el default) y cortar
