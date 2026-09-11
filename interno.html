@@ -776,6 +776,13 @@
      La pastilla se pinta con el color de la etiqueta al 18% y el texto
      con el color pleno: así se distinguen de un vistazo sin que seis
      etiquetas juntas parezcan un semáforo. */
+  /* Varias responsables en una fila: pegaditas y un poco montadas,
+     como los avatares apilados de siempre. */
+  .avatares { display: inline-flex; align-items: center; flex-shrink: 0; }
+  .avatares .avatar-sm { margin-left: -6px; box-shadow: 0 0 0 2px var(--bg-elev); }
+  .avatares .avatar-sm:first-child { margin-left: 0; }
+  .avatares .avatar-sm.mas { background: var(--line); color: var(--ink-soft); font-size: 9px; }
+
   .etqs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
   .etq {
     display: inline-flex; align-items: center; gap: 5px;
@@ -789,6 +796,22 @@
   }
   .etq .quitar:hover { opacity: 1; }
   .etq.solo { padding: 2px 9px; }
+  /* La pastilla de una responsable lleva su avatar adelante. */
+  .etq.resp { background: var(--line-soft); padding: 2px 4px 2px 3px; font-weight: 500; }
+  .etq.resp .avatar-sm { width: 20px; height: 20px; font-size: 9px; }
+
+  /* Los botones de un comentario: aparecen al pasar el mouse, como el
+     resto del panel. En el celular no hay "pasar el mouse", así que
+     ahí se ven siempre. */
+  .comentario .com-acc { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity .13s; }
+  .comentario:hover .com-acc, .comentario:focus-within .com-acc { opacity: 1; }
+  .comentario .com-acc .mini-btn { font-size: 11px; min-width: 20px; }
+  .comentario .com-acc svg { width: 12px; height: 12px; }
+  .comentario .autor { display: flex; align-items: center; gap: 6px; }
+  .cfecha.editado { font-style: italic; }
+  .com-botones { display: flex; gap: 6px; margin-top: 7px; }
+  .btn-primary.chico { font-size: 11.5px; padding: 5px 11px; }
+  @media (max-width: 900px) { .comentario .com-acc { opacity: 1; } }
   .etq-punto { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
   .etq-vacio { font-size: 12px; color: var(--ink-mute); font-style: italic; }
 
@@ -2585,7 +2608,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 19:03</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v10/09 23:28</div>
     </div>
   </aside>
 
@@ -2941,9 +2964,13 @@
       <div class="prop">
         <div class="prop-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          Responsable
+          Responsables
+          <button type="button" class="info" data-info="Pueden ser varias. Todas pueden cerrarla y a todas les aparece en “Mías” y en su calendario. Distinto de las colaboradoras, que se enteran de todo pero la tarea no es suya.">i</button>
         </div>
-        <div class="prop-val"><select id="dResponsable"></select></div>
+        <div class="prop-val prop-col">
+          <div class="etqs" id="dResponsables"></div>
+          <select class="sel sel-campo" id="dAddResp"></select>
+        </div>
       </div>
 
       <div class="prop">
@@ -3155,6 +3182,7 @@
   let FALTA_M15 = false, FALTA_M18 = false;
   let FALTA_M26 = false;   // sin la 26 no existe `tarea.cliente_manual`
   let FALTA_M42 = false;   // sin la 42 no hay etiquetas ni memoria de sección
+  let FALTA_M43 = false;   // sin la 43 no se editan comentarios ni hay dos responsables
   let FALTA_M36 = false;   // sin la 36 no existe `trabajo_extra`
   let TRABAJOS_EX = [];
 
@@ -3665,9 +3693,21 @@
     return !!d && d.classList.contains('open');
   }
 
+  // Lo que hay que hacer antes de cerrar el detalle. Lo llena el panel
+  // interno; en administración queda en null y no pasa nada.
+  let ANTES_DE_CERRAR = null;
+
   function cerrarDrawer() {
     // El cajón del detalle vive solo en el panel interno.
     if (!$si('#drawer')) return;
+    // Al cerrar, lo que estabas escribiendo se guarda. No se espera el
+    // resultado a propósito: el panel se cierra ya y el guardado sigue
+    // solo — hacerte esperar por una consulta sería peor.
+    //
+    // Va por un gancho y no llamando a la función por su nombre porque
+    // esta función la comparten las dos páginas, y en administración
+    // no hay detalle de tarea: ahí el gancho queda vacío.
+    if (ANTES_DE_CERRAR) ANTES_DE_CERRAR();
     $('#scrim').classList.remove('open');
     $('#drawer').classList.remove('open');
     $('#drawer').setAttribute('aria-hidden', 'true');
@@ -3747,6 +3787,7 @@
     // Las de las tareas van después: necesitan saber si la migración 42
     // está corrida, y eso lo contesta `cargarEtiquetas`.
     await cargarTareaEtiquetas();
+    await cargarResponsables();
     // Salen todas juntas para no encadenar esperas, así que el orden
     // puede llegar después de los proyectos. Se reordena acá, ya con las
     // dos cosas en la mano.
@@ -4408,6 +4449,45 @@
   // decidiendo, esto solo llama a la misma función que el botón.
   window.__panelEtq = { crear: crearEtiqueta };
 
+  // ═══════════════ RESPONSABLES DE UNA TAREA ═══════════════
+  //
+  //  Una tarea puede tener más de una responsable, y todas valen
+  //  igual: cualquiera puede cerrarla, y a todas les aparece en
+  //  "Mías" y en su calendario.
+  //
+  //  Dónde vive cada una: la PRIMERA sigue en `tarea.responsable_id`,
+  //  la columna de siempre, porque la leen el panel del cliente y las
+  //  reglas de permisos. Las demás viven en `tarea_responsable`. El
+  //  panel las muestra a todas iguales; la diferencia es de plomería,
+  //  no de sentido.
+  //
+  //  Distinto de las colaboradoras: una colaboradora se entera de
+  //  todo lo que pasa en la tarea, pero la tarea no es suya y no le
+  //  aparece en "Mías".
+  let TR = [];              // las responsables de más
+
+  function responsablesDe(t) {
+    if (!t) return [];
+    const ids = [];
+    if (t.responsable_id) ids.push(t.responsable_id);
+    TR.forEach(x => {
+      if (x.tarea_id === t.id && ids.indexOf(x.user_id) === -1) ids.push(x.user_id);
+    });
+    return ids;
+  }
+
+  function esResponsable(t, userId) {
+    if (!t || !userId) return false;
+    if (t.responsable_id === userId) return true;
+    return TR.some(x => x.tarea_id === t.id && x.user_id === userId);
+  }
+
+  async function cargarResponsables() {
+    const { data, error } = await SB.from('tarea_responsable').select('tarea_id, user_id');
+    if (error) { FALTA_M43 = true; TR = []; return; }
+    TR = data || [];
+  }
+
   async function cargarTareaEtiquetas() {
     if (FALTA_M42) { TE = []; return; }
     const { data, error } = await SB.from('tarea_etiqueta').select('tarea_id, etiqueta_id');
@@ -4678,8 +4758,10 @@
         const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '') + ' ' + etiquetasDe(t.id).map(e => e.nombre).join(' ')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
       }
-      if (FILTRO.persona === '__sin') { if (t.responsable_id) return false; }
-      else if (FILTRO.persona) { if (t.responsable_id !== FILTRO.persona) return false; }
+      // Con dos responsables, filtrar por una tiene que traer la tarea:
+      // es de las dos, no de la que quedó primera en la base.
+      if (FILTRO.persona === '__sin') { if (responsablesDe(t).length) return false; }
+      else if (FILTRO.persona) { if (!esResponsable(t, FILTRO.persona)) return false; }
 
       // Una subtarea que se dibuja COLGANDO de su madre no pasa por el
       // filtro de proyecto ni por el de cliente: está ahí porque su madre
@@ -4702,7 +4784,7 @@
         else if (FILTRO.proyecto) { if (!enProy.some(x => x.proyecto_id === FILTRO.proyecto)) return false; }
       }
 
-      if (FILTRO.mias && ME && t.responsable_id !== ME.id) return false;
+      if (FILTRO.mias && ME && !esResponsable(t, ME.id)) return false;
 
       return true;
     }
@@ -4759,7 +4841,7 @@
 
     $('#btnLimpiar').style.display = hayFiltro() ? '' : 'none';
     $('#agrupar').style.display = VISTA === 'lista' ? '' : 'none';
-    $('#cMias').textContent = ME ? TAREAS.filter(t => t.responsable_id === ME.id && !t.completada).length : 0;
+    $('#cMias').textContent = ME ? TAREAS.filter(t => esResponsable(t, ME.id) && !t.completada).length : 0;
 
     const abiertas = TAREAS.filter(t => estaVencida(t)).length;
     $('#navTablero').classList.toggle('active', !FILTRO.proyecto);
@@ -5017,7 +5099,7 @@
   async function dejarDeSeguir(tareaId) {
     if (!ME) return;
     const t = TAREAS.find(x => x.id === tareaId);
-    if (t && t.responsable_id === ME.id) {
+    if (t && esResponsable(t, ME.id)) {
       toast('Sos la responsable de esa tarea: no podés dejar de seguirla', 'warn');
       return;
     }
@@ -6021,7 +6103,7 @@
   function guardarCampoDe(el) {
     if (!el) return;
     el = raizEditor(el);
-    if (el.id === 'dDesc') guardarCampo('descripcion', leerTexto(el) || null);
+    if (el.id === 'dDesc') { anotarDesc(); guardarDescYa(); }
     if (esTextoResumen(el)) guardarProyCampo(el.dataset.campo, el.value.trim() || null);
   }
 
@@ -6096,7 +6178,7 @@
     const md = '[' + texto + '](' + url + ')';
     el.value = el.value.slice(0, LK_INI) + md + el.value.slice(LK_FIN);
     cerrar('ovLink');
-    if (el.id === 'dDesc') guardarCampo('descripcion', leerTexto(el) || null);
+    if (el.id === 'dDesc') { anotarDesc(); guardarDescYa(); }
     if (esTextoResumen(el)) { entrarAEditarBrief(el); guardarProyCampo(el.dataset.campo, el.value.trim() || null); }
     const c = LK_INI + md.length;
     el.focus();
@@ -6803,7 +6885,10 @@
       if (estaVencida(t)) cls.push('atrasada');
       if (r.ini < isoIni) cls.push('sigue-izq');
       if (r.fin > isoFin) cls.push('sigue-der');
-      const quien = nombrePersona(t.responsable_id);
+      const resps = responsablesDe(t);
+      const quien = resps.length
+        ? (nombrePersona(resps[0]) || '') + (resps.length > 1 ? ' +' + (resps.length - 1) : '')
+        : '';
       const cp = t.proyecto_id ? 'box-shadow: inset 0 0 0 1px ' + colorProyecto(t.proyecto_id) + '55;' : '';
       return '<div class="' + cls.join(' ') + '" draggable="true" data-id="' + t.id + '" data-bar="1" ' +
              'style="grid-column:' + p.c1 + ' / ' + (p.c2 + 1) + '; grid-row:' + (p.carril + 1) + ';' + cp + '" ' +
@@ -7072,12 +7157,23 @@
       : (ps.length ? '' : '<span class="pill interno">Interno</span>');
     return cli + ps.map(chipUnProyecto).join('');
   }
+  // Las responsables de una fila o de una tarjeta. Se dibujan hasta
+  // dos; de ahí en más, un "+N" — tres iniciales pegadas en una fila
+  // de lista no se leen y encima empujan la fecha fuera de la pantalla.
   function avatarDe(t) {
-    const n = nombrePersona(t.responsable_id);
-    if (!n) return '<div class="avatar-sm sin" title="Sin responsable">?</div>';
-    const mia = ME && t.responsable_id === ME.id;
-    return '<div class="avatar-sm' + (mia ? '' : ' otra') + '" title="' + esc(n) + '">'
-         + esc(iniciales(n, '')) + '</div>';
+    const ids = responsablesDe(t);
+    if (!ids.length) return '<div class="avatar-sm sin" title="Sin responsable">?</div>';
+    const uno = id => {
+      const n = nombrePersona(id);
+      const mia = ME && id === ME.id;
+      return '<div class="avatar-sm' + (mia ? '' : ' otra') + '" title="' + esc(n || '') + '">'
+           + esc(iniciales(n, '')) + '</div>';
+    };
+    if (ids.length === 1) return uno(ids[0]);
+    const resto = ids.slice(2).map(x => nombrePersona(x)).filter(Boolean).join(', ');
+    return '<div class="avatares">' + ids.slice(0, 2).map(uno).join('') +
+      (ids.length > 2 ? '<div class="avatar-sm otra mas" title="' + esc(resto) + '">+' + (ids.length - 2) + '</div>' : '') +
+      '</div>';
   }
 
   // Columnas del tablero: las secciones del proyecto activo, o los
@@ -7927,6 +8023,10 @@
   async function abrirDrawer(id) {
     const t = TAREAS.find(x => x.id === id);
     if (!t) return;
+    // Lo que quedó escrito en la tarea anterior se guarda ANTES de
+    // cambiar: si no, el freno del autoguardado dispararía cuando
+    // DETALLE ya apunta a otra tarea.
+    await guardarDescYa();
     DETALLE = t;
     ACT_TODO = false;
     llenarDrawer(t);
@@ -7987,9 +8087,7 @@
     autoGrow($('#dTitulo'));
     ponerTexto($('#dDesc'), t.descripcion || '');
 
-    $('#dResponsable').innerHTML = '<option value="">Sin asignar</option>'
-      + PERSONAS.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
-    $('#dResponsable').value = t.responsable_id || '';
+    pintarResponsablesDrawer();
 
     // El cliente lo trae el proyecto. El selector sigue estando para
     // las tareas sueltas y para el caso raro de querer otro; si lo
@@ -8115,6 +8213,99 @@
       esc(e.nombre) +
       (conQuitar ? '<button class="quitar" data-etqdel="' + e.id + '" title="Sacar esta etiqueta">×</button>' : '') +
     '</span>';
+  }
+
+  // ── Las responsables de la tarea ─────────────────────────────
+  function pintarResponsablesDrawer() {
+    if (!DETALLE) return;
+    const cont = $si('#dResponsables');
+    if (!cont) return;
+    const ids = responsablesDe(DETALLE);
+
+    cont.innerHTML = ids.length
+      ? ids.map(id => {
+          const n = nombrePersona(id) || 'Alguien';
+          return '<span class="etq resp">' +
+            '<span class="avatar-sm" title="' + esc(n) + '">' + esc(iniciales(n, '')) + '</span>' +
+            esc(n) +
+            '<button class="quitar" data-respdel="' + id + '" title="Sacar de responsables">×</button>' +
+          '</span>';
+        }).join('')
+      : '<div class="etq-vacio">Sin asignar.</div>';
+
+    const libres = PERSONAS.filter(p => ids.indexOf(p.id) === -1);
+    const sel = $si('#dAddResp');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">' + (ids.length ? '+ Sumar responsable…' : '+ Asignar a alguien…') + '</option>'
+      + libres.map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('');
+    sel.value = '';
+    sel.style.display = libres.length ? '' : 'none';
+  }
+
+  // Sumar una responsable. La PRIMERA va a la columna de siempre
+  // (`tarea.responsable_id`); las que siguen, a la tabla nueva. Para
+  // quien usa el panel son todas iguales — esto es plomería.
+  async function sumarResponsable(userId) {
+    if (!DETALLE || !userId) return;
+    if (esResponsable(DETALLE, userId)) return;
+    if (FALTA_M43 && DETALLE.responsable_id) {
+      toast('Para poner más de una responsable falta correr la migración 43', 'warn');
+      pintarResponsablesDrawer();
+      return;
+    }
+    if (!DETALLE.responsable_id) { await guardarCampo('responsable_id', userId); pintarResponsablesDrawer(); return; }
+
+    const tareaId = DETALLE.id;
+    TR.push({ tarea_id: tareaId, user_id: userId });
+    pintarResponsablesDrawer(); render();
+    const { error } = await SB.from('tarea_responsable')
+      .insert({ tarea_id: tareaId, user_id: userId, puesta_por: ME ? ME.id : null });
+    if (error) {
+      TR = TR.filter(x => !(x.tarea_id === tareaId && x.user_id === userId));
+      pintarResponsablesDrawer(); render();
+      toast('No se pudo sumar: ' + error.message, 'warn');
+      return;
+    }
+    flashGuardado();
+    cargarActividad(tareaId);
+  }
+
+  // Sacar una responsable. Si la que sacás es la que estaba en la
+  // columna de siempre, otra de las que quedan ocupa ese lugar — así
+  // la tarea nunca queda "sin responsable" teniendo una.
+  async function sacarResponsable(userId) {
+    if (!DETALLE || !userId) return;
+    const tareaId = DETALLE.id;
+    const ids = responsablesDe(DETALLE);
+    if (ids.indexOf(userId) === -1) return;
+
+    if (DETALLE.responsable_id === userId) {
+      const releva = ids.find(x => x !== userId) || null;
+      if (releva) {
+        // La que releva sale de la tabla y entra en la columna.
+        const antes = TR.slice();
+        TR = TR.filter(x => !(x.tarea_id === tareaId && x.user_id === releva));
+        const { error: eDel } = await SB.from('tarea_responsable').delete()
+          .eq('tarea_id', tareaId).eq('user_id', releva);
+        if (eDel) { TR = antes; pintarResponsablesDrawer(); toast('No se pudo: ' + eDel.message, 'warn'); return; }
+      }
+      await guardarCampo('responsable_id', releva);
+      pintarResponsablesDrawer();
+      return;
+    }
+
+    const antes = TR.slice();
+    TR = TR.filter(x => !(x.tarea_id === tareaId && x.user_id === userId));
+    pintarResponsablesDrawer(); render();
+    const { error } = await SB.from('tarea_responsable').delete()
+      .eq('tarea_id', tareaId).eq('user_id', userId);
+    if (error) {
+      TR = antes; pintarResponsablesDrawer(); render();
+      toast('No se pudo sacar: ' + error.message, 'warn');
+      return;
+    }
+    flashGuardado();
+    cargarActividad(tareaId);
   }
 
   function pintarEtiquetasDrawer() {
@@ -8338,6 +8529,59 @@
   }
 
   // ── Guardado campo por campo, sin botón ──────────────────────
+  // ═══════════════ AUTOGUARDADO DEL DETALLE ═══════════════
+  //
+  //  Antes el detalle guardaba SOLO al salir del campo. Si escribías y
+  //  recargabas sin clickear afuera, lo escrito se perdía sin aviso —
+  //  y perder algo que ya escribiste es de lo peor que puede hacer una
+  //  herramienta.
+  //
+  //  Ahora guarda solo, un ratito después de que dejás de tipear. El
+  //  freno de 800 ms existe para no mandar una consulta por tecla; es
+  //  corto a propósito, porque el riesgo que cubre es justamente el de
+  //  recargar enseguida.
+  //
+  //  Y además se descarga lo pendiente en los cuatro momentos en que
+  //  te podés ir: al salir del campo, al cambiar de tarea, al cerrar
+  //  el panel y al irte de la página.
+  let DESC_T = null;        // el temporizador del freno
+  let DESC_PEND = null;     // { tareaId, texto } lo que falta guardar
+
+  function anotarDesc() {
+    const el = $si('#dDesc');
+    if (!el || !DETALLE) return;
+    // Se guarda contra la tarea que está abierta AHORA. Si en el medio
+    // cambiás de tarea, lo pendiente igual va a la que corresponde y no
+    // se escribe encima de la nueva.
+    DESC_PEND = { tareaId: DETALLE.id, texto: leerTexto(el) || null };
+    clearTimeout(DESC_T);
+    DESC_T = setTimeout(guardarDescYa, 800);
+  }
+
+  async function guardarDescYa() {
+    clearTimeout(DESC_T); DESC_T = null;
+    const p = DESC_PEND;
+    if (!p) return;
+    DESC_PEND = null;
+    const t = TAREAS.find(x => x.id === p.tareaId);
+    if (t && (t.descripcion || null) === p.texto) return;   // no cambió nada
+
+    const antes = t ? t.descripcion : null;
+    if (t) t.descripcion = p.texto;
+    if (DETALLE && DETALLE.id === p.tareaId) DETALLE.descripcion = p.texto;
+    render();
+
+    const { error } = await SB.from('tarea').update({ descripcion: p.texto }).eq('id', p.tareaId);
+    if (error) {
+      if (t) t.descripcion = antes;
+      if (DETALLE && DETALLE.id === p.tareaId) DETALLE.descripcion = antes;
+      render();
+      toast('No se pudo guardar el detalle: ' + error.message, 'warn');
+      return;
+    }
+    flashGuardado();
+  }
+
   async function guardarCampo(campo, valor) {
     if (!DETALLE) return;
     const anterior = DETALLE[campo];
@@ -8582,20 +8826,120 @@
     render();
   }
 
+  // Los comentarios de la tarea abierta, tal como vinieron de la base.
+  // Se guardan para poder editar uno sin volver a pedirlos todos.
+  let COMENTARIOS = [];
+
   async function cargarComentarios(t) {
-    const { data, error } = await SB.from('comentario_tarea')
-      .select('id, autor, autor_tipo, texto, created_at')
+    // `creado_por` y `editado_en` son para saber cuáles podés tocar y
+    // cuáles se editaron. Si falta la migración 43 no existe
+    // `editado_en`: se pide sin ella en vez de quedarnos sin comentarios.
+    const COLS = 'id, autor, autor_tipo, texto, created_at, creado_por';
+    let { data, error } = await SB.from('comentario_tarea')
+      .select(COLS + ', editado_en')
       .eq('tarea_id', t.id).order('created_at', { ascending: true });
+    if (error && faltaDeVerdad(error)) {
+      FALTA_M43 = true;
+      const r = await SB.from('comentario_tarea').select(COLS)
+        .eq('tarea_id', t.id).order('created_at', { ascending: true });
+      if (!r.error) { data = r.data; error = null; }
+    }
     if (error) { $('#dComentarios').innerHTML = '<div class="sin-com">No se pudieron cargar los comentarios.</div>'; return; }
-    if (!data || !data.length) { $('#dComentarios').innerHTML = '<div class="sin-com">Todavía no hay comentarios.</div>'; return; }
-    $('#dComentarios').innerHTML = data.map(c =>
-      '<div class="comentario">' +
+    COMENTARIOS = data || [];
+    pintarComentarios();
+  }
+
+  // Quién puede qué con un comentario:
+  //  · editarlo → solo quien lo escribió. Borrar el de otra es sacar
+  //    algo que no correspondía; editarlo es ponerle palabras en la
+  //    boca, y eso no lo puede hacer nadie, ni una socia.
+  //  · borrarlo → el tuyo siempre, el de otra solo si sos socia.
+  // Es lo mismo que dice la base. Acá es la cortesía de no mostrar un
+  // botón que no lleva a ningún lado.
+  function puedoEditarCom(c) { return !!(ME && c.creado_por && c.creado_por === ME.id); }
+  function puedoBorrarCom(c) { return puedoEditarCom(c) || soySocia(); }
+
+  function pintarComentarios() {
+    const cont = $si('#dComentarios');
+    if (!cont) return;
+    if (!COMENTARIOS.length) { cont.innerHTML = '<div class="sin-com">Todavía no hay comentarios.</div>'; return; }
+    cont.innerHTML = COMENTARIOS.map(c =>
+      '<div class="comentario" data-com="' + c.id + '">' +
         '<div class="avatar-sm">' + esc(iniciales(c.autor, '')) + '</div>' +
         '<div class="body">' +
-          '<div class="autor">' + esc(c.autor || 'Alguien') + '<span class="cfecha">' + fechaCorta(c.created_at) + '</span></div>' +
+          '<div class="autor">' + esc(c.autor || 'Alguien') +
+            '<span class="cfecha">' + fechaCorta(c.created_at) + '</span>' +
+            (c.editado_en ? '<span class="cfecha editado" title="Se editó el ' +
+               esc(fechaCorta(c.editado_en)) + '">· editado</span>' : '') +
+            '<span class="com-acc">' +
+              (puedoEditarCom(c) ? '<button class="mini-btn" data-comedit="' + c.id + '" title="Editar">✏️</button>' : '') +
+              (puedoBorrarCom(c) ? '<button class="mini-btn" data-comdel="' + c.id + '" title="Borrar">' + TACHO_SVG + '</button>' : '') +
+            '</span>' +
+          '</div>' +
           '<div class="texto coment-txt">' + renderTexto(c.texto) + '</div>' +
         '</div>' +
       '</div>').join('');
+  }
+
+  // Editar uno: el texto se cambia por un editor con lo que decía.
+  function editarComentario(id) {
+    const c = COMENTARIOS.find(x => x.id === id);
+    const fila = $si('#dComentarios [data-com="' + id + '"]');
+    if (!c || !fila) return;
+    const caja = fila.querySelector('.texto');
+    if (!caja || fila.querySelector('.com-editando')) return;
+    caja.innerHTML =
+      '<div class="editor com com-editando" contenteditable="true" data-ph="Escribí el comentario…"></div>' +
+      '<div class="com-botones">' +
+        '<button class="btn-primary chico" data-comok="' + id + '">Guardar</button>' +
+        '<button class="btn-ghost chico" data-comcancel="' + id + '">Cancelar</button>' +
+      '</div>';
+    const ed = caja.querySelector('.com-editando');
+    montarEditor(ed);
+    montarMenciones(ed);
+    ponerTexto(ed, c.texto || '');
+    ed.focus();
+  }
+
+  async function guardarComentarioEditado(id) {
+    const c = COMENTARIOS.find(x => x.id === id);
+    const ed = $si('#dComentarios [data-com="' + id + '"] .com-editando');
+    if (!c || !ed) return;
+    const texto = leerTexto(ed);
+    if (!texto) { toast('Un comentario vacío no se guarda. Si lo querés sacar, borralo.', 'warn'); return; }
+    if (texto === c.texto) { pintarComentarios(); return; }
+
+    const antes = c.texto, antesEd = c.editado_en;
+    const ahora = new Date().toISOString();
+    c.texto = texto; c.editado_en = ahora;
+    pintarComentarios();
+
+    const patch = FALTA_M43 ? { texto: texto } : { texto: texto, editado_en: ahora };
+    const { error } = await SB.from('comentario_tarea').update(patch).eq('id', id);
+    if (error) {
+      c.texto = antes; c.editado_en = antesEd;
+      pintarComentarios();
+      toast('No se pudo editar: ' + error.message, 'warn');
+      return;
+    }
+    flashGuardado();
+  }
+
+  async function borrarComentario(id) {
+    const c = COMENTARIOS.find(x => x.id === id);
+    if (!c) return;
+    if (!confirm('¿Borrar este comentario?\n\nNo se puede deshacer.')) return;
+    const antes = COMENTARIOS.slice();
+    COMENTARIOS = COMENTARIOS.filter(x => x.id !== id);
+    pintarComentarios();
+    const { error } = await SB.from('comentario_tarea').delete().eq('id', id);
+    if (error) {
+      COMENTARIOS = antes; pintarComentarios();
+      toast('No se pudo borrar: ' + error.message, 'warn');
+      return;
+    }
+    // El contador de la fila cuenta comentarios: hay que refrescarlo.
+    if (DETALLE) { await cargarTareas(); }
   }
 
   async function enviarComentario() {
@@ -8878,10 +9222,21 @@
   // El detalle guarda al salir del campo, como siempre. Lo que cambió
   // es que ya no hay que volver a "modo ver": nunca se fue.
   on('#dDesc', 'focus', () => { const h = $si('#dHint'); if (h) h.style.display = ''; });
-  on('#dDesc', 'blur', e => {
-    guardarCampo('descripcion', leerTexto(e.target) || null);
+  ANTES_DE_CERRAR = guardarDescYa;
+  on('#dDesc', 'input', anotarDesc);
+  on('#dDesc', 'blur', () => {
+    guardarDescYa();
     if (!TOCANDO_HERRAMIENTA) { const h = $si('#dHint'); if (h) h.style.display = 'none'; }
   });
+
+  // Los tres momentos en que te podés ir con algo sin guardar. El de
+  // `visibilitychange` es el que cubre recargar y cerrar la pestaña:
+  // `beforeunload` no siempre llega a tiempo, este sí.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') guardarDescYa();
+  });
+  window.addEventListener('beforeunload', () => { guardarDescYa(); });
+  window.addEventListener('pagehide', () => { guardarDescYa(); });
   // Un link adentro del detalle se abre al clickearlo, aunque el campo
   // sea editable: si no, no habría manera de seguirlo.
   on('#dDesc', 'click', e => {
@@ -8967,7 +9322,7 @@
     // Los campos del drawer guardan al salir; acá guardamos ya mismo
     // porque el foco vuelve al campo y el blur puede tardar.
     if (el.id === 'dTitulo') guardarCampo('titulo', el.value.trim());
-    if (el.id === 'dDesc') guardarCampo('descripcion', leerTexto(el) || null);
+    if (el.id === 'dDesc') { anotarDesc(); guardarDescYa(); }
     if (esTextoResumen(el)) guardarProyCampo(el.dataset.campo, el.value.trim() || null);
     el.focus();
   });
@@ -8996,7 +9351,23 @@
   on('#resumen', 'keydown', e => {
     if (esTextoResumen(e.target)) atajoLink(e);
   });
-  on('#dResponsable', 'change', e => guardarCampo('responsable_id', e.target.value || null));
+  on('#dAddResp', 'change', e => { const v = e.target.value; e.target.value = ''; if (v) sumarResponsable(v); });
+  // ── Editar y borrar comentarios ──────────────────────────────
+  on('#dComentarios', 'click', e => {
+    const ed = e.target.closest('[data-comedit]');
+    if (ed) { editarComentario(ed.dataset.comedit); return; }
+    const ok = e.target.closest('[data-comok]');
+    if (ok) { guardarComentarioEditado(ok.dataset.comok); return; }
+    const no = e.target.closest('[data-comcancel]');
+    if (no) { pintarComentarios(); return; }
+    const del = e.target.closest('[data-comdel]');
+    if (del) { borrarComentario(del.dataset.comdel); return; }
+  });
+
+  on('#dResponsables', 'click', e => {
+    const b = e.target.closest('[data-respdel]');
+    if (b) sacarResponsable(b.dataset.respdel);
+  });
   // Elegir un cliente a mano marca la tarea: de ahí en más la
   // automatización no la toca. Es lo mínimo para que el panel no te
   // pise una decisión tuya.

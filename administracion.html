@@ -776,6 +776,13 @@
      La pastilla se pinta con el color de la etiqueta al 18% y el texto
      con el color pleno: así se distinguen de un vistazo sin que seis
      etiquetas juntas parezcan un semáforo. */
+  /* Varias responsables en una fila: pegaditas y un poco montadas,
+     como los avatares apilados de siempre. */
+  .avatares { display: inline-flex; align-items: center; flex-shrink: 0; }
+  .avatares .avatar-sm { margin-left: -6px; box-shadow: 0 0 0 2px var(--bg-elev); }
+  .avatares .avatar-sm:first-child { margin-left: 0; }
+  .avatares .avatar-sm.mas { background: var(--line); color: var(--ink-soft); font-size: 9px; }
+
   .etqs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
   .etq {
     display: inline-flex; align-items: center; gap: 5px;
@@ -789,6 +796,22 @@
   }
   .etq .quitar:hover { opacity: 1; }
   .etq.solo { padding: 2px 9px; }
+  /* La pastilla de una responsable lleva su avatar adelante. */
+  .etq.resp { background: var(--line-soft); padding: 2px 4px 2px 3px; font-weight: 500; }
+  .etq.resp .avatar-sm { width: 20px; height: 20px; font-size: 9px; }
+
+  /* Los botones de un comentario: aparecen al pasar el mouse, como el
+     resto del panel. En el celular no hay "pasar el mouse", así que
+     ahí se ven siempre. */
+  .comentario .com-acc { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity .13s; }
+  .comentario:hover .com-acc, .comentario:focus-within .com-acc { opacity: 1; }
+  .comentario .com-acc .mini-btn { font-size: 11px; min-width: 20px; }
+  .comentario .com-acc svg { width: 12px; height: 12px; }
+  .comentario .autor { display: flex; align-items: center; gap: 6px; }
+  .cfecha.editado { font-style: italic; }
+  .com-botones { display: flex; gap: 6px; margin-top: 7px; }
+  .btn-primary.chico { font-size: 11.5px; padding: 5px 11px; }
+  @media (max-width: 900px) { .comentario .com-acc { opacity: 1; } }
   .etq-punto { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
   .etq-vacio { font-size: 12px; color: var(--ink-mute); font-style: italic; }
 
@@ -2603,7 +2626,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v04/09 19:03</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v10/09 23:28</div>
     </div>
   </aside>
 
@@ -3153,6 +3176,7 @@
   let FALTA_M15 = false, FALTA_M18 = false;
   let FALTA_M26 = false;   // sin la 26 no existe `tarea.cliente_manual`
   let FALTA_M42 = false;   // sin la 42 no hay etiquetas ni memoria de sección
+  let FALTA_M43 = false;   // sin la 43 no se editan comentarios ni hay dos responsables
   let FALTA_M36 = false;   // sin la 36 no existe `trabajo_extra`
   let TRABAJOS_EX = [];
 
@@ -3663,9 +3687,21 @@
     return !!d && d.classList.contains('open');
   }
 
+  // Lo que hay que hacer antes de cerrar el detalle. Lo llena el panel
+  // interno; en administración queda en null y no pasa nada.
+  let ANTES_DE_CERRAR = null;
+
   function cerrarDrawer() {
     // El cajón del detalle vive solo en el panel interno.
     if (!$si('#drawer')) return;
+    // Al cerrar, lo que estabas escribiendo se guarda. No se espera el
+    // resultado a propósito: el panel se cierra ya y el guardado sigue
+    // solo — hacerte esperar por una consulta sería peor.
+    //
+    // Va por un gancho y no llamando a la función por su nombre porque
+    // esta función la comparten las dos páginas, y en administración
+    // no hay detalle de tarea: ahí el gancho queda vacío.
+    if (ANTES_DE_CERRAR) ANTES_DE_CERRAR();
     $('#scrim').classList.remove('open');
     $('#drawer').classList.remove('open');
     $('#drawer').setAttribute('aria-hidden', 'true');
@@ -3754,6 +3790,7 @@
     // Las de las tareas van después: necesitan saber si la migración 42
     // está corrida, y eso lo contesta `cargarEtiquetas`.
     await cargarTareaEtiquetas();
+    await cargarResponsables();
     // Salen todas juntas para no encadenar esperas, así que el orden
     // puede llegar después de los proyectos. Se reordena acá, ya con las
     // dos cosas en la mano.
@@ -4411,6 +4448,45 @@
   // decidiendo, esto solo llama a la misma función que el botón.
   window.__panelEtq = { crear: crearEtiqueta };
 
+  // ═══════════════ RESPONSABLES DE UNA TAREA ═══════════════
+  //
+  //  Una tarea puede tener más de una responsable, y todas valen
+  //  igual: cualquiera puede cerrarla, y a todas les aparece en
+  //  "Mías" y en su calendario.
+  //
+  //  Dónde vive cada una: la PRIMERA sigue en `tarea.responsable_id`,
+  //  la columna de siempre, porque la leen el panel del cliente y las
+  //  reglas de permisos. Las demás viven en `tarea_responsable`. El
+  //  panel las muestra a todas iguales; la diferencia es de plomería,
+  //  no de sentido.
+  //
+  //  Distinto de las colaboradoras: una colaboradora se entera de
+  //  todo lo que pasa en la tarea, pero la tarea no es suya y no le
+  //  aparece en "Mías".
+  let TR = [];              // las responsables de más
+
+  function responsablesDe(t) {
+    if (!t) return [];
+    const ids = [];
+    if (t.responsable_id) ids.push(t.responsable_id);
+    TR.forEach(x => {
+      if (x.tarea_id === t.id && ids.indexOf(x.user_id) === -1) ids.push(x.user_id);
+    });
+    return ids;
+  }
+
+  function esResponsable(t, userId) {
+    if (!t || !userId) return false;
+    if (t.responsable_id === userId) return true;
+    return TR.some(x => x.tarea_id === t.id && x.user_id === userId);
+  }
+
+  async function cargarResponsables() {
+    const { data, error } = await SB.from('tarea_responsable').select('tarea_id, user_id');
+    if (error) { FALTA_M43 = true; TR = []; return; }
+    TR = data || [];
+  }
+
   async function cargarTareaEtiquetas() {
     if (FALTA_M42) { TE = []; return; }
     const { data, error } = await SB.from('tarea_etiqueta').select('tarea_id, etiqueta_id');
@@ -4681,8 +4757,10 @@
         const blob = ((t.titulo || '') + ' ' + (t.descripcion || '') + ' ' + proyectosDe(t).map(p => p.nombre).join(' ') + ' ' + (nombreCliente(t.cliente_id) || '') + ' ' + etiquetasDe(t.id).map(e => e.nombre).join(' ')).toLowerCase();
         if (blob.indexOf(q) === -1) return false;
       }
-      if (FILTRO.persona === '__sin') { if (t.responsable_id) return false; }
-      else if (FILTRO.persona) { if (t.responsable_id !== FILTRO.persona) return false; }
+      // Con dos responsables, filtrar por una tiene que traer la tarea:
+      // es de las dos, no de la que quedó primera en la base.
+      if (FILTRO.persona === '__sin') { if (responsablesDe(t).length) return false; }
+      else if (FILTRO.persona) { if (!esResponsable(t, FILTRO.persona)) return false; }
 
       // Una subtarea que se dibuja COLGANDO de su madre no pasa por el
       // filtro de proyecto ni por el de cliente: está ahí porque su madre
@@ -4705,7 +4783,7 @@
         else if (FILTRO.proyecto) { if (!enProy.some(x => x.proyecto_id === FILTRO.proyecto)) return false; }
       }
 
-      if (FILTRO.mias && ME && t.responsable_id !== ME.id) return false;
+      if (FILTRO.mias && ME && !esResponsable(t, ME.id)) return false;
 
       return true;
     }
@@ -4962,7 +5040,7 @@
   async function dejarDeSeguir(tareaId) {
     if (!ME) return;
     const t = TAREAS.find(x => x.id === tareaId);
-    if (t && t.responsable_id === ME.id) {
+    if (t && esResponsable(t, ME.id)) {
       toast('Sos la responsable de esa tarea: no podés dejar de seguirla', 'warn');
       return;
     }
@@ -5533,7 +5611,7 @@
 
   // ── EQUIPO ───────────────────────────────────────────────────
   function tareasAbiertasDe(id) {
-    return TAREAS.filter(t => t.responsable_id === id && !t.completada).length;
+    return TAREAS.filter(t => esResponsable(t, id) && !t.completada).length;
   }
 
   function filaPersona(p) {
@@ -5612,7 +5690,7 @@
 
   function cargaDe(userId, mes) {
     mes = mes || mesDe(EQ_MES);
-    const suyas = TAREAS.filter(t => t.responsable_id === userId && !t.padre_id && esDelMes(t, mes));
+    const suyas = TAREAS.filter(t => esResponsable(t, userId) && !t.padre_id && esDelMes(t, mes));
     const abiertas = suyas.filter(t => !t.completada);
     return {
       todas:    suyas,
