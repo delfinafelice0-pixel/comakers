@@ -342,31 +342,33 @@ Deno.serve(async (req) => {
     // `impressions` está deprecada para Instagram desde v22: la
     // reemplaza `views`.
     //
-    // ⚠️ ALCANCE — MEDIDO. EL DATO DE META VIENE MAL.
+    // ⚠️ ALCANCE — EL DATO DE META ES INTERMITENTE, NO ESTÁ ROTO SIEMPRE.
     // Pedimos `reach` con metric_type=total_value sobre el rango, que
     // es el único modo de que Meta deduplique personas. NO sumamos el
     // reach diario: eso cuenta dos veces a quien vuelve.
     //
-    // Diagnóstico del 10/09/2026 · Visitando Tandil · agosto 2026:
-    //   ventana 1 (01/08→31/08, 30 días): total_value = 56
-    //                                     suma diaria = 56, pico = 6
-    //   ventana 2 (31/08→01/09,  1 día):  total_value = 1
-    //   contra: views_org = 4158, follows_mes = 38
-    // Sin errores, sin problemas de paginación, parseo correcto: los
-    // dos métodos coinciden en 56, así que no es cómo lo pedimos ni
-    // cómo lo leemos. El número llega mal de origen. La propia
-    // descripción que devuelve Meta admite que reach "es una
-    // estimación y está en desarrollo".
+    // Medido el 11/09/2026 · Visitando Tandil · tres meses seguidos:
+    //   junio  2026:  reach   403  ·  views  1474   → creíble, pasó
+    //   julio  2026:  reach  null  ·  views 16107   → descartado
+    //   agosto 2026:  reach    56  ·  views  4158   → descartado
     //
-    // Por eso el guardián de abajo descarta el alcance en vez de
-    // guardar basura. Cuando Meta lo arregle, estos números son la
-    // referencia para comparar: reach de un mes con 4158 views tiene
-    // que dar cientos o miles, no 56.
+    // Agosto se diagnosticó a fondo: ventana de 30 días devolvió
+    // total_value = 56, la suma diaria coincidió en 56 y el pico
+    // diario fue 6. Los dos métodos dan lo mismo, sin errores ni
+    // problemas de paginación: no es cómo lo pedimos ni cómo lo
+    // leemos. Y junio demuestra que tampoco es que el endpoint esté
+    // muerto: a veces devuelve un número razonable. Falla de a ratos.
+    // La propia descripción que devuelve Meta admite que reach "es
+    // una estimación y está en desarrollo".
     //
-    // Queda pendiente, para cuando el dato sirva: en meses de 31 días
-    // el rango se parte en dos ventanas y sumar los dos total_value
-    // vuelve a duplicar a quien apareció en las dos mitades. Es un
-    // límite del endpoint (no acepta > 30 días).
+    // Por eso el guardián de abajo no apaga la métrica: la evalúa mes
+    // a mes contra las views y descarta solo cuando no cierra. Si
+    // apagáramos el alcance del todo, perderíamos los meses buenos.
+    //
+    // Queda pendiente, para cuando el dato sea confiable: en meses de
+    // 31 días el rango se parte en dos ventanas y sumar los dos
+    // total_value vuelve a duplicar a quien apareció en las dos
+    // mitades. Es un límite del endpoint (no acepta > 30 días).
     const notas: string[] = [];
     const fallos: Record<string, string> = {};
 
@@ -599,13 +601,30 @@ Deno.serve(async (req) => {
         ? 'Falta el índice único (cliente_id, mes) en la tabla reporte. Sin eso no se puede guardar sin duplicar.'
         : 'No se pudo guardar el reporte: ' + (errUp.message ?? 'error de base');
       await admin.from('cliente_integracion')
-        .update({ ultimo_error: msg, ultimo_sync: null })
+        .update({ ultimo_error: `${mes} · ${msg}`, ultimo_sync: null })
         .eq('id', integracionId);
       return json({ error: { code: errUp.code ?? null, message: msg } }, 500);
     }
 
+    // ── 7. Dejar rastro de los fallos parciales ───────────────
+    // Un pull puede terminar bien y aun así traer menos de lo pedido:
+    // una métrica que Meta no devolvió, el alcance descartado por el
+    // guardián. Eso viajaba solo en la respuesta y se perdía. Dentro
+    // de un mes, mirando un reporte con un hueco, no había forma de
+    // saber por qué faltaba. Ahora queda escrito.
+    //
+    // Codificación, sin columna nueva:
+    //   ultimo_sync con fecha + ultimo_error null   → salió completo
+    //   ultimo_sync con fecha + ultimo_error texto  → salió con faltantes
+    //   ultimo_sync null      + ultimo_error texto  → falló entero
+    const faltantes = Object.keys(fallos);
+    const resumenFallos = faltantes.length
+      ? `${mes} · sincronizó con faltantes · ` +
+        faltantes.map((k) => `${k}: ${fallos[k]}`).join(' · ')
+      : null;
+
     await admin.from('cliente_integracion')
-      .update({ ultimo_sync: new Date().toISOString(), ultimo_error: null })
+      .update({ ultimo_sync: new Date().toISOString(), ultimo_error: resumenFallos })
       .eq('id', integracionId);
 
     return json({

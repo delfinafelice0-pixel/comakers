@@ -158,6 +158,12 @@
 
   .prosa { max-width: 62ch; white-space: pre-wrap; color: var(--ink); }
   .prosa.mute { color: var(--ink-soft); }
+  /* Análisis: bloque propio. Mientras sea borrador generado, se avisa. */
+  .analisis h2 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .borrador-tag { font-size: 11px; font-weight: 500; letter-spacing: .03em; text-transform: uppercase;
+                  background: var(--coral-soft); color: #B2405E; padding: 3px 9px; border-radius: 999px; }
+  .analisis .aviso { font-size: 12px; color: var(--ink-mute); margin: 0 0 12px; max-width: 62ch; }
+  .analisis.es-borrador .prosa { border-left: 3px solid var(--coral-soft); padding-left: 14px; }
   .bloque { margin-top: 38px; }
   .bloque h2 {
     font-family: var(--display);
@@ -418,7 +424,8 @@
 
     const { data: reps, error } = await SB.from('reporte')
       .select('id, mes, estado, resumen, proximos_pasos, publicado_en, fuente, sincronizado_en, ' +
-              'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes')
+              'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes, ' +
+              'analisis, analisis_generado_en')
       .eq('cliente_id', CLIENTE.id).order('mes', { ascending: false });
     if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
 
@@ -426,6 +433,7 @@
       id: r.id, mes: String(r.mes).slice(0, 7), estado: r.estado === 'publicado' ? 'publicado' : 'borrador',
       resumen: r.resumen || '', proximos_pasos: r.proximos_pasos || '', publicado_en: r.publicado_en,
       fuente: r.fuente || 'manual', sincronizado_en: r.sincronizado_en || null, cols: r,
+      analisis: r.analisis || '', analisis_generado_en: r.analisis_generado_en || null,
       metricas: [], destacados: []
     }));
     const ids = REPORTES.map(r => r.id);
@@ -590,6 +598,25 @@
     if (r.resumen) html += '<p class="prosa">' + esc(r.resumen) + '</p>';
     else if (AGENCIA) html += '<p class="prosa mute">Falta escribir qué pasó este mes.</p>';
 
+    // ── Análisis ───────────────────────────────────────────────
+    // Bloque aparte del resumen y a propósito: `resumen` lo escribe la
+    // agencia, `analisis` es la lectura de los números y puede venir
+    // generada. Si está sin revisar, se dice.
+    // Al cliente no se le muestra la sección vacía.
+    const esBorradorAn = !!r.analisis_generado_en;
+    if (r.analisis || AGENCIA) {
+      html += '<section class="bloque analisis' + (esBorradorAn ? ' es-borrador' : '') + '">' +
+        '<h2>Análisis' + (esBorradorAn ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
+      if (r.analisis) {
+        if (esBorradorAn) html += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
+        html += '<p class="prosa">' + esc(r.analisis) + '</p>';
+      } else {
+        html += '<p class="prosa mute">Todavía no hay análisis de este mes.</p>' +
+          '<button type="button" class="btn chico" id="btnAnalisis">Generar borrador</button>';
+      }
+      html += '</section>';
+    }
+
     ['organico', 'pauta'].forEach(mod => {
       const ms = r.metricas.filter(m => m.modulo === mod);
       if (!ms.length) return;
@@ -628,6 +655,28 @@
 
     main.innerHTML = html;
     const be = $('#btnEditar'); if (be) be.addEventListener('click', abrirEditor);
+    const ba = $('#btnAnalisis');
+    if (ba) ba.addEventListener('click', async () => {
+      ba.disabled = true; ba.textContent = 'Generando…';
+      try {
+        const { data, error } = await SB.functions.invoke('analizar-reporte', {
+          body: { cliente_id: CLIENTE.id, mes: MES }
+        });
+        if (error) {
+          // El mensaje bueno viene en el cuerpo, no en error.message.
+          let msg = 'No se pudo generar el análisis';
+          try { const c = await error.context.json(); if (c && c.error && c.error.message) msg = c.error.message; } catch (e) {}
+          toast(msg, true);
+          ba.disabled = false; ba.textContent = 'Generar borrador';
+          return;
+        }
+        toast('Borrador generado. Revisalo antes de publicar.');
+        await cargarCliente();
+      } catch (e) {
+        toast('No se pudo generar el análisis', true);
+        ba.disabled = false; ba.textContent = 'Generar borrador';
+      }
+    });
     const bp = $('#btnPublicar'); if (bp) bp.addEventListener('click', () => cambiarEstado(r, 'publicado'));
     const bd = $('#btnDespublicar'); if (bd) bd.addEventListener('click', () => cambiarEstado(r, 'borrador'));
   }
@@ -651,6 +700,8 @@
       estado: r ? r.estado : 'borrador',
       resumen: r ? r.resumen : '',
       proximos_pasos: r ? r.proximos_pasos : '',
+      analisis: r ? r.analisis : '',
+      analisis_generado_en: r ? r.analisis_generado_en : null,
       incluye: { organico: r ? r.metricas.some(m => m.modulo === 'organico') : MODULOS.organico,
                  pauta:    r ? r.metricas.some(m => m.modulo === 'pauta')    : MODULOS.pauta },
       metricas: { organico: [], pauta: [] },
@@ -689,6 +740,10 @@
       '<div class="editor">' +
       '<div class="campo"><label for="edResumen">Qué pasó este mes</label>' +
       '<textarea id="edResumen" placeholder="Dos o tres párrafos. Qué se movió, por qué, y qué significa para el negocio. Los números ya están abajo: acá va la interpretación.">' + esc(b.resumen) + '</textarea></div>' +
+
+      '<div class="campo"><label for="edAnalisis">Análisis' +
+        (b.analisis_generado_en ? ' <span class="borrador-tag">borrador sin revisar</span>' : '') + '</label>' +
+      '<textarea id="edAnalisis" placeholder="La lectura de los números: qué cambió y cuánto. Si lo generaste con el botón, revisalo acá.">' + esc(b.analisis) + '</textarea></div>' +
 
       ['organico', 'pauta'].map(mod =>
         '<div class="ed-modulo' + (b.incluye[mod] ? '' : ' apagado') + '" id="edMod-' + mod + '">' +
@@ -753,7 +808,11 @@
     $('#edGuardar').addEventListener('click', () => guardar('borrador'));
     $('#edPublicar').addEventListener('click', () => guardar('publicado'));
 
-    function leerTextos() { b.resumen = $('#edResumen').value; b.proximos_pasos = $('#edProx').value; }
+    function leerTextos() {
+      b.resumen = $('#edResumen').value;
+      b.proximos_pasos = $('#edProx').value;
+      b.analisis = $('#edAnalisis').value;
+    }
     b._leer = leerTextos;
   }
 
@@ -780,6 +839,10 @@
       const fila = {
         cliente_id: CLIENTE.id, mes: b.mes + '-01', estado,
         resumen: b.resumen.trim() || null, proximos_pasos: b.proximos_pasos.trim() || null,
+        analisis: b.analisis.trim() || null,
+        // Si una persona guardó el reporte, el análisis quedó frente a
+        // sus ojos: deja de ser un borrador sin revisar.
+        analisis_generado_en: null,
         actualizado_en: new Date().toISOString(),
         publicado_en: estado === 'publicado' ? new Date().toISOString().slice(0, 10) : null
       };
