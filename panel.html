@@ -261,6 +261,49 @@
   .toast.ver { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.mal { background: var(--coral); }
 
+  /* ── Posts del mes ── */
+  .criterios { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .criterios button {
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 13px; font-size: 13px; cursor: pointer;
+  }
+  .criterios button:hover { border-color: var(--ink-mute); }
+  .criterios button.activo { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .posts { display: flex; flex-direction: column; gap: 10px; }
+  .post {
+    display: grid; grid-template-columns: 62px 1fr auto; gap: 14px; align-items: center;
+    padding: 10px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg-elev); text-decoration: none;
+  }
+  .post:hover { border-color: var(--ink-mute); }
+  .post .thumb {
+    width: 62px; height: 62px; border-radius: 8px; object-fit: cover;
+    background: var(--line-soft); display: block;
+  }
+  .post .thumb.falta {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--ink-mute); text-align: center; line-height: 1.2; padding: 4px;
+  }
+  .post .cuerpo { min-width: 0; }
+  .post .meta { font-size: 12px; color: var(--ink-mute); display: flex; gap: 7px; align-items: center; }
+  .post .copy {
+    margin-top: 2px; color: var(--ink-soft); font-size: 14px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .post .cifra { text-align: right; white-space: nowrap; }
+  .post .cifra .n { font-family: var(--display); font-size: 22px; line-height: 1.1; }
+  .post .cifra .q { font-size: 11px; color: var(--ink-mute); text-transform: lowercase; }
+
+  .formatos { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .formatos th, .formatos td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--line-soft); }
+  .formatos th:first-child, .formatos td:first-child { text-align: left; }
+  .formatos th { font-size: 12px; color: var(--ink-mute); font-weight: 500; }
+  .formatos tbody tr:last-child td { border-bottom: none; }
+  .formatos .n-chico { color: var(--ink-mute); font-size: 12px; margin-left: 5px; }
+  .formatos td.flojo { color: var(--ink-mute); }
+  .nota-bloque { font-size: 12px; color: var(--ink-mute); margin-top: 10px; }
+
   @media (max-width: 760px) {
     .top { padding: 0 16px; gap: 12px; }
     .top-user .nom { display: none; }
@@ -273,6 +316,11 @@
     .fila { grid-template-columns: 1fr; }
     .grilla .r, .grilla .r.dest { grid-template-columns: 1fr 1fr; }
     .grilla .r.cab { display: none; }
+    .post { grid-template-columns: 48px 1fr auto; gap: 10px; }
+    .post .thumb { width: 48px; height: 48px; }
+    .post .cifra .n { font-size: 18px; }
+    .formatos { font-size: 13px; }
+    .formatos th, .formatos td { padding: 8px 5px; }
   }
   @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 </style>
@@ -322,6 +370,8 @@
   let MES = null;           // 'YYYY-MM' seleccionado
   let EDITANDO = false;
   let BORRADOR = null;      // el reporte en edición (copia)
+  let POSTS = [];           // posts de Instagram del cliente, todos los meses
+  let CRITERIO = 'alcance'; // con qué se ordena el top de posts
 
   const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const NOMBRE_MOD = { organico: 'Orgánico', pauta: 'Pauta' };
@@ -451,8 +501,42 @@
     // de lo cargado a mano. Corre siempre, haya o no filas manuales.
     REPORTES.forEach(mezclarInstagram);
 
+    await cargarPosts();
+
     if (!MES || !REPORTES.some(r => r.mes === MES)) MES = REPORTES.length ? REPORTES[0].mes : mesActual();
     render();
+  }
+
+  // ── Posts de Instagram ──────────────────────────────────────
+  // Se traen todos los meses de una: son pocas filas y evita una
+  // consulta cada vez que se cambia de mes.
+  //
+  // Las miniaturas viven en un bucket PRIVADO (las URLs que da Meta
+  // vencen en horas). Hay que firmarlas, y se firman todas juntas acá
+  // para que renderReporte siga siendo sincrónico. La firma dura una
+  // hora: si alguien deja la pestaña abierta más que eso, las
+  // imágenes se rompen hasta que recargue. Es aceptable y el alt
+  // avisa.
+  async function cargarPosts() {
+    POSTS = [];
+    const { data, error } = await SB.from('post_instagram')
+      .select('id, media_id, tipo, publicado_en, mes, caption, permalink, thumb_path, ' +
+              'views, reach, likes, comments, saves, shares, interacciones')
+      .eq('cliente_id', CLIENTE.id)
+      .order('publicado_en', { ascending: false });
+
+    // Que falten los posts no puede romper el reporte: se sigue sin ellos.
+    if (error || !data) return;
+    POSTS = data.map(p => ({ ...p, mes: String(p.mes).slice(0, 7), thumb_url: null }));
+
+    const rutas = POSTS.filter(p => p.thumb_path).map(p => p.thumb_path);
+    if (!rutas.length) return;
+    try {
+      const { data: firmadas } = await SB.storage.from('post-thumbs').createSignedUrls(rutas, 3600);
+      const porRuta = {};
+      (firmadas || []).forEach(f => { if (f && f.signedUrl && !f.error) porRuta[f.path] = f.signedUrl; });
+      POSTS.forEach(p => { p.thumb_url = porRuta[p.thumb_path] || null; });
+    } catch (e) { /* sin miniaturas, con datos */ }
   }
 
   // ── Render ──────────────────────────────────────────────────
@@ -560,6 +644,146 @@
       ' a las ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // ── Posts: cálculo ──────────────────────────────────────────
+  //
+  //  ⚠️ ESTA ES LA ÚNICA DEFINICIÓN DE ENGAGEMENT DEL PROYECTO.
+  //  Si cambia, cambia acá y en ningún otro lado.
+  //
+  //  Se divide por `views` y NO por `reach` a propósito: el alcance
+  //  que devuelve Meta falla de forma intermitente (ver el guardián
+  //  en supabase/functions/_shared/alcance.ts). Un engagement sobre
+  //  un reach roto daría porcentajes imposibles justo en los meses
+  //  en que el dato falla, sin que nada avise.
+  //
+  //  Devuelve null, nunca 0, cuando no se puede calcular: 0 diría
+  //  que nadie interactuó, y lo que pasa es que no sabemos.
+  function engagement(p) {
+    const v = Number(p.views);
+    if (!v || v <= 0) return null;
+    const inter = p.interacciones != null
+      ? Number(p.interacciones)
+      : sumaONull([p.likes, p.comments, p.saves, p.shares]);
+    return inter == null ? null : inter * 100 / v;
+  }
+
+  const soloNums = xs => xs.filter(x => x != null && x !== '').map(Number).filter(x => !isNaN(x));
+
+  function promedio(xs) {
+    const v = soloNums(xs);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  }
+
+  // Con 3 a 9 posts por mes, un post que explota corre el promedio
+  // muy lejos del post típico. La mediana dice qué pasa en el medio.
+  function mediana(xs) {
+    const v = soloNums(xs).sort((a, b) => a - b);
+    if (!v.length) return null;
+    const m = Math.floor(v.length / 2);
+    return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+  }
+
+  // Reel y video van juntos: desde 2022 casi todo el video de
+  // Instagram entra como reel, y el video suelto de feed que queda es
+  // lo mismo para el cliente. En la base se guardan separados por si
+  // alguna vez importa la diferencia.
+  const FORMATOS = [
+    { clave: 'reel',     etiqueta: 'Reels',      tipos: ['reel', 'video'] },
+    { clave: 'carrusel', etiqueta: 'Carruseles', tipos: ['carrusel'] },
+    { clave: 'imagen',   etiqueta: 'Imágenes',   tipos: ['imagen'] }
+  ];
+
+  // Con menos de 3 posts, un promedio no es un promedio: es un dato
+  // suelto disfrazado. Se muestra el formato con su n y un guion,
+  // para no invitar a una comparación que los números no sostienen.
+  const MIN_N = 3;
+
+  const CRITERIOS = [
+    { clave: 'alcance',    etiqueta: 'Más alcance',    q: 'de alcance',   val: p => (p.reach == null ? null : Number(p.reach)), fmt: v => fmt(v, 'num') },
+    { clave: 'engagement', etiqueta: 'Más engagement', q: 'de engagement', val: engagement,                                     fmt: v => v.toFixed(1).replace('.', ',') + '%' },
+    { clave: 'guardados',  etiqueta: 'Más guardados',  q: 'guardados',    val: p => (p.saves == null ? null : Number(p.saves)), fmt: v => fmt(v, 'num') }
+  ];
+
+  const ETIQUETA_TIPO = { reel: 'Reel', video: 'Video', carrusel: 'Carrusel', imagen: 'Imagen', historia: 'Historia' };
+  const fechaCorta = iso => {
+    const d = new Date(iso);
+    return isNaN(d) ? '' : d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+  };
+
+  // ── Posts: render ───────────────────────────────────────────
+  const postsDelMes = mes => POSTS.filter(p => p.mes === mes);
+
+  function renderListaPosts(posts) {
+    const c = CRITERIOS.find(x => x.clave === CRITERIO) || CRITERIOS[0];
+    const conValor = posts
+      .map(p => ({ p, v: c.val(p) }))
+      .filter(x => x.v != null)
+      .sort((a, b) => b.v - a.v)
+      .slice(0, 3);
+
+    if (!conValor.length) {
+      return '<p class="prosa mute">Instagram no devolvió este dato para las publicaciones del mes.</p>';
+    }
+
+    return '<div class="posts">' + conValor.map(({ p, v }) => {
+      const thumb = p.thumb_url
+        ? '<img class="thumb" src="' + esc(p.thumb_url) + '" alt="" loading="lazy">'
+        : '<div class="thumb falta">sin imagen</div>';
+      const abre = p.permalink ? 'a href="' + esc(p.permalink) + '" target="_blank" rel="noopener"' : 'div';
+      const cierra = p.permalink ? 'a' : 'div';
+      return '<' + abre + ' class="post">' + thumb +
+        '<div class="cuerpo">' +
+          '<div class="meta">' + esc(ETIQUETA_TIPO[p.tipo] || p.tipo) + ' · ' + esc(fechaCorta(p.publicado_en)) + '</div>' +
+          (p.caption ? '<div class="copy">' + esc(p.caption) + '</div>' : '') +
+        '</div>' +
+        '<div class="cifra"><div class="n">' + esc(c.fmt(v)) + '</div><div class="q">' + esc(c.q) + '</div></div>' +
+      '</' + cierra + '>';
+    }).join('') + '</div>';
+  }
+
+  function renderPorFormato(posts) {
+    const filas = FORMATOS.map(f => {
+      const dels = posts.filter(p => f.tipos.indexOf(p.tipo) !== -1);
+      return {
+        etiqueta: f.etiqueta,
+        n: dels.length,
+        alcanceMed: mediana(dels.map(p => p.reach)),
+        alcancePro: promedio(dels.map(p => p.reach)),
+        engMed: mediana(dels.map(engagement))
+      };
+    }).filter(f => f.n > 0);
+
+    if (!filas.length) return '';
+
+    const pocos = filas.some(f => f.n < MIN_N);
+    const celda = (f, v, formato) =>
+      f.n < MIN_N || v == null ? '<td class="flojo">—</td>' : '<td>' + esc(formato(v)) + '</td>';
+
+    return '<section class="bloque"><h2>Rendimiento por formato</h2>' +
+      '<table class="formatos"><thead><tr>' +
+        '<th>Formato</th><th>Alcance típico</th><th>Alcance promedio</th><th>Engagement típico</th>' +
+      '</tr></thead><tbody>' +
+      filas.map(f =>
+        '<tr><td>' + esc(f.etiqueta) + '<span class="n-chico">' + f.n + (f.n === 1 ? ' post' : ' posts') + '</span></td>' +
+        celda(f, f.alcanceMed, v => fmt(Math.round(v), 'num')) +
+        celda(f, f.alcancePro, v => fmt(Math.round(v), 'num')) +
+        celda(f, f.engMed, v => v.toFixed(1).replace('.', ',') + '%') +
+        '</tr>').join('') +
+      '</tbody></table>' +
+      '<p class="nota-bloque">El alcance típico es la mediana: el post del medio. Se muestra junto al promedio porque una publicación que explota mueve el promedio y no el resto.' +
+      (pocos ? ' Los formatos con menos de ' + MIN_N + ' publicaciones no muestran números: con tan pocos datos, un promedio no dice nada.' : '') +
+      '</p></section>';
+  }
+
+  function renderPosts(posts) {
+    if (!posts.length) return '';
+    return '<section class="bloque"><h2>Las publicaciones que mejor funcionaron</h2>' +
+      '<div class="criterios">' + CRITERIOS.map(c =>
+        '<button type="button" data-criterio="' + c.clave + '" class="' + (c.clave === CRITERIO ? 'activo' : '') + '">' +
+        esc(c.etiqueta) + '</button>').join('') + '</div>' +
+      '<div id="listaPosts">' + renderListaPosts(posts) + '</div>' +
+      '</section>' + renderPorFormato(posts);
+  }
+
   function renderReporte() {
     const r = reporteDe(MES);
     const main = $('#main');
@@ -643,6 +867,14 @@
         }).join('') + '</div></section>';
     });
 
+    // ── Publicaciones del mes ──────────────────────────────────
+    // Solo si el reporte está publicado o si mira la agencia: los
+    // posts se leen de otra tabla y no siguen el estado del reporte
+    // por sí solos. Sin esto, un cliente vería el detalle de un mes
+    // que todavía no revisaste.
+    const postsMes = (r.estado === 'publicado' || AGENCIA) ? postsDelMes(MES) : [];
+    html += renderPosts(postsMes);
+
     if (r.destacados.length) {
       html += '<section class="bloque"><h2>Lo que vale la pena mirar</h2><ul class="destacados">' +
         r.destacados.map(d => '<li><span class="punto ' + esc(d.tipo) + '"></span><div class="txt">' + esc(d.texto) +
@@ -654,6 +886,14 @@
     if (r.proximos_pasos) html += '<section class="bloque"><h2>Qué hacemos el mes que viene</h2><p class="prosa">' + esc(r.proximos_pasos) + '</p></section>';
 
     main.innerHTML = html;
+    // Cambiar de criterio redibuja solo la lista: re-renderizar el
+    // reporte entero perdería el scroll.
+    main.querySelectorAll('[data-criterio]').forEach(b => b.addEventListener('click', () => {
+      CRITERIO = b.dataset.criterio;
+      main.querySelectorAll('[data-criterio]').forEach(x => x.classList.toggle('activo', x === b));
+      const cont = $('#listaPosts');
+      if (cont) cont.innerHTML = renderListaPosts(postsMes);
+    }));
     const be = $('#btnEditar'); if (be) be.addEventListener('click', abrirEditor);
     const ba = $('#btnAnalisis');
     if (ba) ba.addEventListener('click', async () => {
