@@ -303,7 +303,11 @@ Deno.serve(async (req) => {
             const img = await fetch(url);
             if (!img.ok) throw new Error(`HTTP ${img.status}`);
             const bytes = new Uint8Array(await img.arrayBuffer());
-            const ruta = `ads/${clienteId}/${adId}.jpg`;
+            // El cliente_id va PRIMERO, no `ads/{cliente_id}/…`. La
+            // policy del bucket compara el primer nivel de carpeta
+            // contra el cliente_id: con "ads" adelante, ningún
+            // cliente vería jamás sus propias miniaturas.
+            const ruta = `${clienteId}/ads/${adId}.jpg`;
             const { error: eUp } = await admin.storage.from(BUCKET).upload(ruta, bytes, {
               contentType: img.headers.get('content-type') ?? 'image/jpeg', upsert: true,
             });
