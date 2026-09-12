@@ -711,6 +711,21 @@
     'video_view': 'Reproducciones'
   };
 
+  // Singular de cada acción, para "Costo por conversación". Sacar la
+  // "s" final no alcanza: daba "Costo por conversacione".
+  const ACCION_SINGULAR = {
+    'onsite_conversion.total_messaging_connection': 'conversación',
+    'onsite_conversion.messaging_conversation_started_7d': 'conversación iniciada',
+    'onsite_conversion.messaging_first_reply': 'primera respuesta',
+    'link_click': 'clic',
+    'landing_page_view': 'visita',
+    'lead': 'lead',
+    'purchase': 'compra',
+    'post_engagement': 'interacción',
+    'video_view': 'reproducción'
+  };
+
+
   const MAPA_ADS = [
     { clave: 'inversion',  etiqueta: 'Inversión',  unidad: 'ars', mejor: 'sube', col: c => c.inversion_ads },
     { clave: 'resultados', etiqueta: 'Resultados', unidad: 'num', mejor: 'sube', col: c => c.resultados_ads },
@@ -735,8 +750,8 @@
       if (def.clave === 'resultados' && c.accion_ads) {
         etiqueta = ETIQUETA_ACCION[c.accion_ads] || def.etiqueta;
       }
-      if (def.clave === 'costo_resultado' && c.accion_ads && ETIQUETA_ACCION[c.accion_ads]) {
-        etiqueta = 'Costo por ' + ETIQUETA_ACCION[c.accion_ads].toLowerCase().replace(/s$/, '');
+      if (def.clave === 'costo_resultado' && c.accion_ads && ACCION_SINGULAR[c.accion_ads]) {
+        etiqueta = 'Costo por ' + ACCION_SINGULAR[c.accion_ads];
       }
       return {
         modulo: 'pauta',
@@ -939,15 +954,16 @@
           a.ctr != null ? fmt(a.ctr, 'pct') + ' CTR' : null
         ].filter(Boolean).join(' · ');
 
+        // El nombre del anuncio primero: es lo único que el cliente
+        // reconoce. El del conjunto de anuncios describe la
+        // segmentación y no le dice nada, así que ni aparece.
         return '<' + abre + ' class="post">' + thumb +
           '<div class="cuerpo">' +
-            '<div class="meta">' + esc(a.conjunto || a.campania || '') +
-              (share != null ? ' · ' + share + '% de la inversión' : '') + '</div>' +
             '<div class="copy">' + esc(a.nombre || a.ad_id) + '</div>' +
             (detalle ? '<div class="meta">' + esc(detalle) + '</div>' : '') +
           '</div>' +
           '<div class="cifra"><div class="n">' + esc(fmt(a.inversion, 'ars')) + '</div>' +
-            '<div class="q">invertido</div></div>' +
+            '<div class="q">' + (share != null ? share + '% del total' : 'invertido') + '</div></div>' +
         '</' + cierra + '>';
       }).join('') + '</div>' +
       '<p class="nota-bloque">Ordenado por inversión. El alcance de cada anuncio no se suma entre sí: la misma persona puede haber visto más de uno.</p>' +
