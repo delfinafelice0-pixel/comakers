@@ -106,11 +106,44 @@ const COLUMNAS_ADS = METRICAS_ADS.map((m) => m.col).join(', ') + ', accion_ads, 
 
 // "sin dato" y 0 son cosas distintas y el prompt insiste en eso.
 // Acá se decide cuál es cuál, una sola vez.
-const mostrar = (v: unknown): string => {
+//
+// El formato también se decide acá. Si le pasamos 931.702723, el
+// modelo escribe "931,7 pesos" y queda raro: los montos en pesos no
+// llevan decimales. Lo mismo con los porcentajes, que sin el símbolo
+// se leen como si fueran cantidades.
+const mostrar = (v: unknown): string =>
+  v === null || v === undefined ? 'sin dato' : String(v);
+
+const pesos = (v: unknown): string => {
   if (v === null || v === undefined) return 'sin dato';
   const n = Number(v);
-  if (!isNaN(n) && !Number.isInteger(n)) return n.toFixed(1).replace('.', ',');
-  return String(v);
+  return isNaN(n) ? 'sin dato' : '$' + Math.round(n).toLocaleString('es-AR');
+};
+
+const pct = (v: unknown): string => {
+  if (v === null || v === undefined) return 'sin dato';
+  const n = Number(v);
+  return isNaN(n) ? 'sin dato' : n.toFixed(1).replace('.', ',') + '%';
+};
+
+const conDecimal = (v: unknown): string => {
+  if (v === null || v === undefined) return 'sin dato';
+  const n = Number(v);
+  return isNaN(n) ? 'sin dato' : n.toFixed(2).replace('.', ',');
+};
+
+const entero = (v: unknown): string => {
+  if (v === null || v === undefined) return 'sin dato';
+  const n = Number(v);
+  return isNaN(n) ? 'sin dato' : Math.round(n).toLocaleString('es-AR');
+};
+
+// Cada métrica sabe cómo se escribe.
+const FORMATO: Record<string, (v: unknown) => string> = {
+  inversion_ads: pesos,
+  costo_resultado_ads: pesos,
+  ctr_ads: pct,
+  frecuencia_ads: conDecimal,
 };
 
 function tablaDeNumeros(
@@ -125,9 +158,10 @@ function tablaDeNumeros(
 
   const filas = defs.map((m) => {
     const rot = (m.sangria ? '  ' : '') + m.rotulo;
+    const f = FORMATO[m.col] || mostrar;
     return rot.padEnd(anchoRot) +
-      mostrar(actual[m.col]).padStart(anchoCol) +
-      (previo ? mostrar(previo[m.col]).padStart(anchoCol) : '');
+      f(actual[m.col]).padStart(anchoCol) +
+      (previo ? f(previo[m.col]).padStart(anchoCol) : '');
   });
 
   return [cab, '─'.repeat(cab.length), ...filas].join('\n');
@@ -155,10 +189,13 @@ Reglas:
 - Si no hay mes anterior, describí el mes solo, sin comparar y sin mencionar que falta la comparación.
 
 Sobre las publicaciones y los anuncios, cuando te los pase:
+- NO los enumeres. Te paso cinco de cada uno para que elijas, no para que los recites. El panel ya muestra la lista completa con sus imágenes justo debajo de tu texto: repetirla en prosa es un bloque de números que nadie lee.
+- Mencioná dos, tres como mucho, y solo si hacen a un punto que valga la pena. El caso típico: la pieza que más se llevó y la que mejor rindió, cuando no son la misma.
 - Podés señalar cuál tuvo más alcance o cuál costó menos por resultado. Eso es describir lo que muestran los números.
 - Lo que NO podés es decir por qué una pieza anduvo mejor. No sabés qué se ve en la imagen ni por qué la gente reaccionó. No digas que "el formato reel conecta mejor" ni que "el copy fue más directo".
 - Si un anuncio se llevó una parte grande de la inversión y otro con menos plata trajo resultados más baratos, decilo: es un hecho de los números. Pero no recomiendes mover presupuesto, eso lo decide la agencia.
 - Al nombrar una pieza, usá el nombre tal cual te lo paso. No lo reescribas ni lo interpretes.
+- Los números te los paso ya escritos como van: los montos con su signo y sin decimales, los porcentajes con su símbolo. Copialos tal cual, no los reformatees ni les agregues decimales.
 
 Sobre el orgánico y la pauta juntos:
 - Son dos cosas separadas y sus números no se suman. El alcance del contenido propio y el alcance de la pauta cuentan personas que pueden ser las mismas: sumarlos daría un número falso. Nunca los sumes ni hables de "alcance total".
@@ -308,10 +345,10 @@ Deno.serve(async (req) => {
           const share = totalInv > 0
             ? Math.round((Number(a.inversion) || 0) * 100 / totalInv) : null;
           partes.push(
-            `${i + 1}. ${a.nombre || '(sin nombre)'} — invirtió ${mostrar(a.inversion)}` +
+            `${i + 1}. ${a.nombre || '(sin nombre)'} — invirtió ${pesos(a.inversion)}` +
             (share !== null ? ` (${share}% de estos cinco)` : '') +
-            `, ${mostrar(a.resultados)} ${et}, costo ${mostrar(a.costo_resultado)} cada uno, ` +
-            `CTR ${mostrar(a.ctr)}`);
+            `, ${entero(a.resultados)} ${et}, costo ${pesos(a.costo_resultado)} cada uno, ` +
+            `CTR ${pct(a.ctr)}`);
         });
       }
     }
