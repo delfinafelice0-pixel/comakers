@@ -3018,6 +3018,12 @@
       <div class="res-sub" style="margin:6px 0 0">Qué agencia atiende a este cliente.</div>
     </div>
     <div class="campo">
+      <label class="campo-label">Qué reporta este cliente</label>
+      <div id="clModulos" class="miembros"></div>
+      <div class="res-sub" style="margin:8px 0 0">Define qué secciones ve en su reporte mensual
+        y qué se le trae de Meta todas las noches. Lo que esté apagado no se sincroniza ni se muestra.</div>
+    </div>
+    <div class="campo">
       <label class="campo-label">Personas de la agencia que lo atienden</label>
       <div id="clPersonas" class="miembros"></div>
       <div class="res-sub" style="margin:8px 0 0">Marcá quién de tu equipo lo va a ver en el panel de cliente.
@@ -5483,6 +5489,15 @@
   let SALUDO_BASE = '';
   let ACCESOS = {};                 // cliente_id → [user_id]
   let CL_EDIT = null, CL_PERSONAS = [], CL_CUELGA = [];
+  // Qué reporta el cliente que se está editando. Se lee de
+  // cliente_modulo al abrir el modal y se escribe al guardar.
+  // Un cliente nuevo arranca con orgánico prendido y pauta apagada,
+  // que es lo que hace el trigger de la base.
+  let CL_MODULOS = { organico: true, pauta: false };
+  const MODULOS_DEF = [
+    { clave: 'organico', etiqueta: 'Orgánico', icono: 'O' },
+    { clave: 'pauta',    etiqueta: 'Pauta',    icono: 'P' }
+  ];
   let EQUIPO = [];            // todo el equipo, incluidas las bajas
   let WIKI_CARPETAS = [], WIKI_PAGINAS = [], WIKI_SEL = null, WIKI_CARGADA = false;
 
@@ -6067,6 +6082,11 @@
     ba.style.display = c ? '' : 'none';
     ba.textContent = (c && c.activo === false) ? 'Sacar del archivo' : 'Guardar en el archivo';
     pintarClPersonas();
+    // Un cliente nuevo todavía no tiene filas: se muestran los valores
+    // que el trigger le va a poner. Los existentes se leen de la base.
+    CL_MODULOS = { organico: true, pauta: false };
+    pintarClModulos();
+    if (c) cargarClModulos(c.id);
     $('#clPeligro').style.display = c ? '' : 'none';
     if (c) pintarPeligroCliente(c);
     abrir('ovCliente');
@@ -6128,6 +6148,31 @@
     }).join('');
   }
 
+  // ── Módulos del cliente ──────────────────────────────────────
+  // Sin fila en cliente_modulo se asume prendido: es el contrato que
+  // ya usaba el panel de cliente antes de que esto existiera.
+  async function cargarClModulos(id) {
+    const { data, error } = await SB.from('cliente_modulo')
+      .select('modulo, activo').eq('cliente_id', id);
+    if (error) { toast('No se pudieron leer los servicios: ' + error.message, 'warn'); return; }
+    const hay = {};
+    (data || []).forEach(m => { hay[m.modulo] = m.activo !== false; });
+    CL_MODULOS = {
+      organico: 'organico' in hay ? hay.organico : true,
+      pauta:    'pauta'    in hay ? hay.pauta    : true
+    };
+    pintarClModulos();
+  }
+
+  function pintarClModulos() {
+    $('#clModulos').innerHTML = MODULOS_DEF.map(m => {
+      const on = CL_MODULOS[m.clave] !== false;
+      return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-clmod="' + m.clave + '">' +
+               '<span class="avatar-sm">' + m.icono + '</span>' + esc(m.etiqueta) +
+             '</button>';
+    }).join('');
+  }
+
   async function guardarClienteModal() {
     const nombre = $('#clNombre').value.trim();
     const agencia = $('#clAgencia').value.trim() || null;
@@ -6172,6 +6217,20 @@
       if (error) toast('No se pudieron dar accesos: ' + error.message, 'warn');
     }
     ACCESOS[id] = CL_PERSONAS.slice();
+
+    // Los módulos. Upsert sobre (cliente_id, modulo), que es la
+    // primary key de la tabla. Escribe siempre las dos filas: así un
+    // cliente creado con una versión vieja del panel queda explícito
+    // en vez de depender del "sin fila = prendido".
+    {
+      const { error } = await SB.from('cliente_modulo').upsert(
+        MODULOS_DEF.map(m => ({
+          cliente_id: id, modulo: m.clave, activo: CL_MODULOS[m.clave] !== false
+        })),
+        { onConflict: 'cliente_id,modulo' }
+      );
+      if (error) toast('No se pudieron guardar los servicios: ' + error.message, 'warn');
+    }
 
     cerrar('ovCliente');
     CLIENTES.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
@@ -10201,6 +10260,13 @@
     const i = CL_PERSONAS.indexOf(id);
     if (i === -1) CL_PERSONAS.push(id); else CL_PERSONAS.splice(i, 1);
     pintarClPersonas();
+  });
+  on('#clModulos', 'click', e => {
+    const b = e.target.closest('[data-clmod]');
+    if (!b) return;
+    const k = b.dataset.clmod;
+    CL_MODULOS[k] = CL_MODULOS[k] === false;
+    pintarClModulos();
   });
   on('#clGuardar', 'click', () => {
     guardarClienteModal().catch(e => toast('No se pudo guardar: ' + (e.message || e), 'warn'));
