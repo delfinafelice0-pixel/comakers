@@ -473,6 +473,8 @@
     const { data: reps, error } = await SB.from('reporte')
       .select('id, mes, estado, resumen, proximos_pasos, publicado_en, fuente, sincronizado_en, ' +
               'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes, ' +
+              'inversion_ads, moneda_ads, resultados_ads, accion_ads, costo_resultado_ads, ' +
+              'reach_ads, impresiones_ads, frecuencia_ads, clics_ads, ctr_ads, cpm_ads, ads_sincronizado_en, ' +
               'analisis, analisis_generado_en')
       .eq('cliente_id', CLIENTE.id).order('mes', { ascending: false });
     if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
@@ -480,7 +482,8 @@
     REPORTES = (reps || []).map(r => ({
       id: r.id, mes: String(r.mes).slice(0, 7), estado: r.estado === 'publicado' ? 'publicado' : 'borrador',
       resumen: r.resumen || '', proximos_pasos: r.proximos_pasos || '', publicado_en: r.publicado_en,
-      fuente: r.fuente || 'manual', sincronizado_en: r.sincronizado_en || null, cols: r,
+      fuente: r.fuente || 'manual', sincronizado_en: r.sincronizado_en || null,
+      ads_sincronizado_en: r.ads_sincronizado_en || null, cols: r,
       analisis: r.analisis || '', analisis_generado_en: r.analisis_generado_en || null,
       metricas: [], destacados: []
     }));
@@ -495,9 +498,10 @@
       (dest || []).forEach(d => porId[d.reporte_id] && porId[d.reporte_id].destacados.push(d));
     }
 
-    // Los meses que trajo el pull muestran las columnas *_org en lugar
-    // de lo cargado a mano. Corre siempre, haya o no filas manuales.
-    REPORTES.forEach(mezclarInstagram);
+    // Los meses que trajeron los pulls muestran las columnas de Meta
+    // en lugar de lo cargado a mano. Corre siempre, haya o no filas
+    // manuales.
+    REPORTES.forEach(r => { mezclarInstagram(r); mezclarPauta(r); });
 
     await cargarPosts();
 
@@ -627,7 +631,12 @@
   }
 
   function mezclarInstagram(r) {
-    if (r.fuente !== 'instagram') return;
+    // Antes esto miraba `r.fuente === 'instagram'`. No servía: `fuente`
+    // es una sola columna y el pull de pauta escribe 'meta_ads', así
+    // que un reporte con las dos cosas solo podía declarar una y el
+    // otro módulo desaparecía. Cada pull deja su propia marca de
+    // tiempo, y esas sí son independientes.
+    if (!r.sincronizado_en) return;
     const c = r.cols || {};
     const manual = r.metricas.filter(m => m.modulo === 'organico');
     const resto  = r.metricas.filter(m => m.modulo !== 'organico');
@@ -655,6 +664,71 @@
       .map((m, i) => ({ ...m, orden: MAPA_IG.length + i }));
 
     r.metricas = resto.concat(deIG, sobran);
+  }
+
+  // ── Meta Ads → filas de la sección Pauta ───────────────────
+  //
+  //  "Resultados" no existe como métrica en Meta: cada campaña
+  //  optimiza una acción distinta. El pull guarda cuál contó en
+  //  `accion_ads`, y acá se traduce a algo legible. Decir
+  //  "202 conversaciones" es mucho más útil que "202 resultados".
+  const ETIQUETA_ACCION = {
+    'onsite_conversion.total_messaging_connection': 'Conversaciones',
+    'onsite_conversion.messaging_conversation_started_7d': 'Conversaciones iniciadas',
+    'onsite_conversion.messaging_first_reply': 'Primeras respuestas',
+    'link_click': 'Clics en el enlace',
+    'landing_page_view': 'Visitas a la web',
+    'lead': 'Leads',
+    'purchase': 'Compras',
+    'post_engagement': 'Interacciones',
+    'video_view': 'Reproducciones'
+  };
+
+  const MAPA_ADS = [
+    { clave: 'inversion',  etiqueta: 'Inversión',  unidad: 'ars', mejor: 'sube', col: c => c.inversion_ads },
+    { clave: 'resultados', etiqueta: 'Resultados', unidad: 'num', mejor: 'sube', col: c => c.resultados_ads },
+    // El único donde bajar es ganar.
+    { clave: 'costo_resultado', etiqueta: 'Costo por resultado', unidad: 'ars', mejor: 'baja', col: c => c.costo_resultado_ads },
+    { clave: 'alcance_pauta',   etiqueta: 'Alcance',     unidad: 'num', mejor: 'sube', col: c => c.reach_ads },
+    { clave: 'impresiones',     etiqueta: 'Impresiones', unidad: 'num', mejor: 'sube', col: c => c.impresiones_ads },
+    { clave: 'ctr',             etiqueta: 'CTR',         unidad: 'pct', mejor: 'sube', col: c => c.ctr_ads }
+  ];
+
+  function mezclarPauta(r) {
+    if (!r.ads_sincronizado_en) return;
+    const c = r.cols || {};
+    const manual = r.metricas.filter(m => m.modulo === 'pauta');
+    const resto  = r.metricas.filter(m => m.modulo !== 'pauta');
+
+    const deAds = MAPA_ADS.map((def, i) => {
+      const previa = manual.find(m => m.clave === def.clave);
+      const v = def.col(c);
+      // La etiqueta de "resultados" depende de qué acción se contó.
+      let etiqueta = def.etiqueta;
+      if (def.clave === 'resultados' && c.accion_ads) {
+        etiqueta = ETIQUETA_ACCION[c.accion_ads] || def.etiqueta;
+      }
+      if (def.clave === 'costo_resultado' && c.accion_ads && ETIQUETA_ACCION[c.accion_ads]) {
+        etiqueta = 'Costo por ' + ETIQUETA_ACCION[c.accion_ads].toLowerCase().replace(/s$/, '');
+      }
+      return {
+        modulo: 'pauta',
+        clave: def.clave,
+        etiqueta: previa ? previa.etiqueta : etiqueta,
+        valor: v == null ? null : Number(v),
+        unidad: def.unidad,
+        mejor: def.mejor,
+        orden: i,
+        origen: 'meta_ads'
+      };
+    });
+
+    const cubiertas = MAPA_ADS.map(d => d.clave);
+    const sobran = manual
+      .filter(m => cubiertas.indexOf(m.clave) === -1)
+      .map((m, i) => ({ ...m, orden: MAPA_ADS.length + i }));
+
+    r.metricas = resto.concat(deAds, sobran);
   }
 
   const fechaHora = iso => {
@@ -890,22 +964,30 @@
     }
 
     ['organico', 'pauta'].forEach(mod => {
+      // Si el cliente no contrató este servicio, la sección no existe
+      // aunque hubiera datos sueltos. cliente_modulo es la verdad.
+      if (!MODULOS[mod]) return;
       const ms = r.metricas.filter(m => m.modulo === mod);
       if (!ms.length) return;
-      const sincro = (mod === 'organico' && r.fuente === 'instagram' && r.sincronizado_en)
-        ? '<div class="sincro">Traído de Instagram el ' + esc(fechaHora(r.sincronizado_en)) + '</div>'
+      const cuando = mod === 'organico' ? r.sincronizado_en : r.ads_sincronizado_en;
+      const deDonde = mod === 'organico' ? 'Instagram' : 'Meta Ads';
+      const sincro = cuando
+        ? '<div class="sincro">Traído de ' + deDonde + ' el ' + esc(fechaHora(cuando)) + '</div>'
         : '';
       html += '<section class="bloque"><h2>' + NOMBRE_MOD[mod] + '</h2>' + sincro + '<div class="metricas">' +
         ms.map(m => {
           // Sin dato es sin dato: se muestra vacío y se dice por qué.
           // Un 0 acá afirmaría algo que nadie midió.
           const sinDato = m.valor == null || m.valor === '';
-          const rotulo = m.origen === 'instagram' ? '<span class="fuente">desde Instagram</span>' : '';
+          const rotulo = m.origen === 'instagram' ? '<span class="fuente">desde Instagram</span>'
+            : m.origen === 'meta_ads' ? '<span class="fuente">desde Meta Ads</span>' : '';
           if (sinDato) {
             return '<div class="met"><div class="et">' + esc(m.etiqueta) + rotulo + '</div>' +
               '<div class="val vacio">—</div>' +
               '<div class="nota">' + (m.origen === 'instagram'
                 ? 'Instagram no devolvió un dato confiable este mes'
+                : m.origen === 'meta_ads'
+                ? 'sin actividad publicitaria este mes'
                 : 'sin cargar') + '</div></div>';
           }
           const d = delta(m, prevVal(mod, m.clave));
