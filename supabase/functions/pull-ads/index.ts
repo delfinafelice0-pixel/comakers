@@ -54,6 +54,20 @@ const CAMPOS = [
   'actions', 'cost_per_action_type', 'account_currency',
 ].join(',');
 
+// Para el detalle: lo mismo más quién es cada anuncio.
+const CAMPOS_AD = [
+  'ad_id', 'ad_name', 'campaign_name', 'adset_name',
+  'spend', 'reach', 'impressions', 'frequency', 'clicks', 'ctr', 'cpm',
+  'actions', 'cost_per_action_type', 'account_currency',
+].join(',');
+
+const BUCKET = 'post-thumbs';
+
+// Tope de seguridad. Una cuenta puede tener 93 anuncios cargados pero
+// solo unos pocos con entrega en el mes; igual conviene un techo por
+// si alguna vez no es así.
+const MAX_ADS = 60;
+
 // Meta espera fechas YYYY-MM-DD y las interpreta en la zona horaria
 // de la cuenta publicitaria. Las cuentas son argentinas, así que
 // armamos el rango con el calendario local y no en UTC.
@@ -232,6 +246,109 @@ Deno.serve(async (req) => {
       actualizado_en:      new Date().toISOString(),
     };
 
+    // ── 6.b El detalle por anuncio ────────────────────────────
+    // Los totales de arriba responden "cuánto"; esto responde "cuál".
+    // Va después de calcularlos a propósito: si el detalle falla, el
+    // mes igual queda con sus totales en vez de perderse entero.
+    let anuncios = 0, thumbsOk = 0, thumbsMal = 0;
+    try {
+      const qsAd = `level=ad&fields=${CAMPOS_AD}&limit=${MAX_ADS}` +
+        `&time_range=${encodeURIComponent(JSON.stringify(rango))}`;
+      const resAd = await graph(`/${actId}/insights?${qsAd}`, token);
+      const filas = (resAd?.data ?? []).slice(0, MAX_ADS);
+
+      // Qué miniaturas ya tenemos, para no volver a bajarlas.
+      const { data: previas } = await admin
+        .from('anuncio_meta').select('ad_id, thumb_path')
+        .eq('cliente_id', clienteId).eq('mes', mesFecha);
+      const yaTengo = new Map<string, string>();
+      for (const p of previas ?? []) {
+        if (p.thumb_path) yaTengo.set(String(p.ad_id), String(p.thumb_path));
+      }
+
+      const paraGuardar: Record<string, unknown>[] = [];
+
+      for (const a of filas) {
+        const adId = String(a.ad_id ?? '');
+        if (!adId) continue;
+
+        // Qué acción contó este anuncio. Puede no ser la misma que el
+        // total del mes: un anuncio de tráfico dentro de una cuenta
+        // que sobre todo hace mensajes.
+        let accAd: string | null = integ.accion_principal || null;
+        let resAdN: number | null = accAd ? buscarAccion(a.actions, accAd) : null;
+        if (resAdN === null) {
+          accAd = null;
+          for (const cand of ACCIONES_MENSAJES) {
+            const v = buscarAccion(a.actions, cand);
+            if (v !== null) { accAd = cand; resAdN = v; break; }
+          }
+        }
+
+        // Creativo: nombre, estado y miniatura. Si falla, el anuncio
+        // se guarda igual sin imagen.
+        let thumbPath: string | null = yaTengo.get(adId) ?? null;
+        let estado: string | null = null;
+        let permalink: string | null = null;
+
+        try {
+          const meta = await graph(
+            `/${adId}?fields=effective_status,creative{thumbnail_url,effective_object_story_id}`, token);
+          estado = meta?.effective_status ?? null;
+          const storyId = meta?.creative?.effective_object_story_id ?? null;
+          if (storyId) permalink = `https://www.facebook.com/${storyId}`;
+
+          const url = meta?.creative?.thumbnail_url ?? null;
+          if (!thumbPath && url) {
+            const img = await fetch(url);
+            if (!img.ok) throw new Error(`HTTP ${img.status}`);
+            const bytes = new Uint8Array(await img.arrayBuffer());
+            const ruta = `ads/${clienteId}/${adId}.jpg`;
+            const { error: eUp } = await admin.storage.from(BUCKET).upload(ruta, bytes, {
+              contentType: img.headers.get('content-type') ?? 'image/jpeg', upsert: true,
+            });
+            if (eUp) throw new Error(eUp.message ?? 'storage');
+            thumbPath = ruta;
+            thumbsOk++;
+          }
+        } catch (e) {
+          if (e instanceof ErrorMeta && (e.code === 190 || e.code === 368)) throw e;
+          if (!thumbPath) thumbsMal++;
+        }
+
+        paraGuardar.push({
+          cliente_id: clienteId, ad_id: adId, mes: mesFecha,
+          nombre: a.ad_name ?? null,
+          campania: a.campaign_name ?? null,
+          conjunto: a.adset_name ?? null,
+          estado, permalink, thumb_path: thumbPath,
+          inversion: num(a.spend),
+          moneda: a.account_currency ?? null,
+          resultados: resAdN === null ? null : Math.round(resAdN),
+          accion: accAd,
+          costo_resultado: accAd ? buscarAccion(a.cost_per_action_type, accAd) : null,
+          reach: ent(a.reach),
+          impresiones: ent(a.impressions),
+          frecuencia: num(a.frequency),
+          clics: ent(a.clicks),
+          ctr: num(a.ctr),
+          cpm: num(a.cpm),
+          sincronizado_en: new Date().toISOString(),
+        });
+      }
+
+      if (paraGuardar.length) {
+        const { error } = await admin.from('anuncio_meta')
+          .upsert(paraGuardar, { onConflict: 'cliente_id,ad_id,mes' });
+        if (error) notas.push('No se pudo guardar el detalle por anuncio: ' + (error.message ?? ''));
+        else anuncios = paraGuardar.length;
+      }
+      if (thumbsMal) notas.push(`${thumbsMal} miniaturas de anuncio no se pudieron guardar.`);
+    } catch (e) {
+      if (e instanceof ErrorMeta && (e.code === 190 || e.code === 368)) throw e;
+      notas.push('El detalle por anuncio falló: ' + (e instanceof ErrorMeta ? e.mensaje : String(e)));
+    }
+
     // ── 7. Escribir sin pisar el estado del reporte ───────────
     // Un upsert plano tendría que mandar `estado`, y eso podría
     // devolver a borrador un reporte ya publicado. Por eso se mira
@@ -276,6 +393,8 @@ Deno.serve(async (req) => {
       rango,
       accion_contada: accion,
       etiqueta: accion ? (ETIQUETA_ACCION[accion] || 'resultados') : null,
+      anuncios_escritos: anuncios,
+      miniaturas: { nuevas: thumbsOk, fallidas: thumbsMal },
       escrito: datos,
       notas,
       cuota: cuota(),

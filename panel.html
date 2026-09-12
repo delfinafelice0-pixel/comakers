@@ -369,6 +369,7 @@
   let EDITANDO = false;
   let BORRADOR = null;      // el reporte en edición (copia)
   let POSTS = [];           // posts de Instagram del cliente, todos los meses
+  let ANUNCIOS = [];        // anuncios de Meta Ads, todos los meses
   let CRITERIO = 'alcance'; // con qué se ordena el top de posts
 
   const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -504,6 +505,7 @@
     REPORTES.forEach(r => { mezclarInstagram(r); mezclarPauta(r); });
 
     await cargarPosts();
+    await cargarAnuncios();
 
     // Qué mes se abre. La agencia arranca en el mes en curso, que es
     // donde está la acción: el cron lo va llenando todos los días. El
@@ -543,6 +545,31 @@
       const porRuta = {};
       (firmadas || []).forEach(f => { if (f && f.signedUrl && !f.error) porRuta[f.path] = f.signedUrl; });
       POSTS.forEach(p => { p.thumb_url = porRuta[p.thumb_path] || null; });
+    } catch (e) { /* sin miniaturas, con datos */ }
+  }
+
+  // ── Anuncios de Meta Ads ────────────────────────────────────
+  // Mismo patrón que los posts: todos los meses de una sola vez y las
+  // miniaturas firmadas en lote para que el render siga sincrónico.
+  async function cargarAnuncios() {
+    ANUNCIOS = [];
+    const { data, error } = await SB.from('anuncio_meta')
+      .select('id, ad_id, mes, nombre, campania, conjunto, estado, permalink, thumb_path, ' +
+              'inversion, moneda, resultados, accion, costo_resultado, reach, impresiones, ' +
+              'frecuencia, clics, ctr, cpm')
+      .eq('cliente_id', CLIENTE.id)
+      .order('inversion', { ascending: false });
+
+    if (error || !data) return;
+    ANUNCIOS = data.map(a => ({ ...a, mes: String(a.mes).slice(0, 7), thumb_url: null }));
+
+    const rutas = ANUNCIOS.filter(a => a.thumb_path).map(a => a.thumb_path);
+    if (!rutas.length) return;
+    try {
+      const { data: firmadas } = await SB.storage.from('post-thumbs').createSignedUrls(rutas, 3600);
+      const porRuta = {};
+      (firmadas || []).forEach(f => { if (f && f.signedUrl && !f.error) porRuta[f.path] = f.signedUrl; });
+      ANUNCIOS.forEach(a => { a.thumb_url = porRuta[a.thumb_path] || null; });
     } catch (e) { /* sin miniaturas, con datos */ }
   }
 
@@ -880,6 +907,53 @@
       '</section>' + renderPorFormato(postsUltimos90(MES));
   }
 
+  // ── Anuncios: render ────────────────────────────────────────
+  //
+  //  Se ordena por inversión y no por resultados a propósito. La
+  //  pregunta del cliente es "¿en qué se fue mi plata?" antes que
+  //  "¿qué anduvo bien?", y el caso interesante justamente es cuando
+  //  el que más gastó no es el que mejor rindió.
+  const anunciosDelMes = mes => ANUNCIOS.filter(a => a.mes === mes);
+
+  function renderAnuncios(mes) {
+    const lista = anunciosDelMes(mes)
+      .filter(a => a.impresiones)   // los que no tuvieron entrega no dicen nada
+      .sort((a, b) => (Number(b.inversion) || 0) - (Number(a.inversion) || 0))
+      .slice(0, 5);
+    if (!lista.length) return '';
+
+    const total = lista.reduce((s, a) => s + (Number(a.inversion) || 0), 0);
+
+    return '<section class="bloque"><h2>En qué se invirtió</h2>' +
+      '<div class="posts">' + lista.map(a => {
+        const thumb = a.thumb_url
+          ? '<img class="thumb" src="' + esc(a.thumb_url) + '" alt="" loading="lazy">'
+          : '<div class="thumb falta">sin imagen</div>';
+        const abre = a.permalink ? 'a href="' + esc(a.permalink) + '" target="_blank" rel="noopener"' : 'div';
+        const cierra = a.permalink ? 'a' : 'div';
+        const share = total > 0 ? Math.round((Number(a.inversion) || 0) * 100 / total) : null;
+        const et = a.accion ? (ETIQUETA_ACCION[a.accion] || 'resultados').toLowerCase() : 'resultados';
+        const detalle = [
+          a.resultados != null ? fmt(a.resultados, 'num') + ' ' + et : null,
+          a.costo_resultado != null ? fmt(a.costo_resultado, 'ars') + ' c/u' : null,
+          a.ctr != null ? fmt(a.ctr, 'pct') + ' CTR' : null
+        ].filter(Boolean).join(' · ');
+
+        return '<' + abre + ' class="post">' + thumb +
+          '<div class="cuerpo">' +
+            '<div class="meta">' + esc(a.conjunto || a.campania || '') +
+              (share != null ? ' · ' + share + '% de la inversión' : '') + '</div>' +
+            '<div class="copy">' + esc(a.nombre || a.ad_id) + '</div>' +
+            (detalle ? '<div class="meta">' + esc(detalle) + '</div>' : '') +
+          '</div>' +
+          '<div class="cifra"><div class="n">' + esc(fmt(a.inversion, 'ars')) + '</div>' +
+            '<div class="q">invertido</div></div>' +
+        '</' + cierra + '>';
+      }).join('') + '</div>' +
+      '<p class="nota-bloque">Ordenado por inversión. El alcance de cada anuncio no se suma entre sí: la misma persona puede haber visto más de uno.</p>' +
+      '</section>';
+  }
+
   function renderReporte() {
     const r = reporteDe(MES);
     const main = $('#main');
@@ -1004,6 +1078,12 @@
     // que todavía no revisaste.
     const postsMes = (r.estado === 'publicado' || AGENCIA) ? postsDelMes(MES) : [];
     html += renderPosts(postsMes);
+
+    // Detalle de pauta, con el mismo criterio de estado y respetando
+    // el módulo.
+    if ((r.estado === 'publicado' || AGENCIA) && MODULOS.pauta) {
+      html += renderAnuncios(MES);
+    }
 
     if (r.destacados.length) {
       html += '<section class="bloque"><h2>Lo que vale la pena mirar</h2><ul class="destacados">' +
