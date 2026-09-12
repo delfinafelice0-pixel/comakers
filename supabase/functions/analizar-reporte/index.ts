@@ -110,9 +110,8 @@ const COLUMNAS_ADS = METRICAS_ADS.map((m) => m.col).join(', ') + ', accion_ads, 
 // El formato también se decide acá. Si le pasamos 931.702723, el
 // modelo escribe "931,7 pesos" y queda raro: los montos en pesos no
 // llevan decimales. Lo mismo con los porcentajes, que sin el símbolo
-// se leen como si fueran cantidades.
-const mostrar = (v: unknown): string =>
-  v === null || v === undefined ? 'sin dato' : String(v);
+// se leen como si fueran cantidades, y con las cantidades grandes,
+// que sin separador de miles quedan como "22730 personas".
 
 const pesos = (v: unknown): string => {
   if (v === null || v === undefined) return 'sin dato';
@@ -138,7 +137,9 @@ const entero = (v: unknown): string => {
   return isNaN(n) ? 'sin dato' : Math.round(n).toLocaleString('es-AR');
 };
 
-// Cada métrica sabe cómo se escribe.
+// Cada métrica sabe cómo se escribe. Las que no están acá caen en
+// `entero`, que es lo que corresponde a la mayoría: cantidades con
+// separador de miles.
 const FORMATO: Record<string, (v: unknown) => string> = {
   inversion_ads: pesos,
   costo_resultado_ads: pesos,
@@ -158,7 +159,7 @@ function tablaDeNumeros(
 
   const filas = defs.map((m) => {
     const rot = (m.sangria ? '  ' : '') + m.rotulo;
-    const f = FORMATO[m.col] || mostrar;
+    const f = FORMATO[m.col] || entero;
     return rot.padEnd(anchoRot) +
       f(actual[m.col]).padStart(anchoCol) +
       (previo ? f(previo[m.col]).padStart(anchoCol) : '');
@@ -314,9 +315,9 @@ Deno.serve(async (req) => {
           const d = new Date(p.publicado_en);
           const fecha = isNaN(d.getTime()) ? '' : `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
           partes.push(
-            `${i + 1}. ${p.tipo} del ${fecha} — alcance ${mostrar(p.reach)}, ` +
-            `visualizaciones ${mostrar(p.views)}, interacciones ${mostrar(p.interacciones)}, ` +
-            `guardados ${mostrar(p.saves)}`);
+            `${i + 1}. ${p.tipo} del ${fecha} — alcance ${entero(p.reach)}, ` +
+            `visualizaciones ${entero(p.views)}, interacciones ${entero(p.interacciones)}, ` +
+            `guardados ${entero(p.saves)}`);
           partes.push(`   texto: ${recorte(p.caption)}`);
         });
       }
