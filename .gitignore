@@ -8,3 +8,4 @@ supabase/.temp/
 # Nunca
 .env
 .env.*
+supabase/functions/**/*.bak
