@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
 
     const { data: cliente, error: errCliente } = await llamador
       .from('clientes')
-      .select('id, nombre')
+      .select('id, nombre, rep_pauta')
       .eq('id', clienteId)
       .maybeSingle();
 
@@ -567,24 +567,6 @@ Deno.serve(async (req) => {
       sincronizado_en: new Date().toISOString(),
     };
 
-    // ¿Tiene pauta? Antes salía de una columna de `clientes` que
-    // quedó obsoleta; ahora de cliente_modulo, igual que pull-ads.
-    // Se lee con `admin` y no con `llamador` a propósito: el chequeo
-    // de acceso multi-tenant ya lo hizo el select sobre `clientes`
-    // de más arriba, esto es configuración.
-    //
-    // Sin fila en cliente_modulo se asume PRENDIDO, igual que en
-    // sync_diario(). Por eso la comparación es contra false explícito
-    // y no un `!activo`: un null tiene que comportarse como prendido.
-    const { data: modPauta } = await admin
-      .from('cliente_modulo')
-      .select('activo')
-      .eq('cliente_id', clienteId)
-      .eq('modulo', 'pauta')
-      .maybeSingle();
-
-    const sinPauta = modPauta?.activo === false;
-
     // ── 5. `alcance` solo si el cliente no tiene pauta ────────
     // Con pauta, `alcance` es el consolidado orgánico + paga y lo
     // maneja otro proceso: acá no se toca.
@@ -595,7 +577,7 @@ Deno.serve(async (req) => {
       .eq('mes', `${mesAnterior(mes)}-01`)
       .maybeSingle();
 
-    if (sinPauta) {
+    if (cliente.rep_pauta === false) {
       // Si el alcance se descartó, las tres van en null a propósito.
       fila.alcance = alcanceDescartado ? null : reach;
       // El único delta que esta función puede calcular honestamente:
@@ -652,7 +634,7 @@ Deno.serve(async (req) => {
       version_api: V,
       ventanas: ventanas.length,
       escrito: fila,
-      alcance_escrito: sinPauta,
+      alcance_escrito: cliente.rep_pauta === false,
       metricas_que_fallaron: fallos,
       notas,
       cuota: ultimaCuota,
