@@ -2608,7 +2608,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v10/09 23:28</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v13/09 13:23</div>
     </div>
   </aside>
 
@@ -3686,6 +3686,19 @@
     g.classList.add('on');
     clearTimeout(g.__t);
     g.__t = setTimeout(() => g.classList.remove('on'), 1400);
+  }
+
+  // ¿El cursor está adentro de algo donde se escribe?
+  //
+  //  Mirar solo el nombre de la etiqueta no alcanza desde que el
+  //  detalle y el comentario son editores con formato: son <div
+  //  contenteditable>, no <textarea>. Por eso la flecha para arriba
+  //  te cambiaba de tarea en vez de subir un renglón mientras
+  //  escribías. Los atajos tienen que callarse en los dos casos.
+  function estasEscribiendo(el) {
+    if (!el) return false;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test((el.tagName || '').toUpperCase())) return true;
+    return !!el.isContentEditable;
   }
 
   function drawerAbierto() {
@@ -8951,6 +8964,11 @@
       cliente_id: DETALLE.cliente_id,
       autor: ME.nombre || ME.email,
       autor_tipo: 'agencia',
+      // Se manda explícito y no se confía en el valor por defecto de la
+      // base: esta tabla la creó el panel del cliente y no sabemos si
+      // lo tiene. Y de este dato depende que después puedas borrar o
+      // editar tu propio comentario.
+      creado_por: ME.id,
       texto: txt
     });
     if (error) { toast('No se pudo comentar: ' + error.message, 'warn'); return; }
@@ -9554,7 +9572,7 @@
   // página: en administración también hay modales, y si este oyente
   // viviera solo en el panel, allá Escape no cerraría nada.
   document.addEventListener('keydown', e => {
-    const enCampo = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || '').toUpperCase());
+    const enCampo = estasEscribiendo(e.target);
     if (e.key === 'Escape') {
       if ($$('.overlay.active').length) { $$('.overlay.active').forEach(o => o.classList.remove('active')); return; }
       if (drawerAbierto()) { if (enCampo) e.target.blur(); cerrarDrawer(); }
