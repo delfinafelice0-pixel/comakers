@@ -140,30 +140,6 @@
   }
   .barra-meses .meses .borr { font-size: 10px; }
 
-  /* Los meses usan el mismo lenguaje que las solapas del reporte:
-     sin caja, subrayado en el activo. Asi el filtro se lee igual
-     en cualquier modulo que se sume despues. */
-  .barra-meses .meses button {
-    background: none; box-shadow: none; border-radius: 0;
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-    padding: 4px 2px 10px; color: var(--ink-mute);
-  }
-  .barra-meses .meses button:hover { background: none; color: var(--ink); }
-  .barra-meses .meses button.activo {
-    background: none; box-shadow: none; color: var(--ink);
-    border-bottom-color: currentColor; font-weight: 700;
-  }
-  .barra-meses .meses button > span:first-child { font-size: 16px; }
-  .barra-meses .meses { gap: 24px; }
-
-  /* Tarjetas: el numero manda. */
-  .metricas { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
-  .met { padding: 18px 20px 16px; }
-  .met .et { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
-  .met .val { font-size: 38px; }
-  .met .delta.bien::before { content: '▲ '; }
-  .met .delta.mal::before  { content: '▼ '; }
-
   main { min-width: 0; }
   .cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
   .cabecera h1 {
@@ -447,7 +423,7 @@
   // Métricas con las que arranca un mes cuando no hay mes anterior que copiar.
   const DEFAULTS = {
     organico: [
-      { clave: 'seguidores',    etiqueta: 'Nuevos seguidores',  unidad: 'num', mejor: 'sube' },
+      { clave: 'seguidores',    etiqueta: 'Seguidores',         unidad: 'num', mejor: 'sube' },
       { clave: 'alcance',       etiqueta: 'Alcance',            unidad: 'num', mejor: 'sube' },
       { clave: 'interacciones', etiqueta: 'Interacciones',      unidad: 'num', mejor: 'sube' },
       { clave: 'guardados',     etiqueta: 'Guardados',          unidad: 'num', mejor: 'sube' },
@@ -711,7 +687,7 @@
   // muestra filas de métrica. Esto traduce lo uno en lo otro, y solo
   // cuando la fila dice que vino de Instagram.
   const MAPA_IG = [
-    { clave: 'seguidores',      etiqueta: 'Nuevos seguidores', col: c => c.follows_mes },
+    { clave: 'seguidores',      etiqueta: 'Seguidores',      col: c => c.follows_mes },
     { clave: 'alcance',         etiqueta: 'Alcance',         col: c => c.reach_org },
     { clave: 'visualizaciones', etiqueta: 'Visualizaciones', col: c => c.views_org },
     { clave: 'interacciones',   etiqueta: 'Interacciones',
@@ -1139,13 +1115,9 @@
     if (r.resumen) bloques.cuenta += '<p class="prosa">' + esc(r.resumen) + '</p>';
     else if (AGENCIA) bloques.cuenta += '<p class="prosa mute">Falta escribir qué pasó este mes.</p>';
 
-    // El analisis va al final de cada solapa: primero los numeros,
-    // despues la lectura. Se arma aca y se inserta mas abajo.
-    const textos = {
-      cuenta:   bloqueTexto('Análisis', r.analisis, true),
-      organico: bloqueTexto('Análisis del contenido', r.analisis_organico, false),
-      pauta:    bloqueTexto('Análisis de la pauta', r.analisis_pauta, false),
-    };
+    bloques.cuenta   += bloqueTexto('Análisis', r.analisis, true);
+    bloques.organico += bloqueTexto('Análisis del contenido', r.analisis_organico, false);
+    bloques.pauta    += bloqueTexto('Análisis de la pauta', r.analisis_pauta, false);
 
 
     ['organico', 'pauta'].forEach(mod => {
@@ -1203,10 +1175,6 @@
           '<div class="num">' + esc(d.valor || '') + '</div></li>').join('') +
         '</ul></section>';
     }
-
-    bloques.cuenta += textos.cuenta;
-    bloques.organico += textos.organico;
-    bloques.pauta += textos.pauta;
 
     if (r.proximos_pasos) bloques.cuenta += '<section class="bloque"><h2>Qué hacemos el mes que viene</h2><p class="prosa">' + esc(r.proximos_pasos) + '</p></section>';
 
