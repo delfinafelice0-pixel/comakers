@@ -114,32 +114,6 @@
   .meses .borr { font-size: 11px; color: var(--ink-mute); }
   .meses-mobile { display: none; }
 
-  /* Navegación del panel. Hoy una sola sección; se suman acá. */
-  .secciones { display: flex; flex-direction: column; gap: 2px; }
-  .seccion {
-    width: 100%; text-align: left; background: none; border: 0;
-    border-radius: 8px; padding: 9px 10px; cursor: pointer;
-    font: inherit; color: var(--ink-soft);
-  }
-  .seccion:hover { background: var(--bg-elev); }
-  .seccion.activa {
-    background: var(--bg-elev); color: var(--ink); font-weight: 500;
-    box-shadow: 0 1px 2px rgba(27,22,32,.06);
-  }
-
-  /* El mes se elige arriba del reporte, no al costado. */
-  .col { min-width: 0; }
-  .barra-meses { border-bottom: 1px solid var(--linea, #e6e3dc); margin-bottom: 26px; }
-  .barra-meses .meses {
-    flex-direction: row; gap: 4px; overflow-x: auto;
-    padding-bottom: 8px; scrollbar-width: thin;
-  }
-  .barra-meses .meses button {
-    width: auto; white-space: nowrap; flex-direction: column;
-    align-items: flex-start; gap: 0; padding: 7px 12px; border-radius: 8px 8px 0 0;
-  }
-  .barra-meses .meses .borr { font-size: 10px; }
-
   main { min-width: 0; }
   .cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
   .cabecera h1 {
@@ -375,19 +349,13 @@
 
 <div class="wrap">
   <aside>
-    <nav class="secciones">
-      <button type="button" class="seccion activa" data-seccion="reportes">Reportes</button>
-    </nav>
+    <h2>Meses</h2>
+    <ul class="meses" id="meses"></ul>
+    <div class="meses-mobile"><select id="mesesMobile"></select></div>
   </aside>
-  <div class="col">
-    <div class="barra-meses">
-      <ul class="meses" id="meses"></ul>
-      <div class="meses-mobile"><select id="mesesMobile"></select></div>
-    </div>
-    <main id="main">
-      <div class="vacio"><p>Cargando…</p></div>
-    </main>
-  </div>
+  <main id="main">
+    <div class="vacio"><p>Cargando…</p></div>
+  </main>
 </div>
 
 <div class="toast" id="toast"></div>
