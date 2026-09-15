@@ -179,6 +179,33 @@
   .ed-bloque textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
   .agregar-bloque { margin: 6px 0 26px; }
 
+  /* Fila de destacadas: el titular del mes. */
+  .destacadas-fila {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 30px;
+  }
+  .dest-card {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 18px 20px 16px;
+  }
+  .dest-card .et {
+    font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--ink-mute); margin-bottom: 10px;
+  }
+  .dest-card .val {
+    font-family: var(--display); font-size: 40px; font-weight: 500;
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .dest-card .val.vacio { color: var(--ink-mute); font-weight: 400; font-size: 30px; }
+  .dest-card .delta { font-size: 12px; margin-top: 10px; display: inline-block; padding: 2px 7px; border-radius: 6px; }
+  .dest-card .delta.bien { background: var(--lime-soft); }
+  .dest-card .delta.bien::before { content: '▲ '; }
+  .dest-card .delta.mal { background: var(--coral-soft); color: #B2405E; }
+  .dest-card .delta.mal::before { content: '▼ '; }
+  .dest-card .delta.nada { color: var(--ink-mute); padding-left: 0; }
+  .dest-card .de { display: block; font-size: 10px; color: var(--ink-mute); margin-top: 8px;
+                   letter-spacing: .05em; text-transform: uppercase; }
+
   main { min-width: 0; }
   .cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
   .cabecera h1 {
@@ -1255,6 +1282,50 @@
         '<button type="button" class="btn chico" data-badd="' + mod + '">+ Agregar sección</button></div>';
       return s;
     };
+
+    // ── Fila de destacadas ─────────────────────────────────────
+    // Se arman con las mismas metricas que ya estan cargadas: no hay
+    // ningun numero nuevo ni ningun calculo propio de esta fila.
+    const DESTACADAS = {
+      organico: ['alcance', 'interacciones', 'guardados', 'seguidores'],
+      pauta:    ['inversion', 'resultados', 'costo_por_resultado', 'alcance'],
+    };
+
+    const tarjeta = (m, mod, conOrigen) => {
+      const sinDato = m.valor == null || m.valor === '';
+      const d = sinDato ? null : delta(m, prevVal(mod, m.clave));
+      return '<div class="dest-card">' +
+        '<div class="et">' + esc(m.etiqueta) + '</div>' +
+        (sinDato
+          ? '<div class="val vacio">—</div>'
+          : '<div class="val">' + esc(fmt(m.valor, m.unidad)) + '</div>' +
+            '<div class="delta ' + d.clase + '">' + esc(d.txt) + '</div>') +
+        (conOrigen ? '<span class="de">' + NOMBRE_MOD[mod] + '</span>' : '') +
+        '</div>';
+    };
+
+    const filaDe = (pares, conOrigen) => {
+      const cards = pares.map(([mod, clave]) => {
+        const m = r.metricas.find(x => x.modulo === mod && x.clave === clave);
+        return m ? tarjeta(m, mod, conOrigen) : '';
+      }).filter(Boolean);
+      if (!cards.length) return '';
+      return '<div class="destacadas-fila">' + cards.join('') + '</div>';
+    };
+
+    ['organico', 'pauta'].forEach(mod => {
+      if (!MODULOS[mod]) return;
+      bloques[mod] = filaDe(DESTACADAS[mod].map(c => [mod, c]), false) + bloques[mod];
+    });
+
+    // En Cuenta conviven las dos patas. Van rotuladas por origen
+    // justamente para que nadie las lea como un total: el alcance
+    // del contenido propio y el de la pauta cuentan dos veces a las
+    // mismas personas y no se suman.
+    const paresCuenta = [];
+    if (MODULOS.organico) paresCuenta.push(['organico', 'alcance'], ['organico', 'seguidores']);
+    if (MODULOS.pauta)    paresCuenta.push(['pauta', 'inversion'], ['pauta', 'costo_por_resultado']);
+    bloques.cuenta = filaDe(paresCuenta, true) + bloques.cuenta;
 
     bloques.cuenta   += bloquesExtra('cuenta');
     bloques.organico += bloquesExtra('organico');
