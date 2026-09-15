@@ -162,19 +162,6 @@
                   background: var(--coral-soft); color: #B2405E; padding: 3px 9px; border-radius: 999px; }
   .analisis .aviso { font-size: 12px; color: var(--ink-mute); margin: 0 0 12px; max-width: 62ch; }
   .analisis.es-borrador .prosa { border-left: 3px solid var(--coral-soft); padding-left: 14px; }
-
-  /* Solapas del reporte */
-  .solapas { display: flex; gap: 26px; border-bottom: 1px solid var(--linea, #e6e3dc);
-             margin: 22px 0 26px; overflow-x: auto; }
-  .solapa { background: none; border: 0; padding: 0 0 12px; cursor: pointer;
-            text-align: left; white-space: nowrap; border-bottom: 2px solid transparent;
-            margin-bottom: -1px; font: inherit; color: var(--ink-mute); }
-  .solapa .t { display: block; font-weight: 700; font-size: 17px; line-height: 1.2; }
-  .solapa .s { display: block; font-size: 12px; margin-top: 2px; }
-  .solapa.activa { color: var(--ink, #1a1a1a); border-bottom-color: currentColor; }
-  .solapa:hover { color: var(--ink, #1a1a1a); }
-  .pane { display: none; }
-  .pane.activa { display: block; }
   .bloque { margin-top: 38px; }
   .bloque h2 {
     font-family: var(--display);
@@ -489,7 +476,7 @@
               'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes, ' +
               'inversion_ads, moneda_ads, resultados_ads, accion_ads, costo_resultado_ads, ' +
               'reach_ads, impresiones_ads, frecuencia_ads, clics_ads, ctr_ads, cpm_ads, ads_sincronizado_en, ' +
-              'analisis, analisis_organico, analisis_pauta, analisis_generado_en')
+              'analisis, analisis_generado_en')
       .eq('cliente_id', CLIENTE.id).order('mes', { ascending: false });
     if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
 
@@ -499,7 +486,6 @@
       fuente: r.fuente || 'manual', sincronizado_en: r.sincronizado_en || null,
       ads_sincronizado_en: r.ads_sincronizado_en || null, cols: r,
       analisis: r.analisis || '', analisis_generado_en: r.analisis_generado_en || null,
-      analisis_organico: r.analisis_organico || '', analisis_pauta: r.analisis_pauta || '',
       metricas: [], destacados: []
     }));
     const ids = REPORTES.map(r => r.id);
@@ -1045,48 +1031,27 @@
         '</div>' : '') +
       '</div>';
 
-    // ── Solapas ────────────────────────────────────────────────
-    // El reporte se parte en tres vistas. Cuenta es la lectura que
-    // cruza las dos patas; las otras dos son cada servicio por
-    // separado. Un módulo apagado no dibuja su solapa: cliente_modulo
-    // sigue siendo la verdad.
-    const SOLAPAS = [['cuenta', 'Cuenta', 'Instagram completo']];
-    if (MODULOS.organico) SOLAPAS.push(['organico', 'Orgánico', 'Contenido y comunidad']);
-    if (MODULOS.pauta)    SOLAPAS.push(['pauta', 'Pauta', 'Inversión publicitaria']);
+    if (r.resumen) html += '<p class="prosa">' + esc(r.resumen) + '</p>';
+    else if (AGENCIA) html += '<p class="prosa mute">Falta escribir qué pasó este mes.</p>';
 
-    if (SOLAPAS.length > 1) {
-      html += '<div class="solapas" role="tablist">' + SOLAPAS.map((s, i) =>
-        '<button type="button" class="solapa' + (i === 0 ? ' activa' : '') + '" data-solapa="' + s[0] + '">' +
-        '<span class="t">' + esc(s[1]) + '</span><span class="s">' + esc(s[2]) + '</span></button>').join('') +
-      '</div>';
-    }
-
-    // El aviso de borrador es el mismo para los tres textos: los
-    // genera la misma llamada y se revisan juntos.
+    // ── Análisis ───────────────────────────────────────────────
+    // Bloque aparte del resumen y a propósito: `resumen` lo escribe la
+    // agencia, `analisis` es la lectura de los números y puede venir
+    // generada. Si está sin revisar, se dice.
+    // Al cliente no se le muestra la sección vacía.
     const esBorradorAn = !!r.analisis_generado_en;
-    const bloqueTexto = (titulo, texto, conBoton) => {
-      if (!texto && !AGENCIA) return '';
-      let s = '<section class="bloque analisis' + (esBorradorAn && texto ? ' es-borrador' : '') + '">' +
-        '<h2>' + titulo + (esBorradorAn && texto ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
-      if (texto) {
-        if (esBorradorAn) s += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
-        s += '<p class="prosa">' + esc(texto) + '</p>';
+    if (r.analisis || AGENCIA) {
+      html += '<section class="bloque analisis' + (esBorradorAn ? ' es-borrador' : '') + '">' +
+        '<h2>Análisis' + (esBorradorAn ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
+      if (r.analisis) {
+        if (esBorradorAn) html += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
+        html += '<p class="prosa">' + esc(r.analisis) + '</p>';
       } else {
-        s += '<p class="prosa mute">Todavía no hay análisis de este mes.</p>' +
-          (conBoton ? '<button type="button" class="btn chico" id="btnAnalisis">Generar borrador</button>' : '');
+        html += '<p class="prosa mute">Todavía no hay análisis de este mes.</p>' +
+          '<button type="button" class="btn chico" id="btnAnalisis">Generar borrador</button>';
       }
-      return s + '</section>';
-    };
-
-    const bloques = { cuenta: '', organico: '', pauta: '' };
-
-    if (r.resumen) bloques.cuenta += '<p class="prosa">' + esc(r.resumen) + '</p>';
-    else if (AGENCIA) bloques.cuenta += '<p class="prosa mute">Falta escribir qué pasó este mes.</p>';
-
-    bloques.cuenta   += bloqueTexto('Análisis', r.analisis, true);
-    bloques.organico += bloqueTexto('Análisis del contenido', r.analisis_organico, false);
-    bloques.pauta    += bloqueTexto('Análisis de la pauta', r.analisis_pauta, false);
-
+      html += '</section>';
+    }
 
     ['organico', 'pauta'].forEach(mod => {
       // Si el cliente no contrató este servicio, la sección no existe
@@ -1099,7 +1064,7 @@
       const sincro = cuando
         ? '<div class="sincro">Traído de ' + deDonde + ' el ' + esc(fechaHora(cuando)) + '</div>'
         : '';
-      bloques[mod] += '<section class="bloque"><h2>' + NOMBRE_MOD[mod] + '</h2>' + sincro + '<div class="metricas">' +
+      html += '<section class="bloque"><h2>' + NOMBRE_MOD[mod] + '</h2>' + sincro + '<div class="metricas">' +
         ms.map(m => {
           // Sin dato es sin dato: se muestra vacío y se dice por qué.
           // Un 0 acá afirmaría algo que nadie midió.
@@ -1128,41 +1093,25 @@
     // por sí solos. Sin esto, un cliente vería el detalle de un mes
     // que todavía no revisaste.
     const postsMes = (r.estado === 'publicado' || AGENCIA) ? postsDelMes(MES) : [];
-    bloques.organico += renderPosts(postsMes);
+    html += renderPosts(postsMes);
 
     // Detalle de pauta, con el mismo criterio de estado y respetando
     // el módulo.
     if ((r.estado === 'publicado' || AGENCIA) && MODULOS.pauta) {
-      bloques.pauta += renderAnuncios(MES);
+      html += renderAnuncios(MES);
     }
 
     if (r.destacados.length) {
-      bloques.cuenta += '<section class="bloque"><h2>Lo que vale la pena mirar</h2><ul class="destacados">' +
+      html += '<section class="bloque"><h2>Lo que vale la pena mirar</h2><ul class="destacados">' +
         r.destacados.map(d => '<li><span class="punto ' + esc(d.tipo) + '"></span><div class="txt">' + esc(d.texto) +
           (d.modulo ? '<div class="mod">' + NOMBRE_MOD[d.modulo] + '</div>' : '') + '</div>' +
           '<div class="num">' + esc(d.valor || '') + '</div></li>').join('') +
         '</ul></section>';
     }
 
-    if (r.proximos_pasos) bloques.cuenta += '<section class="bloque"><h2>Qué hacemos el mes que viene</h2><p class="prosa">' + esc(r.proximos_pasos) + '</p></section>';
-
-    // Si hay una sola solapa no se dibujan paneles: sería una caja
-    // vacía alrededor de todo el contenido.
-    if (SOLAPAS.length > 1) {
-      html += SOLAPAS.map((s, i) =>
-        '<div class="pane' + (i === 0 ? ' activa' : '') + '" data-pane="' + s[0] + '">' +
-        (bloques[s[0]] || '<p class="prosa mute">Nada para mostrar en esta solapa.</p>') + '</div>').join('');
-    } else {
-      html += bloques.cuenta + bloques.organico + bloques.pauta;
-    }
+    if (r.proximos_pasos) html += '<section class="bloque"><h2>Qué hacemos el mes que viene</h2><p class="prosa">' + esc(r.proximos_pasos) + '</p></section>';
 
     main.innerHTML = html;
-
-    main.querySelectorAll('[data-solapa]').forEach(b => b.addEventListener('click', () => {
-      main.querySelectorAll('[data-solapa]').forEach(x => x.classList.toggle('activa', x === b));
-      main.querySelectorAll('[data-pane]').forEach(p =>
-        p.classList.toggle('activa', p.dataset.pane === b.dataset.solapa));
-    }));
     // Cambiar de criterio redibuja solo la lista: re-renderizar el
     // reporte entero perdería el scroll.
     main.querySelectorAll('[data-criterio]').forEach(b => b.addEventListener('click', () => {
