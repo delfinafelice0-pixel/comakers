@@ -9,3 +9,4 @@ supabase/.temp/
 .env
 .env.*
 supabase/functions/**/*.bak
+*.bak-*
