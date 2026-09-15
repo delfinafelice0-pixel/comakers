@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRM · Consultas de WhatsApp — CoMakers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     CRM · Consultas de WhatsApp
+     Módulo del panel CoMakers. Hereda el sistema de panel-comakers.html:
+     mismas variables, misma tipografía, mismo sidebar de 240px.
+
+     LO QUE ESTE MÓDULO NO HACE, A PROPÓSITO: no manda mensajes.
+     El negocio contesta desde su celular como siempre (Coexistence),
+     y acá los mensajes entran por webhook sin costo. En el momento en
+     que aparezca una caja de "responder", cada respuesta empieza a
+     costar la tarifa utility del país. Por eso no está.
+     ═══════════════════════════════════════════════════════════ */
+
+  :root {
+    --bg: #F7F6F9;
+    --bg-elev: #FFFFFF;
+    --ink: #1B1620;
+    --ink-soft: #5B525E;
+    --ink-mute: #938C99;
+    --line: #ECEAF0;
+    --line-soft: #F3F1F6;
+    --accent: #FF82FF;
+    --accent-soft: #FFE9FE;
+    --lime: #D3FF99;
+    --lime-soft: #ECFBD4;
+    --coral: #F26A8D;
+    --coral-soft: #FDE4EB;
+    --cyan: #CBEEF3;
+    --cyan-soft: #EAF8FB;
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'DM Sans', -apple-system, system-ui, sans-serif;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 0 rgba(26,26,23,0.04), 0 1px 3px rgba(26,26,23,0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+  body {
+    font-family: var(--body);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+  /* ── SIDEBAR ──────────────────────────────────────────── */
+  .sidebar {
+    background: var(--bg-elev);
+    border-right: 1px solid var(--line);
+    padding: 24px 16px;
+    display: flex; flex-direction: column; gap: 20px;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .brand { padding: 4px 8px 16px; border-bottom: 1px solid var(--line); }
+  .brand-name {
+    font-size: 19px; font-weight: 700; letter-spacing: -0.01em;
+    color: var(--accent); background: var(--lime);
+    padding: 5px 9px; border-radius: 9px;
+    display: inline-flex; align-items: baseline; line-height: 1;
+  }
+  .brand-name em { font-family: var(--display); font-style: normal; font-weight: 700; }
+  .brand-sub { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; }
+
+  .client-switcher {
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; transition: border-color 0.15s; width: 100%; text-align: left;
+  }
+  .client-switcher:hover { border-color: var(--ink-soft); }
+  .client-switcher .label { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; }
+  .client-switcher .name { font-weight: 600; font-size: 13px; margin-top: 1px; }
+  .client-switcher svg { width: 14px; height: 14px; color: var(--ink-mute); flex-shrink: 0; }
+
+  .nav-group { display: flex; flex-direction: column; gap: 1px; }
+  .nav-label { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 10px 6px; margin-top: 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border-radius: 8px; color: var(--ink-soft); font-size: 13px; font-weight: 500;
+    width: 100%; text-align: left; transition: background 0.12s, color 0.12s;
+  }
+  .nav-item:hover { background: var(--line-soft); color: var(--ink); }
+  .nav-item.active { background: var(--accent); color: var(--ink); }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-mute); }
+  .nav-item.active svg { color: inherit; }
+  .nav-item .badge {
+    margin-left: auto; background: var(--coral); color: var(--ink);
+    font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px;
+  }
+  .nav-item.active .badge { background: var(--bg-elev); }
+
+  .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
+    color: var(--ink); display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px; flex-shrink: 0;
+  }
+  .user-name { font-weight: 600; font-size: 13px; line-height: 1.2; }
+  .user-role { font-size: 11px; color: var(--ink-mute); }
+
+  /* ── MAIN ─────────────────────────────────────────────── */
+  .main { padding: 32px 40px 48px; max-width: 1500px; min-width: 0; }
+
+  .topbar { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; gap: 24px; flex-wrap: wrap; }
+  .topbar h1 { font-family: var(--display); font-size: 38px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.05; }
+  .topbar h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .topbar .greeting { font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+  .period-selector {
+    display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius); font-size: 13px; font-weight: 500; white-space: nowrap;
+  }
+  .period-selector svg { width: 14px; height: 14px; color: var(--ink-mute); }
+
+  /* ── KPIs ─────────────────────────────────────────────── */
+  .kpi-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .kpi {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 132px;
+  }
+  .kpi-hero { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .kpi-hero .kpi-label, .kpi-hero .kpi-sub { color: rgba(255,255,255,0.6); }
+  .kpi-label { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .kpi-value { font-family: var(--display); font-size: 38px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; margin-top: 8px; }
+  .kpi-hero .kpi-value { font-size: 52px; }
+  .kpi-sub { font-size: 12px; color: var(--ink-mute); margin-top: 8px; }
+  .kpi-alerta { border-color: var(--coral); background: var(--coral-soft); }
+  .kpi-alerta .kpi-label { color: #A63B58; }
+  .kpi-alerta .kpi-sub { color: #A63B58; }
+
+  /* ── EMBUDO ───────────────────────────────────────────── */
+  .embudo {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 18px 20px; margin-bottom: 20px;
+  }
+  .embudo-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .embudo-head h2 { font-family: var(--display); font-size: 18px; font-weight: 500; }
+  .embudo-head p { font-size: 12px; color: var(--ink-mute); }
+  .embudo-barra { display: flex; gap: 3px; height: 34px; border-radius: 7px; overflow: hidden; }
+  .embudo-seg { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; transition: flex-grow 0.45s cubic-bezier(0.16,1,0.3,1); min-width: 40px; }
+  .seg-reservo { background: var(--lime); }
+  .seg-interesado { background: var(--cyan); }
+  .seg-no { background: var(--line); color: var(--ink-mute); }
+  .seg-sin { background: var(--coral); color: #fff; }
+  .embudo-leyenda { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft); }
+  .embudo-leyenda span { display: flex; align-items: center; gap: 6px; }
+  .punto { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── PAUTA vs ORGÁNICO ────────────────────────────────── */
+  .origenes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .origen-card {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 18px 20px;
+  }
+  .origen-card.destacada { border-color: var(--accent); background: linear-gradient(var(--accent-soft), var(--bg-elev) 70%); }
+  .origen-top { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .origen-top h3 { font-size: 13px; font-weight: 600; }
+  .origen-top .punto { width: 9px; height: 9px; border-radius: 3px; }
+  .origen-tasa { font-family: var(--display); font-size: 40px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; }
+  .origen-tasa-lbl { font-size: 12px; color: var(--ink-soft); margin-top: 5px; }
+  .origen-detalle { display: flex; gap: 22px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .origen-detalle div { font-size: 12px; color: var(--ink-mute); }
+  .origen-detalle b { display: block; font-size: 17px; font-weight: 600; color: var(--ink); }
+  .cierre {
+    background: var(--ink); color: #fff; border-radius: var(--radius-lg);
+    padding: 15px 20px; margin-bottom: 20px; font-size: 13px; line-height: 1.5;
+  }
+  .cierre b { color: var(--lime); font-weight: 600; }
+
+  /* ── GRILLA DEL CRM ───────────────────────────────────── */
+  .crm { display: grid; grid-template-columns: 320px minmax(0,1fr) 290px; gap: 12px; align-items: start; }
+  .panel { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+
+  /* Bandeja */
+  .bandeja { display: flex; flex-direction: column; height: calc(100vh - 120px); position: sticky; top: 20px; }
+  .buscador { padding: 12px; border-bottom: 1px solid var(--line); }
+  .buscador input {
+    width: 100%; padding: 8px 11px; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; font-size: 13px;
+  }
+  .buscador input::placeholder { color: var(--ink-mute); }
+  .filtros { display: flex; gap: 5px; padding: 10px 12px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .filtro {
+    padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 500;
+    color: var(--ink-soft); background: var(--bg); border: 1px solid var(--line);
+    white-space: nowrap; transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .filtro:hover { border-color: var(--ink-mute); }
+  .filtro.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .lista { overflow-y: auto; flex: 1; }
+  .conv {
+    width: 100%; text-align: left; padding: 13px 14px;
+    border-bottom: 1px solid var(--line-soft); display: block;
+    transition: background 0.12s; position: relative;
+  }
+  .conv:hover { background: var(--line-soft); }
+  .conv.sel { background: var(--accent-soft); }
+  .conv.sel::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .conv-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .conv-nom { font-weight: 600; font-size: 13px; }
+  .conv-hora { font-size: 11px; color: var(--ink-mute); white-space: nowrap; }
+  .conv-prev { font-size: 12px; color: var(--ink-soft); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conv-meta { display: flex; gap: 6px; margin-top: 7px; align-items: center; flex-wrap: wrap; }
+  .lista-vacia { padding: 40px 20px; text-align: center; color: var(--ink-mute); font-size: 13px; }
+
+  .chip { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px; letter-spacing: 0.01em; }
+  .chip-reservo { background: var(--lime); color: #3D5C15; }
+  .chip-interesado { background: var(--cyan); color: #1F5560; }
+  .chip-no { background: var(--line); color: var(--ink-mute); }
+  .chip-sin { background: var(--coral); color: #fff; }
+  .chip-origen { background: var(--bg); border: 1px solid var(--line); color: var(--ink-mute); font-weight: 500; }
+  .chip-origen.pauta { background: var(--accent-soft); border-color: var(--accent-soft); color: #8E2C8E; }
+
+  /* Costo */
+  .costo { padding: 11px 14px; border-top: 1px solid var(--line); background: var(--lime-soft); font-size: 11px; color: #3D5C15; line-height: 1.45; }
+  .costo b { font-weight: 600; }
+
+  /* Hilo */
+  .hilo { display: flex; flex-direction: column; height: calc(100vh - 120px); position: sticky; top: 20px; }
+  .hilo-head { padding: 15px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; }
+  .volver { display: none; }
+  .hilo-head .avatar { background: var(--cyan); }
+  .hilo-nom { font-weight: 600; font-size: 15px; }
+  .hilo-tel { font-size: 12px; color: var(--ink-mute); }
+  .mensajes { flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+  .dia { text-align: center; font-size: 11px; color: var(--ink-mute); margin: 6px 0; }
+  .msg { max-width: 74%; padding: 9px 13px; border-radius: 13px; font-size: 13px; line-height: 1.45; }
+  .msg-in { background: var(--bg-elev); border: 1px solid var(--line); border-bottom-left-radius: 4px; align-self: flex-start; }
+  .msg-out { background: var(--lime); border-bottom-right-radius: 4px; align-self: flex-end; }
+  .msg-hora { font-size: 10px; color: var(--ink-mute); margin-top: 4px; display: block; }
+
+  .responder {
+    padding: 14px 18px; border-top: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  }
+  .responder-txt { font-size: 12px; color: var(--ink-soft); line-height: 1.45; max-width: 46ch; }
+  .btn-wa {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px;
+    background: var(--ink); color: #fff; border-radius: 9px;
+    font-size: 13px; font-weight: 600; white-space: nowrap; transition: opacity 0.12s;
+  }
+  .btn-wa:hover { opacity: 0.88; }
+  .btn-wa svg { width: 15px; height: 15px; }
+
+  /* Ficha */
+  .ficha { padding: 18px; display: flex; flex-direction: column; gap: 20px; }
+  .ficha h3 { font-family: var(--display); font-size: 17px; font-weight: 500; }
+  .ficha-sub { font-size: 12px; color: var(--ink-mute); margin-top: 2px; margin-bottom: 10px; }
+  .estados { display: flex; flex-direction: column; gap: 6px; }
+  .estado-btn {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 9px; font-size: 13px;
+    font-weight: 500; text-align: left; width: 100%; transition: border-color 0.12s, background 0.12s;
+  }
+  .estado-btn:hover { border-color: var(--ink-mute); }
+  .estado-btn .punto { width: 11px; height: 11px; border-radius: 4px; }
+  .estado-btn .tick { margin-left: auto; width: 15px; height: 15px; opacity: 0; color: var(--ink); }
+  .estado-btn.on { border-color: var(--ink); background: var(--line-soft); font-weight: 600; }
+  .estado-btn.on .tick { opacity: 1; }
+
+  .datos { display: flex; flex-direction: column; gap: 9px; }
+  .dato { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--line-soft); }
+  .dato:last-child { border-bottom: none; padding-bottom: 0; }
+  .dato-k { color: var(--ink-mute); flex-shrink: 0; }
+  .dato-v { font-weight: 500; text-align: right; }
+  /* Señal a Meta */
+  .senal { border: 1px solid var(--line); border-radius: 10px; padding: 13px; background: var(--bg); }
+  .senal.ok { border-color: #A9D96A; background: var(--lime-soft); }
+  .senal.error { border-color: var(--coral); background: var(--coral-soft); }
+  .senal-head { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+  .senal-head svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .senal-evento { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; margin-top: 8px; font-weight: 600; }
+  .senal-txt { font-size: 11px; color: var(--ink-soft); margin-top: 5px; line-height: 1.45; }
+  .senal-reintentar {
+    margin-top: 9px; font-size: 12px; font-weight: 600; padding: 6px 11px;
+    background: var(--ink); color: #fff; border-radius: 7px;
+  }
+
+  .nota { width: 100%; min-height: 68px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 12px; resize: vertical; font-family: var(--body); }
+
+  /* Toast */
+  .toasts { position: fixed; bottom: 22px; right: 22px; display: flex; flex-direction: column; gap: 8px; z-index: 99; }
+  .toast {
+    background: var(--ink); color: #fff; padding: 11px 16px; border-radius: 9px;
+    font-size: 13px; box-shadow: 0 8px 24px rgba(26,26,23,0.16);
+    animation: subir 0.22s cubic-bezier(0.16,1,0.3,1);
+  }
+  @keyframes subir { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .toast.fuera { opacity: 0; transition: opacity 0.25s; }
+
+  /* ── RESPONSIVE ───────────────────────────────────────── */
+  @media (max-width: 1240px) {
+    .crm { grid-template-columns: 300px minmax(0,1fr); }
+    .ficha-panel { grid-column: 1 / -1; }
+    .ficha { flex-direction: row; flex-wrap: wrap; gap: 28px; }
+    .ficha > div { flex: 1; min-width: 230px; }
+  }
+  @media (max-width: 1000px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 22px 18px 40px; }
+    .topbar h1 { font-size: 30px; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .kpi-hero .kpi-value { font-size: 40px; }
+    .crm { grid-template-columns: 1fr; }
+    .bandeja, .hilo { height: auto; position: static; }
+    .lista { max-height: none; }
+    .mensajes { max-height: 60vh; }
+    /* En teléfono: o ves la lista, o ves la conversación. */
+    .crm.viendo-hilo .bandeja-panel { display: none; }
+    .crm:not(.viendo-hilo) .hilo-panel,
+    .crm:not(.viendo-hilo) .ficha-panel { display: none; }
+    .volver { display: inline-flex; align-items: center; padding: 4px; margin-left: -4px; }
+    .volver svg { width: 19px; height: 19px; }
+  }
+  @media (max-width: 560px) {
+    .kpi-row { grid-template-columns: 1fr; }
+    .msg { max-width: 86%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Co<em>Makers</em></div>
+      <div class="brand-sub">Panel de cliente</div>
+    </div>
+
+    <button class="client-switcher">
+      <span>
+        <span class="label">Cliente</span>
+        <span class="name">San Eusebio</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </button>
+
+    <nav class="nav-group">
+      <div class="nav-label">Panel</div>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>Resumen</button>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>Contenido</button>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Pauta</button>
+      <div class="nav-label">Clientes de San Eusebio</div>
+      <button class="nav-item active" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>Consultas<span class="badge" id="navBadge">8</span></button>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Reportes</button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="avatar">D</div>
+        <div>
+          <div class="user-name">Delfi Rodríguez</div>
+          <div class="user-role">Agencia · Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Consultas de <em>WhatsApp</em></h1>
+        <p class="greeting">Todo lo que entró al número de San Eusebio, clasificado.</p>
+      </div>
+      <div class="period-selector">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Septiembre 2026
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi kpi-hero">
+        <div class="kpi-label">Reservas cerradas</div>
+        <div>
+          <div class="kpi-value" id="kReservas">23</div>
+          <div class="kpi-sub" id="kTasa">15,6% de las consultas del mes</div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Consultas</div>
+        <div>
+          <div class="kpi-value" id="kTotal">147</div>
+          <div class="kpi-sub">+34 contra agosto</div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Interesados</div>
+        <div>
+          <div class="kpi-value" id="kInteresados">41</div>
+          <div class="kpi-sub">Preguntaron y no cerraron</div>
+        </div>
+      </div>
+      <div class="kpi kpi-alerta">
+        <div class="kpi-label">Sin responder</div>
+        <div>
+          <div class="kpi-value" id="kSin">8</div>
+          <div class="kpi-sub">La más vieja, hace 3 días</div>
+        </div>
+      </div>
+    </div>
+
+    <section class="embudo">
+      <div class="embudo-head">
+        <h2>Qué pasó con las 147 consultas</h2>
+        <p>Esto es lo que va al reporte de septiembre.</p>
+      </div>
+      <div class="embudo-barra" id="barra">
+        <div class="embudo-seg seg-reservo" style="flex-grow:23">23</div>
+        <div class="embudo-seg seg-interesado" style="flex-grow:41">41</div>
+        <div class="embudo-seg seg-no" style="flex-grow:75">75</div>
+        <div class="embudo-seg seg-sin" style="flex-grow:8">8</div>
+      </div>
+      <div class="embudo-leyenda">
+        <span><i class="punto" style="background:var(--lime)"></i>Reservó</span>
+        <span><i class="punto" style="background:var(--cyan)"></i>Interesado, no cerró</span>
+        <span><i class="punto" style="background:var(--line)"></i>No reservó</span>
+        <span><i class="punto" style="background:var(--coral)"></i>Sin responder</span>
+      </div>
+    </section>
+
+    <section class="origenes">
+      <div class="origen-card destacada">
+        <div class="origen-top">
+          <i class="punto" style="background:var(--accent)"></i>
+          <h3>Vinieron de la pauta</h3>
+        </div>
+        <div class="origen-tasa" id="pTasa">21,0%</div>
+        <div class="origen-tasa-lbl">reservó</div>
+        <div class="origen-detalle">
+          <div><b id="pConsultas">62</b>consultas</div>
+          <div><b id="pReservas">13</b>reservas</div>
+          <div><b id="pValor">$2,1M</b>facturado</div>
+        </div>
+      </div>
+      <div class="origen-card">
+        <div class="origen-top">
+          <i class="punto" style="background:var(--ink-mute)"></i>
+          <h3>Llegaron solos</h3>
+        </div>
+        <div class="origen-tasa" id="oTasa">11,8%</div>
+        <div class="origen-tasa-lbl">reservó</div>
+        <div class="origen-detalle">
+          <div><b id="oConsultas">85</b>consultas</div>
+          <div><b id="oReservas">10</b>reservas</div>
+          <div><b id="oValor">$1,4M</b>facturado</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="cierre" id="cierre"></div>
+
+    <div class="crm" id="crm">
+      <!-- ── Bandeja ── -->
+      <div class="panel bandeja-panel">
+        <div class="bandeja">
+          <div class="buscador">
+            <input type="search" id="buscar" placeholder="Buscar por nombre o teléfono" aria-label="Buscar conversaciones">
+          </div>
+          <div class="filtros" id="filtros" role="group" aria-label="Filtrar por estado">
+            <button class="filtro on" data-f="todas">Todas</button>
+            <button class="filtro" data-f="sin">Sin responder</button>
+            <button class="filtro" data-f="interesado">Interesados</button>
+            <button class="filtro" data-f="reservo">Reservó</button>
+            <button class="filtro" data-f="no">No reservó</button>
+          </div>
+          <div class="lista" id="lista"></div>
+          <div class="costo">
+            <b>0 mensajes enviados por API este mes · USD 0.</b>
+            San Eusebio contesta desde su celular de siempre. El panel solo lee.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Hilo ── -->
+      <div class="panel hilo-panel">
+        <div class="hilo">
+          <div class="hilo-head">
+            <button class="volver" id="volver" aria-label="Volver a la lista">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div class="avatar" id="hAvatar">M</div>
+            <div>
+              <div class="hilo-nom" id="hNom">—</div>
+              <div class="hilo-tel" id="hTel">—</div>
+            </div>
+          </div>
+          <div class="mensajes" id="mensajes"></div>
+          <div class="responder">
+            <p class="responder-txt">Las respuestas salen del celular de San Eusebio. Así no se paga por mensaje y el historial les queda en el teléfono.</p>
+            <a class="btn-wa" id="abrirWa" href="#" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              Abrir en WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Ficha ── -->
+      <div class="panel ficha-panel">
+        <div class="ficha">
+          <div>
+            <h3>Cómo terminó</h3>
+            <p class="ficha-sub">Marcalo y se actualiza el reporte.</p>
+            <div class="estados" id="estados">
+              <button class="estado-btn" data-e="reservo">
+                <i class="punto" style="background:var(--lime)"></i>Reservó
+                <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="estado-btn" data-e="interesado">
+                <i class="punto" style="background:var(--cyan)"></i>Está interesado
+                <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="estado-btn" data-e="no">
+                <i class="punto" style="background:var(--ink-mute)"></i>No reservó
+                <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="estado-btn" data-e="sin">
+                <i class="punto" style="background:var(--coral)"></i>Sin responder
+                <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h3>Señal a Meta</h3>
+            <p class="ficha-sub">Lo que aprende la pauta de este caso.</p>
+            <div class="senal" id="senal"></div>
+          </div>
+
+          <div>
+            <h3>Contacto</h3>
+            <p class="ficha-sub">Lo que se sabe de esta persona.</p>
+            <div class="datos">
+              <div class="dato"><span class="dato-k">Llegó por</span><span class="dato-v" id="dOrigen">—</span></div>
+              <div class="dato"><span class="dato-k">Primera consulta</span><span class="dato-v" id="dPrimera">—</span></div>
+              <div class="dato"><span class="dato-k">Fecha que pidió</span><span class="dato-v" id="dFecha">—</span></div>
+              <div class="dato"><span class="dato-k">Veces que escribió</span><span class="dato-v" id="dVeces">—</span></div>
+            </div>
+          </div>
+
+          <div>
+            <h3>Nota interna</h3>
+            <p class="ficha-sub">No la ve el contacto.</p>
+            <textarea class="nota" id="nota" placeholder="Ej: pidió presupuesto por 80 personas, vuelve a llamar el lunes"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════════════
+  //  DATOS MOCK
+  //  San Eusebio: cabañas y salón de eventos en las sierras de
+  //  Tandil. Las consultas son de temporada: fin de semana largo,
+  //  cumpleaños de 15, casamientos.
+  //
+  //  `origen` es el dato que después cierra el reporte: si la
+  //  conversación entró por un anuncio Click-to-WhatsApp, la
+  //  reserva se le puede atribuir a la pauta.
+  // ═══════════════════════════════════════════════════════════
+  var CONVS = [
+    {
+      id: 1, nom: 'Micaela Sosa', tel: '+54 9 249 415-8832', hora: '10:42',
+      estado: 'sin', origen: 'pauta', primera: '9 sep', fecha: 'Fin de semana largo de octubre',
+      veces: 2, nota: '',
+      msgs: [
+        { d: 'Hoy' },
+        { t: 'in', x: 'Hola! Vi el anuncio de las cabañas. Tienen para el finde largo de octubre?', h: '10:40' },
+        { t: 'in', x: 'Seríamos 4 adultos y 2 nenes', h: '10:42' }
+      ]
+    },
+    {
+      id: 2, nom: 'Familia Bertoldi', tel: '+54 9 249 468-1190', hora: '09:15',
+      estado: 'reservo', origen: 'pauta', primera: '4 sep', fecha: '17 al 19 de octubre',
+      veces: 9, nota: 'Seña transferida. Piden cabaña 3, la de la parrilla techada.',
+      msgs: [
+        { d: 'Lunes 8' },
+        { t: 'in', x: 'Buenas, queríamos la cabaña 3 del 17 al 19 de octubre', h: '18:22' },
+        { t: 'out', x: 'Hola Ana! Sí, está libre. Son $180.000 las dos noches, con seña del 30%.', h: '18:41' },
+        { t: 'in', x: 'Perfecto. A qué cuenta transfiero?', h: '19:03' },
+        { d: 'Hoy' },
+        { t: 'in', x: 'Listo, ya transferí la seña. Te paso el comprobante', h: '09:12' },
+        { t: 'out', x: 'Recibido, muchas gracias! Quedan confirmados. Nos vemos el 17 🌿', h: '09:15' }
+      ]
+    },
+    {
+      id: 3, nom: 'Lucía Ferrari', tel: '+54 9 11 5518-2276', hora: 'Ayer',
+      estado: 'interesado', origen: 'instagram', primera: '11 sep', fecha: 'Casamiento en marzo 2027',
+      veces: 5, nota: 'Le mandamos el PDF del salón. Dijo que lo habla con la mamá.',
+      msgs: [
+        { d: 'Ayer' },
+        { t: 'in', x: 'Hola! Hacen casamientos? Sería para marzo del año que viene, 120 personas', h: '16:08' },
+        { t: 'out', x: 'Hola Lucía! Sí, el salón entra hasta 150. Te paso la carpeta con las opciones.', h: '16:30' },
+        { t: 'in', x: 'Gracias! Lo veo con mi mamá y te confirmo la semana que viene', h: '17:45' }
+      ]
+    },
+    {
+      id: 4, nom: 'Rodrigo Paz', tel: '+54 9 249 403-7741', hora: 'Ayer',
+      estado: 'no', origen: 'directo', primera: '11 sep', fecha: 'Este sábado',
+      veces: 3, nota: 'Buscaba algo para esta semana, no había disponibilidad.',
+      msgs: [
+        { d: 'Ayer' },
+        { t: 'in', x: 'Tenés algo libre para este sábado? Somos 2', h: '12:20' },
+        { t: 'out', x: 'Hola Rodrigo, este finde estamos completos. Te aviso si se libera algo?', h: '12:55' },
+        { t: 'in', x: 'Dale, gracias igual', h: '13:02' }
+      ]
+    },
+    {
+      id: 5, nom: 'Verónica Iglesias', tel: '+54 9 2281 55-9034', hora: 'Ayer',
+      estado: 'sin', origen: 'pauta', primera: '11 sep', fecha: 'Cumpleaños de 15 en noviembre',
+      veces: 1, nota: '',
+      msgs: [
+        { d: 'Ayer' },
+        { t: 'in', x: 'Buenas tardes, quería saber precio del salón para un cumple de 15 en noviembre', h: '19:30' }
+      ]
+    },
+    {
+      id: 6, nom: 'Gastón Muñoz', tel: '+54 9 249 442-0158', hora: '10 sep',
+      estado: 'reservo', origen: 'directo', primera: '2 sep', fecha: '26 y 27 de septiembre',
+      veces: 7, nota: 'Ya vino en enero. Cliente repetido.',
+      msgs: [
+        { d: '10 de septiembre' },
+        { t: 'in', x: 'Hola! Soy Gastón, estuve en enero. Queremos volver el 26 y 27', h: '11:05' },
+        { t: 'out', x: 'Gastón! Claro que me acuerdo. Te reservo la misma cabaña?', h: '11:20' },
+        { t: 'in', x: 'Esa misma. Ya te paso la seña', h: '11:22' }
+      ]
+    },
+    {
+      id: 7, nom: 'Carla Zabaleta', tel: '+54 9 221 618-4409', hora: '10 sep',
+      estado: 'interesado', origen: 'pauta', primera: '10 sep', fecha: 'Diciembre, sin fecha cerrada',
+      veces: 4, nota: 'Quiere ver las cabañas antes. Vive en La Plata.',
+      msgs: [
+        { d: '10 de septiembre' },
+        { t: 'in', x: 'Hola, se pueden visitar las cabañas antes de reservar?', h: '14:12' },
+        { t: 'out', x: 'Hola Carla! Sí, con turno previo. Venís de Tandil o de afuera?', h: '14:40' },
+        { t: 'in', x: 'De La Plata, así que tendría que ser un finde', h: '15:01' }
+      ]
+    },
+    {
+      id: 8, nom: 'Empresa Acindar', tel: '+54 9 249 471-3320', hora: '9 sep',
+      estado: 'interesado', origen: 'directo', primera: '9 sep', fecha: 'Jornada de trabajo, noviembre',
+      veces: 6, nota: 'Necesitan factura A y proyector. Pidieron presupuesto formal.',
+      msgs: [
+        { d: '9 de septiembre' },
+        { t: 'in', x: 'Buen día, hacen eventos corporativos? Sería una jornada de 40 personas', h: '09:30' },
+        { t: 'out', x: 'Buen día! Sí, tenemos el salón con proyector y almuerzo. Les paso presupuesto.', h: '10:15' },
+        { t: 'in', x: 'Perfecto, necesitamos factura A', h: '10:20' }
+      ]
+    },
+    {
+      id: 9, nom: 'Julián Ríos', tel: '+54 9 249 456-7712', hora: '9 sep',
+      estado: 'sin', origen: 'instagram', primera: '9 sep', fecha: 'No dijo',
+      veces: 1, nota: '',
+      msgs: [
+        { d: '9 de septiembre' },
+        { t: 'in', x: 'hola, precios?', h: '22:48' }
+      ]
+    },
+    {
+      id: 10, nom: 'Natalia G.', tel: '+54 9 249 481-2264', hora: '8 sep',
+      estado: 'no', origen: 'pauta', primera: '8 sep', fecha: 'Pedía pet friendly',
+      veces: 2, nota: 'No aceptamos mascotas. Se perdió por eso.',
+      msgs: [
+        { d: '8 de septiembre' },
+        { t: 'in', x: 'Hola! Aceptan perros?', h: '17:10' },
+        { t: 'out', x: 'Hola Natalia, por ahora no aceptamos mascotas. Disculpá!', h: '17:35' }
+      ]
+    },
+    {
+      id: 11, nom: 'Marcos Duarte', tel: '+54 9 249 419-9083', hora: '7 sep',
+      estado: 'reservo', origen: 'pauta', primera: '5 sep', fecha: '3 al 5 de octubre',
+      veces: 8, nota: 'Aniversario. Pidieron decoración y desayuno en la cabaña.',
+      msgs: [
+        { d: '7 de septiembre' },
+        { t: 'in', x: 'Confirmamos el 3 al 5. Se puede pedir el desayuno en la cabaña?', h: '10:50' },
+        { t: 'out', x: 'Sí! Sin costo extra. Es por el aniversario, no? Les preparamos algo lindo 🌿', h: '11:12' },
+        { t: 'in', x: 'Sos un sol, gracias!!', h: '11:15' }
+      ]
+    },
+    {
+      id: 12, nom: 'Sofía Almada', tel: '+54 9 291 544-8871', hora: '7 sep',
+      estado: 'sin', origen: 'pauta', primera: '7 sep', fecha: 'Enero 2027',
+      veces: 1, nota: '',
+      msgs: [
+        { d: '7 de septiembre' },
+        { t: 'in', x: 'Hola, ya se puede reservar para enero? Venimos de Bahía Blanca', h: '20:15' }
+      ]
+    }
+  ];
+
+  var ORIGENES = {
+    pauta: 'Anuncio de Instagram',
+    instagram: 'Perfil de Instagram',
+    directo: 'Escribió directo'
+  };
+  var NOMBRE_ESTADO = {
+    reservo: 'Reservó',
+    interesado: 'Está interesado',
+    no: 'No reservó',
+    sin: 'Sin responder'
+  };
+
+  // ── Datos de pauta ────────────────────────────────────────
+  // El `clid` es el ctwa_clid: el identificador que Meta genera cuando
+  // alguien toca un anuncio Click-to-WhatsApp. Llega en el objeto
+  // `referral` del webhook del primer mensaje y hay que guardarlo
+  // pegado a la conversación. Sin él, el evento de conversión se
+  // procesa igual pero Meta NO lo asocia al anuncio: falla en silencio.
+  var PAUTA = {
+    1:  { campana: 'Cabañas · Finde largo',    clid: 'ARBxk2Lm9QpTvN4eRj8sWc' },
+    2:  { campana: 'Cabañas · Finde largo',    clid: 'ARCp7YtEh3nKdM1oXz6bQa' },
+    5:  { campana: 'Salón · Cumple de 15',     clid: 'ARDm4WsUf8jHgP2vTq9cLe' },
+    7:  { campana: 'Cabañas · Escapada',       clid: 'AREj1RnDa5xCbV7uYk3mZo' },
+    10: { campana: 'Cabañas · Escapada',       clid: 'ARFq6MpBc2wGfL9iNe4tSh' },
+    11: { campana: 'Cabañas · Escapada',       clid: 'ARGz8KdXv4yJnQ3aHu7rTw' },
+    12: { campana: 'Cabañas · Finde largo',    clid: 'ARHc5TgZs7bNmR1pFj2wYx' }
+  };
+
+  // Monto de las reservas cerradas. Va en custom_data.value del evento
+  // Purchase. Sin monto, Meta optimiza por cantidad; con monto,
+  // optimiza por plata, que es lo que a San Eusebio le importa.
+  var VALOR = { 2: 180000, 6: 165000, 11: 240000 };
+
+  // Envíos que fallaron y siguen sin reintentarse. Este caso existe en
+  // el mock a propósito: cuando CAPI rechaza un evento no aparece un
+  // error en ningún lado, y si no se ve acá nadie se entera nunca.
+  var FALLADOS = { 11: true };
+
+  // Los números del mes que no están en la lista visible. La lista
+  // muestra 12 conversaciones, pero el mes tuvo 147: el resto vive acá
+  // para que los KPIs den bien sin cargar 147 hilos falsos.
+  // Separado por origen porque la comparación pauta / orgánico es
+  // justamente lo que justifica las dos cosas que le cobrás al cliente.
+  var RESTO = {
+    pauta:    { reservo: 11, interesado: 18, no: 26, sin: 0, valor: 1880000 },
+    organico: { reservo: 9,  interesado: 20, no: 47, sin: 4, valor: 1235000 }
+  };
+
+  var filtro = 'todas';
+  var busqueda = '';
+  var selId = 1;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    $('toasts').appendChild(t);
+    setTimeout(function () {
+      t.classList.add('fuera');
+      setTimeout(function () { t.remove(); }, 260);
+    }, 2400);
+  }
+
+  // ── Lógica de eventos CAPI ────────────────────────────────
+  // Dos eventos, no uno. `Lead` tiene mucho más volumen (41 por mes
+  // contra 23) y es lo que le da al algoritmo material para aprender;
+  // `Purchase` lleva el monto y es lo que se mide. Se optimiza la
+  // campaña por Lead y se reporta por Purchase.
+  function eventoDe(c) {
+    if (c.estado === 'reservo') return 'Purchase';
+    if (c.estado === 'interesado') return 'Lead';
+    return null; // "no reservó" y "sin responder" no le dicen nada a Meta
+  }
+
+  function plata(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.', ',') + 'M';
+    if (n >= 1000) return '$' + Math.round(n / 1000) + 'k';
+    return '$' + n;
+  }
+
+  function iniciales(n) {
+    var p = n.trim().split(/\s+/);
+    return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
+  }
+
+  // ── Bandeja ──────────────────────────────────────────────
+  function visibles() {
+    var q = busqueda.trim().toLowerCase();
+    return CONVS.filter(function (c) {
+      if (filtro !== 'todas' && c.estado !== filtro) return false;
+      if (!q) return true;
+      return (c.nom + ' ' + c.tel).toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function renderLista() {
+    var v = visibles();
+    if (!v.length) {
+      $('lista').innerHTML = '<div class="lista-vacia">Nada con ese filtro.<br>Probá con "Todas".</div>';
+      return;
+    }
+    $('lista').innerHTML = v.map(function (c) {
+      var ultimo = c.msgs.filter(function (m) { return m.x; }).slice(-1)[0];
+      return '<button class="conv' + (c.id === selId ? ' sel' : '') + '" data-id="' + c.id + '">' +
+        '<span class="conv-top">' +
+          '<span class="conv-nom">' + esc(c.nom) + '</span>' +
+          '<span class="conv-hora">' + esc(c.hora) + '</span>' +
+        '</span>' +
+        '<div class="conv-prev">' + esc(ultimo ? ultimo.x : '') + '</div>' +
+        '<div class="conv-meta">' +
+          '<span class="chip chip-' + c.estado + '">' + NOMBRE_ESTADO[c.estado] + '</span>' +
+          '<span class="chip chip-origen' + (c.origen === 'pauta' ? ' pauta' : '') + '">' +
+            esc(c.origen === 'pauta' ? PAUTA[c.id].campana : ORIGENES[c.origen]) + '</span>' +
+        '</div>' +
+      '</button>';
+    }).join('');
+  }
+
+  // ── Hilo + ficha ─────────────────────────────────────────
+  function actual() {
+    return CONVS.filter(function (c) { return c.id === selId; })[0] || CONVS[0];
+  }
+
+  function renderHilo() {
+    var c = actual();
+    $('hNom').textContent = c.nom;
+    $('hTel').textContent = c.tel;
+    $('hAvatar').textContent = iniciales(c.nom);
+    $('abrirWa').href = 'https://wa.me/' + c.tel.replace(/\D/g, '');
+
+    $('mensajes').innerHTML = c.msgs.map(function (m) {
+      if (m.d) return '<div class="dia">' + esc(m.d) + '</div>';
+      return '<div class="msg msg-' + m.t + '">' + esc(m.x) +
+        '<span class="msg-hora">' + esc(m.h) + '</span></div>';
+    }).join('');
+    $('mensajes').scrollTop = $('mensajes').scrollHeight;
+
+    $('dOrigen').textContent = c.origen === 'pauta' ? PAUTA[c.id].campana : ORIGENES[c.origen];
+    renderSenal(c);
+    $('dPrimera').textContent = c.primera;
+    $('dFecha').textContent = c.fecha;
+    $('dVeces').textContent = c.veces;
+    $('nota').value = c.nota;
+
+    Array.prototype.forEach.call(document.querySelectorAll('.estado-btn'), function (b) {
+      b.classList.toggle('on', b.dataset.e === c.estado);
+    });
+  }
+
+  var ICONO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  var ICONO_ERR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+  var ICONO_NA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+
+  function renderSenal(c) {
+    var box = $('senal');
+    var ev = eventoDe(c);
+
+    // Sin clic de anuncio no hay ctwa_clid, y sin ctwa_clid Meta no
+    // puede atribuir nada. Estas conversaciones sirven para el reporte
+    // pero no alimentan la pauta.
+    if (c.origen !== 'pauta') {
+      box.className = 'senal';
+      box.innerHTML = '<div class="senal-head">' + ICONO_NA + 'No se envía</div>' +
+        '<p class="senal-txt">Esta persona no llegó por un anuncio, así que no hay clic que Meta pueda reconocer. Cuenta para el reporte, no para la pauta.</p>';
+      return;
+    }
+
+    if (!ev) {
+      box.className = 'senal';
+      box.innerHTML = '<div class="senal-head">' + ICONO_NA + 'Sin enviar</div>' +
+        '<p class="senal-txt">Marcala como reservó o interesado y sale el evento. Un "no reservó" no se le informa a Meta.</p>';
+      return;
+    }
+
+    if (FALLADOS[c.id]) {
+      box.className = 'senal error';
+      box.innerHTML = '<div class="senal-head">' + ICONO_ERR + 'Meta rechazó el evento</div>' +
+        '<div class="senal-evento">' + ev + '</div>' +
+        '<p class="senal-txt">El token de la cuenta venció. Esta reserva no le llegó al algoritmo.</p>' +
+        '<button class="senal-reintentar" data-reintentar="' + c.id + '">Reintentar envío</button>';
+      return;
+    }
+
+    var monto = ev === 'Purchase' && VALOR[c.id] ? ' · ' + plata(VALOR[c.id]) : '';
+    box.className = 'senal ok';
+    box.innerHTML = '<div class="senal-head">' + ICONO_OK + 'Recibido por Meta</div>' +
+      '<div class="senal-evento">' + ev + monto + '</div>' +
+      '<p class="senal-txt">Atribuido a “' + esc(PAUTA[c.id].campana) + '”. El algoritmo ahora busca gente parecida a esta.</p>';
+  }
+
+  // ── KPIs y embudo ────────────────────────────────────────
+  function contar() {
+    var g = {
+      pauta:    { reservo: RESTO.pauta.reservo, interesado: RESTO.pauta.interesado, no: RESTO.pauta.no, sin: RESTO.pauta.sin, valor: RESTO.pauta.valor },
+      organico: { reservo: RESTO.organico.reservo, interesado: RESTO.organico.interesado, no: RESTO.organico.no, sin: RESTO.organico.sin, valor: RESTO.organico.valor }
+    };
+    CONVS.forEach(function (c) {
+      var k = c.origen === 'pauta' ? 'pauta' : 'organico';
+      g[k][c.estado]++;
+      if (c.estado === 'reservo' && VALOR[c.id]) g[k].valor += VALOR[c.id];
+    });
+    g.pauta.total = g.pauta.reservo + g.pauta.interesado + g.pauta.no + g.pauta.sin;
+    g.organico.total = g.organico.reservo + g.organico.interesado + g.organico.no + g.organico.sin;
+    g.todo = {
+      reservo: g.pauta.reservo + g.organico.reservo,
+      interesado: g.pauta.interesado + g.organico.interesado,
+      no: g.pauta.no + g.organico.no,
+      sin: g.pauta.sin + g.organico.sin
+    };
+    return g;
+  }
+
+  function pct(a, b) { return b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : '0%'; }
+
+  function renderNumeros() {
+    var g = contar();
+    var n = g.todo;
+    var total = n.reservo + n.interesado + n.no + n.sin;
+
+    // Pauta vs orgánico
+    $('pTasa').textContent = pct(g.pauta.reservo, g.pauta.total);
+    $('pConsultas').textContent = g.pauta.total;
+    $('pReservas').textContent = g.pauta.reservo;
+    $('pValor').textContent = plata(g.pauta.valor);
+    $('oTasa').textContent = pct(g.organico.reservo, g.organico.total);
+    $('oConsultas').textContent = g.organico.total;
+    $('oReservas').textContent = g.organico.reservo;
+    $('oValor').textContent = plata(g.organico.valor);
+
+    var tp = g.pauta.total ? g.pauta.reservo / g.pauta.total : 0;
+    var to = g.organico.total ? g.organico.reservo / g.organico.total : 0;
+    var veces = to ? (tp / to) : 0;
+    $('cierre').innerHTML = veces >= 1.05
+      ? 'El que llega por un anuncio reserva <b>' + veces.toFixed(1).replace('.', ',') + ' veces más</b> que el que escribe por su cuenta. Cada reserva marcada acá vuelve a Meta y hace que el anuncio busque gente más parecida a la que ya reservó.'
+      : 'Por ahora la pauta y lo orgánico convierten parecido. Cuantas más reservas marques, más material tiene Meta para encontrar a los que sí compran.';
+    var tasa = total ? (n.reservo / total * 100) : 0;
+
+    $('kReservas').textContent = n.reservo;
+    $('kTotal').textContent = total;
+    $('kInteresados').textContent = n.interesado;
+    $('kSin').textContent = n.sin;
+    $('kTasa').textContent = tasa.toFixed(1).replace('.', ',') + '% de las consultas del mes';
+    $('navBadge').textContent = n.sin;
+    $('navBadge').style.display = n.sin ? '' : 'none';
+
+    var segs = [['reservo', n.reservo], ['interesado', n.interesado], ['no', n.no], ['sin', n.sin]];
+    $('barra').innerHTML = segs.map(function (s) {
+      return '<div class="embudo-seg seg-' + s[0] + '" style="flex-grow:' + s[1] + '">' +
+        (s[1] ? s[1] : '') + '</div>';
+    }).join('');
+
+    document.querySelector('.embudo-head h2').textContent = 'Qué pasó con las ' + total + ' consultas';
+  }
+
+  // ── Eventos ──────────────────────────────────────────────
+  $('lista').addEventListener('click', function (e) {
+    var b = e.target.closest('.conv');
+    if (!b) return;
+    selId = Number(b.dataset.id);
+    renderLista();
+    renderHilo();
+    $('crm').classList.add('viendo-hilo');
+  });
+
+  $('volver').addEventListener('click', function () {
+    $('crm').classList.remove('viendo-hilo');
+  });
+
+  $('filtros').addEventListener('click', function (e) {
+    var b = e.target.closest('.filtro');
+    if (!b) return;
+    filtro = b.dataset.f;
+    Array.prototype.forEach.call(document.querySelectorAll('.filtro'), function (x) {
+      x.classList.toggle('on', x === b);
+    });
+    renderLista();
+  });
+
+  $('buscar').addEventListener('input', function (e) {
+    busqueda = e.target.value;
+    renderLista();
+  });
+
+  $('estados').addEventListener('click', function (e) {
+    var b = e.target.closest('.estado-btn');
+    if (!b) return;
+    var c = actual();
+    if (c.estado === b.dataset.e) return;
+    c.estado = b.dataset.e;
+    renderHilo();
+    renderLista();
+    renderNumeros();
+
+    var ev = eventoDe(c);
+    if (c.origen === 'pauta' && ev && !FALLADOS[c.id]) {
+      toast(NOMBRE_ESTADO[c.estado] + ' · evento ' + ev + ' enviado a Meta');
+    } else {
+      toast(c.nom + ' → ' + NOMBRE_ESTADO[c.estado]);
+    }
+  });
+
+  $('senal').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-reintentar]');
+    if (!b) return;
+    delete FALLADOS[Number(b.dataset.reintentar)];
+    renderSenal(actual());
+    toast('Evento reenviado. Meta lo recibió.');
+  });
+
+  $('nota').addEventListener('change', function (e) {
+    actual().nota = e.target.value;
+    toast('Nota guardada');
+  });
+
+  renderLista();
+  renderHilo();
+  renderNumeros();
+})();
+</script>
+</body>
+</html>
