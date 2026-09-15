@@ -300,7 +300,15 @@
   .view-toggle button.active .t { display: inline; }
 
   /* ── KANBAN ───────────────────────────────── */
-  .kanban { display: none; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 12px; }
+  /* Las columnas NO se apilan en varias filas: si no entran, el tablero
+     se desliza al costado —como Asana—. Con secciones a medida un
+     proyecto puede tener siete, y en dos filas el tablero deja de
+     leerse: la sexta columna aparece abajo de todo, lejísimos. */
+  .kanban {
+    display: none; grid-auto-flow: column;
+    grid-auto-columns: minmax(210px, 1fr);
+    gap: 12px; overflow-x: auto; padding-bottom: 6px;
+  }
   .kanban.active { display: grid; }
   .columna {
     background: var(--bg-elev); border: 1px solid var(--line);
@@ -309,6 +317,12 @@
     transition: background 0.15s, border-color 0.15s;
   }
   .columna.drag-over { background: var(--accent-soft); border-color: var(--ink); }
+  /* "Sin sección" no es una sección de verdad: es la pila de lo que
+     quedó suelto. Va punteada para que se lea como algo a acomodar y no
+     como una columna más del proyecto, y desaparece sola cuando queda
+     vacía. */
+  .columna-sinsec { border-style: dashed; background: none; }
+  .grupo-sin > .grupo-head .grupo-title { color: var(--ink-mute); }
   .columna-head {
     display: flex; align-items: center; justify-content: space-between;
     padding-bottom: 11px; border-bottom: 1px solid var(--line-soft);
@@ -2323,7 +2337,7 @@
      columnas y la contabilidad son de escritorio, y está bien que lo
      sean: apretar un panel entero en 390px no lo usa nadie.
      ═══════════════════════════════════════════════════════════════ */
-  @media (max-width: 1200px) { .kanban.active { grid-template-columns: repeat(3, minmax(210px,1fr)); } }
+  @media (max-width: 1200px) { .kanban.active { grid-auto-columns: minmax(210px, 1fr); } }
 
   /* La barra de arriba del celular. En escritorio no existe. */
   .barra-movil { display: none; }
@@ -2608,7 +2622,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v13/09 13:23</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v15/09 18:55</div>
     </div>
   </aside>
 
@@ -3205,6 +3219,17 @@
   ];
   const TIPO_MAP = {};
   TIPOS.forEach(e => TIPO_MAP[e.id] = e.label);
+  // Los ids de las columnas y los grupos que juntan lo que no tiene nada
+  // asignado. No son ids de la base: no se guardan nunca, existen solo
+  // en pantalla. Empiezan con "__" justamente para no poder chocar con
+  // un uuid de verdad.
+  const SIN_SEC = '__sinsec';
+  // Lo que explica la (i) de cada uno de esos grupos.
+  const NOTA_GRUPO = {
+    __sin: 'Nadie se hizo cargo todavía. Abrí la tarea y poné responsable.',
+    __interno: 'No están atadas a ningún cliente: son cosas nuestras. Si alguna sí es de un cliente, abrila y asignáselo.',
+    __sinproy: 'No están en ningún proyecto. Metelas en uno para que aparezcan en su tablero.'
+  };
   const SECS_DEFECTO = [
     { nombre: 'Por hacer',   tipo: 'pendiente', orden: 1000 },
     { nombre: 'En curso',    tipo: 'curso',     orden: 2000 },
@@ -3328,6 +3353,11 @@
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+  // La (i) que explica algo al pasar el mouse. Es un <button> y no un
+  // <span> para que en el celular también se pueda tocar.
+  function ayuda(txt) {
+    return '<button type="button" class="info" data-info="' + esc(txt) + '">i</button>';
   }
   function toast(msg, tipo) {
     const el = document.createElement('div');
@@ -4751,10 +4781,22 @@
     if (propio || !t.padre_id) return propio;
     return tpEn(t.padre_id, proyId);
   }
+  // El cliente de una tarea, para filtrar y para agrupar: el que tiene
+  // puesto; si no, el del proyecto donde está; y si es una subtarea
+  // suelta, el de su madre.
+  //
+  // Antes miraba solo `cliente_id`. Una tarea adentro del proyecto de
+  // EKHOS pero sin cliente puesto —que es la mayoría, porque el cliente
+  // se hereda del proyecto— no aparecía al filtrar por EKHOS y se
+  // agrupaba en "Interno". Eso era perder la tarea de dos maneras.
   function clienteEfectivo(t) {
-    if (t.cliente_id || !t.padre_id) return t.cliente_id || null;
-    const m = madreDe(t);
-    return m ? (m.cliente_id || null) : null;
+    const propios = clientesDeTarea(t);
+    if (propios.length) return propios[0];
+    if (t.padre_id) {
+      const m = madreDe(t);
+      if (m) { const c = clientesDeTarea(m); if (c.length) return c[0]; }
+    }
+    return null;
   }
 
   // ¿Esta tarea pasa los filtros de arriba? Separado de `visibles()`
@@ -7204,6 +7246,17 @@
     const cols = columnasDelTablero();
     const cont = $('#kanban');
 
+    // Las tareas que están en el proyecto pero en ninguna columna —sin
+    // sección, o apuntando a una sección que se borró— antes no se
+    // dibujaban en ningún lado: el tablero simplemente no las tenía. La
+    // Lista sí las mostraba, así que las dos vistas se contradecían y la
+    // tarea se perdía. Ahora van a una columna al final.
+    const validas = new Set(cols.map(c => c.id));
+    const huerfanas = p
+      ? list.filter(t => { const x = tpEn(t.id, p.id); return x && !validas.has(x.seccion_id); })
+      : [];
+    if (huerfanas.length) cols.push({ id: SIN_SEC, label: 'Sin sección', tipo: 'pendiente', seccion: false, virtual: true });
+
     if (p && !cols.length) {
       cont.innerHTML = '<div class="vacio" style="grid-column:1/-1">' +
         '<h3>Este proyecto no tiene secciones</h3>' +
@@ -7215,26 +7268,31 @@
     }
 
     cont.innerHTML = cols.map(c => {
-      const items = list.filter(t => p
-            ? ((tpEn(t.id, p.id) || {}).seccion_id === c.id)
-            : (tipoDe(t) === c.id))
+      const items = list.filter(t => {
+            if (!p) return tipoDe(t) === c.id;
+            const x = tpEn(t.id, p.id);
+            if (!x) return false;
+            return c.virtual ? !validas.has(x.seccion_id) : x.seccion_id === c.id;
+          })
           .sort((a, b) => ordenDe(a, p ? p.id : null) - ordenDe(b, p ? p.id : null));
       const cards = items.length ? items.map(t => cardHTML(t, p)).join('') : '<div class="empty-col">Nada acá</div>';
       return '' +
-        '<div class="columna" data-col="' + c.id + '" data-tipo="' + c.tipo + '">' +
+        '<div class="columna' + (c.virtual ? ' columna-sinsec' : '') + '" data-col="' + c.id + '" data-tipo="' + c.tipo + '">' +
           '<div class="columna-head">' +
             '<div class="columna-titulo"><span class="dot ' + c.tipo + '"></span>' +
               (c.seccion
                 ? '<span class="sec-nombre" data-sec="' + c.id + '" title="Doble click para renombrar">' + esc(c.label) + '</span>'
                 : esc(c.label)) +
+              (c.virtual ? ayuda('Estas tareas están en el proyecto pero no cayeron en ninguna sección. Arrastralas a la columna que corresponda y esta desaparece sola.') : '') +
             '</div>' +
             '<div style="display:flex;align-items:center;gap:4px">' +
               (c.seccion ? '<button class="col-add" data-secdel="' + c.id + '" title="Borrar sección">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' +
               '</button>' : '') +
-              '<button class="col-add" data-nueva="' + c.id + '" title="Nueva tarea acá">' +
-                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
-              '</button>' +
+              (c.virtual ? '' :
+                '<button class="col-add" data-nueva="' + c.id + '" title="Nueva tarea acá">' +
+                  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
+                '</button>') +
               '<div class="columna-count">' + items.length + '</div>' +
             '</div>' +
           '</div>' +
@@ -7328,10 +7386,14 @@
       // `tpEnEfectivo` y no `tpEn`: una subtarea que salió sola —porque
       // su madre no pasó el filtro— no tiene fila propia en el proyecto,
       // así que va en la sección de su madre. Con `tpEn` desaparecía.
-      const sinSec = list.filter(t => { const x = tpEnEfectivo(t, p.id); return x && !x.seccion_id; });
+      // "Sin sección" también junta las que apuntan a una sección que ya
+      // no existe —se borró la columna y la fila quedó señalando al
+      // vacío—. Antes solo miraba `!x.seccion_id` y esas se perdían.
+      const validas = new Set(secs.map(s => s.id));
+      const sinSec = list.filter(t => { const x = tpEnEfectivo(t, p.id); return x && !validas.has(x.seccion_id); });
       let html = encabezadoLista(false)
         + secs.map(sec => bloqueSeccion(sec, list.filter(t => (tpEnEfectivo(t, p.id) || {}).seccion_id === sec.id), false, conSubs)).join('');
-      if (sinSec.length) html += bloqueSeccion({ id: '__sinsec', nombre: 'Sin sección', tipo: 'pendiente' }, sinSec, true, conSubs);
+      if (sinSec.length) html += bloqueSeccion({ id: SIN_SEC, nombre: 'Sin sección', tipo: 'pendiente' }, sinSec, true, conSubs);
       html += '<button class="btn-ghost" id="btnNuevaSecLista" style="align-self:flex-start">+ Agregar sección</button>';
       $('#lista').innerHTML = html;
       const b = $('#btnNuevaSecLista');
@@ -7340,22 +7402,29 @@
       return;
     }
 
+    // Los grupos de "lo que no tiene nada" van siempre últimos, no
+    // alfabéticos en el medio de la lista.
+    const ALFINAL = '￿';
     const grupos = {};
     list.forEach(t => {
       let k, label, orden;
       if (AGRUPAR === 'responsable') {
         k = t.responsable_id || '__sin';
         label = nombrePersona(t.responsable_id) || 'Sin responsable';
-        orden = label;
+        orden = t.responsable_id ? label : ALFINAL;
       } else if (AGRUPAR === 'cliente') {
-        k = t.cliente_id || '__interno';
-        label = nombreCliente(t.cliente_id);
-        orden = label;
+        // `clienteEfectivo` y no `t.cliente_id`: una subtarea que salió
+        // sola hereda el cliente de su madre. Con el campo pelado caía
+        // en "Interno" aunque la tarea madre tuviera cliente.
+        const cid = clienteEfectivo(t);
+        k = cid || '__interno';
+        label = cid ? nombreCliente(cid) : 'Interno (sin cliente)';
+        orden = cid ? label : ALFINAL;
       } else if (AGRUPAR === 'proyecto') {
         const ps = proyectosDe(t);
         k = ps.length ? ps[0].id : '__sinproy';
         label = ps.length ? ps[0].nombre : 'Sin proyecto';
-        orden = label;
+        orden = ps.length ? label : ALFINAL;
       } else {
         k = tipoDe(t);
         label = TIPO_MAP[k] || k;
@@ -7380,8 +7449,8 @@
       const items = ordenarFilas(g.items);
       const col = COLAPSADOS[k] ? ' collapsed' : '';
       return '' +
-        '<div class="grupo' + col + '" data-grupo="' + esc(k) + '">' +
-          cabezaGrupo(g.label, vencidas, abiertas, todos.length) +
+        '<div class="grupo' + col + (NOTA_GRUPO[k] ? ' grupo-sin' : '') + '" data-grupo="' + esc(k) + '">' +
+          cabezaGrupo(g.label, vencidas, abiertas, todos.length, NOTA_GRUPO[k] || '') +
           '<div class="grupo-body">' + items.map(filaHTML).join('') + '</div>' +
         '</div>';
     }).join('');
@@ -7441,11 +7510,12 @@
     '</div>';
   }
 
-  function cabezaGrupo(label, vencidas, abiertas, total) {
+  function cabezaGrupo(label, vencidas, abiertas, total, nota) {
     return '<div class="grupo-head">' +
       '<div class="grupo-head-left">' +
         '<svg class="grupo-toggle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>' +
         '<div class="grupo-title">' + esc(label) + '</div>' +
+        (nota ? ayuda(nota) : '') +
         (vencidas ? '<span class="grupo-badge alerta">' + vencidas + ' vencida' + (vencidas > 1 ? 's' : '') + '</span>'
                   : '<span class="grupo-badge">' + abiertas + ' abierta' + (abiertas === 1 ? '' : 's') + '</span>') +
       '</div>' +
@@ -7466,9 +7536,13 @@
     const vencidas = todos.filter(estaVencida).length;
     const abiertas = todos.filter(t => !t.completada).length;
     const col = COLAPSADOS[sec.id] ? ' collapsed' : '';
-    const movible = !!p && !sinSeccion;
+    // Sí se pueden arrastrar desde "Sin sección": justamente sacarlas de
+    // ahí es para lo que está. Lo que no tiene sentido es agregar una
+    // tarea nueva adentro, así que esa fila no va.
+    const movible = !!p;
     return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '">' +
-      cabezaGrupo(sec.nombre, vencidas, abiertas, todos.length) +
+      cabezaGrupo(sec.nombre, vencidas, abiertas, todos.length,
+        sinSeccion ? 'Están en el proyecto pero no cayeron en ninguna sección. Arrastralas a la que corresponda y este grupo desaparece solo.' : '') +
       '<div class="grupo-body" data-col="' + esc(sec.id) + '" data-tipo="' + esc(sec.tipo || '') + '">' +
         // La subtarea que salió sola no se arrastra: su lugar es debajo
         // de su madre, y no tiene fila propia que mover en el proyecto.
@@ -7651,11 +7725,14 @@
     if (p) {
       const fila = tpEn(t.id, p.id);
       if (!fila) return;
+      // "Sin sección" no es una sección de verdad: soltar ahí es sacarle
+      // la sección a la tarea, no guardar el id inventado de la columna.
+      const destino = colId === SIN_SEC ? null : colId;
       const secAnterior = fila.seccion_id, ordenAnterior = fila.orden;
-      fila.seccion_id = colId; fila.orden = nuevoOrden;
+      fila.seccion_id = destino; fila.orden = nuevoOrden;
       render();
       const { error } = await SB.from('tarea_proyecto')
-        .update({ seccion_id: colId, orden: nuevoOrden })
+        .update({ seccion_id: destino, orden: nuevoOrden })
         .eq('tarea_id', t.id).eq('proyecto_id', p.id);
       if (error) {
         fila.seccion_id = secAnterior; fila.orden = ordenAnterior;
@@ -9841,6 +9918,32 @@
       cargarBandeja();
     }
   });
+
+  // ── Puerta para las pruebas automáticas ─────────────────────
+  //
+  //  Todo el panel vive adentro de una función, así que desde afuera
+  //  no se ve nada: bien para producción, imposible de probar. Esto
+  //  abre una ventanita con el estado y un par de funciones.
+  //
+  //  Solo existe abriendo el archivo local (file://). El panel de
+  //  verdad se sirve por https, así que allá esta rama no corre nunca
+  //  y no queda nada nuevo expuesto para nadie.
+  if (location.protocol === 'file:') {
+    window.__app = {
+      get ME() { return ME; },
+      get FILTRO() { return FILTRO; },
+      get VISTA() { return VISTA; }, set VISTA(v) { VISTA = v; },
+      get AGRUPAR() { return AGRUPAR; }, set AGRUPAR(v) { AGRUPAR = v; },
+      get TAREAS() { return TAREAS; },
+      get TP() { return TP; },
+      get SECCIONES() { return SECCIONES; },
+      get PROYECTOS() { return PROYECTOS; },
+      render: function () { return render(); },
+      soltar: function (a, b, c, d, e) { return soltar(a, b, c, d, e); },
+      abrirDrawer: function (id) { return abrirDrawer(id); },
+      cerrarDrawer: function () { return cerrarDrawer(); }
+    };
+  }
 
   iniciar();
 })();

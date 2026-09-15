@@ -300,7 +300,15 @@
   .view-toggle button.active .t { display: inline; }
 
   /* ── KANBAN ───────────────────────────────── */
-  .kanban { display: none; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 12px; }
+  /* Las columnas NO se apilan en varias filas: si no entran, el tablero
+     se desliza al costado —como Asana—. Con secciones a medida un
+     proyecto puede tener siete, y en dos filas el tablero deja de
+     leerse: la sexta columna aparece abajo de todo, lejísimos. */
+  .kanban {
+    display: none; grid-auto-flow: column;
+    grid-auto-columns: minmax(210px, 1fr);
+    gap: 12px; overflow-x: auto; padding-bottom: 6px;
+  }
   .kanban.active { display: grid; }
   .columna {
     background: var(--bg-elev); border: 1px solid var(--line);
@@ -309,6 +317,12 @@
     transition: background 0.15s, border-color 0.15s;
   }
   .columna.drag-over { background: var(--accent-soft); border-color: var(--ink); }
+  /* "Sin sección" no es una sección de verdad: es la pila de lo que
+     quedó suelto. Va punteada para que se lea como algo a acomodar y no
+     como una columna más del proyecto, y desaparece sola cuando queda
+     vacía. */
+  .columna-sinsec { border-style: dashed; background: none; }
+  .grupo-sin > .grupo-head .grupo-title { color: var(--ink-mute); }
   .columna-head {
     display: flex; align-items: center; justify-content: space-between;
     padding-bottom: 11px; border-bottom: 1px solid var(--line-soft);
@@ -2323,7 +2337,7 @@
      columnas y la contabilidad son de escritorio, y está bien que lo
      sean: apretar un panel entero en 390px no lo usa nadie.
      ═══════════════════════════════════════════════════════════════ */
-  @media (max-width: 1200px) { .kanban.active { grid-template-columns: repeat(3, minmax(210px,1fr)); } }
+  @media (max-width: 1200px) { .kanban.active { grid-auto-columns: minmax(210px, 1fr); } }
 
   /* La barra de arriba del celular. En escritorio no existe. */
   .barra-movil { display: none; }
@@ -2626,7 +2640,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v13/09 13:23</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v15/09 18:55</div>
     </div>
   </aside>
 
@@ -3199,6 +3213,17 @@
   ];
   const TIPO_MAP = {};
   TIPOS.forEach(e => TIPO_MAP[e.id] = e.label);
+  // Los ids de las columnas y los grupos que juntan lo que no tiene nada
+  // asignado. No son ids de la base: no se guardan nunca, existen solo
+  // en pantalla. Empiezan con "__" justamente para no poder chocar con
+  // un uuid de verdad.
+  const SIN_SEC = '__sinsec';
+  // Lo que explica la (i) de cada uno de esos grupos.
+  const NOTA_GRUPO = {
+    __sin: 'Nadie se hizo cargo todavía. Abrí la tarea y poné responsable.',
+    __interno: 'No están atadas a ningún cliente: son cosas nuestras. Si alguna sí es de un cliente, abrila y asignáselo.',
+    __sinproy: 'No están en ningún proyecto. Metelas en uno para que aparezcan en su tablero.'
+  };
   const SECS_DEFECTO = [
     { nombre: 'Por hacer',   tipo: 'pendiente', orden: 1000 },
     { nombre: 'En curso',    tipo: 'curso',     orden: 2000 },
@@ -3322,6 +3347,11 @@
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+  // La (i) que explica algo al pasar el mouse. Es un <button> y no un
+  // <span> para que en el celular también se pueda tocar.
+  function ayuda(txt) {
+    return '<button type="button" class="info" data-info="' + esc(txt) + '">i</button>';
   }
   function toast(msg, tipo) {
     const el = document.createElement('div');
@@ -4750,10 +4780,22 @@
     if (propio || !t.padre_id) return propio;
     return tpEn(t.padre_id, proyId);
   }
+  // El cliente de una tarea, para filtrar y para agrupar: el que tiene
+  // puesto; si no, el del proyecto donde está; y si es una subtarea
+  // suelta, el de su madre.
+  //
+  // Antes miraba solo `cliente_id`. Una tarea adentro del proyecto de
+  // EKHOS pero sin cliente puesto —que es la mayoría, porque el cliente
+  // se hereda del proyecto— no aparecía al filtrar por EKHOS y se
+  // agrupaba en "Interno". Eso era perder la tarea de dos maneras.
   function clienteEfectivo(t) {
-    if (t.cliente_id || !t.padre_id) return t.cliente_id || null;
-    const m = madreDe(t);
-    return m ? (m.cliente_id || null) : null;
+    const propios = clientesDeTarea(t);
+    if (propios.length) return propios[0];
+    if (t.padre_id) {
+      const m = madreDe(t);
+      if (m) { const c = clientesDeTarea(m); if (c.length) return c[0]; }
+    }
+    return null;
   }
 
   // ¿Esta tarea pasa los filtros de arriba? Separado de `visibles()`
@@ -10322,6 +10364,7 @@
       cargarBandeja();
     }
   });
+
 
   iniciar();
 })();
