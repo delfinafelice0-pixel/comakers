@@ -164,6 +164,21 @@
   .met .delta.bien::before { content: '▲ '; }
   .met .delta.mal::before  { content: '▼ '; }
 
+  /* Bloques que escribe la agencia */
+  .bloque-extra .pregunta {
+    font-family: var(--display); font-style: italic;
+    color: var(--ink-soft); margin: -6px 0 12px; max-width: 62ch;
+  }
+  .acc-bloque { display: flex; gap: 8px; margin-top: 12px; }
+  .ed-bloque { display: flex; flex-direction: column; gap: 10px; }
+  .ed-bloque input, .ed-bloque textarea {
+    width: 100%; font: inherit; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg); color: var(--ink);
+  }
+  .ed-bloque textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+  .agregar-bloque { margin: 6px 0 26px; }
+
   main { min-width: 0; }
   .cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
   .cabecera h1 {
@@ -433,6 +448,8 @@
   let CLIENTES = [];
   let CLIENTE = null;
   let MODULOS = { organico: true, pauta: true };   // qué servicios tiene el cliente
+  // Indice del bloque que se esta editando, o {nuevo: modulo}.
+  let BEDIT = null;
   let REPORTES = [];        // [{id, mes:'YYYY-MM', estado, resumen, proximos_pasos, metricas:[], destacados:[]}]
   let MES = null;           // 'YYYY-MM' seleccionado
   let EDITANDO = false;
@@ -545,7 +562,7 @@
               'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes, ' +
               'inversion_ads, moneda_ads, resultados_ads, accion_ads, costo_resultado_ads, ' +
               'reach_ads, impresiones_ads, frecuencia_ads, clics_ads, ctr_ads, cpm_ads, ads_sincronizado_en, ' +
-              'analisis, analisis_organico, analisis_pauta, analisis_generado_en')
+              'analisis, analisis_organico, analisis_pauta, analisis_generado_en, bloques')
       .eq('cliente_id', CLIENTE.id).order('mes', { ascending: false });
     if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
 
@@ -556,6 +573,7 @@
       ads_sincronizado_en: r.ads_sincronizado_en || null, cols: r,
       analisis: r.analisis || '', analisis_generado_en: r.analisis_generado_en || null,
       analisis_organico: r.analisis_organico || '', analisis_pauta: r.analisis_pauta || '',
+      bloques_extra: Array.isArray(r.bloques) ? r.bloques : [],
       metricas: [], destacados: []
     }));
     const ids = REPORTES.map(r => r.id);
@@ -1204,6 +1222,44 @@
         '</ul></section>';
     }
 
+    // ── Bloques que escribe la agencia ─────────────────────────
+    // El indice es el del array completo, no el del filtrado por
+    // modulo: es lo que despues se edita y se borra.
+    const listaBl = r.bloques_extra || [];
+    const formBloque = (b, idx, mod) =>
+      '<section class="bloque bloque-extra"><div class="ed-bloque">' +
+      '<input id="blTitulo" placeholder="Título (ej: 01. Inversión y entrega)" value="' + esc(b.titulo || '') + '">' +
+      '<input id="blPregunta" placeholder="La pregunta que responde esta sección" value="' + esc(b.pregunta || '') + '">' +
+      '<textarea id="blCuerpo" placeholder="La respuesta.">' + esc(b.cuerpo || '') + '</textarea>' +
+      '<div class="acc-bloque">' +
+      '<button type="button" class="btn lima chico" data-bsave="' + idx + '" data-bmod="' + mod + '">Guardar</button>' +
+      '<button type="button" class="btn chico" data-bcancel="1">Cancelar</button>' +
+      '</div></div></section>';
+
+    const bloquesExtra = (mod) => {
+      let s = '';
+      listaBl.forEach((b, idx) => {
+        if ((b.modulo || 'cuenta') !== mod) return;
+        if (AGENCIA && BEDIT === idx) { s += formBloque(b, idx, mod); return; }
+        s += '<section class="bloque bloque-extra">' +
+          (b.titulo ? '<h2>' + esc(b.titulo) + '</h2>' : '') +
+          (b.pregunta ? '<p class="pregunta">' + esc(b.pregunta) + '</p>' : '') +
+          (b.cuerpo ? '<p class="prosa">' + esc(b.cuerpo) + '</p>' : '') +
+          (AGENCIA ? '<div class="acc-bloque">' +
+            '<button type="button" class="btn chico" data-bed="' + idx + '">Editar</button>' +
+            '<button type="button" class="btn chico" data-bdel="' + idx + '">Borrar</button></div>' : '') +
+          '</section>';
+      });
+      if (AGENCIA && BEDIT && BEDIT.nuevo === mod) s += formBloque({}, -1, mod);
+      if (AGENCIA && BEDIT === null) s += '<div class="agregar-bloque">' +
+        '<button type="button" class="btn chico" data-badd="' + mod + '">+ Agregar sección</button></div>';
+      return s;
+    };
+
+    bloques.cuenta   += bloquesExtra('cuenta');
+    bloques.organico += bloquesExtra('organico');
+    bloques.pauta    += bloquesExtra('pauta');
+
     bloques.cuenta += textos.cuenta;
     bloques.organico += textos.organico;
     bloques.pauta += textos.pauta;
@@ -1221,6 +1277,46 @@
     }
 
     main.innerHTML = html;
+
+    // ── Bloques: agregar, editar, borrar ───────────────────────
+    async function guardarBloques(arr) {
+      const { error } = await SB.from('reporte')
+        .update({ bloques: arr, actualizado_en: new Date().toISOString() })
+        .eq('id', r.id);
+      if (error) { toast('No se pudo guardar: ' + error.message, true); return false; }
+      return true;
+    }
+
+    main.querySelectorAll('[data-badd]').forEach(b => b.addEventListener('click', () => {
+      BEDIT = { nuevo: b.dataset.badd }; render();
+    }));
+    main.querySelectorAll('[data-bed]').forEach(b => b.addEventListener('click', () => {
+      BEDIT = Number(b.dataset.bed); render();
+    }));
+    const bc = main.querySelector('[data-bcancel]');
+    if (bc) bc.addEventListener('click', () => { BEDIT = null; render(); });
+
+    main.querySelectorAll('[data-bdel]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Borrar esta sección?')) return;
+      const arr = listaBl.slice();
+      arr.splice(Number(b.dataset.bdel), 1);
+      if (await guardarBloques(arr)) { toast('Sección borrada.'); await cargarCliente(); }
+    }));
+
+    const bs = main.querySelector('[data-bsave]');
+    if (bs) bs.addEventListener('click', async () => {
+      const nuevo = {
+        modulo:   bs.dataset.bmod,
+        titulo:   ($('#blTitulo').value || '').trim(),
+        pregunta: ($('#blPregunta').value || '').trim(),
+        cuerpo:   ($('#blCuerpo').value || '').trim(),
+      };
+      if (!nuevo.titulo && !nuevo.cuerpo) { toast('Poné al menos un título o un texto.', true); return; }
+      const idx = Number(bs.dataset.bsave);
+      const arr = listaBl.slice();
+      if (idx >= 0) arr[idx] = nuevo; else arr.push(nuevo);
+      if (await guardarBloques(arr)) { BEDIT = null; toast('Sección guardada.'); await cargarCliente(); }
+    });
 
     main.querySelectorAll('[data-solapa]').forEach(b => b.addEventListener('click', () => {
       main.querySelectorAll('[data-solapa]').forEach(x => x.classList.toggle('activa', x === b));
