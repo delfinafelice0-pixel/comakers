@@ -164,8 +164,11 @@
   .met { padding: 18px 20px 16px; }
   .met .et { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
   .met .val { font-size: 38px; }
-  .met .delta.bien::before { content: '▲ '; }
-  .met .delta.mal::before  { content: '▼ '; }
+  /* La flecha sigue a la dirección del número (.sube/.baja) y el
+     color a si eso es bueno (.bien/.mal/.neutro). Antes la flecha
+     seguía al color y un costo que bajó decía "▲ -32%". */
+  .delta.sube::before { content: '▲ '; }
+  .delta.baja::before { content: '▼ '; }
 
   /* Bloques que escribe la agencia */
   .bloque-extra .pregunta {
@@ -194,6 +197,7 @@
   .dest-card.hero .val.vacio { color: rgba(255,255,255,.45); }
   .dest-card.hero .delta.nada { color: rgba(255,255,255,.62); }
   .dest-card.hero .delta.bien { background: var(--lime); color: var(--ink); }
+  .dest-card.hero .delta.neutro { background: rgba(255,255,255,.14); color: #fff; }
   .dest-card {
     background: var(--bg-elev); border: 1px solid var(--line);
     border-radius: var(--radius-lg); padding: 18px 20px 16px;
@@ -209,9 +213,8 @@
   .dest-card .val.vacio { color: var(--ink-mute); font-weight: 400; font-size: 30px; }
   .dest-card .delta { font-size: 12px; margin-top: 10px; display: inline-block; padding: 2px 7px; border-radius: 6px; }
   .dest-card .delta.bien { background: var(--lime-soft); }
-  .dest-card .delta.bien::before { content: '▲ '; }
   .dest-card .delta.mal { background: var(--coral-soft); color: #B2405E; }
-  .dest-card .delta.mal::before { content: '▼ '; }
+  .dest-card .delta.neutro { background: var(--line-soft); color: var(--ink-soft); }
   .dest-card .delta.nada { color: var(--ink-mute); padding-left: 0; }
   .dest-card .de { display: block; font-size: 10px; color: var(--ink-mute); margin-top: 8px;
                    letter-spacing: .05em; text-transform: uppercase; }
@@ -264,6 +267,16 @@
   .borrador-tag { font-size: 11px; font-weight: 500; letter-spacing: .03em; text-transform: uppercase;
                   background: var(--coral-soft); color: #B2405E; padding: 3px 9px; border-radius: 999px; }
   .analisis .aviso { font-size: 12px; color: var(--ink-mute); margin: 0 0 12px; max-width: 62ch; }
+  .analisis .aviso.viejo {
+    color: #8A2E48; background: var(--coral-soft); border-radius: 10px;
+    padding: 10px 12px; font-size: 13px; line-height: 1.5;
+  }
+  /* "parcial · datos al 16 de septiembre": sale también en el PDF,
+     por eso no usa .pill (que se oculta al imprimir). */
+  .parcial {
+    display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: 999px;
+    background: var(--lime-soft); color: var(--ink); white-space: nowrap; vertical-align: 1px;
+  }
   .analisis.es-borrador .prosa { border-left: 3px solid var(--coral-soft); padding-left: 14px; }
 
   /* Solapas del reporte */
@@ -304,6 +317,8 @@
   .met .delta.bien { background: var(--lime-soft); }
   .met .delta.mal  { background: var(--coral-soft); color: #B2405E; }
   .met .delta.nada { color: var(--ink-mute); padding-left: 0; }
+  .met .delta.neutro { background: var(--line-soft); color: var(--ink-soft); }
+  .met .ayuda { font-size: 11.5px; color: var(--ink-mute); margin-top: 6px; line-height: 1.35; }
   /* Métricas que trae el pull de Instagram, y huecos honestos. */
   .met .fuente { display: block; margin-top: 4px; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-mute); }
   .met .val.vacio { color: var(--ink-mute); font-weight: 400; }
@@ -669,6 +684,7 @@
     v = Number(v) || 0;
     if (u === 'ars') return '$' + v.toLocaleString('es-AR', { maximumFractionDigits: 0 });
     if (u === 'pct') return v.toLocaleString('es-AR', { maximumFractionDigits: 1 }) + '%';
+    if (u === 'dec') return v.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
     return v.toLocaleString('es-AR', { maximumFractionDigits: 0 });
   }
 
@@ -681,8 +697,13 @@
     else if (prev === 0) { return { txt: 'antes 0', clase: 'nada' }; }
     else { d = (cur - prev) / prev * 100; txt = (d >= 0 ? '+' : '') + d.toFixed(1).replace('.', ',') + '%'; }
     if (Math.abs(d) < 0.05) return { txt: 'igual', clase: 'nada' };
+    // La flecha dice hacia dónde fue; el color, si eso es bueno.
+    // La inversión no se pinta: subirla o bajarla es una decisión, y
+    // en rojo el cliente lee "malo" algo que era el plan.
+    const dir = d > 0 ? 'sube' : 'baja';
+    if (m.mejor === 'neutro' || m.clave === 'inversion') return { txt, clase: 'neutro ' + dir };
     const bien = (d > 0) === (m.mejor !== 'baja');
-    return { txt, clase: bien ? 'bien' : 'mal' };
+    return { txt, clase: (bien ? 'bien ' : 'mal ') + dir };
   }
 
   let toastT;
@@ -1034,8 +1055,66 @@
     { clave: 'costo_resultado', etiqueta: 'Costo por resultado', unidad: 'ars', mejor: 'baja', col: c => c.costo_resultado_ads },
     { clave: 'alcance_pauta',   etiqueta: 'Alcance',     unidad: 'num', mejor: 'sube', col: c => c.reach_ads },
     { clave: 'impresiones',     etiqueta: 'Impresiones', unidad: 'num', mejor: 'sube', col: c => c.impresiones_ads },
-    { clave: 'ctr',             etiqueta: 'CTR',         unidad: 'pct', mejor: 'sube', col: c => c.ctr_ads }
+    { clave: 'ctr',             etiqueta: 'CTR',         unidad: 'pct', mejor: 'sube', col: c => c.ctr_ads,
+      ayuda: 'de cada 100 veces que se mostró un anuncio, cuántas lo tocaron' },
+    { clave: 'clics',           etiqueta: 'Clics',       unidad: 'num', mejor: 'sube', col: c => c.clics_ads },
+    { clave: 'frecuencia',      etiqueta: 'Frecuencia',  unidad: 'dec', mejor: 'neutro', col: c => c.frecuencia_ads,
+      ayuda: 'veces que cada persona vio los anuncios, en promedio' },
+    { clave: 'cpm',             etiqueta: 'CPM',         unidad: 'ars', mejor: 'baja', col: c => c.cpm_ads,
+      ayuda: 'lo que costó que los anuncios se vieran mil veces' }
   ];
+
+  // Lo que va en la fila de destacadas de cada solapa (la primera es la
+  // oscura). La grilla de abajo NO repite estas: antes la mitad de los
+  // números aparecían dos veces.
+  // La misma métrica se llama distinto según quién la cargó: pull-ads
+  // escribe 'costo_resultado' y 'alcance_pauta'; un reporte cargado a
+  // mano usa 'costo_por_resultado' y 'alcance'.
+  const DESTACADAS_MOD = {
+    organico: ['alcance', 'interacciones', 'guardados', 'seguidores'],
+    pauta:    ['resultados', 'inversion', 'costo_resultado', 'alcance_pauta'],
+  };
+  const ALIAS_MOD = {
+    'pauta:costo_resultado': ['costo_resultado', 'costo_por_resultado'],
+    'pauta:alcance_pauta':   ['alcance_pauta', 'alcance'],
+  };
+  const enDestacadas = (mod, clave) => (DESTACADAS_MOD[mod] || [])
+    .some(k => (ALIAS_MOD[mod + ':' + k] || [k]).indexOf(clave) !== -1);
+
+  // Tasas: lo único que se puede comparar entre un mes a medias y uno
+  // completo. Un total a mitad de mes siempre "baja" contra el mes
+  // entero, y eso no es información.
+  const TASAS = ['costo_resultado', 'costo_por_resultado', 'ctr', 'cpm'];
+
+  // Cuándo se trajeron los números por última vez (Instagram o Meta Ads).
+  function ultimaSincro(r) {
+    const ts = [r.sincronizado_en, r.ads_sincronizado_en]
+      .filter(Boolean).map(x => new Date(x).getTime()).filter(n => !isNaN(n));
+    return ts.length ? new Date(Math.max.apply(null, ts)) : null;
+  }
+
+  // El borrador de Claude se escribió con los números de ese momento.
+  // Si el cron los actualizó después, el texto puede citar cifras que
+  // ya no coinciden con las tarjetas. Un minuto de tolerancia.
+  function analisisDesactualizado(r) {
+    if (!r.analisis_generado_en || !(r.analisis || r.analisis_organico || r.analisis_pauta)) return false;
+    const s = ultimaSincro(r);
+    const g = new Date(r.analisis_generado_en).getTime();
+    return !!s && !isNaN(g) && s.getTime() - g > 60000;
+  }
+
+  const esMesEnCurso = mes => mes === mesActual();
+  const fechaDia = d => d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+
+  // "Creativo nuevo | Reel Hortensias – 8/9/26" → "Reel Hortensias – 8/9/26".
+  // Lo de antes del último " | " es nomenclatura interna de la cuenta
+  // publicitaria; al cliente no le dice nada. En Meta no se toca.
+  const nombreAnuncio = a => {
+    const n = String(a.nombre || a.ad_id || '');
+    const i = n.lastIndexOf(' | ');
+    const resto = i >= 0 ? n.slice(i + 3).trim() : '';
+    return resto || n;
+  };
 
   function mezclarPauta(r) {
     if (!r.ads_sincronizado_en) return;
@@ -1061,6 +1140,7 @@
         valor: v == null ? null : Number(v),
         unidad: def.unidad,
         mejor: def.mejor,
+        ayuda: def.ayuda || null,
         orden: i,
         origen: 'meta_ads'
       };
@@ -1260,7 +1340,7 @@
         // segmentación y no le dice nada, así que ni aparece.
         return '<' + abre + ' class="post">' + thumb +
           '<div class="cuerpo">' +
-            '<div class="copy">' + esc(a.nombre || a.ad_id) + '</div>' +
+            '<div class="copy">' + esc(nombreAnuncio(a)) + '</div>' +
             (detalle ? '<div class="meta">' + esc(detalle) + '</div>' : '') +
           '</div>' +
           '<div class="cifra"><div class="n">' + esc(fmt(a.inversion, 'ars')) + '</div>' +
@@ -1367,7 +1447,7 @@
         ? '<div class="n">' + esc(fmt(costo, 'ars')) + '</div><div class="q">por ' + esc(sing) + '</div>'
         : '<div class="n">' + esc(fmt(a.inversion, 'ars')) + '</div><div class="q">invertido</div>';
       return '<' + abre + ' class="post">' + thumb +
-        '<div class="cuerpo"><div class="copy">' + esc(a.nombre || a.ad_id) + '</div>' +
+        '<div class="cuerpo"><div class="copy">' + esc(nombreAnuncio(a)) + '</div>' +
         '<div class="meta">' + esc(detalle) + '</div>' + comp + '</div>' +
         '<div class="cifra">' + cifra + '</div></' + cierra + '>';
     };
@@ -1475,15 +1555,26 @@
       return (pm && pm.valor != null && pm.valor !== '') ? pm.valor : null;
     };
 
+    // Mes en curso: los totales no se comparan contra un mes completo.
+    const enCurso = esMesEnCurso(r.mes);
+    const deltaMes = (m, mod) => (enCurso && TASAS.indexOf(m.clave) === -1)
+      ? { txt: 'mes en curso', clase: 'nada' }
+      : delta(m, prevVal(mod, m.clave));
+    const sincro = ultimaSincro(r);
+    const marcaParcial = enCurso
+      ? ' <span class="parcial">parcial · datos al ' + esc(fechaDia(sincro || new Date())) + '</span>'
+      : '';
+
     const [y, mm] = MES.split('-');
     let html = '<div class="pdf-encabezado solo-pdf">' +
       '<div class="brand-name">Co<em>Makers.</em></div>' +
-      '<div class="pdf-tipo">Reporte mensual</div></div>' +
+      '<div class="pdf-tipo">' + (enCurso ? 'Reporte parcial' : 'Reporte mensual') + '</div></div>' +
       '<div class="cabecera"><div>' +
       '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mm, 10) - 1]) + '</em> ' + esc(y) + '</h1>' +
       '<div class="sub">' + esc(CLIENTE.nombre) +
       (AGENCIA ? ' <span class="pill' + (r.estado === 'publicado' ? ' pub' : '') + '">' + (r.estado === 'publicado' ? 'publicado' : 'borrador, el cliente no lo ve') + '</span>' : '') +
-      (prev ? '<span style="color:var(--ink-mute)"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +
+      marcaParcial +
+      (prev ? '<span style="color:var(--ink-mute);white-space:nowrap"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +
       '</div></div>' +
       '<div class="acciones">' + navMes() +
       '<button type="button" class="btn" id="btnPdf" title="Se abre el diálogo de impresión: elegí Guardar como PDF">' +
@@ -1518,12 +1609,16 @@
     // El aviso de borrador es el mismo para los tres textos: los
     // genera la misma llamada y se revisan juntos.
     const esBorradorAn = !!r.analisis_generado_en;
+    const analisisViejo = analisisDesactualizado(r);
     const bloqueTexto = (titulo, texto, conBoton) => {
       if (!texto && !AGENCIA) return '';
       let s = '<section class="bloque analisis' + (esBorradorAn && texto ? ' es-borrador' : '') + (texto ? '' : ' solo-pantalla') + '">' +
         '<h2>' + titulo + (esBorradorAn && texto ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
       if (texto) {
         if (esBorradorAn) s += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
+        if (AGENCIA && analisisViejo) s += '<p class="aviso viejo">Ojo: este borrador se escribió el ' +
+          esc(fechaHora(r.analisis_generado_en)) + ' y los números se actualizaron después (' + esc(fechaHora(sincro)) +
+          '). Puede citar cifras que ya no coinciden con las tarjetas. Corregilas en Editar, o borrá el texto y generalo de nuevo.</p>';
         s += '<p class="prosa">' + esc(texto) + '</p>';
       } else {
         s += '<p class="prosa mute">Todavía no hay análisis de este mes.</p>' +
@@ -1550,14 +1645,15 @@
       // Si el cliente no contrató este servicio, la sección no existe
       // aunque hubiera datos sueltos. cliente_modulo es la verdad.
       if (!MODULOS[mod]) return;
-      const ms = r.metricas.filter(m => m.modulo === mod);
+      const ms = r.metricas.filter(m => m.modulo === mod && !enDestacadas(mod, m.clave));
       if (!ms.length) return;
       const cuando = mod === 'organico' ? r.sincronizado_en : r.ads_sincronizado_en;
       const deDonde = mod === 'organico' ? 'Instagram' : 'Meta Ads';
-      const sincro = cuando
+      const traido = cuando
         ? '<div class="sincro">Traído de ' + deDonde + ' el ' + esc(fechaHora(cuando)) + '</div>'
         : '';
-      bloques[mod] += '<section class="bloque"><h2>' + NOMBRE_MOD[mod] + '</h2>' + sincro + '<div class="metricas">' +
+      // Sin destacadas arriba ya no es "la sección Pauta": es el resto.
+      bloques[mod] += '<section class="bloque"><h2>Más números</h2>' + traido + '<div class="metricas">' +
         ms.map(m => {
           // Sin dato es sin dato: se muestra vacío y se dice por qué.
           // Un 0 acá afirmaría algo que nadie midió.
@@ -1573,10 +1669,11 @@
                 ? 'sin actividad publicitaria este mes'
                 : 'sin cargar') + '</div></div>';
           }
-          const d = delta(m, prevVal(mod, m.clave));
+          const d = deltaMes(m, mod);
           return '<div class="met"><div class="et">' + esc(m.etiqueta) + rotulo + '</div>' +
             '<div class="val">' + esc(fmt(m.valor, m.unidad)) + '</div>' +
-            '<div class="delta ' + d.clase + '">' + esc(d.txt) + '</div></div>';
+            '<div class="delta ' + d.clase + '">' + esc(d.txt) + '</div>' +
+            (m.ayuda ? '<div class="ayuda">' + esc(m.ayuda) + '</div>' : '') + '</div>';
         }).join('') + '</div></section>';
     });
 
@@ -1643,20 +1740,14 @@
     // La primera de cada fila es el titular: va ancha y en oscuro.
     //  Pauta: lo que se consiguió (resultados), antes que lo que costó.
     //  Orgánico: el alcance.
-    const DESTACADAS = {
-      organico: ['alcance', 'interacciones', 'guardados', 'seguidores'],
-      pauta:    ['resultados', 'inversion', 'costo_resultado', 'alcance_pauta'],
-    };
+    const DESTACADAS = DESTACADAS_MOD;
 
     // La misma métrica se llama distinto según quién la cargó: pull-ads
     // escribe 'costo_resultado' y 'alcance_pauta'; un reporte cargado a
     // mano usa 'costo_por_resultado' y 'alcance'. Antes la fila buscaba
     // solo el nombre manual, y en los meses traídos de Meta esas
     // tarjetas no aparecían.
-    const ALIAS = {
-      'pauta:costo_resultado': ['costo_resultado', 'costo_por_resultado'],
-      'pauta:alcance_pauta':   ['alcance_pauta', 'alcance'],
-    };
+    const ALIAS = ALIAS_MOD;
     const buscar = (mod, clave) => {
       const claves = ALIAS[mod + ':' + clave] || [clave];
       for (const k of claves) {
@@ -1668,7 +1759,7 @@
 
     const tarjeta = (m, mod, conOrigen, hero) => {
       const sinDato = m.valor == null || m.valor === '';
-      const d = sinDato ? null : delta(m, prevVal(mod, m.clave));
+      const d = sinDato ? null : deltaMes(m, mod);
       return '<div class="dest-card' + (hero ? ' hero' : '') + '">' +
         '<div class="et">' + esc(m.etiqueta) + '</div>' +
         (sinDato
@@ -1853,7 +1944,9 @@
     // Claude que nadie leyó sin que la agencia lo sepa.
     const hayBorrador = !!r.analisis_generado_en && !!(r.analisis || r.analisis_organico || r.analisis_pauta);
     if (AGENCIA && hayBorrador &&
-        !confirm('El análisis todavía es un borrador sin revisar: lo escribió Claude y nadie lo editó.\n\n¿Descargar el PDF igual?')) return;
+        !confirm('El análisis todavía es un borrador sin revisar: lo escribió Claude y nadie lo editó.' +
+          (analisisDesactualizado(r) ? '\n\nAdemás los números se actualizaron después de escribirlo: puede citar cifras que no coinciden con las tarjetas.' : '') +
+          '\n\n¿Descargar el PDF igual?')) return;
 
     const btn = $('#btnPdf');
     const txtBtn = btn ? btn.innerHTML : '';
@@ -1872,7 +1965,7 @@
 
     // El navegador usa el título de la página como nombre del archivo.
     const tituloViejo = document.title;
-    document.title = (CLIENTE.nombre + ' – Reporte ' + mesLabel(r.mes)).replace(/[\\/:*?"<>|]+/g, ' ').trim();
+    document.title = (CLIENTE.nombre + ' – Reporte ' + (esMesEnCurso(r.mes) ? 'parcial ' : '') + mesLabel(r.mes)).replace(/[\\/:*?"<>|]+/g, ' ').trim();
     const volver = () => { document.title = tituloViejo; window.removeEventListener('afterprint', volver); };
     window.addEventListener('afterprint', volver);
 
