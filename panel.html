@@ -418,6 +418,30 @@
   .formatos td.flojo { color: var(--ink-mute); }
   .nota-bloque { font-size: 12px; color: var(--ink-mute); margin-top: 10px; }
 
+  /* Lo que mejor funcionó / Lo que ajustamos: el anuncio arriba y la
+     nota de la agencia abajo, en la misma tarjeta. */
+  .anuncios-nota { display: flex; flex-direction: column; gap: 10px; }
+  .an-item { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); overflow: hidden; }
+  .an-item .post { border: 0; border-radius: 0; background: none; }
+  .an-comp {
+    display: inline-block; margin-top: 5px; font-size: 11.5px; line-height: 1.3;
+    padding: 2px 8px; border-radius: 999px; background: var(--line-soft); color: var(--ink-soft);
+  }
+  .an-comp.bien { background: var(--lime-soft); color: var(--ink); }
+  .an-comp.mal  { background: var(--coral-soft); color: #B2405E; }
+  .an-nota { padding: 12px 16px 14px; border-top: 1px solid var(--line-soft); }
+  .an-nota .an-et {
+    font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-mute); margin-bottom: 4px;
+  }
+  .an-nota .prosa { margin: 0; font-size: 14px; max-width: none; }
+  .an-nota textarea {
+    width: 100%; min-height: 96px; padding: 10px 12px; resize: vertical; line-height: 1.55;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink);
+  }
+  .an-nota .acc-bloque { margin-top: 8px; }
+  .an-falta { padding: 8px 16px 12px; border-top: 1px dashed var(--line); }
+
   /* En el celular el menú deja de empujar el contenido y pasa a
      taparlo cuando lo abrís, igual que en administración. */
   @media (max-width: 900px) {
@@ -521,7 +545,7 @@
     .dest-card .et { font-size: 9px; margin-bottom: 8px; }
 
     /* Que no se parta una tarjeta o un post entre dos páginas. */
-    .dest-card, .met, .post, .destacados li, .formatos tr, .bloque-extra { break-inside: avoid; }
+    .dest-card, .met, .post, .destacados li, .formatos tr, .bloque-extra, .an-item { break-inside: avoid; }
     .bloque h2, .pdf-solapa { break-after: avoid; }
 
     /* Los botones de orden no sirven en papel, pero sí saber el criterio. */
@@ -608,6 +632,8 @@
   let POSTS = [];           // posts de Instagram del cliente, todos los meses
   let ANUNCIOS = [];        // anuncios de Meta Ads, todos los meses
   let CRITERIO = 'alcance'; // con qué se ordena el top de posts
+  let SOLAPA = 'cuenta';    // la solapa abierta: sobrevive a guardar y a cambiar de mes
+  let NEDIT = null;         // ad_id de la nota de anuncio que se está escribiendo
 
   const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const NOMBRE_MOD = { organico: 'Orgánico', pauta: 'Pauta' };
@@ -705,7 +731,7 @@
       CLIENTE = CLIENTES.find(c => c.slug === e.target.value);
       history.replaceState(null, '', '?c=' + encodeURIComponent(CLIENTE.slug));
       $('#bmTitulo').textContent = CLIENTE.nombre;
-      EDITANDO = false; BEDIT = null;
+      EDITANDO = false; BEDIT = null; NEDIT = null; SOLAPA = 'cuenta';
       cerrarMenu();
       await cargarCliente();
     });
@@ -753,6 +779,18 @@
     // en lugar de lo cargado a mano. Corre siempre, haya o no filas
     // manuales.
     REPORTES.forEach(r => { mezclarInstagram(r); mezclarPauta(r); });
+
+    // Notas de anuncios en una consulta aparte y no en el select de
+    // arriba: si la migración todavía no corrió, la columna no existe
+    // y esta consulta falla sola, sin tirar abajo todo el reporte.
+    REPORTES.forEach(r => { r.notas_anuncios = {}; });
+    if (ids.length) {
+      const { data: filasNotas, error: eNotas } = await SB.from('reporte').select('id, notas_anuncios').in('id', ids);
+      if (!eNotas) (filasNotas || []).forEach(n => {
+        const rep = REPORTES.find(x => x.id === n.id);
+        if (rep && n.notas_anuncios && typeof n.notas_anuncios === 'object') rep.notas_anuncios = n.notas_anuncios;
+      });
+    }
 
     await cargarPosts();
     await cargarAnuncios();
@@ -892,7 +930,7 @@
 
   function elegirMes(m) {
     if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) return;
-    EDITANDO = false; BEDIT = null; MES = m; render();
+    EDITANDO = false; BEDIT = null; NEDIT = null; MES = m; render();
   }
 
   function vacio(titulo, texto, boton) {
@@ -1233,6 +1271,155 @@
       '</section>';
   }
 
+  // ── Lo que mejor funcionó / Lo que ajustamos ────────────────
+  // Solo se comparan anuncios con el mismo objetivo: el costo de una
+  // conversación no se compara con el de un clic. El promedio sale de
+  // esos mismos anuncios.
+  const MIN_RESULTADOS   = 5;    // debajo de esto, un buen costo es casualidad
+  const MIN_PARTE_AJUSTE = 0.10; // con menos del 10% de la plata, no amerita explicación
+  const UMBRAL_CARO      = 1.5;  // 50% o más por encima del promedio
+
+  const costoDe = a => {
+    const res = Number(a.resultados) || 0;
+    if (res <= 0) return null;
+    if (a.costo_resultado != null && a.costo_resultado !== '') return Number(a.costo_resultado);
+    return (Number(a.inversion) || 0) / res;
+  };
+
+  function clasificarAnuncios(mes, accionReporte) {
+    const conEntrega = anunciosDelMes(mes).filter(a => a.impresiones);
+    if (!conEntrega.length) return null;
+
+    // El objetivo: el del reporte. Si no vino, el que más plata se llevó.
+    let accion = accionReporte || null;
+    if (!accion) {
+      const porAccion = {};
+      conEntrega.forEach(a => { if (a.accion) porAccion[a.accion] = (porAccion[a.accion] || 0) + (Number(a.inversion) || 0); });
+      accion = Object.keys(porAccion).sort((x, y) => porAccion[y] - porAccion[x])[0] || null;
+    }
+    if (!accion) return null;
+
+    const comparables = conEntrega.filter(a => a.accion === accion);
+    const inv = comparables.reduce((s, a) => s + (Number(a.inversion) || 0), 0);
+    const res = comparables.reduce((s, a) => s + (Number(a.resultados) || 0), 0);
+    if (!res) return null;   // sin ningún resultado no hay promedio contra qué comparar
+    const promedio = inv / res;
+    const totalMes = conEntrega.reduce((s, a) => s + (Number(a.inversion) || 0), 0);
+
+    const elegibles = comparables.filter(a => (Number(a.resultados) || 0) >= MIN_RESULTADOS);
+    const mejores = elegibles.length < 2 ? [] : elegibles
+      .filter(a => costoDe(a) <= promedio)
+      .sort((x, y) => costoDe(x) - costoDe(y))
+      .slice(0, 3);
+
+    const ajustes = comparables
+      .filter(a => {
+        if (mejores.indexOf(a) !== -1) return false;
+        if (!totalMes || (Number(a.inversion) || 0) / totalMes < MIN_PARTE_AJUSTE) return false;
+        const c = costoDe(a);
+        return c == null || c >= promedio * UMBRAL_CARO;
+      })
+      .sort((x, y) => (Number(y.inversion) || 0) - (Number(x.inversion) || 0));
+
+    return { accion, promedio, mejores, ajustes };
+  }
+
+  function renderAnunciosNotas(r) {
+    const c = clasificarAnuncios(r.mes, r.cols && r.cols.accion_ads);
+    if (!c) return '';
+    const notas = r.notas_anuncios || {};
+    const et   = (ETIQUETA_ACCION[c.accion] || 'resultados').toLowerCase();
+    const sing = ACCION_SINGULAR[c.accion] || 'resultado';
+    // Una nota escrita para la otra sección no se muestra: pasa en el
+    // mes en curso, cuando el cron actualiza los números y un anuncio
+    // cambia de lado. Al editar, el texto anterior aparece igual.
+    const notaDe = (a, tipo) => {
+      const n = notas[a.ad_id];
+      return n && n.tipo === tipo && n.texto ? n.texto : '';
+    };
+    const ETQ = { mejor: 'Por qué creemos que funcionó', ajuste: 'Qué hicimos' };
+    const PISTA = {
+      mejor: 'Lo que los números no dicen: la pieza, el copy, el público, el momento. Ej: el video mostraba el departamento por dentro y el precio en los primeros segundos.',
+      ajuste: 'Qué se hizo con este anuncio y por qué. Ej: lo pausamos el 12; la pieza no mostraba el precio y traía consultas que no avanzaban.'
+    };
+
+    const fila = a => {
+      const thumb = a.thumb_url
+        ? '<img class="thumb" src="' + esc(a.thumb_url) + '" alt="" loading="lazy">'
+        : '<div class="thumb falta">sin imagen</div>';
+      const abre = a.permalink ? 'a href="' + esc(a.permalink) + '" target="_blank" rel="noopener"' : 'div';
+      const cierra = a.permalink ? 'a' : 'div';
+      const res = Number(a.resultados) || 0;
+      const costo = costoDe(a);
+      const detalle = [
+        res ? fmt(res, 'num') + ' ' + et : 'sin ' + et,
+        fmt(a.inversion, 'ars') + ' invertidos',
+        a.ctr != null ? fmt(a.ctr, 'pct') + ' CTR' : null
+      ].filter(Boolean).join(' · ');
+      let comp = '';
+      if (costo != null) {
+        const dif = Math.round((costo / c.promedio - 1) * 100);
+        comp = dif <= -1 ? '<span class="an-comp bien">' + Math.abs(dif) + '% más barato que el promedio</span>'
+             : dif >= 1  ? '<span class="an-comp mal">' + dif + '% más caro que el promedio</span>'
+             :             '<span class="an-comp">igual al promedio</span>';
+      }
+      const cifra = costo != null
+        ? '<div class="n">' + esc(fmt(costo, 'ars')) + '</div><div class="q">por ' + esc(sing) + '</div>'
+        : '<div class="n">' + esc(fmt(a.inversion, 'ars')) + '</div><div class="q">invertido</div>';
+      return '<' + abre + ' class="post">' + thumb +
+        '<div class="cuerpo"><div class="copy">' + esc(a.nombre || a.ad_id) + '</div>' +
+        '<div class="meta">' + esc(detalle) + '</div>' + comp + '</div>' +
+        '<div class="cifra">' + cifra + '</div></' + cierra + '>';
+    };
+
+    const item = (a, tipo) => {
+      const texto = notaDe(a, tipo);
+      // En "Lo que ajustamos" el cliente solo ve los anuncios con nota:
+      // un anuncio caro sin contexto genera preguntas, no confianza.
+      const soloAgencia = tipo === 'ajuste' && !texto;
+      if (soloAgencia && !AGENCIA) return '';
+
+      let nota = '';
+      if (AGENCIA && NEDIT === a.ad_id) {
+        const previo = (notas[a.ad_id] && notas[a.ad_id].texto) || '';
+        nota = '<div class="an-nota"><div class="an-et">' + ETQ[tipo] + '</div>' +
+          '<textarea id="anTexto" placeholder="' + esc(PISTA[tipo]) + '">' + esc(previo) + '</textarea>' +
+          '<div class="acc-bloque">' +
+          '<button type="button" class="btn lima chico" data-nsave="' + esc(a.ad_id) + '" data-ntipo="' + tipo + '">Guardar</button>' +
+          '<button type="button" class="btn chico" data-ncancel="1">Cancelar</button></div></div>';
+      } else if (texto) {
+        nota = '<div class="an-nota"><div class="an-et">' + ETQ[tipo] + '</div><p class="prosa">' + esc(texto) + '</p>' +
+          (AGENCIA ? '<div class="acc-bloque"><button type="button" class="btn chico" data-nedit="' + esc(a.ad_id) + '">Editar</button></div>' : '') +
+          '</div>';
+      } else if (AGENCIA) {
+        nota = '<div class="an-falta solo-pantalla"><button type="button" class="btn chico" data-nedit="' + esc(a.ad_id) + '">+ ' +
+          (tipo === 'mejor' ? 'Escribir por qué' : 'Escribir qué hicimos') + '</button></div>';
+      }
+      return '<div class="an-item' + (soloAgencia ? ' solo-pantalla' : '') + '">' + fila(a) + nota + '</div>';
+    };
+
+    let s = '';
+    if (c.mejores.length) {
+      s += '<section class="bloque"><h2>Lo que mejor funcionó</h2>' +
+        '<div class="anuncios-nota">' + c.mejores.map(a => item(a, 'mejor')).join('') + '</div>' +
+        '<p class="nota-bloque">Los anuncios con el costo por ' + esc(sing) + ' más bajo del mes. El promedio (' +
+        esc(fmt(c.promedio, 'ars')) + ') sale de los anuncios con el mismo objetivo, y solo cuentan los que trajeron al menos ' +
+        MIN_RESULTADOS + ' ' + esc(et) + ': con menos, un buen costo puede ser casualidad.</p></section>';
+    }
+
+    const ajustesHtml = c.ajustes.map(a => item(a, 'ajuste')).join('');
+    if (ajustesHtml) {
+      const conNota = c.ajustes.some(a => notaDe(a, 'ajuste'));
+      const faltan = c.ajustes.some(a => !notaDe(a, 'ajuste'));
+      s += '<section class="bloque' + (conNota ? '' : ' solo-pantalla') + '"><h2>Lo que ajustamos</h2>' +
+        (AGENCIA && faltan ? '<p class="nota-bloque solo-pantalla" style="margin:-6px 0 12px">Solo lo ves vos: estos anuncios se llevaron al menos el ' +
+          Math.round(MIN_PARTE_AJUSTE * 100) + '% de la inversión y costaron ' + Math.round((UMBRAL_CARO - 1) * 100) +
+          '% o más por encima del promedio, o no trajeron ' + esc(et) + '. El cliente ve cada uno recién cuando escribís qué hicimos.</p>' : '') +
+        '<div class="anuncios-nota">' + ajustesHtml + '</div></section>';
+    }
+    return s;
+  }
+
   function renderReporte() {
     const r = reporteDe(MES);
     const main = $('#main');
@@ -1317,9 +1504,13 @@
     if (MODULOS.organico) SOLAPAS.push(['organico', 'Orgánico', 'Contenido y comunidad']);
     if (MODULOS.pauta)    SOLAPAS.push(['pauta', 'Pauta', 'Inversión publicitaria']);
 
+    // Si la solapa recordada no existe para este cliente (le apagaron
+    // el módulo), se abre Cuenta.
+    const solapaAbierta = SOLAPAS.some(s => s[0] === SOLAPA) ? SOLAPA : 'cuenta';
+
     if (SOLAPAS.length > 1) {
       html += '<div class="solapas" role="tablist">' + SOLAPAS.map((s, i) =>
-        '<button type="button" class="solapa' + (i === 0 ? ' activa' : '') + '" data-solapa="' + s[0] + '">' +
+        '<button type="button" class="solapa' + (s[0] === solapaAbierta ? ' activa' : '') + '" data-solapa="' + s[0] + '">' +
         '<span class="t">' + esc(s[1]) + '</span><span class="s">' + esc(s[2]) + '</span></button>').join('') +
       '</div>';
     }
@@ -1401,6 +1592,7 @@
     // el módulo.
     if ((r.estado === 'publicado' || AGENCIA) && MODULOS.pauta) {
       bloques.pauta += renderAnuncios(MES);
+      bloques.pauta += renderAnunciosNotas(r);
     }
 
     if (r.destacados.length) {
@@ -1529,7 +1721,7 @@
     // vacía alrededor de todo el contenido.
     if (SOLAPAS.length > 1) {
       html += SOLAPAS.map((s, i) =>
-        '<div class="pane' + (i === 0 ? ' activa' : '') + (bloques[s[0]] ? '' : ' solo-pantalla') + '" data-pane="' + s[0] + '">' +
+        '<div class="pane' + (s[0] === solapaAbierta ? ' activa' : '') + (bloques[s[0]] ? '' : ' solo-pantalla') + '" data-pane="' + s[0] + '">' +
         '<h2 class="pdf-solapa solo-pdf">' + esc(s[1]) + '<small>' + esc(s[2]) + '</small></h2>' +
         (bloques[s[0]] || '<p class="prosa mute">Nada para mostrar en esta solapa.</p>') + '</div>').join('');
     } else {
@@ -1578,7 +1770,41 @@
       if (await guardarBloques(arr)) { BEDIT = null; toast('Sección guardada.'); await cargarCliente(); }
     });
 
+    // ── Notas de anuncios ──────────────────────────────────────
+    main.querySelectorAll('[data-nedit]').forEach(b => b.addEventListener('click', () => {
+      NEDIT = b.dataset.nedit; render();
+      const t = $('#anTexto'); if (t) t.focus();
+    }));
+    const ncan = main.querySelector('[data-ncancel]');
+    if (ncan) ncan.addEventListener('click', () => { NEDIT = null; render(); });
+
+    const nsav = main.querySelector('[data-nsave]');
+    if (nsav) nsav.addEventListener('click', async () => {
+      const adId = nsav.dataset.nsave, tipo = nsav.dataset.ntipo;
+      const texto = ($('#anTexto').value || '').trim();
+      nsav.disabled = true;
+      const falla = msg => {
+        toast(/notas_anuncios/.test(msg) ? 'Falta correr la migración de notas de anuncios en Supabase.' : 'No se pudo guardar: ' + msg, true);
+        nsav.disabled = false;
+      };
+      // Se relee lo guardado y se cambia solo esta nota: si otra persona
+      // escribió otra mientras tanto, no se la pisa.
+      const { data: fresco, error: e1 } = await SB.from('reporte').select('notas_anuncios').eq('id', r.id).single();
+      if (e1) { falla(e1.message); return; }
+      const nuevas = Object.assign({}, (fresco && fresco.notas_anuncios) || {});
+      if (texto) nuevas[adId] = { tipo, texto, escrita_en: new Date().toISOString() };
+      else delete nuevas[adId];
+      const { error: e2 } = await SB.from('reporte')
+        .update({ notas_anuncios: nuevas, actualizado_en: new Date().toISOString() })
+        .eq('id', r.id);
+      if (e2) { falla(e2.message); return; }
+      NEDIT = null;
+      toast(texto ? 'Nota guardada.' : 'Nota borrada.');
+      await cargarCliente();
+    });
+
     main.querySelectorAll('[data-solapa]').forEach(b => b.addEventListener('click', () => {
+      SOLAPA = b.dataset.solapa;
       main.querySelectorAll('[data-solapa]').forEach(x => x.classList.toggle('activa', x === b));
       main.querySelectorAll('[data-pane]').forEach(p =>
         p.classList.toggle('activa', p.dataset.pane === b.dataset.solapa));
