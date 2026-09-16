@@ -466,6 +466,71 @@
     .formatos { font-size: 13px; }
     .formatos th, .formatos td { padding: 8px 5px; }
   }
+  .btn .ico { width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; }
+
+  /* ── PDF ──────────────────────────────────────────────────
+     El PDF sale del diálogo de impresión, así que TODO lo que
+     cambia entre pantalla y papel vive acá.
+     .solo-pdf       existe solo en el papel (encabezado, títulos de solapa)
+     .solo-pantalla  existe solo en pantalla (avisos para la agencia) */
+  .solo-pdf { display: none; }
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  @media print {
+    /* Sin esto Chrome no imprime fondos y la tarjeta oscura sale
+       con texto blanco sobre papel blanco. */
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { background: #fff; font-size: 13px; }
+
+    .sidebar, .barra-movil, .tapa-menu, .toast, .acciones, .solapas,
+    .agregar-bloque, .acc-bloque, .ed-bloque, .analisis .aviso, .borrador-tag,
+    .sincro, .pill, .solo-pantalla, #btnAnalisis { display: none !important; }
+
+    .app { display: block; }
+    .main { padding: 0; max-width: none; }
+
+    /* Un PDF no tiene solapas: van todas, cada una desde página nueva. */
+    .pane { display: block !important; }
+    .pane + .pane { break-before: page; }
+
+    .solo-pdf { display: block; }
+    .pdf-encabezado.solo-pdf {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 12px; margin-bottom: 22px; border-bottom: 1px solid var(--line);
+    }
+    .pdf-encabezado .pdf-tipo { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); }
+    .pdf-solapa {
+      font-family: var(--display); font-weight: 500; font-size: 26px; line-height: 1.2;
+      margin: 0 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--accent);
+    }
+    .pdf-solapa small { font-family: var(--body); font-size: 13px; color: var(--ink-mute); font-weight: 400; margin-left: 8px; }
+
+    .cabecera { margin-bottom: 18px; }
+    .cabecera h1 { font-size: 32px; }
+    .bloque { margin-top: 26px; }
+    .prosa { max-width: none; }
+    .analisis.es-borrador .prosa { border-left: 0; padding-left: 0; }
+
+    /* En A4 entran menos píxeles que en pantalla: las destacadas se
+       achican para ir en una sola fila, en vez de dejar una tarjeta
+       sola abajo ocupando todo el ancho. */
+    .destacadas-fila { gap: 8px; margin-bottom: 22px; }
+    .dest-card { flex: 1 1 100px; padding: 14px 14px 12px; }
+    .dest-card.hero { flex: 1.6 1 160px; }
+    .dest-card .val { font-size: 24px; }
+    .dest-card.hero .val { font-size: 36px; }
+    .dest-card .et { font-size: 9px; margin-bottom: 8px; }
+
+    /* Que no se parta una tarjeta o un post entre dos páginas. */
+    .dest-card, .met, .post, .destacados li, .formatos tr, .bloque-extra { break-inside: avoid; }
+    .bloque h2, .pdf-solapa { break-after: avoid; }
+
+    /* Los botones de orden no sirven en papel, pero sí saber el criterio. */
+    .criterios button:not(.activo) { display: none; }
+    .criterios button.activo { background: none; border: 0; color: var(--ink-mute); padding: 0; font-size: 12px; }
+    .criterios button.activo::before { content: 'Criterio: '; }
+    a { text-decoration: none; }
+  }
+
   @media (prefers-reduced-motion: reduce) { .toast, .sidebar, .tapa-menu { transition: none; } }
 </style>
 </head>
@@ -1224,13 +1289,19 @@
     };
 
     const [y, mm] = MES.split('-');
-    let html = '<div class="cabecera"><div>' +
+    let html = '<div class="pdf-encabezado solo-pdf">' +
+      '<div class="brand-name">Co<em>Makers.</em></div>' +
+      '<div class="pdf-tipo">Reporte mensual</div></div>' +
+      '<div class="cabecera"><div>' +
       '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mm, 10) - 1]) + '</em> ' + esc(y) + '</h1>' +
       '<div class="sub">' + esc(CLIENTE.nombre) +
       (AGENCIA ? ' <span class="pill' + (r.estado === 'publicado' ? ' pub' : '') + '">' + (r.estado === 'publicado' ? 'publicado' : 'borrador, el cliente no lo ve') + '</span>' : '') +
       (prev ? '<span style="color:var(--ink-mute)"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +
       '</div></div>' +
       '<div class="acciones">' + navMes() +
+      '<button type="button" class="btn" id="btnPdf" title="Se abre el diálogo de impresión: elegí Guardar como PDF">' +
+        '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
+        'Descargar PDF</button>' +
       (AGENCIA ? '<button type="button" class="btn" id="btnEditar">Editar</button>' +
         (r.estado === 'publicado' ? '<button type="button" class="btn" id="btnDespublicar">Volver a borrador</button>'
                                   : '<button type="button" class="btn lima" id="btnPublicar">Publicar</button>') : '') +
@@ -1258,7 +1329,7 @@
     const esBorradorAn = !!r.analisis_generado_en;
     const bloqueTexto = (titulo, texto, conBoton) => {
       if (!texto && !AGENCIA) return '';
-      let s = '<section class="bloque analisis' + (esBorradorAn && texto ? ' es-borrador' : '') + '">' +
+      let s = '<section class="bloque analisis' + (esBorradorAn && texto ? ' es-borrador' : '') + (texto ? '' : ' solo-pantalla') + '">' +
         '<h2>' + titulo + (esBorradorAn && texto ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
       if (texto) {
         if (esBorradorAn) s += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
@@ -1273,7 +1344,7 @@
     const bloques = { cuenta: '', organico: '', pauta: '' };
 
     if (r.resumen) bloques.cuenta += '<p class="prosa">' + esc(r.resumen) + '</p>';
-    else if (AGENCIA) bloques.cuenta += '<p class="prosa mute">Falta escribir qué pasó este mes.</p>';
+    else if (AGENCIA) bloques.cuenta += '<p class="prosa mute solo-pantalla">Falta escribir qué pasó este mes.</p>';
 
     // El analisis va al final de cada solapa: primero los numeros,
     // despues la lectura. Se arma aca y se inserta mas abajo.
@@ -1458,7 +1529,8 @@
     // vacía alrededor de todo el contenido.
     if (SOLAPAS.length > 1) {
       html += SOLAPAS.map((s, i) =>
-        '<div class="pane' + (i === 0 ? ' activa' : '') + '" data-pane="' + s[0] + '">' +
+        '<div class="pane' + (i === 0 ? ' activa' : '') + (bloques[s[0]] ? '' : ' solo-pantalla') + '" data-pane="' + s[0] + '">' +
+        '<h2 class="pdf-solapa solo-pdf">' + esc(s[1]) + '<small>' + esc(s[2]) + '</small></h2>' +
         (bloques[s[0]] || '<p class="prosa mute">Nada para mostrar en esta solapa.</p>') + '</div>').join('');
     } else {
       html += bloques.cuenta + bloques.organico + bloques.pauta;
@@ -1520,6 +1592,7 @@
       if (cont) cont.innerHTML = renderListaPosts(postsMes);
     }));
     const be = $('#btnEditar'); if (be) be.addEventListener('click', abrirEditor);
+    const bpdf = $('#btnPdf'); if (bpdf) bpdf.addEventListener('click', () => descargarPdf(r));
     const ba = $('#btnAnalisis');
     if (ba) ba.addEventListener('click', async () => {
       ba.disabled = true; ba.textContent = 'Generando…';
@@ -1544,6 +1617,41 @@
     });
     const bp = $('#btnPublicar'); if (bp) bp.addEventListener('click', () => cambiarEstado(r, 'publicado'));
     const bd = $('#btnDespublicar'); if (bd) bd.addEventListener('click', () => cambiarEstado(r, 'borrador'));
+  }
+
+  // ── PDF ─────────────────────────────────────────────────────
+  // Abre el diálogo de impresión ("Guardar como PDF"). Qué sale y qué
+  // no lo decide el @media print del CSS.
+  async function descargarPdf(r) {
+    // El PDF es para mandárselo a alguien: que no salga un texto de
+    // Claude que nadie leyó sin que la agencia lo sepa.
+    const hayBorrador = !!r.analisis_generado_en && !!(r.analisis || r.analisis_organico || r.analisis_pauta);
+    if (AGENCIA && hayBorrador &&
+        !confirm('El análisis todavía es un borrador sin revisar: lo escribió Claude y nadie lo editó.\n\n¿Descargar el PDF igual?')) return;
+
+    const btn = $('#btnPdf');
+    const txtBtn = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Preparando…'; }
+
+    // Las miniaturas tienen loading="lazy": las de las solapas que no
+    // abriste nunca se bajaron y saldrían en blanco. Se fuerzan y se
+    // espera a que lleguen (con tope, para no colgarse si una falla).
+    const imgs = Array.from($('#main').querySelectorAll('img'));
+    imgs.forEach(i => { i.loading = 'eager'; });
+    await Promise.race([
+      Promise.all(imgs.map(i => (i.complete && i.naturalWidth) ? null
+        : new Promise(ok => { i.addEventListener('load', ok, { once: true }); i.addEventListener('error', ok, { once: true }); }))),
+      new Promise(ok => setTimeout(ok, 5000))
+    ]);
+
+    // El navegador usa el título de la página como nombre del archivo.
+    const tituloViejo = document.title;
+    document.title = (CLIENTE.nombre + ' – Reporte ' + mesLabel(r.mes)).replace(/[\\/:*?"<>|]+/g, ' ').trim();
+    const volver = () => { document.title = tituloViejo; window.removeEventListener('afterprint', volver); };
+    window.addEventListener('afterprint', volver);
+
+    if (btn) { btn.disabled = false; btn.innerHTML = txtBtn; }
+    window.print();
   }
 
   async function cambiarEstado(r, estado) {
