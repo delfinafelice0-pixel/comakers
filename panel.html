@@ -45,116 +45,119 @@
   button, input, select, textarea { font: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  /* ── Barra superior ── */
-  .top {
-    background: var(--bg-elev);
-    border-bottom: 1px solid var(--line);
-    padding: 0 28px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    gap: 22px;
+  /* ── Estructura: la misma que administración ──
+     Menú fijo a la izquierda, contenido a la derecha. Las clases se
+     llaman igual que allá (.sidebar, .brand, .nav-item, .user-card,
+     .mes-nav) a propósito: si algún día se sacan a un CSS común, no
+     hay que renombrar nada. */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  .sidebar {
+    background: var(--bg-elev); border-right: 1px solid var(--line);
+    padding: 24px 16px; display: flex; flex-direction: column; gap: 20px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
   }
-  .logo {
-    font-family: var(--display);
-    font-weight: 600;
-    font-size: 19px;
-    background: var(--lime);
-    padding: 4px 12px;
-    border-radius: 8px;
-    white-space: nowrap;
+  .brand { padding: 4px 8px 16px; border-bottom: 1px solid var(--line); }
+  .brand-name {
+    font-family: var(--body); font-size: 19px; font-weight: 700;
+    letter-spacing: -0.01em; color: var(--accent); background: var(--lime);
+    padding: 5px 9px; border-radius: 9px;
+    display: inline-flex; align-items: baseline; line-height: 1;
   }
-  .logo span { color: var(--accent); }
-  .top-cliente { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-  .top-cliente .nombre { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .top-cliente select {
-    border: 1px solid var(--line);
-    background: var(--bg-elev);
-    border-radius: 8px;
-    padding: 7px 10px;
-    max-width: 260px;
-  }
-  .top-user { display: flex; align-items: center; gap: 14px; color: var(--ink-soft); font-size: 14px; white-space: nowrap; }
-  .top-user button { background: none; border: none; cursor: pointer; color: var(--ink-mute); }
-  .top-user button:hover { color: var(--ink); }
+  .brand-name em { font-family: var(--display); font-style: normal; font-weight: 700; color: var(--accent); }
+  .brand-spark { width: 12px; height: 12px; margin-left: 5px; color: var(--accent); align-self: flex-start; flex-shrink: 0; }
 
-  /* ── Cuerpo ── */
-  .wrap {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 36px 28px 80px;
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 40px;
-    align-items: start;
+  /* El cliente se elige en una caja, como en el CRM. Con un solo
+     cliente (lo que ve un cliente) la caja muestra el nombre y nada más. */
+  .cliente-caja {
+    position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 2px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; min-width: 0;
   }
-  aside h2 {
-    font-family: var(--display);
-    font-weight: 500;
-    font-size: 17px;
-    margin-bottom: 12px;
+  .cliente-caja:focus-within { border-color: var(--accent); }
+  .cliente-caja .cc-lbl {
+    font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-mute); flex-shrink: 0;
   }
-  .meses { list-style: none; display: flex; flex-direction: column; gap: 2px; }
-  .meses button {
-    width: 100%;
-    text-align: left;
-    background: none;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 10px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    color: var(--ink-soft);
+  .cliente-caja .cc-nom, .cliente-caja select {
+    font-size: 14px; font-weight: 600; color: var(--ink); min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .meses button:hover { background: var(--bg-elev); }
-  .meses button.activo { background: var(--bg-elev); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(27,22,32,.06); }
-  .meses .borr { font-size: 11px; color: var(--ink-mute); }
-  .meses-mobile { display: none; }
-
-  /* Navegación del panel. Hoy una sola sección; se suman acá. */
-  .secciones { display: flex; flex-direction: column; gap: 2px; }
-  .seccion {
-    width: 100%; text-align: left; background: none; border: 0;
-    border-radius: 8px; padding: 9px 10px; cursor: pointer;
-    font: inherit; color: var(--ink-soft);
+  /* El cliente ve su nombre entero; el desplegable de la agencia no
+     puede partir en dos líneas y recorta con puntos. */
+  .cliente-caja .cc-nom { white-space: normal; }
+  .cliente-caja select {
+    flex: 1; width: 100%; appearance: none; -webkit-appearance: none;
+    border: 0; background: transparent; padding: 0 20px 0 0; cursor: pointer;
   }
-  .seccion:hover { background: var(--bg-elev); }
-  .seccion.activa {
-    background: var(--bg-elev); color: var(--ink); font-weight: 500;
-    box-shadow: 0 1px 2px rgba(27,22,32,.06);
+  .cliente-caja select:focus-visible { outline: none; }
+  .cliente-caja .cc-chev {
+    position: absolute; right: 12px; top: 50%; width: 14px; height: 14px;
+    margin-top: -7px; color: var(--ink-mute); pointer-events: none;
   }
 
-  /* El mes se elige arriba del reporte, no al costado. */
-  .col { min-width: 0; }
-  .barra-meses { border-bottom: 1px solid var(--linea, #e6e3dc); margin-bottom: 26px; }
-  .barra-meses .meses {
-    flex-direction: row; gap: 4px; overflow-x: auto;
-    padding-bottom: 8px; scrollbar-width: thin;
+  /* Navegación del panel: un ítem por módulo. Hoy solo Reportes. */
+  .nav-group { display: flex; flex-direction: column; gap: 1px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    padding: 8px 10px; border: 0; border-radius: 8px; background: none; cursor: pointer;
+    color: var(--ink-soft); font-size: 13px; font-weight: 500;
+    transition: background 0.12s, color 0.12s;
   }
-  .barra-meses .meses button {
-    width: auto; white-space: nowrap; flex-direction: column;
-    align-items: flex-start; gap: 0; padding: 7px 12px; border-radius: 8px 8px 0 0;
-  }
-  .barra-meses .meses .borr { font-size: 10px; }
+  .nav-item:hover { background: var(--line-soft); color: var(--ink); }
+  .nav-item.active { background: var(--accent); color: var(--ink); }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-mute); }
+  .nav-item.active svg { color: inherit; }
 
-  /* Los meses usan el mismo lenguaje que las solapas del reporte:
-     sin caja, subrayado en el activo. Asi el filtro se lee igual
-     en cualquier modulo que se sume despues. */
-  .barra-meses .meses button {
-    background: none; box-shadow: none; border-radius: 0;
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-    padding: 4px 2px 10px; color: var(--ink-mute);
+  .sidebar-footer {
+    margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 10px;
   }
-  .barra-meses .meses button:hover { background: none; color: var(--ink); }
-  .barra-meses .meses button.activo {
-    background: none; box-shadow: none; color: var(--ink);
-    border-bottom-color: currentColor; font-weight: 700;
+  .link-interno {
+    font-size: 11px; color: var(--ink-mute); padding: 8px 10px;
+    border: 1px dashed var(--line); border-radius: 8px;
+    display: flex; align-items: center; gap: 6px; text-decoration: none;
   }
-  .barra-meses .meses button > span:first-child { font-size: 16px; }
-  .barra-meses .meses { gap: 24px; }
+  .link-interno:hover { border-color: var(--ink-soft); color: var(--ink-soft); }
+  .link-interno svg { width: 12px; height: 12px; }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px; flex-shrink: 0;
+  }
+  .user-info { line-height: 1.2; min-width: 0; }
+  .user-name { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-role { font-size: 11px; color: var(--ink-mute); }
+  .logout {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-mute); padding: 8px 10px; text-align: left; border-radius: 8px;
+    border: 0; background: none; cursor: pointer;
+  }
+  .logout:hover { background: var(--line-soft); color: var(--ink); }
+
+  .main { padding: 32px 40px 72px; min-width: 0; width: 100%; max-width: 1240px; }
+
+  /* El mes se cambia con flechas, igual que en administración. */
+  .mes-nav {
+    display: flex; align-items: center; gap: 2px;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px;
+  }
+  .mes-nav button {
+    border: none; background: none; cursor: pointer; font-family: var(--body);
+    color: var(--ink-soft); border-radius: 999px; padding: 5px 9px; font-size: 13px;
+  }
+  .mes-nav button:hover { background: var(--line-soft); color: var(--ink); }
+  .mes-nav button[disabled] { opacity: .35; cursor: default; background: none; }
+  .mes-nav .mes-txt {
+    font-size: 12.5px; font-weight: 600; color: var(--ink);
+    padding: 0 8px; min-width: 118px; text-align: center; text-transform: capitalize;
+  }
+
+  /* La barra del celular y la tapa oscura. En escritorio no existen. */
+  .barra-movil, .tapa-menu { display: none; }
+  .cabecera + .vacio { padding-top: 4px; }
 
   /* Tarjetas: el numero manda. */
   .metricas { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
@@ -180,10 +183,17 @@
   .agregar-bloque { margin: 6px 0 26px; }
 
   /* Fila de destacadas: el titular del mes. */
-  .destacadas-fila {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px; margin-bottom: 30px;
-  }
+  /* La primera tarjeta es el titular del mes: más ancha y en oscuro,
+     como "Reservas cerradas" en el CRM. Flex y no grid para que la
+     ancha y las angostas se acomoden solas en cualquier pantalla. */
+  .destacadas-fila { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 30px; }
+  .dest-card { flex: 1 1 150px; min-width: 0; }
+  .dest-card.hero { flex: 1.7 1 240px; background: var(--ink); border-color: var(--ink); color: #fff; }
+  .dest-card.hero .et, .dest-card.hero .de { color: rgba(255,255,255,.62); }
+  .dest-card.hero .val { font-size: 48px; }
+  .dest-card.hero .val.vacio { color: rgba(255,255,255,.45); }
+  .dest-card.hero .delta.nada { color: rgba(255,255,255,.62); }
+  .dest-card.hero .delta.bien { background: var(--lime); color: var(--ink); }
   .dest-card {
     background: var(--bg-elev); border: 1px solid var(--line);
     border-radius: var(--radius-lg); padding: 18px 20px 16px;
@@ -217,7 +227,8 @@
   }
   .cabecera h1 em { font-style: italic; color: var(--accent); }
   .cabecera .sub { color: var(--ink-soft); margin-top: 6px; }
-  .acciones { display: flex; gap: 8px; flex-shrink: 0; padding-top: 8px; }
+  .acciones { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; flex-shrink: 0; padding-top: 8px; }
+  .acciones .mes-nav { margin-right: 6px; }
   .pill {
     display: inline-block;
     font-size: 12px;
@@ -407,13 +418,43 @@
   .formatos td.flojo { color: var(--ink-mute); }
   .nota-bloque { font-size: 12px; color: var(--ink-mute); margin-top: 10px; }
 
+  /* En el celular el menú deja de empujar el contenido y pasa a
+     taparlo cuando lo abrís, igual que en administración. */
+  @media (max-width: 900px) {
+    .barra-movil {
+      display: flex; align-items: center; gap: 10px;
+      position: fixed; top: 0; left: 0; right: 0; height: 52px; z-index: 92;
+      padding: 0 12px; background: var(--bg-elev); border-bottom: 1px solid var(--line);
+    }
+    .barra-movil .bm-tit {
+      font-family: var(--display); font-size: 17px; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0;
+    }
+    .barra-movil button {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; border: 0; background: none;
+      display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer;
+    }
+    .barra-movil button svg { width: 20px; height: 20px; }
+    .app { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed; top: 0; bottom: 0; left: 0; width: 82vw; max-width: 300px;
+      z-index: 96; transform: translateX(-102%);
+      transition: transform .24s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 8px 0 40px rgba(26,22,32,0.14);
+    }
+    .sidebar.abierto { transform: none; }
+    .tapa-menu {
+      display: block; position: fixed; inset: 0; background: rgba(26,22,32,0.35); z-index: 95;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .tapa-menu.on { opacity: 1; pointer-events: auto; }
+    .main { padding: 76px 16px 64px; }
+  }
   @media (max-width: 760px) {
-    .top { padding: 0 16px; gap: 12px; }
-    .top-user .nom { display: none; }
-    .wrap { grid-template-columns: 1fr; gap: 22px; padding: 22px 16px 60px; }
-    aside .meses, aside h2 { display: none; }
-    .meses-mobile { display: block; }
-    .meses-mobile select { width: 100%; border: 1px solid var(--line); background: var(--bg-elev); border-radius: 9px; padding: 9px 12px; }
+    .acciones { justify-content: flex-start; padding-top: 0; }
+    /* El mes ocupa su propia fila y los botones van juntos abajo. */
+    .acciones .mes-nav { margin-right: 0; flex-basis: 100%; justify-content: space-between; }
+    .dest-card.hero .val { font-size: 40px; }
     .cabecera { flex-direction: column; }
     .cabecera h1 { font-size: 32px; }
     .fila { grid-template-columns: 1fr; }
@@ -425,35 +466,53 @@
     .formatos { font-size: 13px; }
     .formatos th, .formatos td { padding: 8px 5px; }
   }
-  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .toast, .sidebar, .tapa-menu { transition: none; } }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="logo">CoMakers<span>.</span></div>
-  <div class="top-cliente" id="topCliente"></div>
-  <div class="top-user">
-    <span class="nom" id="userNombre"></span>
-    <button type="button" id="btnSalir">Cerrar sesión</button>
-  </div>
-</header>
+<div class="barra-movil">
+  <button type="button" id="bmMenu" aria-label="Abrir el menú">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  </button>
+  <div class="bm-tit" id="bmTitulo">Reportes</div>
+</div>
+<div class="tapa-menu" id="tapaMenu"></div>
 
-<div class="wrap">
-  <aside>
-    <nav class="secciones">
-      <button type="button" class="seccion activa" data-seccion="reportes">Reportes</button>
-    </nav>
-  </aside>
-  <div class="col">
-    <div class="barra-meses">
-      <ul class="meses" id="meses"></ul>
-      <div class="meses-mobile"><select id="mesesMobile"></select></div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
     </div>
-    <main id="main">
-      <div class="vacio"><p>Cargando…</p></div>
-    </main>
-  </div>
+
+    <label class="cliente-caja" id="clienteCaja"></label>
+
+    <nav class="nav-group">
+      <button type="button" class="nav-item active" data-seccion="reportes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>
+        Reportes
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="link-interno" id="linkInterno" href="interno.html" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Volver al panel interno
+      </a>
+      <div class="user-card">
+        <div class="avatar" id="userAvatar">·</div>
+        <div class="user-info">
+          <div class="user-name" id="userNombre"></div>
+          <div class="user-role" id="userRol"></div>
+        </div>
+      </div>
+      <button type="button" class="logout" id="btnSalir">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="vacio"><p>Cargando…</p></div>
+  </main>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -513,6 +572,7 @@
   const mesCorto = m => { const [y, mm] = m.split('-'); return MESES_ES[parseInt(mm, 10) - 1].slice(0, 3) + ' ' + y.slice(2); };
   const slug = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'metrica';
   const mesActual = () => new Date().toISOString().slice(0, 7);
+  const iniciales = n => String(n || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('') || '·';
 
   function fmt(v, u) {
     v = Number(v) || 0;
@@ -550,6 +610,9 @@
     YO = perfil || { id: session.user.id, nombre: '' };
     AGENCIA = !!(YO.tipo === 'agencia' || YO.super_admin);
     $('#userNombre').textContent = YO.nombre || '';
+    $('#userAvatar').textContent = iniciales(YO.nombre);
+    $('#userRol').textContent = YO.super_admin ? 'Agencia · Admin' : AGENCIA ? 'Agencia' : 'Cliente';
+    if (AGENCIA) $('#linkInterno').style.display = '';
 
     const { data: cls, error } = await SB.from('clientes').select('id, nombre, slug, activo').eq('activo', true).order('nombre');
     if (error) { $('#main').innerHTML = vacio('No se pudo cargar', error.message); return; }
@@ -558,20 +621,27 @@
 
     const q = new URLSearchParams(location.search).get('c');
     CLIENTE = CLIENTES.find(c => c.slug === q) || CLIENTES[0];
-    renderTopCliente();
+    renderCliente();
     await cargarCliente();
   }
 
-  function renderTopCliente() {
-    const el = $('#topCliente');
-    if (CLIENTES.length === 1) { el.innerHTML = '<span class="nombre">' + esc(CLIENTE.nombre) + '</span>'; return; }
-    el.innerHTML = '<select id="selCliente" aria-label="Cliente">' +
+  // El cliente se elige en la caja de arriba del menú. Con un solo
+  // cliente no hay nada que elegir: se muestra el nombre y listo.
+  function renderCliente() {
+    const el = $('#clienteCaja');
+    $('#bmTitulo').textContent = CLIENTE.nombre;
+    const lbl = '<span class="cc-lbl">Cliente</span>';
+    if (CLIENTES.length === 1) { el.innerHTML = lbl + '<span class="cc-nom">' + esc(CLIENTE.nombre) + '</span>'; return; }
+    el.innerHTML = lbl + '<select id="selCliente" aria-label="Cliente">' +
       CLIENTES.map(c => '<option value="' + esc(c.slug) + '"' + (c.id === CLIENTE.id ? ' selected' : '') + '>' + esc(c.nombre) + '</option>').join('') +
-      '</select>';
+      '</select>' +
+      '<svg class="cc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>';
     $('#selCliente').addEventListener('change', async e => {
       CLIENTE = CLIENTES.find(c => c.slug === e.target.value);
       history.replaceState(null, '', '?c=' + encodeURIComponent(CLIENTE.slug));
-      EDITANDO = false;
+      $('#bmTitulo').textContent = CLIENTE.nombre;
+      EDITANDO = false; BEDIT = null;
+      cerrarMenu();
       await cargarCliente();
     });
   }
@@ -626,7 +696,7 @@
     // donde está la acción: el cron lo va llenando todos los días. El
     // cliente arranca en su último reporte, que es lo que vino a ver.
     if (!MES || !mesesAListar().includes(MES)) {
-      MES = AGENCIA ? mesActual() : (REPORTES.length ? REPORTES[0].mes : mesActual());
+      MES = mesInicial();
     }
     render();
   }
@@ -693,8 +763,8 @@
   const anteriorA = mes => REPORTES.filter(r => r.mes < mes).sort((a, b) => (a.mes < b.mes ? 1 : -1))[0] || null;
 
   function render() {
-    renderMeses();
     if (EDITANDO) renderEditor(); else renderReporte();
+    conectarNavMes();
   }
 
   // Qué meses se listan.
@@ -720,31 +790,44 @@
     return todos.filter((m, i) => m && todos.indexOf(m) === i).sort().reverse();
   }
 
-  function renderMeses() {
-    const lista = mesesAListar();
-    const hayPosts = m => POSTS.some(p => p.mes === m);
+  // Dónde arranca la página, y adónde lleva el botón "Hoy". La agencia
+  // arranca en el mes en curso, que es donde está la acción: el cron lo
+  // va llenando todos los días. El cliente arranca en su último
+  // reporte, que es lo que vino a ver.
+  function mesInicial() {
+    return AGENCIA ? mesActual() : (REPORTES.length ? REPORTES[0].mes : mesActual());
+  }
 
-    $('#meses').innerHTML = lista.map(m => {
-      const r = reporteDe(m);
-      let marca = '';
-      if (r && r.estado === 'borrador' && AGENCIA) marca = 'borrador';
-      else if (!r && AGENCIA) marca = hayPosts(m) ? 'en curso' : 'vacío';
-      return '<li><button type="button" data-mes="' + m + '" class="' + (m === MES ? 'activo' : '') + '">' +
-        '<span>' + esc(mesLabel(m)) + '</span>' +
-        (marca ? '<span class="borr">' + marca + '</span>' : '') +
-        '</button></li>';
-    }).join('');
+  // ‹ › recorren la misma lista de siempre (mesesAListar), así que el
+  // cliente salta solo entre meses con reporte y nunca cae en uno vacío.
+  // Para el cliente el botón dice "Último": el mes en curso no lo ve.
+  // Se dibuja dentro de cada cabecera y se conecta en render().
+  function navMes() {
+    const lista = mesesAListar();                 // del más nuevo al más viejo
+    if (!lista.length) return '';
+    const i = lista.indexOf(MES);
+    const anterior  = i >= 0 ? (lista[i + 1] || '') : '';
+    const siguiente = i > 0 ? lista[i - 1] : '';
+    const inicio = mesInicial();
+    const boton = (destino, txt, titulo) =>
+      '<button type="button" data-irmes="' + destino + '" title="' + titulo + '" aria-label="' + titulo + '"' +
+      (destino && destino !== MES ? '' : ' disabled') + '>' + txt + '</button>';
+    return '<div class="mes-nav">' +
+      boton(anterior, '‹', 'Mes anterior') +
+      '<span class="mes-txt">' + esc(mesLabel(MES)) + '</span>' +
+      boton(siguiente, '›', 'Mes siguiente') +
+      boton(inicio, AGENCIA ? 'Hoy' : 'Último', AGENCIA ? 'Volver a este mes' : 'Ir al último reporte') +
+      '</div>';
+  }
 
-    $('#mesesMobile').innerHTML = lista.map(m =>
-      '<option value="' + m + '"' + (m === MES ? ' selected' : '') + '>' + esc(mesLabel(m)) + '</option>').join('');
-
-    $('#meses').querySelectorAll('button[data-mes]').forEach(b => b.addEventListener('click', () => elegirMes(b.dataset.mes)));
-    $('#mesesMobile').onchange = e => elegirMes(e.target.value);
+  function conectarNavMes() {
+    $('#main').querySelectorAll('[data-irmes]').forEach(b =>
+      b.addEventListener('click', () => { if (b.dataset.irmes) elegirMes(b.dataset.irmes); }));
   }
 
   function elegirMes(m) {
-    if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) { renderMeses(); return; }
-    EDITANDO = false; MES = m; render();
+    if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) return;
+    EDITANDO = false; BEDIT = null; MES = m; render();
   }
 
   function vacio(titulo, texto, boton) {
@@ -1101,7 +1184,7 @@
           '<h1><em>' + esc(MESES_ES[parseInt(ym, 10) - 1]) + '</em> ' + esc(ya) + '</h1>' +
           '<div class="sub">' + esc(CLIENTE.nombre) +
           ' <span class="pill">todavía sin reporte, el cliente no ve nada</span></div></div>' +
-          '<div class="acciones"><button type="button" class="btn primario" id="btnCargar">Cargar el reporte</button></div>' +
+          '<div class="acciones">' + navMes() + '<button type="button" class="btn primario" id="btnCargar">Cargar el reporte</button></div>' +
           '</div>' +
           '<p class="prosa mute">Esto es lo que se publicó hasta ahora. Se actualiza solo todas las noches.</p>' +
           renderPosts(enCurso);
@@ -1116,12 +1199,19 @@
         return;
       }
 
-      main.innerHTML = vacio(
-        'Todavía no hay reporte de ' + mesLabel(MES),
-        AGENCIA ? 'Cargá los números del mes y escribí qué pasó. El cliente no lo ve hasta que lo publiques.'
-                : 'Cuando la agencia lo publique, lo vas a ver acá.',
-        AGENCIA ? '<button type="button" class="btn primario" id="btnCargar">Cargar el reporte de ' + esc(mesLabel(MES)) + '</button>' : ''
-      );
+      // Sin cabecera no habría flechas, y un mes vacío dejaría a la
+      // agencia sin forma de moverse a otro mes.
+      const [yv, mv] = MES.split('-');
+      main.innerHTML =
+        '<div class="cabecera"><div>' +
+        '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mv, 10) - 1]) + '</em> ' + esc(yv) + '</h1>' +
+        '<div class="sub">' + esc(CLIENTE.nombre) + (AGENCIA ? ' <span class="pill">todavía sin reporte</span>' : '') + '</div></div>' +
+        '<div class="acciones">' + navMes() + '</div></div>' +
+        '<div class="vacio"><p>' + esc(AGENCIA
+          ? 'Cargá los números del mes y escribí qué pasó. El cliente no lo ve hasta que lo publiques.'
+          : 'Cuando la agencia lo publique, lo vas a ver acá.') + '</p>' +
+        (AGENCIA ? '<button type="button" class="btn primario" id="btnCargar">Cargar el reporte de ' + esc(mesLabel(MES)) + '</button>' : '') +
+        '</div>';
       const b = $('#btnCargar'); if (b) b.addEventListener('click', abrirEditor);
       return;
     }
@@ -1140,10 +1230,11 @@
       (AGENCIA ? ' <span class="pill' + (r.estado === 'publicado' ? ' pub' : '') + '">' + (r.estado === 'publicado' ? 'publicado' : 'borrador, el cliente no lo ve') + '</span>' : '') +
       (prev ? '<span style="color:var(--ink-mute)"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +
       '</div></div>' +
-      (AGENCIA ? '<div class="acciones"><button type="button" class="btn" id="btnEditar">Editar</button>' +
+      '<div class="acciones">' + navMes() +
+      (AGENCIA ? '<button type="button" class="btn" id="btnEditar">Editar</button>' +
         (r.estado === 'publicado' ? '<button type="button" class="btn" id="btnDespublicar">Volver a borrador</button>'
-                                  : '<button type="button" class="btn lima" id="btnPublicar">Publicar</button>') +
-        '</div>' : '') +
+                                  : '<button type="button" class="btn lima" id="btnPublicar">Publicar</button>') : '') +
+      '</div>' +
       '</div>';
 
     // ── Solapas ────────────────────────────────────────────────
@@ -1286,15 +1377,36 @@
     // ── Fila de destacadas ─────────────────────────────────────
     // Se arman con las mismas metricas que ya estan cargadas: no hay
     // ningun numero nuevo ni ningun calculo propio de esta fila.
+    // La primera de cada fila es el titular: va ancha y en oscuro.
+    //  Pauta: lo que se consiguió (resultados), antes que lo que costó.
+    //  Orgánico: el alcance.
     const DESTACADAS = {
       organico: ['alcance', 'interacciones', 'guardados', 'seguidores'],
-      pauta:    ['inversion', 'resultados', 'costo_por_resultado', 'alcance'],
+      pauta:    ['resultados', 'inversion', 'costo_resultado', 'alcance_pauta'],
     };
 
-    const tarjeta = (m, mod, conOrigen) => {
+    // La misma métrica se llama distinto según quién la cargó: pull-ads
+    // escribe 'costo_resultado' y 'alcance_pauta'; un reporte cargado a
+    // mano usa 'costo_por_resultado' y 'alcance'. Antes la fila buscaba
+    // solo el nombre manual, y en los meses traídos de Meta esas
+    // tarjetas no aparecían.
+    const ALIAS = {
+      'pauta:costo_resultado': ['costo_resultado', 'costo_por_resultado'],
+      'pauta:alcance_pauta':   ['alcance_pauta', 'alcance'],
+    };
+    const buscar = (mod, clave) => {
+      const claves = ALIAS[mod + ':' + clave] || [clave];
+      for (const k of claves) {
+        const m = r.metricas.find(x => x.modulo === mod && x.clave === k);
+        if (m) return m;
+      }
+      return null;
+    };
+
+    const tarjeta = (m, mod, conOrigen, hero) => {
       const sinDato = m.valor == null || m.valor === '';
       const d = sinDato ? null : delta(m, prevVal(mod, m.clave));
-      return '<div class="dest-card">' +
+      return '<div class="dest-card' + (hero ? ' hero' : '') + '">' +
         '<div class="et">' + esc(m.etiqueta) + '</div>' +
         (sinDato
           ? '<div class="val vacio">—</div>'
@@ -1305,10 +1417,11 @@
     };
 
     const filaDe = (pares, conOrigen) => {
-      const cards = pares.map(([mod, clave]) => {
-        const m = r.metricas.find(x => x.modulo === mod && x.clave === clave);
-        return m ? tarjeta(m, mod, conOrigen) : '';
-      }).filter(Boolean);
+      const cards = [];
+      pares.forEach(([mod, clave]) => {
+        const m = buscar(mod, clave);
+        if (m) cards.push(tarjeta(m, mod, conOrigen, cards.length === 0));
+      });
       if (!cards.length) return '';
       return '<div class="destacadas-fila">' + cards.join('') + '</div>';
     };
@@ -1321,10 +1434,14 @@
     // En Cuenta conviven las dos patas. Van rotuladas por origen
     // justamente para que nadie las lea como un total: el alcance
     // del contenido propio y el de la pauta cuentan dos veces a las
-    // mismas personas y no se suman.
+    // mismas personas y no se suman. Por eso el titular oscuro de
+    // Cuenta NO es un alcance: son los resultados de la pauta (o el
+    // alcance orgánico si el cliente no tiene pauta, que ahí no hay
+    // nada con qué confundirlo).
     const paresCuenta = [];
+    if (MODULOS.pauta)    paresCuenta.push(['pauta', 'resultados']);
     if (MODULOS.organico) paresCuenta.push(['organico', 'alcance'], ['organico', 'seguidores']);
-    if (MODULOS.pauta)    paresCuenta.push(['pauta', 'inversion'], ['pauta', 'costo_por_resultado']);
+    if (MODULOS.pauta)    paresCuenta.push(['pauta', 'inversion'], ['pauta', 'costo_resultado']);
     bloques.cuenta = filaDe(paresCuenta, true) + bloques.cuenta;
 
     bloques.cuenta   += bloquesExtra('cuenta');
@@ -1618,6 +1735,20 @@
       btns.forEach(x => x.disabled = false);
     }
   }
+
+  // ── Menú del celular ────────────────────────────────────────
+  function cerrarMenu() {
+    $('#sidebar').classList.remove('abierto');
+    $('#tapaMenu').classList.remove('on');
+  }
+  $('#bmMenu').addEventListener('click', () => {
+    const abierto = $('#sidebar').classList.toggle('abierto');
+    $('#tapaMenu').classList.toggle('on', abierto);
+  });
+  $('#tapaMenu').addEventListener('click', cerrarMenu);
+  // Elegir algo del menú lo cierra: si no, tapa lo que fuiste a ver.
+  $('#sidebar').addEventListener('click', e => { if (e.target.closest('.nav-item')) setTimeout(cerrarMenu, 60); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenu(); });
 
   // ── Sesión ──────────────────────────────────────────────────
   $('#btnSalir').addEventListener('click', async () => { try { await SB.auth.signOut(); } finally { location.replace(LOGIN); } });
