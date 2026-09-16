@@ -338,6 +338,97 @@ Deno.serve(async (req) => {
       return json({ error: { code: null, message: 'Ese mes todavía no empezó.' } }, 400);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    //  MODO DIAGNÓSTICO DE CUENTA  ·  body { debug_cuenta: true }
+    //  Temporal (16/09/2026). Pide por separado cada métrica de cuenta
+    //  candidata y devuelve lo que responde Meta, SIN tocar la base.
+    //  Sirve para decidir qué columnas crear antes de migrar: hay
+    //  métricas de perfil que Meta fue dando de baja y no se sabe
+    //  cuáles siguen vivas en v26. Sacar cuando estén las columnas.
+    //
+    //  Va antes de las métricas de siempre y corta con return: sin el
+    //  flag, la función no cambia en nada.
+    // ═══════════════════════════════════════════════════════════
+    if (body?.debug_cuenta === true) {
+      // Las respuestas crudas pueden ser largas (ciudades, horas):
+      // la lectura ya viene procesada, el crudo se recorta.
+      const recortar = (x: unknown) => {
+        const s = JSON.stringify(x) ?? '';
+        return s.length > 4000 ? s.slice(0, 4000) + '…(recortado)' : x;
+      };
+
+      // Cada consulta por separado: si una métrica no existe, Meta
+      // tira #100 y no queremos que se lleve puestas a las demás.
+      // Función flecha y no `function`: así TypeScript sigue sabiendo
+      // que `token` no es undefined (ya se chequeó más arriba).
+      const probar = async (path: string, leer?: (r: any) => unknown) => {
+        const out: Record<string, unknown> = { consulta: path };
+        try {
+          const r = await graph(path, token);
+          out.ok = true;
+          if (leer) out.lectura = leer(r);
+          out.crudo = recortar(r);
+        } catch (err) {
+          out.ok = false;
+          out.error = err instanceof ErrorMeta ? err.aJSON() : String(err);
+        }
+        return out;
+      };
+
+      const base = `/${igId}/insights?`;
+      const q = (m: string, extra = '') => `metric=${m}&period=day&metric_type=total_value${extra}`;
+
+      // (a) Métricas del período, por ventana (igual que el pull real).
+      const porVentana: unknown[] = [];
+      for (const v of ventanas) {
+        const rango = `&since=${v.since}&until=${v.until}`;
+        porVentana.push({
+          desde_ba: enBA(v.since),
+          hasta_ba: enBA(v.until),
+          visitas_al_perfil: await probar(base + q('profile_views') + rango,
+            (r) => valorTotal(r, 'profile_views')),
+          toques_en_botones: await probar(base + q('profile_links_taps', '&breakdown=contact_button_type') + rango,
+            (r) => ({ total: valorTotal(r, 'profile_links_taps'), por_boton: porBreakdown(r, 'profile_links_taps') })),
+          clics_al_sitio_metrica_vieja: await probar(base + q('website_clicks') + rango,
+            (r) => valorTotal(r, 'website_clicks')),
+          views_seguidores_vs_no: await probar(base + q('views', '&breakdown=follow_type') + rango,
+            (r) => porBreakdown(r, 'views')),
+          reach_seguidores_vs_no: await probar(base + q('reach', '&breakdown=follow_type') + rango,
+            (r) => porBreakdown(r, 'reach')),
+          interacciones_seguidores_vs_no: await probar(base + q('total_interactions', '&breakdown=follow_type') + rango,
+            (r) => porBreakdown(r, 'total_interactions')),
+          cuentas_que_interactuaron: await probar(base + q('accounts_engaged') + rango,
+            (r) => valorTotal(r, 'accounts_engaged')),
+          seguidores_conectados_por_hora: await probar(`${base}metric=online_followers&period=lifetime${rango}`),
+        });
+      }
+
+      // (b) Foto del momento: campos del perfil.
+      const perfil = await probar(`/${igId}?fields=username,followers_count,follows_count,media_count`);
+
+      // (c) Demografía de seguidores. Primero sin timeframe; si falla,
+      //     con timeframe=this_month, para ver cuál acepta v26.
+      const demografia: Record<string, unknown> = {};
+      for (const b of ['age', 'gender', 'city', 'country']) {
+        const url = `${base}metric=follower_demographics&period=lifetime&metric_type=total_value&breakdown=${b}`;
+        const leer = (r: any) => porBreakdown(r, 'follower_demographics');
+        const sin = await probar(url, leer);
+        demografia[b] = sin.ok ? sin : { sin_timeframe: sin, con_this_month: await probar(url + '&timeframe=this_month', leer) };
+      }
+
+      return json({
+        ok: true,
+        modo: 'diagnóstico de cuenta — no se escribió nada en la base',
+        cliente: cliente.nombre,
+        mes,
+        version_api: V,
+        perfil,
+        por_ventana: porVentana,
+        demografia,
+        cuota: ultimaCuota,
+      });
+    }
+
     // ── 3. Las métricas ───────────────────────────────────────
     // `impressions` está deprecada para Instagram desde v22: la
     // reemplaza `views`.
