@@ -1804,6 +1804,16 @@
   }
   .editor ul, .editor ol { margin: 6px 0 6px 20px; padding: 0; }
   .editor li { margin: 2px 0; }
+  /* Las listas anidadas: cada nivel se corre un poco más a la derecha
+     y cambia de viñeta, para que se vea de un saque de qué cuelga
+     cada renglón. El margen de arriba y abajo se va: una sublista es
+     parte del renglón anterior, no un bloque nuevo. */
+  .editor ul ul, .editor ul ol, .editor ol ul, .editor ol ol,
+  .coment-txt ul ul, .coment-txt ul ol, .coment-txt ol ul, .coment-txt ol ol {
+    margin-top: 2px; margin-bottom: 2px; margin-left: 18px;
+  }
+  .editor ul ul, .coment-txt ul ul { list-style-type: circle; }
+  .editor ul ul ul, .coment-txt ul ul ul { list-style-type: square; }
   .editor u { text-decoration-color: var(--accent); text-underline-offset: 2px; }
   .editor s { color: var(--ink-mute); }
   .editor a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
@@ -2640,7 +2650,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v15/09 18:55</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v18/09 13:03</div>
     </div>
   </aside>
 
@@ -6543,6 +6553,31 @@
       nom + '</a>';
   }
 
+  // Dibuja una lista y todo lo que le cuelga. Recursiva a propósito:
+  // anidar con un solo `for` y una pila de etiquetas abiertas termina
+  // siempre en <ul> mal cerrados, y un <ul> mal cerrado se come el
+  // resto del texto.
+  //
+  //  La sublista va ADENTRO del <li> del que cuelga, no al lado: así
+  //  el HTML es válido y la sangría la hace el navegador sola.
+  function listaHTML(items, i, nivel) {
+    const tipo = items[i].tipo;
+    let html = '<' + tipo + '>';
+    while (i < items.length && items[i].nivel === nivel && items[i].tipo === tipo) {
+      html += '<li>' + items[i].texto;
+      i++;
+      // Lo que venga más adentro cuelga de este renglón.
+      while (i < items.length && items[i].nivel > nivel) {
+        const r = listaHTML(items, i, items[i].nivel);
+        html += r.html;
+        if (r.i === i) break;
+        i = r.i;
+      }
+      html += '</li>';
+    }
+    return { html: html + '</' + tipo + '>', i: i };
+  }
+
   function renderTexto(txt) {
     if (!txt) return '';
     let h = esc(String(txt).replace(/\u0000/g, ''));
@@ -6576,17 +6611,33 @@
             dentro.trim() ? marcarPorLinea(dentro, f.a, f.z) : m);
     });
 
-    // Listas: líneas que arrancan con "- " o "1. "
+    // Listas: líneas que arrancan con "- " o "1. ". La sangría de
+    // adelante —dos espacios por nivel— es lo que las anida.
     const lineas = h.split('\n');
-    let salida = '', lista = null;
-    const cerrar = () => { if (lista) { salida += '</' + lista + '>'; lista = null; } };
+    let salida = '', pend = [], nivAnt = -1;
+
+    // Vuelca lo que se venía juntando y arranca de cero.
+    const cerrar = () => {
+      if (!pend.length) return;
+      let j = 0;
+      while (j < pend.length) {
+        const r = listaHTML(pend, j, pend[j].nivel);
+        salida += r.html;
+        if (r.i === j) break;          // red de seguridad: nunca en bucle
+        j = r.i;
+      }
+      pend = []; nivAnt = -1;
+    };
+
     lineas.forEach((l, i) => {
-      const vin = l.match(/^\s*[-•]\s+(.*)$/);
-      const num = l.match(/^\s*\d+[.)]\s+(.*)$/);
-      if (vin || num) {
-        const quiero = vin ? 'ul' : 'ol';
-        if (lista !== quiero) { cerrar(); lista = quiero; salida += '<' + quiero + '>'; }
-        salida += '<li>' + (vin ? vin[1] : num[1]) + '</li>';
+      const m = l.match(/^([ \t]*)([-•]|\d+[.)])[ \t]+(.*)$/);
+      if (m) {
+        const ancho = m[1].replace(/\t/g, '  ').length;
+        // Saltar dos niveles de una no existe: se pega al anterior.
+        // Si no, el árbol queda con agujeros y el dibujo se cuelga.
+        const nivel = Math.min(Math.floor(ancho / 2), nivAnt + 1);
+        nivAnt = nivel;
+        pend.push({ nivel: nivel, tipo: (m[2] === '-' || m[2] === '•') ? 'ul' : 'ol', texto: m[3] });
       } else {
         cerrar();
         salida += l + (i < lineas.length - 1 ? '<br>' : '');
@@ -6695,6 +6746,34 @@
   // De qué marca es cada etiqueta, al volver a texto.
   const TAG_MARCA = { B: '**', STRONG: '**', I: '*', EM: '*', U: '__', S: '~~', STRIKE: '~~', DEL: '~~' };
 
+  // Una lista, con las que le cuelguen adentro. Cada nivel son dos
+  // espacios de sangría, que es lo que después lee `renderTexto`.
+  //
+  //  Los navegadores no se ponen de acuerdo en dónde cuelgan la
+  //  sublista: Chrome la mete como hermana del <li>, otros la meten
+  //  adentro. Se contemplan las dos, porque el texto lo escribe
+  //  cualquiera desde cualquier navegador y tiene que guardarse igual.
+  function serieLista(n, nivel) {
+    const tag = n.tagName;
+    const sangria = '  '.repeat(nivel);
+    let s = '', i = 1;
+    for (let j = 0; j < n.childNodes.length; j++) {
+      const h = n.childNodes[j];
+      if (h.nodeType !== 1) continue;
+      if (h.tagName === 'UL' || h.tagName === 'OL') { s += serieLista(h, nivel + 1); continue; }
+      if (h.tagName !== 'LI') continue;
+      // Lo que es del renglón va por un lado; las sublistas, por otro.
+      const propios = [], subs = [];
+      for (let k = 0; k < h.childNodes.length; k++) {
+        const c = h.childNodes[k];
+        ((c.tagName === 'UL' || c.tagName === 'OL') ? subs : propios).push(c);
+      }
+      s += sangria + (tag === 'UL' ? '- ' : (i++) + '. ') + serieNodos(propios).trim() + '\n';
+      subs.forEach(u => { s += serieLista(u, nivel + 1); });
+    }
+    return s;
+  }
+
   function serieNodos(nodos) {
     let s = '';
     for (let k = 0; k < nodos.length; k++) {
@@ -6726,12 +6805,7 @@
       }
       if (tag === 'UL' || tag === 'OL') {
         if (s && !/\n$/.test(s)) s += '\n';
-        let i = 1;
-        for (let j = 0; j < n.children.length; j++) {
-          const li = n.children[j];
-          if (li.tagName !== 'LI') continue;
-          s += (tag === 'UL' ? '- ' : (i++) + '. ') + serieNodos(li.childNodes).trim() + '\n';
-        }
+        s += serieLista(n, 0);
         continue;
       }
       if (tag === 'DIV' || tag === 'P' || /^H[1-6]$/.test(tag)) {
@@ -6799,6 +6873,21 @@
       // Si otro ya lo atendió (el detalle tiene su propio ⌘B/⌘I/⌘U/⌘K),
       // acá no se hace nada: aplicarlo dos veces lo prende y lo apaga.
       if (e.defaultPrevented) return;
+
+      // Tab adentro de una viñeta la corre a la derecha; Shift+Tab la
+      // trae de vuelta. Como Asana.
+      //
+      //  FUERA de una lista el Tab se deja en paz y hace lo de
+      //  siempre: pasar al campo siguiente. Robárselo dejaría
+      //  encerrada acá adentro a cualquiera que navegue con teclado,
+      //  y para meter una sangría suelta ya está la barra espaciadora.
+      if (e.key === 'Tab' && enViñeta()) {
+        e.preventDefault();
+        mandar(e.shiftKey ? 'outdent' : 'indent');
+        guardarCampoDe(el);
+        return;
+      }
+
       const meta = e.metaKey || e.ctrlKey;
       if (!meta) return;
       const k = (e.key || '').toLowerCase();
@@ -6816,6 +6905,15 @@
   // `styleWithCSS` en false: que el navegador use <b> y <i> y no
   // <span style="font-weight:bold">. Los tags los sabemos volver a
   // marcas; los estilos sueltos, no.
+  // ¿El cursor está parado adentro de una viñeta?
+  function enViñeta() {
+    const s = window.getSelection();
+    if (!s || !s.rangeCount) return false;
+    let n = s.getRangeAt(0).startContainer;
+    if (n && n.nodeType === 3) n = n.parentNode;
+    return !!(n && n.closest && n.closest('li'));
+  }
+
   function mandar(cmd, valor) {
     try { document.execCommand('styleWithCSS', false, false); } catch (_) {}
     try { document.execCommand(cmd, false, valor == null ? null : valor); } catch (_) {}
