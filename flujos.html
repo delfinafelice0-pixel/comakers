@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flujos · CoMakers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── Guard de sesión ─────────────────────────────────────────
+  // Igual que administración: sin login, al login. El rol se chequea
+  // más abajo, cuando ya sabemos quién sos.
+  window.__sb = null;
+  (function () {
+    try {
+      window.__sb = supabase.createClient(
+        'https://ggcstolnadkkqhsqpzql.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs'
+      );
+      window.__sb.auth.getSession().then(function (r) {
+        if (!(r && r.data && r.data.session)) {
+          window.location.replace('login-comakers.html');
+        }
+      });
+    } catch (e) { /* noop */ }
+  })();
+  function cerrarSesion() {
+    var done = function () { window.location.replace('login-comakers.html'); };
+    if (window.__sb && window.__sb.auth) { window.__sb.auth.signOut().then(done, done); }
+    else { done(); }
+  }
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #F7F6F9;
+    --bg-elev: #FFFFFF;
+    --ink: #1B1620;
+    --ink-soft: #5B525E;
+    --ink-mute: #938C99;
+    --line: #ECEAF0;
+    --line-soft: #F3F1F6;
+    --accent: #FF82FF;
+    --accent-soft: #FFE9FE;
+    --lime: #D3FF99;
+    --lime-soft: #ECFBD4;
+    --coral: #F26A8D;
+    --coral-soft: #FDE4EB;
+    --cyan: #CBEEF3;
+    --cyan-soft: #EAF8FB;
+    --warn: #F26A8D;
+    --warn-soft: #FDE4EB;
+    --pagina: #FFFFFF;
+    --columna: #F4F3F7;
+    --linea-fuerte: #DAD6E0;
+    --punto: #CFC9D6;
+    --sobre-lleno: #1B1620;
+    --verde-txt: #4E7C1C;
+    --ambar: #FFF3D6;
+    --ambar-txt: #7A5B12;
+    --codigo: rgba(0,0,0,.06);
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'DM Sans', -apple-system, system-ui, sans-serif;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 0 rgba(26,26,23,0.04), 0 1px 3px rgba(26,26,23,0.03);
+  }
+
+  html[data-tema="oscuro"] {
+    --bg: #17151B;
+    --bg-elev: #201D26;
+    --ink: #F2EFF5;
+    --ink-soft: #B6AEC0;
+    --ink-mute: #8C8397;
+    --line: #322D3B;
+    --line-soft: #262230;
+    --accent-soft: #3E2745;
+    --lime-soft: #24331A;
+    --coral-soft: #3A1F27;
+    --cyan-soft: #1B2E33;
+    --warn-soft: #3A1F27;
+    --pagina: #17151B;
+    --columna: #262230;
+    --linea-fuerte: #3D3747;
+    --punto: #4A4454;
+    --verde-txt: #A9D96B;
+    --ambar: #382C13;
+    --ambar-txt: #F0C24B;
+    --codigo: rgba(255,255,255,.10);
+    --shadow: 0 1px 0 rgba(0,0,0,.30), 0 1px 3px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  a { color: inherit; }
+
+  body {
+    font-family: var(--body);
+    background: var(--pagina);
+    color: var(--ink);
+    font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* ═══════════ ESTRUCTURA ═══════════ */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+  .sidebar {
+    background: var(--bg-elev);
+    border-right: 1px solid var(--line);
+    padding: 24px 16px;
+    display: flex; flex-direction: column; gap: 20px;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .brand { padding: 4px 8px 16px; border-bottom: 1px solid var(--line); }
+  .brand-name {
+    font-family: var(--body); font-size: 19px; font-weight: 700;
+    letter-spacing: -0.01em; color: var(--accent); background: var(--lime);
+    padding: 5px 9px; border-radius: 9px;
+    display: inline-flex; align-items: baseline; line-height: 1;
+  }
+  .brand-name em { font-family: var(--display); font-style: normal; font-weight: 700; color: var(--accent); }
+  .brand-spark { width: 12px; height: 12px; margin-left: 5px; color: var(--accent); align-self: flex-start; flex-shrink: 0; }
+  .brand-sub {
+    font-size: 11px; color: var(--ink-mute); letter-spacing: 0.08em;
+    text-transform: uppercase; margin-top: 6px;
+  }
+  .nav-label {
+    font-size: 10px; color: var(--ink-mute); letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0 10px 6px; margin-top: 8px;
+  }
+  .nav-group { display: flex; flex-direction: column; gap: 1px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px; color: var(--ink-soft);
+    font-size: 13px; font-weight: 500; width: 100%; text-align: left;
+    transition: background 0.12s, color 0.12s;
+  }
+  .nav-item:hover { background: var(--line-soft); color: var(--ink); }
+  .nav-item.active { background: var(--ink); color: var(--bg-elev); }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--ink-mute); }
+  .nav-item.active svg { color: inherit; }
+
+  .sidebar-footer {
+    margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .link-cliente {
+    font-size: 11px; color: var(--ink-mute); padding: 8px 10px;
+    border: 1px dashed var(--line); border-radius: 8px; text-align: left;
+    display: flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .link-cliente:hover { border-color: var(--ink-soft); color: var(--ink-soft); }
+  .link-cliente svg { width: 12px; height: 12px; }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: var(--sobre-lleno);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px; flex-shrink: 0;
+  }
+  .user-info { min-width: 0; }
+  .user-name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 10.5px; color: var(--ink-mute); }
+  .tema-btn {
+    margin-left: auto; width: 28px; height: 28px; display: flex;
+    align-items: center; justify-content: center; border-radius: 8px;
+    color: var(--ink-mute); flex-shrink: 0;
+  }
+  .tema-btn:hover { background: var(--line-soft); color: var(--ink); }
+  .tema-btn svg { width: 16px; height: 16px; }
+  .tema-btn .luna { display: none; }
+  html[data-tema="oscuro"] .tema-btn .luna { display: block; }
+  html[data-tema="oscuro"] .tema-btn .sol { display: none; }
+  .logout {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-mute); padding: 8px 10px; text-align: left; border-radius: 8px;
+  }
+  .logout:hover { background: var(--line-soft); color: var(--ink); }
+  .version { font-size: 10px; color: var(--ink-mute); opacity: .6; padding: 0 10px; }
+
+  .main { padding: 32px 40px 80px; max-width: 1400px; min-width: 0; }
+  .topbar {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 8px; gap: 24px; flex-wrap: wrap;
+  }
+  .topbar h1 {
+    font-family: var(--display); font-size: 38px; font-weight: 500;
+    letter-spacing: -0.025em; line-height: 1.05;
+  }
+  .topbar h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .bajada { font-size: 13.5px; color: var(--ink-soft); margin-top: 8px; max-width: 680px; line-height: 1.6; }
+  .buscador {
+    display: flex; align-items: center; gap: 7px; border: 1px solid var(--line);
+    background: var(--bg-elev); border-radius: var(--radius); padding: 8px 12px; min-width: 240px;
+  }
+  .buscador svg { width: 14px; height: 14px; color: var(--ink-mute); flex-shrink: 0; }
+  .buscador input { border: none; outline: none; background: none; font-family: inherit; font-size: 13px; color: var(--ink); width: 100%; }
+
+  .vista { margin-top: 30px; }
+  .vista[hidden] { display: none; }
+
+  /* ═══════════ PIEZAS ═══════════ */
+  .tarjeta {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow);
+  }
+  .seccion-tit {
+    font-family: var(--display); font-size: 22px; font-weight: 500;
+    margin: 38px 0 4px; letter-spacing: -0.02em;
+  }
+  .seccion-tit:first-child { margin-top: 0; }
+  .seccion-sub { font-size: 13px; color: var(--ink-mute); margin-bottom: 16px; max-width: 700px; line-height: 1.6; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .04em;
+    padding: 3px 8px; border-radius: 20px; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .chip.interno { background: var(--lime-soft); color: var(--verde-txt); }
+  .chip.admin { background: var(--accent-soft); color: var(--accent); }
+  .chip.cliente { background: var(--cyan-soft); color: #2C6B78; }
+  .chip.base { background: var(--codigo); color: var(--ink-soft); font-family: ui-monospace, Menlo, monospace; text-transform: none; letter-spacing: 0; }
+  html[data-tema="oscuro"] .chip.admin { color: #FFB6FF; }
+  html[data-tema="oscuro"] .chip.cliente { color: #9FD8E3; }
+
+  .estado { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .estado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .estado.anda::before { background: #7CC63F; }
+  .estado.tabla::before { background: #E8B33F; }
+  .estado.falta::before { background: var(--coral); }
+  .estado.anda { color: var(--verde-txt); }
+  .estado.tabla { color: var(--ambar-txt); }
+  .estado.falta { color: var(--coral); }
+
+  code, .tabla-nom {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; background: var(--codigo); padding: 1px 6px;
+    border-radius: 5px; color: var(--ink-soft);
+  }
+
+  /* ── Vista 1: quién hace qué ── */
+  .paneles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .panel-card { display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; }
+  .panel-head { padding: 18px 20px 16px; border-bottom: 1px solid var(--line); }
+  .panel-card.p-interno .panel-head { background: var(--lime-soft); }
+  .panel-card.p-admin .panel-head { background: var(--accent-soft); }
+  .panel-card.p-cliente .panel-head { background: var(--cyan-soft); }
+  .panel-nom { font-family: var(--display); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  .panel-url { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; font-family: ui-monospace, Menlo, monospace; }
+  .panel-quien { font-size: 12.5px; margin-top: 10px; font-weight: 600; }
+  .panel-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .bloque-lab {
+    font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 600; margin-bottom: 6px;
+  }
+  .lista-limpia { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .lista-limpia li { font-size: 13px; line-height: 1.45; padding-left: 14px; position: relative; color: var(--ink-soft); }
+  .lista-limpia li::before {
+    content: ''; position: absolute; left: 0; top: 8px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--punto);
+  }
+  .lista-limpia.no li::before { background: none; content: '×'; top: 0; left: 1px; color: var(--coral); font-weight: 700; }
+
+  .mod-fila {
+    display: flex; align-items: flex-start; gap: 10px; padding: 9px 0;
+    border-top: 1px solid var(--line-soft); font-size: 13px;
+  }
+  .mod-fila:first-child { border-top: none; }
+  .mod-nom { font-weight: 600; min-width: 118px; flex-shrink: 0; }
+  .mod-que { color: var(--ink-soft); font-size: 12.5px; line-height: 1.45; }
+  .mod-ver { margin-left: auto; flex-shrink: 0; }
+
+  .regla {
+    background: var(--ink); color: #F2EFF5; border-radius: var(--radius-lg);
+    padding: 22px 26px; margin-top: 8px;
+  }
+  .regla h3 { font-family: var(--display); font-size: 20px; font-weight: 500; margin-bottom: 10px; }
+  .regla h3 em { font-style: italic; color: var(--lime); }
+  .regla p { font-size: 13.5px; line-height: 1.65; opacity: .82; max-width: 780px; }
+  .regla p + p { margin-top: 10px; }
+  .regla code { background: rgba(255,255,255,.12); color: #F2EFF5; }
+
+  /* ── Vista 2: recorridos ── */
+  .rec { margin-bottom: 12px; padding: 0; overflow: hidden; }
+  .rec-head {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 16px 20px; text-align: left;
+  }
+  .rec-head:hover { background: var(--line-soft); }
+  .rec-n {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--columna);
+    color: var(--ink-soft); font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .rec.abierto .rec-n { background: var(--accent); color: var(--sobre-lleno); }
+  .rec-tit { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .rec-res { font-size: 12.5px; color: var(--ink-mute); margin-top: 2px; }
+  .rec-chev { margin-left: auto; width: 14px; height: 14px; color: var(--ink-mute); transition: transform .18s; flex-shrink: 0; }
+  .rec.abierto .rec-chev { transform: rotate(180deg); }
+  .rec-body { padding: 4px 20px 22px; border-top: 1px solid var(--line-soft); }
+  .rec:not(.abierto) .rec-body { display: none; }
+
+  .pasos { list-style: none; margin-top: 16px; }
+  .paso { display: grid; grid-template-columns: 22px 1fr; gap: 14px; padding-bottom: 18px; position: relative; }
+  .paso:last-child { padding-bottom: 0; }
+  .paso::before {
+    content: ''; position: absolute; left: 10px; top: 20px; bottom: -2px;
+    width: 1px; background: var(--line);
+  }
+  .paso:last-child::before { display: none; }
+  .paso-punto {
+    width: 21px; height: 21px; border-radius: 50%; background: var(--bg-elev);
+    border: 2px solid var(--linea-fuerte); z-index: 1; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: var(--ink-mute);
+  }
+  .paso.escribe .paso-punto { border-color: var(--accent); color: var(--accent); }
+  .paso-txt { min-width: 0; }
+  .paso-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .paso-que { font-size: 13.5px; line-height: 1.5; }
+  .paso-nota { font-size: 12.5px; color: var(--ink-mute); line-height: 1.55; margin-top: 5px; }
+
+  .ojo {
+    margin-top: 16px; background: var(--ambar); color: var(--ambar-txt);
+    border-radius: var(--radius); padding: 12px 14px; font-size: 12.5px; line-height: 1.55;
+  }
+  .ojo b { font-weight: 700; }
+
+  /* ── Vista 3: de dónde sale ── */
+  .leyenda { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+  .leyenda .estado { font-size: 12px; }
+  .leyenda span small { font-weight: 400; color: var(--ink-mute); text-transform: none; letter-spacing: 0; }
+
+  .fuente { margin-bottom: 10px; padding: 16px 20px; }
+  .fuente-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .fuente-tab { font-size: 15px; font-weight: 600; }
+  .fuente-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-top: 14px;
+  }
+  .fuente-col .bloque-lab { margin-bottom: 4px; }
+  .fuente-col p { font-size: 12.5px; line-height: 1.55; color: var(--ink-soft); }
+  .fuente-nota {
+    margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line-soft);
+    font-size: 12.5px; line-height: 1.55; color: var(--ink-soft);
+  }
+  .fuente-nota b { color: var(--ink); }
+  .vacio { padding: 30px; text-align: center; color: var(--ink-mute); font-size: 13px; }
+
+  .sin-res {
+    margin-top: 22px; background: var(--columna); border-radius: var(--radius);
+    padding: 13px 16px; font-size: 13px; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .sin-res[hidden] { display: none; }
+  .sin-res button {
+    font-size: 12.5px; font-weight: 600; color: var(--ink);
+    border-bottom: 1.5px solid var(--accent); padding-bottom: 1px;
+  }
+
+  /* ═══════════ PUERTA ═══════════ */
+  .puerta {
+    position: fixed; inset: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); padding: 24px;
+  }
+  .puerta-caja {
+    max-width: 420px; text-align: center;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 34px 30px;
+  }
+  .puerta-caja h2 { font-family: var(--display); font-size: 24px; margin: 18px 0 10px; font-weight: 500; }
+  .puerta-caja p { font-size: 13.5px; line-height: 1.6; color: var(--ink-mute); margin-bottom: 22px; }
+  .btn-primary {
+    background: var(--ink); color: var(--bg-elev); border-radius: var(--radius);
+    padding: 9px 14px; font-size: 13px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .btn-primary:hover { background: var(--accent); color: var(--sobre-lleno); }
+  #cargando { padding: 60px 40px; color: var(--ink-mute); font-size: 13px; }
+
+  /* ═══════════ CELULAR ═══════════ */
+  .barra-movil { display: none; }
+  .tapa-menu { display: none; }
+  @media (max-width: 980px) {
+    .paneles { grid-template-columns: 1fr; }
+    .fuente-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .barra-movil {
+      display: flex; align-items: center; gap: 10px;
+      position: fixed; top: 0; left: 0; right: 0; height: 52px; z-index: 92;
+      padding: 0 12px; background: var(--bg-elev); border-bottom: 1px solid var(--line);
+    }
+    .barra-movil button {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; color: var(--ink);
+    }
+    .barra-movil button svg { width: 20px; height: 20px; }
+    .barra-movil .bm-tit {
+      font-family: var(--display); font-size: 17px; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0;
+    }
+    .sidebar {
+      position: fixed; top: 0; bottom: 0; left: 0; width: 82vw; max-width: 300px;
+      height: 100vh; z-index: 96; overflow-y: auto;
+      transform: translateX(-102%); transition: transform .24s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 8px 0 40px rgba(26,22,32,0.14);
+    }
+    .sidebar.abierto { transform: none; }
+    .tapa-menu {
+      display: block; position: fixed; inset: 0; background: rgba(26,22,32,0.35);
+      z-index: 95; opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .tapa-menu.on { opacity: 1; pointer-events: auto; }
+    .main { padding: 66px 14px 80px; }
+    .topbar h1 { font-size: 26px; }
+    .topbar { flex-direction: column; align-items: stretch; }
+    .link-cliente { display: flex; }
+  }
+</style>
+<script>
+  try {
+    if (localStorage.getItem('comakers-tema') === 'oscuro') {
+      document.documentElement.dataset.tema = 'oscuro';
+    }
+  } catch (_) {}
+</script>
+</head>
+<body>
+
+<div class="barra-movil">
+  <button id="bmMenu" aria-label="Abrir el menú">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  </button>
+  <div class="bm-tit" id="bmTitulo">Mapa de flujos</div>
+</div>
+<div class="tapa-menu" id="tapaMenu"></div>
+
+<!-- Lo que ve alguien del equipo que entre acá. Es un cartel, no una
+     cerradura: esta página no consulta ni una tabla, así que no hay
+     RLS que la proteja. Adentro no hay datos de nadie —son nombres de
+     tablas y flechas— pero conviene tenerlo presente. -->
+<div class="puerta" id="puerta" style="display:none">
+  <div class="puerta-caja">
+    <div class="brand-name">Co<em>Makers.</em></div>
+    <h2>Esta parte es de las socias</h2>
+    <p>Acá está el mapa de cómo se conectan los tres paneles: la plata, los
+       clientes y los permisos. Tu panel de trabajo está del otro lado.</p>
+    <a class="btn-primary" href="interno.html">Ir al panel</a>
+  </div>
+</div>
+
+<div id="cargando">Cargando…</div>
+
+<div class="app" id="app" style="display:none">
+
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
+      <div class="brand-sub">Mapa de flujos</div>
+    </div>
+
+    <div>
+      <div class="nav-label">El mapa</div>
+      <nav class="nav-group">
+        <button class="nav-item active" data-vista="paneles">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
+          Quién hace qué
+        </button>
+        <button class="nav-item" data-vista="recorridos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h5a4 4 0 0 0 4-4V9a4 4 0 0 1 4-4h3"></path><polyline points="17 2 20 5 17 8"></polyline><circle cx="4" cy="17" r="2"></circle></svg>
+          Los recorridos
+        </button>
+        <button class="nav-item" data-vista="fuentes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg>
+          De dónde sale cada cosa
+        </button>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <a class="link-cliente" href="interno.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+        Panel interno
+      </a>
+      <a class="link-cliente" href="administracion.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
+        Administración
+      </a>
+      <a class="link-cliente" href="panel-comakers.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        Panel de cliente
+      </a>
+      <div class="user-card">
+        <div class="avatar" id="miAvatar">·</div>
+        <div class="user-info">
+          <div class="user-name" id="miNombre">—</div>
+          <div class="user-role" id="miRol">Agencia</div>
+        </div>
+        <button class="tema-btn" id="btnTema" title="Modo claro / oscuro" aria-label="Cambiar entre modo claro y oscuro">
+          <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"></line><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"></line><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"></line></svg>
+          <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        </button>
+      </div>
+      <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
+      <div class="version">mapa v1 · 18/09</div>
+    </div>
+  </aside>
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="tit">Quién <em>hace qué</em></h1>
+        <div class="bajada" id="baj"></div>
+      </div>
+      <div class="buscador">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="buscar" placeholder="Buscar: cobro, etiqueta, reporte…">
+      </div>
+    </div>
+
+    <!-- Cuando buscás algo que no está en la vista abierta pero sí en otra.
+         Sin esto, buscar "cobro" desde Fuentes devuelve una pantalla vacía
+         y parecería que el mapa no lo tiene. -->
+    <div class="sin-res" id="sinRes" hidden></div>
+
+    <section class="vista" id="v-paneles"></section>
+    <section class="vista" id="v-recorridos" hidden></section>
+    <section class="vista" id="v-fuentes" hidden></section>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const SB = window.__sb;
+  const $ = s => document.querySelector(s);
+
+  // ═══════════════════════════════════════════════════════════════
+  //  EL MAPA
+  //  Todo lo que dice esta página sale de acá abajo. Las tres vistas
+  //  se dibujan de estos tres arrays: si algo cambia en el panel, se
+  //  toca UN lugar y las tres se actualizan solas. Si en cambio el
+  //  texto estuviera escrito a mano en cada vista, en un mes se
+  //  contradicen entre ellas y el mapa pasa a ser el problema.
+  // ═══════════════════════════════════════════════════════════════
+
+  const PANELES = [
+    {
+      id: 'interno', clase: 'p-interno', nombre: 'Panel interno',
+      url: 'comakers.com.ar/interno', quien: 'Todo el equipo de la agencia',
+      para: 'El trabajo del día: qué hay que hacer, quién lo hace y para cuándo.',
+      hace: [
+        'Crear y cerrar tareas, subtareas y dependencias',
+        'Armar proyectos y secciones; cada proyecto tiene su cliente',
+        'Comentar, mencionar, adjuntar y seguir tareas',
+        'Dar de alta un cliente (el alta vive acá y en ningún otro lado)',
+        'Anotar “se paga aparte” en una tarea — pero solo lo ven las socias'
+      ],
+      noHace: [
+        'No se ve un solo peso: la base no le da esas tablas a nadie que entre por acá',
+        'No se decide qué ve el cliente en su panel',
+        'No se invita gente ni se reparte plata'
+      ],
+      modulos: [
+        { nom: 'Bandeja', que: 'Lo que te asignaron, dónde te mencionaron y qué se comentó donde colaborás.', ve: 'Cada una la suya', estado: 'anda' },
+        { nom: 'Todo el tablero', que: 'Las tareas de todos los proyectos, en tablero, lista o calendario.', ve: 'Todo el equipo', estado: 'anda' },
+        { nom: 'Proyectos', que: 'Uno por cliente. Favoritos y orden son de cada una, nadie ve el de la otra.', ve: 'Todo el equipo', estado: 'anda' },
+        { nom: 'La tarea', que: 'Responsables, colaboradoras, etiquetas, subtareas, adjuntos, historial.', ve: 'Todo el equipo', estado: 'anda' },
+        { nom: 'Se paga aparte', que: 'La libretita de lo que se le debe a una colaboradora por un trabajo suelto.', ve: 'Solo socias', estado: 'anda' }
+      ]
+    },
+    {
+      id: 'admin', clase: 'p-admin', nombre: 'Administración',
+      url: 'comakers.com.ar/administracion', quien: 'Solo las socias',
+      para: 'Las decisiones de negocio: a quién le vendemos, por cuánto, quién lo hace y cómo se reparte.',
+      hace: [
+        'Contratos, cobros del mes, ingresos y egresos',
+        'El reparto 85 / 5 / 10 y lo que se le paga a cada una',
+        'Pagar lo que quedó anotado como “se paga aparte”',
+        'El catálogo de servicios y entregables',
+        'El equipo: quién entra, con qué rol y a qué clientes accede'
+      ],
+      noHace: [
+        'No se crean clientes: eso pasó al panel interno para que no haya dos puertas',
+        'No se trabaja: las tareas se hacen del otro lado',
+        'No se publica nada que vea el cliente'
+      ],
+      modulos: [
+        { nom: 'Clientes', que: 'La ficha: quién lo atiende, qué cuelga de él, archivarlo.', ve: 'Solo socias', estado: 'anda' },
+        { nom: 'Contabilidad', que: 'Cobros del mes, movimientos y el reparto.', ve: 'Solo socias', estado: 'anda' },
+        { nom: 'Equipo', que: 'Altas, bajas, roles y a qué clientes accede cada una.', ve: 'Solo socias', estado: 'anda' },
+        { nom: 'Distribución', que: 'Qué hizo cada colaboradora y qué se le paga.', ve: 'Solo socias', estado: 'medio',
+          nota: 'Es el mismo mes que Contabilidad, cortado en dos pantallas.' },
+        { nom: 'Servicios', que: 'El catálogo: planes de lista y entregables.', ve: 'Solo socias', estado: 'medio',
+          nota: 'El contrato ya lleva su propio monto, así que el catálogo queda suelto hasta que lo uses para cotizar.' },
+        { nom: 'Etiquetas', que: 'Crear las etiquetas que después se ponen en las tareas.', ve: 'Solo socias', estado: 'demas',
+          nota: 'Cinco minutos al mes. Cabe en un modal del panel interno.' },
+        { nom: 'Wiki', que: 'Los cómo-se-hace de la agencia.', ve: 'Solo socias · y no debería', estado: 'mal',
+          nota: 'Está adentro de la página que tiene puerta de socias. O sea que el equipo no la puede abrir, que es justo para quien se escribió.' }
+      ]
+    },
+    {
+      id: 'cliente', clase: 'p-cliente', nombre: 'Panel del cliente',
+      url: 'comakers.com.ar/panel', quien: 'El cliente · y la agencia para cargarlo',
+      para: 'La vitrina: lo que le mostramos al cliente en vez de mandarle un PDF.',
+      hace: [
+        'Mostrar el reporte del mes y la evolución del año',
+        'Mostrar contenido, pauta, proyectos y archivos según qué módulos tenga prendidos',
+        'Dejar que el cliente comente y proponga ideas',
+        'Config: qué pestañas ve cada cliente (lo maneja la agencia)'
+      ],
+      noHace: [
+        'No ve tareas internas, proyectos privados ni comentarios del equipo',
+        'No ve plata: ni lo que paga él ni lo que pagan los otros',
+        'No ve a las colaboradoras ni lo que cobran'
+      ],
+      modulos: [
+        { nom: 'Resumen', que: 'Los números del mes y los highlights.', ve: 'El cliente', estado: 'medio' },
+        { nom: 'Reportes', que: 'Histórico mensual y evolución.', ve: 'El cliente', estado: 'anda' },
+        { nom: 'Contenido', que: 'Calendario editorial, feed y performance por posteo.', ve: 'El cliente', estado: 'medio' },
+        { nom: 'Pauta, Web, Estrategia…', que: 'Los otros ocho módulos que se prenden y apagan por cliente.', ve: 'El cliente', estado: 'medio' },
+        { nom: 'Configuración', que: 'Qué módulos ve este cliente, quién tiene acceso.', ve: 'Solo la agencia', estado: 'anda' }
+      ]
+    }
+  ];
+
+  // ── Los recorridos: dónde arranca algo y dónde reaparece ──────
+  const RECORRIDOS = [
+    {
+      tit: 'Se paga aparte',
+      res: 'De una tarea del panel interno a un egreso en Contabilidad, sin cargar la plata dos veces.',
+      pasos: [
+        { panel: 'interno', que: 'En la tarea, una socia abre “Se paga aparte” y elige a quién. El monto puede quedar vacío.',
+          nota: 'El bloque no se dibuja para el resto del equipo. No es un display:none decorativo: la tabla es de socias, así que aunque abran el inspector no hay nada.' },
+        { escribe: 'trabajo_extra', que: 'Queda una fila con la persona, el cliente, el concepto y el título de la tarea copiado.',
+          nota: 'El título se copia a propósito: si mañana borrás la tarea, la deuda tiene que seguir diciendo por qué trabajo era.' },
+        { panel: 'admin', que: 'Aparece en Administración › Equipo › A pagar, con el monto editable hasta que lo arreglás con ella.' },
+        { escribe: 'movimiento', que: 'Al marcar Pagado se crea el egreso (categoría Colaboradoras), colgado del cobro de ese cliente, y la fila de la libretita guarda su id.',
+          nota: 'Ese puente es lo que evita que en dos meses la libretita y la contabilidad digan cosas distintas.' },
+        { panel: 'admin', que: 'Ese egreso baja el neto ANTES del reparto: si el cliente paga 300.000 y a Karin se le pagan 50.000, el 85% se calcula sobre 250.000.' }
+      ],
+      ojo: 'Una vez pagado, la fila no se puede borrar desde la tarea. Si se borrara, el movimiento quedaría suelto en Contabilidad. Se saca desde Contabilidad o no se saca.'
+    },
+    {
+      tit: 'Del contrato al cobro, y del cobro al reparto',
+      res: 'El circuito de la plata del mes. Es el único que se genera solo.',
+      pasos: [
+        { panel: 'admin', que: 'Cada cliente tiene uno o varios contratos: “EKHOS CM” y “EKHOS Landing” son dos, cada uno con su monto.',
+          nota: 'Por eso lo que se cobra cuelga del contrato y no del cliente.' },
+        { escribe: 'cobro', que: 'Al abrir Administración se llama a generar_cobros(): crea la fila del mes para cada contrato activo. Si ya están, no hace nada.',
+          nota: 'Un índice único por contrato + mes impide que abrirlo tres veces duplique agosto. No confía en el navegador: lo prohíbe la base.' },
+        { panel: 'admin', que: 'Tildás Cobrado y ponés la fecha y la factura.' },
+        { escribe: 'movimiento', que: 'Queda el ingreso. Un cobro deja UN ingreso: si lo destildás y lo volvés a tildar, se reusa la misma fila.' },
+        { panel: 'admin', que: 'El reparto toma el neto (ingreso menos los egresos colgados de ese cobro) y aplica 85 ejecutora / 5 socias / 10 fondo, y adentro del 5 el 45-30-25.',
+          nota: 'Los porcentajes son un dato editable, no están clavados en el código.' },
+        { escribe: 'pago_persona', que: 'Lo que efectivamente se giró, por quincena. La diferencia con lo que corresponde es lo que falta girar.' }
+      ]
+    },
+    {
+      tit: 'Un cliente nuevo, y uno que se va',
+      res: 'Se crea en un solo lugar y se apaga en un solo lugar.',
+      pasos: [
+        { panel: 'interno', que: 'El alta del cliente se hace desde el panel interno, junto con su proyecto.',
+          nota: 'Antes también se podía crear desde el panel de cliente. Se sacó: dos puertas para lo mismo terminan en dos clientes “EKHOS”.' },
+        { escribe: 'clientes', que: 'La fila del cliente, con su slug.' },
+        { panel: 'admin', que: 'Aparece en Clientes para ponerle contrato, y en el selector de contabilidad.' },
+        { panel: 'cliente', que: 'Aparece en el selector del panel de cliente, con todos los módulos prendidos por defecto.' },
+        { escribe: 'clientes.activo', que: 'Cuando lo archivás, activo pasa a false.' },
+        { panel: 'cliente', que: 'Desaparece del panel de cliente al instante: solo se listan los activos. La historia de plata queda.' }
+      ]
+    },
+    {
+      tit: 'El proyecto le pone el cliente a la tarea',
+      res: 'La automatización más silenciosa, y la que decide qué tarea es de quién.',
+      pasos: [
+        { panel: 'interno', que: 'Metés una tarea en el proyecto “EKHOS”.' },
+        { escribe: 'tarea.cliente_id', que: 'Un trigger le pone el cliente del proyecto. Si la tarea está en dos proyectos, se muestran los dos clientes pero el principal es uno solo.',
+          nota: 'No hay tabla tarea_cliente: sería anotar dos veces lo mismo, y esos dos lugares se despegan solos con el tiempo.' },
+        { panel: 'interno', que: 'Si elegís el cliente a mano, la fila queda marcada como manual y la automatización no la vuelve a tocar.' },
+        { panel: 'cliente', que: 'Ese cliente_id es el que usa el panel del cliente y el permiso de los comentarios. O sea: el proyecto decide qué puede llegar a ver el cliente.' }
+      ],
+      ojo: 'Esto es lo que hay que tener en la cabeza cuando armes la pestaña Tareas del panel de cliente: hoy una tarea queda atada a un cliente por su proyecto, sin que nadie decida si esa tarea es mostrable.'
+    },
+    {
+      tit: 'La bandeja: quién se entera de qué',
+      res: 'Nadie se suscribe a nada. Seguir una tarea es consecuencia de haberla tocado.',
+      pasos: [
+        { escribe: 'tarea_colaborador', que: 'Sos seguidora de una tarea si sos la responsable, la creaste, comentaste, te mencionaron o te agregaron a mano.',
+          nota: 'Colaborar no es ser responsable: la tarea no aparece en tu “Mías”. Una tarea de tres personas es una tarea de nadie.' },
+        { panel: 'interno', que: 'Alguien comenta, asigna, cierra o reabre.' },
+        { escribe: 'novedad', que: 'La base le deja una fila a cada seguidora de ESA tarea, menos a quien lo hizo.' },
+        { panel: 'interno', que: 'Aparece el número rojo en Bandeja. Si dejás de seguir la tarea, se te limpian las novedades de esa tarea.' }
+      ],
+      ojo: 'Esto estuvo roto hasta la migración 44: cerrar una tarea le avisaba a TODO el equipo. Quedaron 278 novedades de más en la base, casi todas de tareas completadas.'
+    },
+    {
+      tit: 'Qué pestañas ve cada cliente',
+      res: 'El único interruptor que la agencia toca y el cliente siente.',
+      pasos: [
+        { panel: 'cliente', que: 'En Configuración prendés o apagás módulos para ESE cliente.' },
+        { escribe: 'cliente_modulo', que: 'Una fila por cliente y módulo. Sin fila = prendido.',
+          nota: 'Por eso un cliente nuevo ve todo sin que nadie configure nada, y nadie se queda sin nada de un día para el otro.' },
+        { panel: 'cliente', que: 'El sidebar del cliente se arma con eso. Resumen y Configuración no se pueden apagar.' }
+      ]
+    },
+    {
+      tit: 'El reporte del mes',
+      res: 'Lo único del panel de cliente que hoy sale de verdad de la base.',
+      pasos: [
+        { panel: 'cliente', que: 'La agencia carga el reporte desde Reportes: alcance, conversiones, inversión, engagement.' },
+        { escribe: 'reporte', que: 'Una fila por cliente y por mes. Si ya existe ese mes, se edita en vez de duplicarse.',
+          nota: 'Los deltas contra el mes anterior los calcula el panel al guardar, no se cargan a mano.' },
+        { panel: 'cliente', que: 'En borrador lo ve solo la agencia. Publicado, lo ve el cliente.' }
+      ],
+      ojo: 'Hoy el Resumen del panel no lee esta tabla: muestra números del mockup. Es la conexión más corta que te queda por hacer.'
+    },
+    {
+      tit: 'Del plan de lista al contrato',
+      res: 'Por qué el catálogo y el contrato son dos cosas distintas.',
+      pasos: [
+        { panel: 'admin', que: '“Community Management Pro · $380.000” es el PRECIO DE LISTA.' },
+        { escribe: 'servicio + entregable', que: 'El plan y lo que incluye: 8 reels, 16 stories.',
+          nota: 'Los entregables son la misma lista que usa Distribución. Una sola, no dos: así “8 reels vendidos” y “8 reels hechos” se comparan sin cargar nada dos veces.' },
+        { escribe: 'contrato', que: 'Vendérselo a EKHOS a $340.000 es un contrato, con su propio monto y su propio ajuste.',
+          nota: 'Cambiar el precio de lista no le toca la factura a nadie.' },
+        { panel: 'admin', que: 'De ahí salen los cobros, el reparto y el margen por plan.' }
+      ]
+    },
+    {
+      tit: 'Quién puede ver a qué cliente',
+      res: 'Tres roles, dos tablas, y una diferencia que conviene tener clara.',
+      pasos: [
+        { panel: 'admin', que: 'Invitás a alguien: rol socia o equipo, tipo agencia o cliente.' },
+        { escribe: 'profiles', que: 'El rol decide todo: es_socia() es la puerta de la plata, es_agencia() la del panel interno.' },
+        { escribe: 'acceso_cliente', que: 'A qué clientes accede cada persona.' },
+        { panel: 'interno', que: 'Ojo con esto: desde la migración 28 la gente de la agencia ve TODAS las tareas, atienda o no a ese cliente. acceso_cliente ya no filtra el tablero.',
+          nota: 'Lo que sí sigue filtrando es un proyecto privado: ahí solo entran sus miembros.' },
+        { panel: 'cliente', que: 'Para un usuario tipo cliente, acceso_cliente es lo único que decide qué panel ve.' }
+      ]
+    }
+  ];
+
+  // ── De dónde saldría cada pestaña del panel del cliente ───────
+  //  estado: anda   = ya sale de la base hoy
+  //          tabla  = la tabla existe, el panel todavía no la usa
+  //          falta  = no hay tabla: hay que decidir e inventarla
+  const FUENTES = [
+    {
+      tab: 'Resumen', estado: 'tabla',
+      ve: 'Los números del mes con su variación, y tres o cuatro highlights escritos.',
+      sale: 'reporte (el último publicado de ese cliente). Los highlights no tienen dónde vivir todavía.',
+      carga: 'La agencia, cuando carga el reporte del mes.',
+      nota: 'Es la conexión más corta que te queda: los cuatro números ya están en la tabla, el Resumen sigue mostrando los del mockup. Lo único que falta decidir es dónde se escriben los highlights: un campo de texto en reporte alcanza.'
+    },
+    {
+      tab: 'Reportes', estado: 'anda',
+      ve: 'El histórico mes a mes y la evolución del año.',
+      sale: 'reporte · reporte_demografia · evo_metrica',
+      carga: 'La agencia, desde el mismo panel de cliente.',
+      nota: 'reporte ya funciona de punta a punta. Las otras dos tablas existen pero el panel todavía no las lee: la demografía y la evolución anual siguen siendo del mockup.'
+    },
+    {
+      tab: 'Contenido y Redes', estado: 'tabla',
+      ve: 'Calendario editorial, grilla del feed y performance por posteo.',
+      sale: 'post (cada pieza) · metrica_diaria (los números de cada día)',
+      carga: 'Nadie todavía. Hay que decidir si se carga a mano o si entra por la API de Meta.',
+      nota: 'Las dos tablas existen desde antes —las nombra la migración 29— pero ningún panel las escribe. Antes de conectarlas confirmá qué columnas tienen: no las miré por dentro.'
+    },
+    {
+      tab: 'Lluvia de ideas', estado: 'tabla',
+      ve: 'Ideas de contenido con estado, y el cliente puede proponer.',
+      sale: 'idea',
+      carga: 'La agencia y el cliente.',
+      nota: 'La tabla existe y ya tiene permisos para las dos partes. Es el módulo más fácil de conectar de verdad, porque no depende de ninguna métrica externa.'
+    },
+    {
+      tab: 'Archivos', estado: 'tabla',
+      ve: 'La biblioteca de materiales y documentos del cliente.',
+      sale: 'archivo · más Storage de Supabase para el archivo en sí',
+      carga: 'La agencia, y quizás el cliente para mandar material.',
+      nota: 'Acá aparece algo que en el panel interno ya resolviste con adjunto_tarea. Conviene mirar cómo quedó eso antes de armar este, para no terminar con dos formas distintas de guardar un archivo.'
+    },
+    {
+      tab: 'Tareas', estado: 'falta',
+      ve: 'Lista y kanban de lo que la agencia está haciendo para él.',
+      sale: 'tarea, filtrada por cliente_id. Pero falta el filtro que decide si una tarea es mostrable.',
+      carga: 'El equipo, sin querer: cada tarea que crean es candidata a aparecer acá.',
+      nota: 'Esta es la decisión más delicada de las once. Hoy toda tarea hereda el cliente de su proyecto, así que “mostrar las tareas del cliente” significa mostrarle todo, con sus comentarios internos incluidos. Mi recomendación: un campo visible_cliente en la tarea, apagado por defecto. Una etiqueta no alcanza, porque las etiquetas las puede sacar cualquiera del equipo sin darse cuenta de lo que está haciendo.'
+    },
+    {
+      tab: 'Proyectos', estado: 'falta',
+      ve: 'Las iniciativas grandes con sus hitos y su relato.',
+      sale: 'proyecto + tarea_proyecto, con el mismo problema que Tareas.',
+      carga: 'El equipo, desde el panel interno.',
+      nota: 'Los proyectos del interno son operativos (“EKHOS · CM”). Lo que el cliente espera ver acá es otra cosa: “Ruta de la Luz”, con hitos. Puede que no sea la misma entidad, y forzarlas a ser una sola te va a ensuciar el interno.'
+    },
+    {
+      tab: 'Pauta', estado: 'falta',
+      ve: 'Campañas de Meta y Google: inversión, resultados, estado.',
+      sale: 'Nada. Lo más cerca es reporte.inversion, que es un total del mes.',
+      carga: 'Habría que crear la tabla y decidir si se carga a mano o por API.',
+      nota: 'Campaña por campaña es un nivel de detalle que hoy no existe en ningún lado. Si vas a cargarlo a mano, primero probá si a los clientes les alcanza con el total del mes que ya tenés.'
+    },
+    {
+      tab: 'Estrategia', estado: 'falta',
+      ve: 'Objetivos, hipótesis, bitácora e insights.',
+      sale: 'Nada.',
+      carga: 'La agencia.',
+      nota: 'Es texto, no métricas. Se parece mucho a proyecto_dato del panel interno, que ya resuelve “campos libres colgados de algo”. Vale la pena mirar si sirve el mismo mecanismo antes de inventar otro.'
+    },
+    {
+      tab: 'Web & Email', estado: 'falta',
+      ve: 'Landings y campañas de email.',
+      sale: 'Nada.',
+      carga: 'Sin definir.',
+      nota: 'De los once, el que menos clientes van a abrir. Lo dejaría apagado por cliente hasta que alguien lo pida.'
+    },
+    {
+      tab: 'Branding', estado: 'falta',
+      ve: 'Logos, paleta, tipografías.',
+      sale: 'Nada. Podrían ser archivos etiquetados + unos campos en el cliente.',
+      carga: 'La agencia, una vez cada mucho.',
+      nota: 'Cambia dos veces por año. No necesita tabla propia: con archivo y un par de campos de color en clientes alcanza.'
+    },
+    {
+      tab: 'Configuración', estado: 'anda',
+      ve: 'Qué módulos ve este cliente y quién tiene acceso.',
+      sale: 'cliente_modulo · profiles · acceso_cliente',
+      carga: 'La agencia.',
+      nota: 'Funciona de punta a punta. Es el ejemplo de cómo debería verse el resto.'
+    }
+  ];
+
+  // ═══════════════ DIBUJAR ═══════════════
+
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const NOM_PANEL = { interno: 'Panel interno', admin: 'Administración', cliente: 'Panel del cliente' };
+  const EST_MOD = {
+    anda:  { t: 'En uso', c: 'anda' },
+    medio: { t: 'A medio hacer', c: 'tabla' },
+    demas: { t: 'Está de más', c: 'falta' },
+    mal:   { t: 'Mal ubicado', c: 'falta' }
+  };
+  const EST_FUENTE = {
+    anda:  { t: 'Ya sale de la base', c: 'anda' },
+    tabla: { t: 'Hay tabla, el panel no la usa', c: 'tabla' },
+    falta: { t: 'No existe: hay que decidirlo', c: 'falta' }
+  };
+
+  function pintarPaneles() {
+    const cols = PANELES.map(p => `
+      <article class="tarjeta panel-card ${p.clase}">
+        <div class="panel-head">
+          <div class="panel-nom">${esc(p.nombre)}</div>
+          <div class="panel-url">${esc(p.url)}</div>
+          <div class="panel-quien">${esc(p.quien)}</div>
+        </div>
+        <div class="panel-body">
+          <div>
+            <div class="bloque-lab">Para qué se abre</div>
+            <div class="mod-que">${esc(p.para)}</div>
+          </div>
+          <div>
+            <div class="bloque-lab">Qué se hace acá</div>
+            <ul class="lista-limpia">${p.hace.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+          </div>
+          <div>
+            <div class="bloque-lab">Qué NO se hace acá</div>
+            <ul class="lista-limpia no">${p.noHace.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </article>`).join('');
+
+    const mods = PANELES.map(p => `
+      <div style="margin-bottom:26px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span class="chip ${p.id}">${esc(p.nombre)}</span>
+        </div>
+        <div class="tarjeta">
+          ${p.modulos.map(m => `
+            <div class="mod-fila">
+              <div class="mod-nom">${esc(m.nom)}</div>
+              <div class="mod-que">${esc(m.que)}${m.nota ? `<div style="color:var(--ink-mute);margin-top:4px">${esc(m.nota)}</div>` : ''}</div>
+              <div class="mod-ver">
+                <span class="estado ${EST_MOD[m.estado].c}">${EST_MOD[m.estado].t}</span>
+                <div style="font-size:11px;color:var(--ink-mute);text-align:right;margin-top:3px">${esc(m.ve)}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+
+    $('#v-paneles').innerHTML = `
+      <div class="paneles">${cols}</div>
+
+      <div class="regla" style="margin-top:26px">
+        <h3>La regla de oro, para cuando <em>dudes</em></h3>
+        <p><b>El trabajo va al interno. Las decisiones de negocio, a administración. Lo que el cliente tiene que ver, a su panel.</b></p>
+        <p>Si algo no entra claramente en una de las tres, casi siempre es porque son dos cosas mezcladas. La wiki es el ejemplo: es material del equipo entero, no una decisión de negocio, y hoy está del lado equivocado de la puerta.</p>
+      </div>
+
+      <h2 class="seccion-tit">Módulo por módulo</h2>
+      <div class="seccion-sub">Con mi lectura honesta de cuáles están funcionando y cuáles te están estorbando. Esto es opinión, no código: cambialo cuando decidas otra cosa.</div>
+      ${mods}`;
+  }
+
+  function pintarRecorridos() {
+    $('#v-recorridos').innerHTML = RECORRIDOS.map((r, i) => `
+      <article class="tarjeta rec${i === 0 ? ' abierto' : ''}" data-rec="${i}">
+        <button class="rec-head" data-toggle="${i}">
+          <span class="rec-n">${i + 1}</span>
+          <span>
+            <span class="rec-tit">${esc(r.tit)}</span>
+            <span class="rec-res" style="display:block">${esc(r.res)}</span>
+          </span>
+          <svg class="rec-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="rec-body">
+          <ol class="pasos">
+            ${r.pasos.map((p, n) => `
+              <li class="paso${p.escribe ? ' escribe' : ''}">
+                <span class="paso-punto">${p.escribe ? '' : n + 1}</span>
+                <div class="paso-txt">
+                  <div class="paso-top">
+                    ${p.panel ? `<span class="chip ${p.panel}">${NOM_PANEL[p.panel]}</span>` : ''}
+                    ${p.escribe ? `<span class="chip base">escribe en ${esc(p.escribe)}</span>` : ''}
+                  </div>
+                  <div class="paso-que">${esc(p.que)}</div>
+                  ${p.nota ? `<div class="paso-nota">${esc(p.nota)}</div>` : ''}
+                </div>
+              </li>`).join('')}
+          </ol>
+          ${r.ojo ? `<div class="ojo"><b>Ojo con esto.</b> ${esc(r.ojo)}</div>` : ''}
+        </div>
+      </article>`).join('');
+
+    $('#v-recorridos').querySelectorAll('[data-toggle]').forEach(b => {
+      b.addEventListener('click', () => {
+        b.closest('.rec').classList.toggle('abierto');
+      });
+    });
+  }
+
+  function pintarFuentes() {
+    const cuenta = { anda: 0, tabla: 0, falta: 0 };
+    FUENTES.forEach(f => cuenta[f.estado]++);
+
+    $('#v-fuentes').innerHTML = `
+      <div class="leyenda">
+        <span class="estado anda">${cuenta.anda} ya salen de la base</span>
+        <span class="estado tabla">${cuenta.tabla} tienen tabla pero el panel no la usa</span>
+        <span class="estado falta">${cuenta.falta} no existen todavía</span>
+      </div>
+      ${FUENTES.map(f => `
+        <article class="tarjeta fuente" data-busca="${esc((f.tab + ' ' + f.ve + ' ' + f.sale + ' ' + f.nota).toLowerCase())}">
+          <div class="fuente-head">
+            <span class="fuente-tab">${esc(f.tab)}</span>
+            <span class="estado ${EST_FUENTE[f.estado].c}" style="margin-left:auto">${EST_FUENTE[f.estado].t}</span>
+          </div>
+          <div class="fuente-grid">
+            <div class="fuente-col">
+              <div class="bloque-lab">Qué se ve</div>
+              <p>${esc(f.ve)}</p>
+            </div>
+            <div class="fuente-col">
+              <div class="bloque-lab">De dónde saldría</div>
+              <p>${esc(f.sale)}</p>
+            </div>
+            <div class="fuente-col">
+              <div class="bloque-lab">Quién lo carga</div>
+              <p>${esc(f.carga)}</p>
+            </div>
+          </div>
+          <div class="fuente-nota">${esc(f.nota)}</div>
+        </article>`).join('')}
+      <div class="vacio" id="fuentesVacio" style="display:none">Nada con esa palabra.</div>`;
+  }
+
+  // ═══════════════ NAVEGACIÓN ═══════════════
+
+  const TITULOS = {
+    paneles: ['Quién <em>hace qué</em>', 'Los tres paneles, para qué se abre cada uno y qué no tiene que pasar ahí adentro. Si dudás dónde meter algo nuevo, se decide en esta pantalla.'],
+    recorridos: ['Los <em>recorridos</em>', 'Qué pasa cuando tocás algo: dónde arranca, qué escribe en la base, dónde reaparece y quién lo ve. Todos estos ya funcionan, salvo donde diga lo contrario.'],
+    fuentes: ['De dónde <em>sale cada cosa</em>', 'Pestaña por pestaña del panel del cliente: qué se ve, de qué tabla saldría y quién la carga. Esta es la lista de pendientes para conectarlo de verdad.']
+  };
+
+  function irA(v, mantenerBusqueda) {
+    document.querySelectorAll('[data-vista]').forEach(b => b.classList.toggle('active', b.dataset.vista === v));
+    ['paneles', 'recorridos', 'fuentes'].forEach(x => { $('#v-' + x).hidden = x !== v; });
+    $('#tit').innerHTML = TITULOS[v][0];
+    $('#baj').textContent = TITULOS[v][1];
+    $('#bmTitulo').textContent = $('#tit').textContent;
+    if (!mantenerBusqueda) { $('#buscar').value = ''; filtrar(''); }
+    try { history.replaceState(null, '', '#' + v); } catch (e) {}
+    $('#sidebar').classList.remove('abierto');
+    $('#tapaMenu').classList.remove('on');
+    window.scrollTo(0, 0);
+  }
+
+  // El buscador filtra las tarjetas de la vista abierta. Sirve sobre todo
+  // para lo que uno busca de verdad: "dónde aparece `cobro`".
+  const CARDS = '.rec, .fuente, .panel-card, .mod-fila';
+  const VISTAS = ['paneles', 'recorridos', 'fuentes'];
+  const NOM_VISTA = { paneles: 'Quién hace qué', recorridos: 'Los recorridos', fuentes: 'De dónde sale cada cosa' };
+
+  function cuantos(vista, q) {
+    let n = 0;
+    document.querySelectorAll('#v-' + vista + ' ' + CARDS).forEach(t => {
+      if (t.textContent.toLowerCase().indexOf(q) !== -1) n++;
+    });
+    return n;
+  }
+
+  function filtrar(q) {
+    q = (q || '').trim().toLowerCase();
+    const v = document.querySelector('.vista:not([hidden])');
+    if (!v) return;
+    let visibles = 0;
+    v.querySelectorAll(CARDS).forEach(t => {
+      const hay = !q || t.textContent.toLowerCase().indexOf(q) !== -1;
+      t.style.display = hay ? '' : 'none';
+      if (hay) visibles++;
+      if (hay && q && t.classList.contains('rec')) t.classList.add('abierto');
+    });
+
+    const vac = $('#fuentesVacio');
+    if (vac) vac.style.display = 'none';
+
+    // Si acá no hay nada, fijate si lo hay en otra vista antes de decir que no está.
+    const bar = $('#sinRes');
+    if (!q || visibles > 0) { bar.hidden = true; return; }
+    const actual = v.id.replace('v-', '');
+    const otras = VISTAS.filter(x => x !== actual)
+      .map(x => ({ v: x, n: cuantos(x, q) })).filter(x => x.n > 0);
+    if (!otras.length) {
+      bar.innerHTML = '<span>Nada con esa palabra en todo el mapa.</span>';
+    } else {
+      bar.innerHTML = '<span>Acá no, pero sí en:</span>' + otras
+        .map(o => `<button data-salto="${o.v}">${NOM_VISTA[o.v]} (${o.n})</button>`).join('');
+      bar.querySelectorAll('[data-salto]').forEach(b => {
+        b.addEventListener('click', () => {
+          const t = b.dataset.salto;
+          irA(t, true);
+          $('#buscar').value = q;
+          filtrar(q);
+        });
+      });
+    }
+    bar.hidden = false;
+  }
+
+  document.querySelectorAll('[data-vista]').forEach(b => {
+    b.addEventListener('click', () => irA(b.dataset.vista));
+  });
+  $('#buscar').addEventListener('input', e => filtrar(e.target.value));
+  $('#bmMenu').addEventListener('click', () => {
+    $('#sidebar').classList.toggle('abierto');
+    $('#tapaMenu').classList.toggle('on');
+  });
+  $('#tapaMenu').addEventListener('click', () => {
+    $('#sidebar').classList.remove('abierto');
+    $('#tapaMenu').classList.remove('on');
+  });
+  $('#btnTema').addEventListener('click', () => {
+    const osc = document.documentElement.dataset.tema === 'oscuro';
+    if (osc) delete document.documentElement.dataset.tema;
+    else document.documentElement.dataset.tema = 'oscuro';
+    try { localStorage.setItem('comakers-tema', osc ? 'claro' : 'oscuro'); } catch (e) {}
+  });
+
+  // ═══════════════ ARRANQUE ═══════════════
+  //  Esta página no lee ni una tabla del mapa: lo único que consulta es
+  //  tu propio perfil, para saber si te muestra el contenido o el cartel.
+  function iniciales(n, e) {
+    const s = (n || e || '?').trim();
+    const p = s.split(/\s+/);
+    return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase();
+  }
+
+  async function iniciar() {
+    if (!SB) { $('#cargando').textContent = 'No se pudo conectar con la base.'; return; }
+
+    const { data: sess } = await SB.auth.getSession();
+    if (!sess || !sess.session) { window.location.replace('login-comakers.html'); return; }
+
+    let { data: prof, error } = await SB.from('profiles')
+      .select('id, email, nombre, tipo, agencia, super_admin, rol, activo')
+      .eq('id', sess.session.user.id).single();
+
+    if (error || !prof) { $('#cargando').textContent = 'No pudimos leer tu perfil.'; return; }
+
+    if (prof.tipo !== 'agencia' && !prof.super_admin) {
+      window.location.replace('panel-comakers.html');
+      return;
+    }
+    if (prof.activo === false) {
+      $('#cargando').innerHTML = 'Tu acceso al panel está dado de baja.<br>Si es un error, escribile a Delfi.';
+      return;
+    }
+    const socia = prof.rol === 'socia' || !!prof.super_admin;
+    if (!socia) {
+      $('#cargando').style.display = 'none';
+      $('#puerta').style.display = '';
+      return;
+    }
+
+    $('#miNombre').textContent = prof.nombre || prof.email;
+    $('#miAvatar').textContent = iniciales(prof.nombre, prof.email);
+    $('#miRol').textContent = (prof.super_admin ? 'Super admin · ' : 'Socia · ') + (prof.agencia || 'CoMakers');
+
+    pintarPaneles();
+    pintarRecorridos();
+    pintarFuentes();
+
+    $('#cargando').style.display = 'none';
+    $('#app').style.display = '';
+
+    const h = (location.hash || '').replace('#', '');
+    irA(['paneles', 'recorridos', 'fuentes'].indexOf(h) !== -1 ? h : 'paneles');
+  }
+
+  iniciar();
+})();
+</script>
+</body>
+</html>
