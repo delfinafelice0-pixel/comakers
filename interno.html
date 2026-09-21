@@ -1464,10 +1464,56 @@
   }
   .btn-hoy:hover { border-color: var(--ink-soft); color: var(--ink); }
 
+  /* ── El ancho del día y el alto de la semana se estiran ──────
+     Como las columnas de Excel: agarrás el borde y tirás. Los siete
+     días miden siempre lo mismo —un calendario con el lunes ancho y
+     el martes angosto no se entiende— así que un tirón los mueve a
+     todos. Si no entran, el calendario se desliza al costado.
+
+     Por defecto `--dia` es `1fr`: entra justo en la pantalla y nadie
+     nota que esto existe hasta que lo usa. */
+  .calendario { --dia: 1fr; --carriles: 4; }
+  .cal-scroll { overflow-x: auto; }
+  .cal-ancho { width: 100%; }
+  .calendario.ancho-fijo { --dia: var(--dia-px); }
+  .calendario.ancho-fijo .cal-ancho {
+    width: calc(7 * var(--dia-px)); min-width: 100%;
+  }
+
   .cal-cabecera {
-    display: grid; grid-template-columns: repeat(7, 1fr);
+    display: grid; grid-template-columns: repeat(7, var(--dia));
     border-bottom: 1px solid var(--line);
   }
+  /* La manija: una franja finita en el borde derecho de cada día.
+     Se ve al pasar el mouse, como en una planilla. */
+  .cal-cabecera div { position: relative; }
+  .col-tirador {
+    position: absolute; top: 0; bottom: -1px; right: -3px; width: 7px;
+    cursor: col-resize; z-index: 4;
+  }
+  .col-tirador::after {
+    content: ''; position: absolute; top: 4px; bottom: 4px; left: 2px;
+    width: 2px; border-radius: 2px; background: var(--ink);
+    opacity: 0; transition: opacity .12s;
+  }
+  .col-tirador:hover::after, .calendario.estirando .col-tirador::after { opacity: 0.35; }
+
+  /* Lo mismo para el alto, en el borde de abajo de cada semana. */
+  .fila-tirador {
+    position: absolute; left: 0; right: 0; bottom: -3px; height: 7px;
+    cursor: row-resize; z-index: 4;
+  }
+  .fila-tirador::after {
+    content: ''; position: absolute; left: 4px; right: 4px; top: 2px;
+    height: 2px; border-radius: 2px; background: var(--ink);
+    opacity: 0; transition: opacity .12s;
+  }
+  .fila-tirador:hover::after { opacity: 0.35; }
+  /* Mientras se estira, el cursor manda en toda la pantalla y nada
+     se selecciona sin querer. */
+  .calendario.estirando { user-select: none; }
+  .calendario.estirando * { cursor: col-resize !important; }
+  .calendario.estirando-alto * { cursor: row-resize !important; }
   .cal-cabecera div {
     padding: 8px 10px; font-size: 10px; font-weight: 600;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute);
@@ -1476,7 +1522,7 @@
 
   .sem { position: relative; border-bottom: 1px solid var(--line-soft); }
   .sem:last-child { border-bottom: none; }
-  .sem-dias { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .sem-dias { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, var(--dia)); }
   .dia { border-right: 1px solid var(--line-soft); padding: 6px 8px; transition: background 0.12s; }
   .dia:last-child { border-right: none; }
   .dia.fuera { background: var(--bg); }
@@ -1520,9 +1566,12 @@
   }
 
   .sem-barras {
-    position: relative; display: grid; grid-template-columns: repeat(7, 1fr);
+    position: relative; display: grid; grid-template-columns: repeat(7, var(--dia));
     grid-auto-rows: 25px; align-content: start;
-    gap: 3px 0; padding: 27px 3px 7px; min-height: 96px; pointer-events: none;
+    gap: 3px 0; padding: 27px 3px 7px; pointer-events: none;
+    /* El alto sale de cuántos carriles se quieren ver: 28px cada uno
+       (25 de la barra + 3 de separación) más lo de arriba y abajo. */
+    min-height: calc(var(--carriles) * 28px + 34px);
   }
   .calendario.semana .sem-barras { min-height: 430px; padding-top: 32px; grid-auto-rows: 29px; }
   .calendario.semana .sem { border-bottom: none; }
@@ -1535,8 +1584,11 @@
     background: var(--line-soft); border: 1px solid var(--line);
     cursor: grab; overflow: hidden; white-space: nowrap;
     margin: 0 2px; transition: filter 0.12s, box-shadow 0.12s;
+    /* La barrita de color del proyecto, que reemplaza al "[Cliente]"
+       que antes iba escrito adentro del título. */
+    box-shadow: inset 3px 0 0 var(--proy, transparent);
   }
-  .cal-bar:hover { filter: brightness(0.97); box-shadow: var(--shadow); }
+  .cal-bar:hover { filter: brightness(0.97); box-shadow: inset 3px 0 0 var(--proy, transparent), var(--shadow); }
   .cal-bar:active { cursor: grabbing; }
   .cal-bar.dragging { opacity: 0.4; }
   .cal-bar .txt { overflow: hidden; text-overflow: ellipsis; }
@@ -1571,11 +1623,18 @@
     background: var(--bg-elev); border: 1px solid var(--line);
     border-radius: var(--radius-lg); padding: 14px; position: sticky; top: 20px;
   }
+  /* El botón es toda la fila del título y tiene alto de sobra: antes
+     eran 17px de alto y había que apuntarle. Un botón que hay que
+     buscar con el mouse es un botón que no existe. */
   .bandeja-head {
-    display: flex; align-items: center; gap: 7px; margin-bottom: 4px;
-    width: 100%; border: none; background: none; padding: 0;
+    display: flex; align-items: center; gap: 7px; margin: -4px -6px 2px;
+    width: calc(100% + 12px); border: none; background: none;
+    padding: 8px 6px; border-radius: 8px;
     cursor: pointer; text-align: left; color: inherit;
+    transition: background .12s;
   }
+  .bandeja-head:hover { background: var(--line-soft); }
+  .bandeja-head:hover .bandeja-flecha { color: var(--ink); }
   .bandeja-head .bandeja-title { flex: 1; }
   .bandeja-flecha { width: 13px; height: 13px; flex-shrink: 0; color: var(--ink-mute); transition: transform .15s; }
   .bandeja:not(.plegada) .bandeja-flecha { transform: rotate(90deg); }
@@ -2694,7 +2753,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v18/09 13:57</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v21/09 15:31</div>
     </div>
   </aside>
 
@@ -2793,8 +2852,14 @@
             <button data-calmodo="semana">Semana</button>
           </div>
         </div>
-        <div class="cal-cabecera" id="calCabecera"></div>
-        <div id="calSemanas"></div>
+        <!-- Todo lo que se estira va adentro del scroll, para que la
+             cabecera y las semanas se muevan juntas. -->
+        <div class="cal-scroll" id="calScroll">
+          <div class="cal-ancho">
+            <div class="cal-cabecera" id="calCabecera"></div>
+            <div id="calSemanas"></div>
+          </div>
+        </div>
       </div>
 
       <div class="bandeja">
@@ -3927,6 +3992,7 @@
 
     cargarVistas();          // con qué vista dejaste cada proyecto la última vez
     leerPlegado();           // la barra y la bandeja, como las dejaste
+    leerMedidas();           // y cuánto mide un día en el calendario
     cargarTema();            // claro u oscuro, lo que elegiste vos (no se espera)
 
     $('#miNombre').textContent = prof.nombre || prof.email;
@@ -7044,11 +7110,50 @@
   const DIAS_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const MAX_CARRILES = 4;
 
+  // ── Cuánto mide un día y cuánto una semana ───────────────────
+  //  `ancho` en px, o null = que entre justo en la pantalla (lo de
+  //  siempre). `carriles` es cuántas tareas apiladas se ven en una
+  //  semana antes del "+N más".
+  //
+  //  Va al navegador: es cuánta pantalla tenés, igual que lo plegado.
+  const CAL_LS = 'comakers-calendario';
+  let CAL_MEDIDAS = { ancho: null, carriles: MAX_CARRILES };
+
+  function leerMedidas() {
+    try {
+      const x = JSON.parse(localStorage.getItem(CAL_LS) || '{}');
+      if (x.ancho) CAL_MEDIDAS.ancho = Math.min(400, Math.max(90, +x.ancho || 0)) || null;
+      if (x.carriles) CAL_MEDIDAS.carriles = Math.min(14, Math.max(1, +x.carriles || 0)) || MAX_CARRILES;
+    } catch (_) {}
+  }
+  function guardarMedidas() {
+    try { localStorage.setItem(CAL_LS, JSON.stringify(CAL_MEDIDAS)); } catch (_) {}
+  }
+  function pintarMedidas() {
+    const c = $si('#calendario');
+    if (!c) return;
+    c.classList.toggle('ancho-fijo', !!CAL_MEDIDAS.ancho);
+    c.style.setProperty('--dia-px', (CAL_MEDIDAS.ancho || 0) + 'px');
+    c.style.setProperty('--carriles', CAL_MEDIDAS.carriles);
+  }
+  // El alto cambia cuántas tareas entran, así que hay que redibujar.
+  function medirDeNuevo(redibujar) {
+    guardarMedidas();
+    pintarMedidas();
+    if (redibujar) render();
+  }
+
   function renderCalendario(list) {
     $('#calendario').classList.toggle('semana', CAL_MODO === 'semana');
 
     const chico = window.innerWidth < 900;
-    $('#calCabecera').innerHTML = (chico ? DIAS_CORTO : DIAS).map(d => '<div>' + d + '</div>').join('');
+    pintarMedidas();
+    // La manija va en los seis primeros: la del último día no tendría
+    // borde derecho que agarrar.
+    $('#calCabecera').innerHTML = (chico ? DIAS_CORTO : DIAS).map((d, i) =>
+      '<div>' + d + (i < 6
+        ? '<span class="col-tirador" data-colancho="1" title="Estirá para ensanchar los días · doble click para volver"></span>'
+        : '') + '</div>').join('');
 
     // Semanas a dibujar
     let semanas = [];
@@ -7129,7 +7234,7 @@
       puestos.push({ x: x, c1: c1, c2: c2, carril: carril });
     });
 
-    const tope = CAL_MODO === 'semana' ? 99 : MAX_CARRILES;
+    const tope = CAL_MODO === 'semana' ? 99 : CAL_MEDIDAS.carriles;
     const visibles = puestos.filter(p => p.carril < tope);
     const ocultas = puestos.length - visibles.length;
 
@@ -7143,10 +7248,10 @@
       const quien = resps.length
         ? (nombrePersona(resps[0]) || '') + (resps.length > 1 ? ' +' + (resps.length - 1) : '')
         : '';
-      const cp = t.proyecto_id ? 'box-shadow: inset 0 0 0 1px ' + colorProyecto(t.proyecto_id) + '55;' : '';
+      const cp = t.proyecto_id ? '--proy:' + colorProyecto(t.proyecto_id) + ';' : '';
       return '<div class="' + cls.join(' ') + '" draggable="true" data-id="' + t.id + '" data-bar="1" ' +
              'style="grid-column:' + p.c1 + ' / ' + (p.c2 + 1) + '; grid-row:' + (p.carril + 1) + ';' + cp + '" ' +
-             'title="' + esc(t.titulo) + ' · ' + esc(rangoTxt(t)) + '">' +
+             'title="' + esc(t.titulo) + ' · ' + esc(rangoTxt(t)) + (quien ? ' · ' + esc(quien) : '') + '">' +
                '<span class="tirador ini" draggable="true" data-tirador="ini" data-id="' + t.id + '" title="Mover el inicio"></span>' +
                '<span class="txt">' + esc(t.titulo) + '</span>' +
                (quien ? '<span class="quien">· ' + esc(quien.split(' ')[0]) + '</span>' : '') +
@@ -7158,7 +7263,8 @@
       ? '<button class="cal-mas" data-versemana="' + isoIni + '" style="grid-row:' + (tope + 1) + '">+ ' + ocultas + ' más esta semana</button>'
       : '';
 
-    return '<div class="sem"><div class="sem-dias">' + celdas + '</div><div class="sem-barras">' + barras + mas + '</div></div>';
+    return '<div class="sem"><div class="sem-dias">' + celdas + '</div><div class="sem-barras">' + barras + mas + '</div>' +
+      '<span class="fila-tirador" data-filaalto="1" title="Estirá para ver más tareas por semana · doble click para volver"></span></div>';
   }
 
   // ── Alta rápida desde el calendario ──────────────────────────
@@ -9387,9 +9493,75 @@
   on('#tapaMenu', 'click', cerrarMenuMovil);
 
   // ── Plegar la barra y la bandeja ─────────────────────────────
-  on('#barraCerrar', 'click', () => plegar('barra'));
-  on('#barraAbrir', 'click', () => plegar('barra'));
-  on('#bandejaToggle', 'click', () => plegar('bandeja'));
+  //  Delegado en `document` y no colgado de cada botón. Con `on()`
+  //  el evento se engancha UNA vez, al arrancar, y si el elemento se
+  //  vuelve a dibujar —o si algo corre antes y lo reemplaza— el
+  //  botón queda mudo sin que se note. Así no puede pasar.
+  document.addEventListener('click', e => {
+    if (!e.target.closest) return;
+    if (e.target.closest('#barraCerrar, #barraAbrir')) { plegar('barra'); return; }
+    if (e.target.closest('#bandejaToggle')) { plegar('bandeja'); return; }
+  });
+
+  // ── Estirar los días y las semanas ───────────────────────────
+  //  Se escucha en `document` y no en cada manija: las manijas se
+  //  redibujan con cada render y los listeners se perderían.
+  //
+  //  El calendario vive solo en el panel interno, así que todo esto
+  //  no viaja a administración.
+  document.addEventListener('mousedown', e => {
+    const col = e.target.closest && e.target.closest('[data-colancho]');
+    const fil = e.target.closest && e.target.closest('[data-filaalto]');
+    if (!col && !fil) return;
+    const cal = $si('#calendario');
+    if (!cal) return;
+    e.preventDefault();
+
+    const x0 = e.clientX, y0 = e.clientY;
+    // De cuánto se parte: si nunca se tocó, del ancho que tiene hoy.
+    const anchoIni = CAL_MEDIDAS.ancho ||
+      Math.round((document.querySelector('.cal-cabecera').getBoundingClientRect().width) / 7);
+    const carrilesIni = CAL_MEDIDAS.carriles;
+
+    cal.classList.add(col ? 'estirando' : 'estirando-alto');
+    let ultimoCarril = carrilesIni;
+
+    const mover = ev => {
+      if (col) {
+        CAL_MEDIDAS.ancho = Math.min(400, Math.max(90, anchoIni + (ev.clientX - x0)));
+        pintarMedidas();
+      } else {
+        // 28px = un carril. Se redondea, así que la semana crece de a
+        // una tarea y no queda a medio camino.
+        const n = Math.min(14, Math.max(1, carrilesIni + Math.round((ev.clientY - y0) / 28)));
+        if (n !== ultimoCarril) {
+          ultimoCarril = n;
+          CAL_MEDIDAS.carriles = n;
+          medirDeNuevo(true);     // cambia cuántas entran: hay que redibujar
+        }
+      }
+    };
+    const soltar = () => {
+      document.removeEventListener('mousemove', mover);
+      document.removeEventListener('mouseup', soltar);
+      cal.classList.remove('estirando', 'estirando-alto');
+      medirDeNuevo(false);
+    };
+    document.addEventListener('mousemove', mover);
+    document.addEventListener('mouseup', soltar);
+  });
+
+  // Doble click en una manija: vuelve a como venía de fábrica.
+  document.addEventListener('dblclick', e => {
+    if (!e.target.closest) return;
+    if (e.target.closest('[data-colancho]')) {
+      CAL_MEDIDAS.ancho = null; medirDeNuevo(false);
+      toast('Los días vuelven a entrar justo en la pantalla');
+    } else if (e.target.closest('[data-filaalto]')) {
+      CAL_MEDIDAS.carriles = MAX_CARRILES; medirDeNuevo(true);
+      toast('Vuelven a verse ' + MAX_CARRILES + ' tareas por semana');
+    }
+  });
   // ⌘\ es el atajo que usan Asana, Notion y el resto para esto.
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key === '\\') { e.preventDefault(); plegar('barra'); }
