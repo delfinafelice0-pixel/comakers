@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagramas · CoMakers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.__sb = null;
+  (function () {
+    try {
+      window.__sb = supabase.createClient(
+        'https://ggcstolnadkkqhsqpzql.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs'
+      );
+      window.__sb.auth.getSession().then(function (r) {
+        if (!(r && r.data && r.data.session)) {
+          window.location.replace('login-comakers.html');
+        }
+      });
+    } catch (e) { /* noop */ }
+  })();
+  function cerrarSesion() {
+    var done = function () { window.location.replace('login-comakers.html'); };
+    if (window.__sb && window.__sb.auth) { window.__sb.auth.signOut().then(done, done); }
+    else { done(); }
+  }
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #F7F6F9;
+    --bg-elev: #FFFFFF;
+    --ink: #1B1620;
+    --ink-soft: #5B525E;
+    --ink-mute: #938C99;
+    --line: #ECEAF0;
+    --line-soft: #F3F1F6;
+    --accent: #FF82FF;
+    --accent-soft: #FFE9FE;
+    --lime: #D3FF99;
+    --lime-soft: #ECFBD4;
+    --coral: #F26A8D;
+    --coral-soft: #FDE4EB;
+    --cyan: #CBEEF3;
+    --cyan-soft: #EAF8FB;
+    --pagina: #FFFFFF;
+    --columna: #F4F3F7;
+    --linea-fuerte: #DAD6E0;
+    --punto: #CFC9D6;
+    --sobre-lleno: #1B1620;
+    --verde-txt: #4E7C1C;
+    --ambar: #FFF3D6;
+    --ambar-txt: #7A5B12;
+    --codigo: rgba(0,0,0,.06);
+    --lienzo: #FAF9FB;
+    --grilla: #DDD8E3;
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'DM Sans', -apple-system, system-ui, sans-serif;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 0 rgba(26,26,23,0.04), 0 1px 3px rgba(26,26,23,0.03);
+    --sombra-nodo: 0 1px 2px rgba(27,22,32,.06), 0 4px 14px rgba(27,22,32,.06);
+  }
+  html[data-tema="oscuro"] {
+    --bg: #17151B;
+    --bg-elev: #201D26;
+    --ink: #F2EFF5;
+    --ink-soft: #B6AEC0;
+    --ink-mute: #8C8397;
+    --line: #322D3B;
+    --line-soft: #262230;
+    --accent-soft: #3E2745;
+    --lime-soft: #24331A;
+    --coral-soft: #3A1F27;
+    --cyan-soft: #1B2E33;
+    --pagina: #17151B;
+    --columna: #262230;
+    --linea-fuerte: #4A4454;
+    --punto: #4A4454;
+    --verde-txt: #A9D96B;
+    --ambar: #382C13;
+    --ambar-txt: #F0C24B;
+    --codigo: rgba(255,255,255,.10);
+    --lienzo: #141217;
+    --grilla: #2E2936;
+    --shadow: 0 1px 0 rgba(0,0,0,.30), 0 1px 3px rgba(0,0,0,.25);
+    --sombra-nodo: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input, textarea, select { font-family: inherit; color: inherit; }
+  a { color: inherit; }
+  body {
+    font-family: var(--body); background: var(--pagina); color: var(--ink);
+    font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+    height: 100vh; overflow: hidden;
+  }
+
+  /* ═══════════ ESTRUCTURA ═══════════ */
+  .app { display: grid; grid-template-columns: 240px 1fr; height: 100vh; }
+  .sidebar {
+    background: var(--bg-elev); border-right: 1px solid var(--line);
+    padding: 24px 16px; display: flex; flex-direction: column; gap: 18px;
+    height: 100vh; min-height: 0;
+  }
+  .brand { padding: 4px 8px 16px; border-bottom: 1px solid var(--line); }
+  .brand-name {
+    font-family: var(--body); font-size: 19px; font-weight: 700;
+    letter-spacing: -0.01em; color: var(--accent); background: var(--lime);
+    padding: 5px 9px; border-radius: 9px;
+    display: inline-flex; align-items: baseline; line-height: 1;
+  }
+  .brand-name em { font-family: var(--display); font-style: normal; font-weight: 700; color: var(--accent); }
+  .brand-spark { width: 12px; height: 12px; margin-left: 5px; color: var(--accent); align-self: flex-start; }
+  .brand-sub { font-size: 11px; color: var(--ink-mute); letter-spacing: .08em; text-transform: uppercase; margin-top: 6px; }
+
+  .lista-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0 -6px; padding: 0 6px; scrollbar-width: thin; }
+  .nav-label-row { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 6px 10px; margin-top: 10px; }
+  .nav-label { font-size: 10px; color: var(--ink-mute); letter-spacing: .1em; text-transform: uppercase; }
+  .nav-mini {
+    width: 22px; height: 22px; border-radius: 6px; color: var(--ink-mute);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-mini:hover { background: var(--line-soft); color: var(--ink); }
+  .nav-mini svg { width: 13px; height: 13px; }
+
+  .f-item {
+    display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 8px;
+    color: var(--ink-soft); font-size: 13px; font-weight: 500; margin-bottom: 1px;
+  }
+  .f-item:hover { background: var(--line-soft); color: var(--ink); }
+  .f-item.active { background: var(--ink); color: var(--bg-elev); }
+  .f-item .f-nom { display: flex; align-items: center; gap: 6px; }
+  .f-item .f-nom span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .f-item .f-mod { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; opacity: .6; margin-left: auto; flex-shrink: 0; }
+  .barrita { display: flex; height: 3px; border-radius: 3px; overflow: hidden; margin-top: 6px; background: var(--line); }
+  .barrita i { display: block; height: 100%; }
+  .barrita .b-anda { background: #7CC63F; }
+  .barrita .b-construir { background: #E8B33F; }
+  .barrita .b-idea { background: var(--coral); }
+
+  .sidebar-footer { padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .link-cliente {
+    font-size: 11px; color: var(--ink-mute); padding: 7px 10px;
+    border: 1px dashed var(--line); border-radius: 8px;
+    display: flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .link-cliente:hover { border-color: var(--ink-soft); color: var(--ink-soft); }
+  .link-cliente svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .links-fila { display: flex; gap: 5px; }
+  .links-fila .link-cliente { flex: 1; justify-content: center; padding: 7px 4px; gap: 4px; }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 4px 8px; }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--sobre-lleno);
+    display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; flex-shrink: 0;
+  }
+  .user-info { min-width: 0; }
+  .user-name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 10.5px; color: var(--ink-mute); }
+  .tema-btn { margin-left: auto; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: var(--ink-mute); }
+  .tema-btn:hover { background: var(--line-soft); color: var(--ink); }
+  .tema-btn svg { width: 16px; height: 16px; }
+  .tema-btn .luna { display: none; }
+  html[data-tema="oscuro"] .tema-btn .luna { display: block; }
+  html[data-tema="oscuro"] .tema-btn .sol { display: none; }
+  .logout { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); padding: 7px 10px; text-align: left; border-radius: 8px; }
+  .logout:hover { background: var(--line-soft); color: var(--ink); }
+
+  .main { display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100vh; }
+
+  /* ── Cabecera del flujo ── */
+  .cabecera {
+    padding: 18px 24px 14px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; background: var(--pagina);
+  }
+  .cab-txt { flex: 1 1 360px; min-width: 0; }
+  .f-tit {
+    font-family: var(--display); font-size: 26px; font-weight: 500; letter-spacing: -.02em;
+    border: none; background: none; outline: none; width: 100%; padding: 2px 6px; margin-left: -6px;
+    border-radius: 8px; line-height: 1.2;
+  }
+  .f-desc {
+    font-size: 13px; color: var(--ink-soft); border: none; background: none; outline: none;
+    width: 100%; padding: 3px 6px; margin-left: -6px; border-radius: 6px; margin-top: 2px;
+  }
+  .f-tit:hover, .f-desc:hover { background: var(--line-soft); }
+  .f-tit:focus, .f-desc:focus { background: var(--line-soft); }
+  .f-tit[readonly], .f-desc[readonly] { cursor: default; }
+  .cab-meta { display: flex; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+  .estado { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .estado::before { content: ''; width: 8px; height: 8px; border-radius: 50%; }
+  .estado.anda { color: var(--verde-txt); } .estado.anda::before { background: #7CC63F; }
+  .estado.construir { color: var(--ambar-txt); } .estado.construir::before { background: #E8B33F; }
+  .estado.idea { color: var(--coral); } .estado.idea::before { background: var(--coral); }
+  .guardado { font-size: 11.5px; color: var(--ink-mute); }
+  .guardado.error { color: var(--coral); }
+  .etq-mod {
+    font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    background: var(--ambar); color: var(--ambar-txt); padding: 2px 7px; border-radius: 12px;
+  }
+
+  .cab-acc { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--ink); color: var(--bg-elev); border-radius: var(--radius);
+    padding: 9px 14px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+    text-decoration: none; transition: all .15s;
+  }
+  .btn-primary:hover { background: var(--accent); color: var(--sobre-lleno); }
+  .btn-primary svg, .btn-ghost svg { width: 14px; height: 14px; }
+  .btn-ghost {
+    border: 1px solid var(--line); background: var(--bg-elev); border-radius: var(--radius);
+    padding: 8px 12px; font-size: 13px; font-weight: 500; color: var(--ink-soft);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-ghost:hover { border-color: var(--ink-soft); color: var(--ink); }
+  .btn-ghost:disabled { opacity: .4; cursor: default; }
+  .btn-ghost.peligro:hover { border-color: var(--coral); color: var(--coral); }
+
+  .aviso-m46 {
+    background: var(--ambar); color: var(--ambar-txt); font-size: 12.5px;
+    padding: 9px 24px; border-bottom: 1px solid var(--line);
+  }
+  .aviso-m46 b { font-weight: 700; }
+
+  /* ═══════════ LIENZO ═══════════ */
+  .lienzo {
+    position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden;
+    background-color: var(--lienzo);
+    background-image: radial-gradient(circle, var(--grilla) 1.1px, transparent 1.3px);
+    cursor: default; touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  .lienzo.paneando { cursor: grabbing; }
+  .mundo { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .suave .mundo { transition: transform .28s cubic-bezier(0.16,1,0.3,1); }
+  .suave.lienzo { transition: background-position .28s cubic-bezier(0.16,1,0.3,1); }
+  .enlaces {
+    position: absolute; left: -10000px; top: -10000px; width: 20000px; height: 20000px;
+    overflow: visible; pointer-events: none;
+  }
+  .enl .linea { fill: none; stroke: var(--linea-fuerte); stroke-width: 2; }
+  .enl .hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
+  .enl.plan .linea { stroke-dasharray: 6 5; }
+  .enl:hover .linea { stroke: var(--ink-mute); }
+  .enl.sel .linea { stroke: var(--accent); stroke-width: 2.5; }
+  .enl-lab { font-size: 11px; font-weight: 700; fill: var(--ink-mute); font-family: var(--body); }
+  #flecha path { fill: var(--linea-fuerte); }
+  #flechaSel path { fill: var(--accent); }
+  .tmp { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; }
+
+  .enl-borrar {
+    position: absolute; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--bg-elev); border: 1.5px solid var(--accent); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    transform: translate(-50%, -50%); box-shadow: var(--sombra-nodo); z-index: 5;
+  }
+  .enl-borrar svg { width: 12px; height: 12px; }
+  .enl-borrar:hover { background: var(--accent); color: var(--sobre-lleno); }
+
+  /* ── Nodos ── */
+  .nodo {
+    position: absolute; width: 230px; background: var(--bg-elev);
+    border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px 12px;
+    box-shadow: var(--sombra-nodo); cursor: grab; z-index: 2;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .nodo:hover { border-color: var(--linea-fuerte); }
+  .nodo.arrastrando { cursor: grabbing; z-index: 4; box-shadow: 0 10px 30px rgba(27,22,32,.18); }
+  .nodo.sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--sombra-nodo); }
+  .nodo.e-construir, .nodo.e-idea { border-style: dashed; }
+  .nodo.e-idea { background: color-mix(in srgb, var(--bg-elev) 80%, var(--coral-soft)); }
+
+  .n-cab { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+  .n-ico {
+    width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: var(--sobre-lleno);
+  }
+  .n-ico svg { width: 13px; height: 13px; }
+  .n-tipo { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-mute); }
+  .n-est { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
+  .e-anda .n-est { background: #7CC63F; }
+  .e-construir .n-est { background: #E8B33F; }
+  .e-idea .n-est { background: var(--coral); }
+  .n-tit { font-size: 13.5px; font-weight: 600; line-height: 1.35; letter-spacing: -.005em; }
+  .n-tit i { color: var(--ink-mute); font-weight: 500; }
+  .n-tabla {
+    display: inline-block; margin-top: 7px; font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px; background: var(--codigo); color: var(--ink-soft); padding: 1px 6px; border-radius: 5px;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .n-como { font-size: 11px; color: var(--ink-mute); margin-top: 5px; }
+
+  .t-disparador .n-ico { background: var(--accent); }
+  .t-interno .n-ico { background: var(--lime); }
+  .t-admin .n-ico { background: #FFC2FF; }
+  .t-cliente .n-ico { background: var(--cyan); }
+  .t-base .n-ico { background: var(--linea-fuerte); color: var(--ink); }
+  .t-auto .n-ico { background: #FFE19A; }
+  .t-condicion .n-ico { background: var(--ink); color: var(--bg-elev); }
+  .t-externo .n-ico { background: #FFB3C6; }
+  .t-aviso .n-ico { background: #BFF0A0; }
+
+  .nodo.t-disparador { border-radius: 26px 12px 12px 26px; }
+
+  .nodo.t-nota {
+    background: #FFF3C4; border: none; width: 240px; color: #4A3B0B;
+    box-shadow: 0 2px 8px rgba(120,90,10,.15); transform: rotate(-0.6deg);
+  }
+  html[data-tema="oscuro"] .nodo.t-nota { background: #4A3E17; color: #F6E7B4; }
+  .nodo.t-nota.sel { box-shadow: 0 0 0 3px var(--accent), 0 2px 8px rgba(120,90,10,.15); }
+  .nodo.t-nota .n-tit { font-size: 13px; }
+  .n-det { font-size: 12px; line-height: 1.5; margin-top: 4px; opacity: .85; white-space: pre-wrap; }
+
+  .puerto {
+    position: absolute; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--bg-elev); border: 2px solid var(--punto); top: 50%;
+    transform: translateY(-50%); z-index: 3;
+  }
+  .puerto.in { left: -8px; }
+  .puerto.out { right: -8px; cursor: crosshair; }
+  .puerto.out:hover, .puerto.in.destino { border-color: var(--accent); background: var(--accent); transform: translateY(-50%) scale(1.3); }
+  .puerto.si { top: 32%; }
+  .puerto.no { top: 72%; }
+  .puerto b {
+    position: absolute; left: 16px; top: -4px; font-size: 10px; font-weight: 700;
+    color: var(--ink-mute); pointer-events: none;
+  }
+  .conectando .nodo:not(.t-nota):not(.t-disparador) .puerto.in { border-color: var(--accent); }
+
+  /* ── Controles flotantes ── */
+  .zoom {
+    position: absolute; right: 16px; bottom: 16px; display: flex; align-items: center;
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: var(--sombra-nodo); z-index: 6; overflow: hidden;
+  }
+  .zoom button { width: 34px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); }
+  .zoom button:hover { background: var(--line-soft); color: var(--ink); }
+  .zoom button svg { width: 14px; height: 14px; }
+  .zoom .pct { font-size: 11.5px; font-weight: 600; color: var(--ink-mute); width: 44px; text-align: center; }
+  .zoom .sep { width: 1px; height: 18px; background: var(--line); }
+
+  .leyenda {
+    position: absolute; left: 16px; bottom: 16px; z-index: 6;
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 13px; font-size: 11.5px; color: var(--ink-mute);
+    display: flex; flex-direction: column; gap: 5px; box-shadow: var(--sombra-nodo); max-width: 330px;
+  }
+  .leyenda .lin { display: flex; align-items: center; gap: 8px; }
+  .leyenda svg { width: 30px; height: 6px; flex-shrink: 0; }
+  .leyenda kbd {
+    font-family: var(--body); font-size: 10.5px; background: var(--columna);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0 4px;
+  }
+  .leyenda .cerrar-ley { position: absolute; top: 4px; right: 6px; font-size: 14px; color: var(--ink-mute); }
+
+  .vacio-lienzo {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; z-index: 1;
+  }
+  .vacio-lienzo div { text-align: center; color: var(--ink-mute); font-size: 13px; }
+  .vacio-lienzo b { display: block; font-family: var(--display); font-size: 20px; color: var(--ink-soft); font-weight: 500; margin-bottom: 6px; }
+
+  /* ── Paleta de nodos ── */
+  .paleta {
+    position: absolute; z-index: 20; width: 290px; max-height: 420px; overflow-y: auto;
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(27,22,32,.18); padding: 8px;
+  }
+  .paleta[hidden] { display: none; }
+  .paleta input {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+    font-size: 13px; background: var(--bg); outline: none; margin-bottom: 6px;
+  }
+  .paleta input:focus { border-color: var(--accent); }
+  .pal-item { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left; padding: 8px; border-radius: 8px; }
+  .pal-item:hover, .pal-item.foco { background: var(--line-soft); }
+  .pal-item .n-ico { margin-top: 1px; }
+  .pal-nom { font-size: 13px; font-weight: 600; }
+  .pal-desc { font-size: 11.5px; color: var(--ink-mute); line-height: 1.4; }
+
+  /* ── Inspector ── */
+  .insp {
+    position: absolute; top: 12px; right: 12px; bottom: 12px; width: 310px; z-index: 10;
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(27,22,32,.14); display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .insp[hidden] { display: none; }
+  .insp-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .insp-head .n-tipo { font-size: 11px; }
+  .insp-x { margin-left: auto; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: var(--ink-mute); }
+  .insp-x:hover { background: var(--line-soft); color: var(--ink); }
+  .insp-x svg { width: 14px; height: 14px; }
+  .insp-body { padding: 14px 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+  .campo-lab { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); font-weight: 600; margin-bottom: 5px; display: block; }
+  .campo input, .campo textarea, .campo select {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+    font-size: 13px; background: var(--bg); outline: none;
+  }
+  .campo input:focus, .campo textarea:focus, .campo select:focus { border-color: var(--accent); }
+  .campo textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
+  .campo .ayuda { font-size: 11px; color: var(--ink-mute); margin-top: 4px; line-height: 1.45; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { flex: 1; padding: 7px 4px; font-size: 12px; font-weight: 600; color: var(--ink-soft); border-left: 1px solid var(--line); }
+  .seg button:first-child { border-left: none; }
+  .seg button.on.s-anda { background: var(--lime-soft); color: var(--verde-txt); }
+  .seg button.on.s-construir { background: var(--ambar); color: var(--ambar-txt); }
+  .seg button.on.s-idea { background: var(--coral-soft); color: var(--coral); }
+  .conexiones { font-size: 12px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 4px; }
+  .conexiones .cx { display: flex; gap: 6px; align-items: baseline; }
+  .conexiones .cx span:first-child { color: var(--ink-mute); flex-shrink: 0; width: 52px; }
+  .conexiones button { text-align: left; color: var(--ink); font-weight: 500; }
+  .conexiones button:hover { color: var(--accent); }
+  .insp-acc { display: flex; gap: 8px; padding-top: 4px; }
+  .insp-acc .btn-ghost { flex: 1; justify-content: center; font-size: 12px; }
+
+  /* ═══════════ PUERTA / CARGA ═══════════ */
+  .puerta { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 24px; }
+  .puerta-caja { max-width: 420px; text-align: center; background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 34px 30px; }
+  .puerta-caja h2 { font-family: var(--display); font-size: 24px; margin: 18px 0 10px; font-weight: 500; }
+  .puerta-caja p { font-size: 13.5px; line-height: 1.6; color: var(--ink-mute); margin-bottom: 22px; }
+  #cargando { padding: 60px 40px; color: var(--ink-mute); font-size: 13px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--bg-elev); font-size: 13px; padding: 10px 16px;
+    border-radius: 10px; opacity: 0; transition: all .2s; z-index: 100; pointer-events: none;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ═══════════ CELULAR ═══════════ */
+  .barra-movil, .tapa-menu { display: none; }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .barra-movil {
+      display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 12px;
+      background: var(--bg-elev); border-bottom: 1px solid var(--line);
+    }
+    .barra-movil button { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+    .barra-movil button svg { width: 20px; height: 20px; }
+    .barra-movil .bm-tit { font-family: var(--display); font-size: 17px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .main { height: calc(100vh - 52px); }
+    .sidebar {
+      position: fixed; top: 0; bottom: 0; left: 0; width: 82vw; max-width: 300px; z-index: 96;
+      transform: translateX(-102%); transition: transform .24s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 8px 0 40px rgba(26,22,32,0.14);
+    }
+    .sidebar.abierto { transform: none; }
+    .tapa-menu { display: block; position: fixed; inset: 0; background: rgba(26,22,32,.35); z-index: 95; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .tapa-menu.on { opacity: 1; pointer-events: auto; }
+    .cabecera { padding: 12px 14px; }
+    .f-tit { font-size: 20px; }
+    .insp { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-height: 62%; }
+    .leyenda { display: none; }
+  }
+</style>
+<script>
+  try { if (localStorage.getItem('comakers-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (_) {}
+</script>
+</head>
+<body>
+
+<div class="puerta" id="puerta" style="display:none">
+  <div class="puerta-caja">
+    <div class="brand-name">Co<em>Makers.</em></div>
+    <h2>Esta parte es de las socias</h2>
+    <p>Acá se diseñan los flujos y las automatizaciones de la agencia. Tu panel de trabajo está del otro lado.</p>
+    <a class="btn-primary" href="interno.html">Ir al panel</a>
+  </div>
+</div>
+<div id="cargando">Cargando…</div>
+<div class="toast" id="toast"></div>
+
+<div id="raiz" style="display:none">
+<div class="barra-movil">
+  <button id="bmMenu" aria-label="Abrir el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+  <div class="bm-tit" id="bmTitulo">Diagramas</div>
+</div>
+<div class="tapa-menu" id="tapaMenu"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
+      <div class="brand-sub">Diagramas de flujo</div>
+    </div>
+    <div class="lista-scroll" id="lista"></div>
+    <div class="sidebar-footer">
+      <div class="links-fila">
+      <a class="link-cliente" href="flujos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
+        Mapa
+      </a>
+      <a class="link-cliente" href="administracion.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
+        Admin
+      </a>
+      <a class="link-cliente" href="interno.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+        Interno
+      </a>
+      </div>
+      <div class="user-card">
+        <div class="avatar" id="miAvatar">·</div>
+        <div class="user-info">
+          <div class="user-name" id="miNombre">—</div>
+          <div class="user-role" id="miRol">Socia</div>
+        </div>
+        <button class="tema-btn" id="btnTema" title="Modo claro / oscuro">
+          <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"></line><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"></line><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"></line></svg>
+          <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        </button>
+      </div>
+      <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="cabecera">
+      <div class="cab-txt">
+        <input class="f-tit" id="fTit" placeholder="Nombre del flujo" maxlength="120">
+        <input class="f-desc" id="fDesc" placeholder="Una línea: qué resuelve este flujo" maxlength="240">
+        <div class="cab-meta" id="cabMeta"></div>
+      </div>
+      <div class="cab-acc">
+        <button class="btn-ghost" id="btnDeshacer" title="Deshacer (⌘Z)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+        </button>
+        <button class="btn-ghost" id="btnDuplicar">Duplicar</button>
+        <button class="btn-ghost peligro" id="btnBorrarFlujo">Borrar</button>
+        <button class="btn-primary" id="btnAgregar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Agregar nodo
+        </button>
+      </div>
+    </div>
+    <div class="aviso-m46" id="avisoM46" style="display:none">
+      <b>Falta la migración 46.</b> Mientras tanto, lo que cambies se guarda solo en este navegador:
+      Marti no lo ve y se pierde si borrás el caché. Corré <code>migracion-interno-46-flujos.sql</code> y recargá.
+    </div>
+
+    <div class="lienzo" id="lienzo">
+      <div class="mundo" id="mundo">
+        <svg class="enlaces" id="svg">
+          <defs>
+            <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"></path></marker>
+            <marker id="flechaSel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"></path></marker>
+          </defs>
+          <g transform="translate(10000,10000)">
+            <g id="gEnlaces"></g>
+            <path class="tmp" id="tmp" d=""></path>
+          </g>
+        </svg>
+        <div id="nodos"></div>
+      </div>
+
+      <div class="vacio-lienzo" id="vacioLienzo" style="display:none">
+        <div><b>Un lienzo vacío</b>Doble click en cualquier lado para poner el primer nodo.</div>
+      </div>
+
+      <div class="leyenda" id="leyenda">
+        <button class="cerrar-ley" id="cerrarLey" title="Ocultar">×</button>
+        <div class="lin"><svg viewBox="0 0 30 6"><line x1="0" y1="3" x2="30" y2="3" stroke="var(--ink-mute)" stroke-width="2"/></svg> Anda hoy</div>
+        <div class="lin"><svg viewBox="0 0 30 6"><line x1="0" y1="3" x2="30" y2="3" stroke="var(--ink-mute)" stroke-width="2" stroke-dasharray="5 4"/></svg> Hay que construirlo, o es una idea</div>
+        <div class="lin" style="margin-top:3px"><span><kbd>doble click</kbd> agrega · arrastrá desde el <b>●</b> de la derecha para conectar · <kbd>⌘</kbd>+rueda zoom · <kbd>Supr</kbd> borra</span></div>
+      </div>
+
+      <div class="zoom">
+        <button id="zMenos" title="Alejar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        <span class="pct" id="zPct">100%</span>
+        <button id="zMas" title="Acercar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+        <span class="sep"></span>
+        <button id="zEncajar" title="Ver todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg></button>
+      </div>
+
+      <div class="paleta" id="paleta" hidden>
+        <input type="text" id="palBuscar" placeholder="¿Qué pasa en este paso?">
+        <div id="palLista"></div>
+      </div>
+
+      <aside class="insp" id="insp" hidden></aside>
+    </div>
+  </main>
+</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const SB = window.__sb;
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  // ═══════════════════════════════════════════════════════════════
+  //  LOS TIPOS DE NODO
+  //  Pocos a propósito. Con veinte tipos, cada diagrama se pasa la
+  //  mitad del tiempo en "¿esto es un X o un Y?". Estos diez alcanzan
+  //  para contar cualquier cosa que pase en la agencia.
+  // ═══════════════════════════════════════════════════════════════
+  const IC = {
+    disparador: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+    interno: '<rect x="3" y="3" width="6" height="18"/><rect x="10" y="3" width="6" height="10"/><rect x="17" y="3" width="4" height="14"/>',
+    admin: '<path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>',
+    cliente: '<rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="4" x2="8" y2="9"/>',
+    base: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+    auto: '<polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/>',
+    condicion: '<path d="M12 2 22 12 12 22 2 12z"/>',
+    externo: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/>',
+    aviso: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    nota: '<path d="M4 4h16v11l-5 5H4z"/><path d="M15 20v-5h5"/>'
+  };
+  const ico = t => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${IC[t]}</svg>`;
+
+  const TIPOS = {
+    disparador: { nom: 'Cuando…', desc: 'Lo que lo pone en marcha: un click, una fecha, un cambio en la base.' },
+    interno:    { nom: 'Panel interno', desc: 'Algo que alguien del equipo hace o ve en el panel interno.' },
+    admin:      { nom: 'Administración', desc: 'Algo que pasa en administración: plata, clientes, equipo.' },
+    cliente:    { nom: 'Panel del cliente', desc: 'Algo que el cliente ve o hace en su panel.' },
+    base:       { nom: 'Base de datos', desc: 'Una tabla que se escribe o se lee.' },
+    auto:       { nom: 'Automático', desc: 'Lo hace la base sola: un trigger o una función.' },
+    condicion:  { nom: 'Si / No', desc: 'El camino se abre en dos según una pregunta.' },
+    externo:    { nom: 'Afuera', desc: 'Algo fuera del panel: n8n, Meta, Google, Drive, Make.' },
+    aviso:      { nom: 'Aviso', desc: 'Alguien se entera: bandeja, mail, WhatsApp.' },
+    nota:       { nom: 'Nota', desc: 'Un comentario suelto en el diagrama. No se conecta.' }
+  };
+  const ORDEN_TIPOS = ['disparador', 'interno', 'admin', 'cliente', 'base', 'auto', 'condicion', 'externo', 'aviso', 'nota'];
+  const ESTADOS = {
+    anda: { t: 'Anda' },
+    construir: { t: 'A construir' },
+    idea: { t: 'Idea' }
+  };
+  const COMO_SUGERIDO = ['Botón en el panel', 'Trigger en la base', 'Función SQL', 'n8n', 'Webhook', 'Cron de Supabase', 'API de Meta', 'A mano'];
+
+  // ═══════════════════════════════════════════════════════════════
+  //  LOS FLUJOS DE FÁBRICA
+  //  Son los mismos recorridos del Mapa, pasados a nodos. Si editás
+  //  uno, se guarda tu versión en la base y en la lista aparece
+  //  "modificado"; "Restaurar" la borra y vuelve a esto.
+  //  Las posiciones van en una grilla: columna × 275, fila × 150.
+  // ═══════════════════════════════════════════════════════════════
+  function N(tipo, col, fila, titulo, extra) {
+    return Object.assign({ tipo, x: col * 275, y: fila * 150, titulo, detalle: '', tabla: '', estado: 'anda', como: '' }, extra || {});
+  }
+  function F(id, grupo, titulo, descripcion, nodos, enlaces) {
+    nodos.forEach((n, i) => { n.id = id + '-' + i; });
+    return {
+      id, grupo, titulo, descripcion, nodos,
+      enlaces: enlaces.map((e, i) => ({ id: id + '-e' + i, de: id + '-' + e[0], a: id + '-' + e[1], salida: e[2] || 'a' }))
+    };
+  }
+
+  const FABRICA = [
+    F('pago-aparte', 'sistema', 'Se paga aparte', 'De una tarea del panel interno a un egreso en Contabilidad, sin cargar la plata dos veces.', [
+      N('disparador', 0, 1, 'Una socia marca “Se paga aparte” en una tarea', { detalle: 'Elige a quién se le paga. El monto puede quedar vacío: se completa cuando se arregla con ella.', como: 'Botón en el panel' }),
+      N('base', 1, 1, 'Queda anotada la deuda', { tabla: 'trabajo_extra', detalle: 'Guarda persona, cliente, concepto y una copia del título de la tarea: si la tarea se borra, la deuda sigue diciendo por qué era.' }),
+      N('admin', 2, 1, 'Aparece en Equipo › A pagar', { detalle: 'Solo lo ven las socias: la tabla tiene RLS de es_socia().' }),
+      N('condicion', 3, 1, '¿Ya tiene monto?'),
+      N('admin', 5, 0.5, 'Se destraba el botón Pagado'),
+      N('admin', 4, 2, 'Se completa el monto a mano'),
+      N('base', 6, 0.5, 'Se crea el egreso', { tabla: 'movimiento', detalle: 'Categoría Colaboradoras, colgado del cobro del cliente. La fila de trabajo_extra guarda el id del movimiento.' }),
+      N('admin', 7, 0.5, 'Baja el neto antes del reparto', { detalle: 'Si el cliente paga 300.000 y a Karin se le pagan 50.000, el 85% se calcula sobre 250.000.' }),
+      N('nota', 0, 2.6, 'Una vez pagado, no se borra desde la tarea', { detalle: 'Si se borrara, el movimiento quedaría suelto en Contabilidad. Se saca desde Contabilidad o no se saca.' })
+    ], [[0, 1], [1, 2], [2, 3], [3, 4, 'si'], [3, 5, 'no'], [5, 4], [4, 6], [6, 7]]),
+
+    F('cobros', 'sistema', 'Del contrato al reparto', 'El circuito de la plata del mes. El único que se genera solo.', [
+      N('disparador', 0, 1, 'Una socia abre Administración', { como: 'Al cargar la página' }),
+      N('auto', 1, 1, 'generar_cobros()', { detalle: 'Crea el cobro del mes de cada contrato activo. Si ya están, no hace nada. Los de cuotas se cortan solos.', como: 'Función SQL' }),
+      N('base', 2, 1, 'Un cobro por contrato y por mes', { tabla: 'cobro', detalle: 'unique (contrato_id, periodo): abrirlo tres veces no duplica agosto.' }),
+      N('admin', 3, 1, 'Tildás Cobrado', { detalle: 'Con fecha y número de factura.' }),
+      N('base', 4, 1, 'Un solo ingreso', { tabla: 'movimiento', detalle: 'Si lo destildás y lo volvés a tildar, se reusa la misma fila.' }),
+      N('admin', 5, 1, 'Se calcula el reparto', { tabla: 'reparto', detalle: 'Neto = ingreso menos egresos colgados del cobro. 85 ejecutora / 5 socias / 10 fondo; adentro del 5, 45-30-25.' }),
+      N('admin', 6, 1, 'Se gira por quincena', { tabla: 'pago_persona', detalle: 'Lo que corresponde lo calcula el panel. La diferencia con lo girado es lo que falta pagar.' })
+    ], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]),
+
+    F('cliente', 'sistema', 'Un cliente nuevo, y uno que se va', 'Se crea en un solo lugar y se apaga en un solo lugar.', [
+      N('disparador', 0, 1, 'Alta desde el panel interno', { detalle: 'Antes también se podía crear desde el panel de cliente. Se sacó: dos puertas para lo mismo terminan en dos clientes iguales.' }),
+      N('base', 1, 1, 'Se crea el cliente', { tabla: 'clientes' }),
+      N('admin', 2, 0, 'Aparece en Clientes, listo para ponerle contrato'),
+      N('cliente', 2, 2, 'Aparece en el selector, con todo prendido'),
+      N('disparador', 0, 3.6, 'Lo archivás'),
+      N('base', 1, 3.6, 'activo pasa a false', { tabla: 'clientes.activo' }),
+      N('cliente', 2, 3.6, 'Desaparece del panel de cliente', { detalle: 'La historia de plata queda.' })
+    ], [[0, 1], [1, 2], [1, 3], [4, 5], [5, 6]]),
+
+    F('proyecto-cliente', 'sistema', 'El proyecto le pone el cliente a la tarea', 'La automatización más silenciosa, y la que decide qué podría ver un cliente.', [
+      N('disparador', 0, 1, 'Una tarea entra a un proyecto'),
+      N('condicion', 1, 1, '¿El cliente lo eligió alguien a mano?', { tabla: 'tarea.cliente_manual' }),
+      N('interno', 2, 0, 'No se toca: manda la decisión humana'),
+      N('auto', 2, 2, 'sincronizar_cliente_tarea', { tabla: 'tarea.cliente_id', detalle: 'Le pone el cliente del proyecto. Con dos proyectos, se ven los dos pero el principal es uno.', como: 'Trigger en la base' }),
+      N('cliente', 3, 2, 'Esa tarea queda atada al cliente', { detalle: 'Es el cliente_id que usa el panel de cliente y el permiso de comentarios.' }),
+      N('condicion', 4, 2, '¿Es mostrable?', { estado: 'construir', tabla: 'tarea.visible_cliente', detalle: 'Hoy esta pregunta no existe: toda tarea de un proyecto es candidata.', como: 'Campo nuevo en tarea' }),
+      N('cliente', 5, 1.4, 'Aparece en Tareas del cliente', { estado: 'construir' }),
+      N('interno', 5, 2.8, 'Queda solo para el equipo', { estado: 'construir' })
+    ], [[0, 1], [1, 2, 'si'], [1, 3, 'no'], [3, 4], [4, 5], [5, 6, 'si'], [5, 7, 'no']]),
+
+    F('bandeja', 'sistema', 'La bandeja: quién se entera de qué', 'Nadie se suscribe a nada. Seguir una tarea es consecuencia de haberla tocado.', [
+      N('disparador', 0, 1, 'Comentan, asignan, cierran o reabren'),
+      N('auto', 1, 1, 'avisar()', { como: 'Trigger en la base' }),
+      N('base', 2, 1, 'Busca las seguidoras de ESA tarea', { tabla: 'tarea_colaborador', detalle: 'Responsable, quien la creó, quien comentó, mencionada o agregada a mano.' }),
+      N('base', 3, 1, 'Una novedad por seguidora, menos quien lo hizo', { tabla: 'novedad' }),
+      N('interno', 4, 1, 'Número rojo en Bandeja'),
+      N('disparador', 0, 2.6, 'Dejás de seguir una tarea'),
+      N('auto', 1, 2.6, 'limpiar_bandeja_al_dejar', { como: 'Trigger en la base' }),
+      N('base', 2, 2.6, 'Se borran tus novedades de esa tarea', { tabla: 'novedad' }),
+      N('nota', 3, 2.5, 'Estuvo roto hasta la 44', { detalle: 'Cerrar una tarea le avisaba a TODO el equipo. Quedaron 278 novedades de más.' })
+    ], [[0, 1], [1, 2], [2, 3], [3, 4], [5, 6], [6, 7]]),
+
+    F('modulos', 'sistema', 'Qué pestañas ve cada cliente', 'El único interruptor que la agencia toca y el cliente siente.', [
+      N('disparador', 0, 1, 'Prendés o apagás un módulo', { detalle: 'Desde Configuración del panel de cliente.' }),
+      N('base', 1, 1, 'Una fila por cliente y módulo', { tabla: 'cliente_modulo', detalle: 'Sin fila = prendido: un cliente nuevo ve todo sin que nadie configure nada.' }),
+      N('cliente', 2, 1, 'Se arma el sidebar del cliente', { detalle: 'Resumen y Configuración no se pueden apagar.' })
+    ], [[0, 1], [1, 2]]),
+
+    F('reporte', 'sistema', 'El reporte del mes', 'Lo único del panel de cliente que hoy sale de verdad de la base.', [
+      N('disparador', 0, 1, 'La agencia carga el reporte', { detalle: 'Alcance, conversiones, inversión, engagement.' }),
+      N('cliente', 1, 1, 'Calcula los deltas contra el mes anterior', { detalle: 'Los hace el panel al guardar, no se cargan a mano.' }),
+      N('condicion', 2, 1, '¿Ya hay reporte de ese mes?', { tabla: 'reporte' }),
+      N('base', 3, 0, 'Lo edita', { tabla: 'reporte' }),
+      N('base', 3, 2, 'Lo crea', { tabla: 'reporte' }),
+      N('condicion', 4, 1, '¿Está publicado?'),
+      N('cliente', 5, 0, 'Lo ve el cliente'),
+      N('cliente', 5, 2, 'Solo lo ve la agencia'),
+      N('cliente', 6, 0, 'El Resumen lee el último publicado', { estado: 'construir', detalle: 'Hoy muestra los números del mockup. Es la conexión más corta que falta.' })
+    ], [[0, 1], [1, 2], [2, 3, 'si'], [2, 4, 'no'], [3, 5], [4, 5], [5, 6, 'si'], [5, 7, 'no'], [6, 8]]),
+
+    F('plan-contrato', 'sistema', 'Del plan de lista al contrato', 'Por qué el catálogo y el contrato son dos cosas distintas.', [
+      N('admin', 0, 1, 'Plan de lista', { tabla: 'servicio', detalle: '“Community Management Pro · $380.000”.' }),
+      N('base', 1, 1, 'Lo que incluye', { tabla: 'entregable', detalle: '8 reels, 16 stories. Es la misma lista que usa Distribución.' }),
+      N('admin', 2, 1, 'Contrato con su propio monto', { tabla: 'contrato', detalle: 'Vendérselo a EKHOS a $340.000. Cambiar el precio de lista no le toca la factura a nadie.' }),
+      N('auto', 3, 0, 'Genera los cobros del mes', { detalle: 'Ver el flujo “Del contrato al reparto”.' }),
+      N('admin', 3, 2, 'Vendidos vs. hechos en Distribución', { estado: 'construir', detalle: 'Los entregables ya son una sola lista; falta la pantalla que compare.' })
+    ], [[0, 1], [1, 2], [2, 3], [2, 4]]),
+
+    F('accesos', 'sistema', 'Quién puede ver a qué cliente', 'Tres roles, dos tablas y una diferencia que conviene tener clara.', [
+      N('disparador', 0, 1, 'Invitás a alguien', { detalle: 'Desde Equipo en administración.' }),
+      N('base', 1, 1, 'Rol y tipo', { tabla: 'profiles', detalle: 'es_socia() es la puerta de la plata; es_agencia() la del panel interno.' }),
+      N('base', 2, 1, 'A qué clientes accede', { tabla: 'acceso_cliente' }),
+      N('condicion', 3, 1, '¿Es de la agencia?', { tabla: 'profiles.tipo' }),
+      N('interno', 4, 0, 'Ve todas las tareas', { detalle: 'Desde la 28, acceso_cliente ya no filtra el tablero. Lo que sí filtra es un proyecto privado.' }),
+      N('cliente', 4, 2, 'Ve solo los paneles de sus clientes')
+    ], [[0, 1], [1, 2], [2, 3], [3, 4, 'si'], [3, 5, 'no']]),
+
+    // ── Dos ideas de ejemplo, para que se vea cómo se planifica ──
+    F('idea-cobro-vencido', 'nuevas', 'Aviso de cobro vencido', 'Ejemplo de automatización nueva: que nadie tenga que acordarse de revisar quién no pagó.', [
+      N('disparador', 0, 1, 'Todos los días a las 9', { estado: 'idea', como: 'n8n (Schedule)' }),
+      N('externo', 1, 1, 'Lee los cobros pendientes del mes', { estado: 'idea', tabla: 'cobro', como: 'n8n → Supabase', detalle: 'estado = pendiente. Ojo: n8n necesita una clave de servicio o una función con permiso de socia; con la anónima la RLS no le devuelve nada.' }),
+      N('condicion', 2, 1, '¿Ya pasó el día_hasta del contrato?', { estado: 'idea', tabla: 'contrato.dia_hasta' }),
+      N('aviso', 3, 0, 'Le avisa a la socia que ejecuta', { estado: 'idea', como: 'WhatsApp o mail', detalle: 'Con nombre del cliente, monto y hace cuántos días venció.' }),
+      N('nota', 3, 2, 'Si no venció, no hace nada', { detalle: 'Mejor un aviso por día que ninguno, pero no más de uno: si no, se ignoran.' })
+    ], [[0, 1], [1, 2], [2, 3, 'si']]),
+
+    F('idea-meta-reporte', 'nuevas', 'Las métricas de Meta arman el reporte', 'Ejemplo: que el borrador del reporte se llene solo el 1 de cada mes.', [
+      N('disparador', 0, 1, 'El 1 de cada mes', { estado: 'idea', como: 'n8n (Schedule)' }),
+      N('externo', 1, 1, 'Trae alcance y engagement de Meta', { estado: 'idea', como: 'API de Meta', detalle: 'Uno por cliente con cuenta conectada. Falta decidir dónde se guarda el token de cada cliente.' }),
+      N('base', 2, 1, 'Crea el borrador del mes', { estado: 'idea', tabla: 'reporte', detalle: 'Siempre en borrador: nunca se publica solo.' }),
+      N('aviso', 3, 1, 'Avisa a quien atiende al cliente', { estado: 'idea', como: 'Bandeja o mail' }),
+      N('cliente', 4, 1, 'Revisás, escribís los highlights y publicás', { estado: 'anda' })
+    ], [[0, 1], [1, 2], [2, 3], [3, 4]])
+  ];
+
+  // ═══════════════ ESTADO ═══════════════
+  let ME = null;
+  let FALTA_M46 = false;
+  let FLUJOS = [];          // los de fábrica (con tu versión si la editaste) + los nuevos
+  let ACT = null;           // el flujo abierto
+  let SEL = null;           // id del nodo elegido
+  let SEL_ENL = null;       // id del enlace elegido
+  let VIEW = { x: 0, y: 0, z: 1 };
+  let HIST = [];            // para deshacer: fotos del flujo abierto
+  const LS_LOCAL = 'comakers.diagramas.v1';
+  const LS_VISTA = 'comakers.diagramas.vista.';
+
+  const clonar = o => JSON.parse(JSON.stringify(o));
+  const nuevoId = p => p + Math.random().toString(36).slice(2, 9);
+  const esFabrica = id => FABRICA.some(f => f.id === id);
+
+  function toast(t) {
+    const el = $('#toast'); el.textContent = t; el.classList.add('on');
+    clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 2200);
+  }
+
+  // ═══════════════ GUARDAR Y CARGAR ═══════════════
+  //  En la base, una fila por flujo. Los de fábrica solo tienen fila si
+  //  los editaste: así, si mañana mejoro uno de fábrica, te llega el
+  //  nuevo salvo que ya tengas tu versión.
+
+  function filaDe(f) {
+    return {
+      id: f.id, titulo: f.titulo || 'Sin nombre',
+      datos: { descripcion: f.descripcion || '', grupo: f.grupo, nodos: f.nodos, enlaces: f.enlaces },
+      actualizado_en: new Date().toISOString(),
+      actualizado_por: ME ? ME.id : null
+    };
+  }
+  function deFila(r) {
+    const d = r.datos || {};
+    return {
+      id: r.id, titulo: r.titulo, descripcion: d.descripcion || '',
+      grupo: d.grupo || 'nuevas', nodos: d.nodos || [], enlaces: d.enlaces || [],
+      guardado: true, actualizado_en: r.actualizado_en
+    };
+  }
+  function leerLocal() { try { return JSON.parse(localStorage.getItem(LS_LOCAL) || '{}') || {}; } catch (e) { return {}; } }
+  function escribirLocal(o) { try { localStorage.setItem(LS_LOCAL, JSON.stringify(o)); } catch (e) {} }
+
+  async function cargarFlujos() {
+    let filas = [];
+    const r = await SB.from('flujo').select('*');
+    if (r.error) {
+      FALTA_M46 = true;
+      filas = Object.values(leerLocal());
+    } else {
+      filas = r.data || [];
+    }
+    $('#avisoM46').style.display = FALTA_M46 ? '' : 'none';
+
+    FLUJOS = FABRICA.map(f => Object.assign(clonar(f), { guardado: false }));
+    filas.forEach(row => {
+      const f = deFila(row);
+      const i = FLUJOS.findIndex(x => x.id === f.id);
+      if (i >= 0) { f.grupo = FLUJOS[i].grupo; FLUJOS[i] = f; }
+      else FLUJOS.push(f);
+    });
+  }
+
+  let tGuardar = null;
+  function programarGuardado() {
+    pintarGuardado('Guardando…');
+    clearTimeout(tGuardar);
+    const f = ACT;
+    tGuardar = setTimeout(() => guardar(f), 700);
+  }
+  async function guardar(f) {
+    if (!f) return;
+    const fila = filaDe(f);
+    if (FALTA_M46) {
+      const o = leerLocal(); o[f.id] = fila; escribirLocal(o);
+      f.guardado = true;
+      if (f === ACT) { pintarCabecera(); pintarGuardado('Guardado en este navegador'); }
+      pintarLista();
+      return;
+    }
+    const { error } = await SB.from('flujo').upsert(fila, { onConflict: 'id' });
+    if (error) { pintarGuardado('No se pudo guardar: ' + error.message, true); return; }
+    f.guardado = true;
+    f.actualizado_en = fila.actualizado_en;
+    if (f === ACT) { pintarCabecera(); pintarGuardado('Guardado'); }
+    pintarLista();
+  }
+  async function borrarFila(id) {
+    if (FALTA_M46) { const o = leerLocal(); delete o[id]; escribirLocal(o); return true; }
+    const { error } = await SB.from('flujo').delete().eq('id', id);
+    if (error) { toast('No se pudo: ' + error.message); return false; }
+    return true;
+  }
+  function pintarGuardado(t, err) {
+    const el = $('#estadoGuardado'); if (!el) return;
+    el.textContent = t; el.classList.toggle('error', !!err);
+  }
+
+  // ═══════════════ LISTA DE FLUJOS ═══════════════
+  function cuenta(f) {
+    const c = { anda: 0, construir: 0, idea: 0 };
+    f.nodos.forEach(n => { if (n.tipo !== 'nota') c[n.estado || 'anda']++; });
+    return c;
+  }
+  function barrita(f) {
+    const c = cuenta(f), tot = c.anda + c.construir + c.idea || 1;
+    return `<div class="barrita">${['anda', 'construir', 'idea'].map(k => c[k] ? `<i class="b-${k}" style="width:${c[k] / tot * 100}%"></i>` : '').join('')}</div>`;
+  }
+  function pintarLista() {
+    const item = f => `
+      <button class="f-item${ACT && ACT.id === f.id ? ' active' : ''}" data-flujo="${esc(f.id)}">
+        <span class="f-nom"><span>${esc(f.titulo || 'Sin nombre')}</span>${esFabrica(f.id) && f.guardado ? '<span class="f-mod">editado</span>' : ''}</span>
+        ${barrita(f)}
+      </button>`;
+    const sis = FLUJOS.filter(f => f.grupo === 'sistema');
+    const nue = FLUJOS.filter(f => f.grupo !== 'sistema');
+    $('#lista').innerHTML = `
+      <div class="nav-label-row"><span class="nav-label">Cómo funciona hoy</span></div>
+      ${sis.map(item).join('')}
+      <div class="nav-label-row" style="margin-top:18px">
+        <span class="nav-label">Automatizaciones nuevas</span>
+        <button class="nav-mini" id="btnNuevoFlujo" title="Nuevo flujo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+      </div>
+      ${nue.map(item).join('') || '<div style="font-size:12px;color:var(--ink-mute);padding:4px 10px">Todavía ninguna.</div>'}`;
+    $('#lista').querySelectorAll('[data-flujo]').forEach(b => b.addEventListener('click', () => abrir(b.dataset.flujo)));
+    $('#btnNuevoFlujo').addEventListener('click', nuevoFlujo);
+  }
+
+  // ═══════════════ ABRIR UN FLUJO ═══════════════
+  function abrir(id) {
+    const f = FLUJOS.find(x => x.id === id);
+    if (!f) return;
+    if (tGuardar && ACT) { clearTimeout(tGuardar); tGuardar = null; guardar(ACT); }
+    ACT = f; SEL = null; SEL_ENL = null; HIST = [];
+    cerrarPaleta();
+    pintarLista(); pintarCabecera(); pintarLienzo(); pintarInspector();
+    try { history.replaceState(null, '', '#' + id); } catch (e) {}
+    $('#bmTitulo').textContent = f.titulo;
+    $('#sidebar').classList.remove('abierto'); $('#tapaMenu').classList.remove('on');
+
+    let v = null;
+    try { v = JSON.parse(localStorage.getItem(LS_VISTA + id) || 'null'); } catch (e) {}
+    if (v && typeof v.z === 'number') { VIEW = v; aplicarVista(); }
+    else requestAnimationFrame(encajar);
+  }
+
+  function nuevoFlujo() {
+    const f = {
+      id: nuevoId('f-'), grupo: 'nuevas', titulo: 'Flujo nuevo', descripcion: '',
+      nodos: [], enlaces: [], guardado: false
+    };
+    f.nodos.push({ id: nuevoId('n'), tipo: 'disparador', x: 0, y: 0, titulo: '', detalle: '', tabla: '', estado: 'idea', como: '' });
+    FLUJOS.push(f);
+    abrir(f.id);
+    SEL = f.nodos[0].id;
+    pintarLienzo(); pintarInspector();
+    VIEW = { x: 120, y: Math.max(80, $('#lienzo').clientHeight / 2 - 50), z: 1 }; aplicarVista();
+    guardar(f);
+    setTimeout(() => { const i = $('#fTit'); i.focus(); i.select(); }, 50);
+  }
+
+  function pintarCabecera() {
+    const f = ACT;
+    $('#fTit').value = f.titulo || '';
+    $('#fDesc').value = f.descripcion || '';
+    const c = cuenta(f);
+    const fab = esFabrica(f.id);
+    $('#cabMeta').innerHTML = `
+      ${c.anda ? `<span class="estado anda">${c.anda} anda${c.anda > 1 ? 'n' : ''}</span>` : ''}
+      ${c.construir ? `<span class="estado construir">${c.construir} a construir</span>` : ''}
+      ${c.idea ? `<span class="estado idea">${c.idea} idea${c.idea > 1 ? 's' : ''}</span>` : ''}
+      ${fab && f.guardado ? '<span class="etq-mod">Editado</span>' : ''}
+      <span class="guardado" id="estadoGuardado"></span>`;
+    $('#btnBorrarFlujo').textContent = fab ? 'Restaurar original' : 'Borrar';
+    $('#btnBorrarFlujo').style.display = (fab && !f.guardado) ? 'none' : '';
+    $('#btnDeshacer').disabled = !HIST.length;
+  }
+
+  // ═══════════════ CAMBIOS Y DESHACER ═══════════════
+  function foto() {
+    HIST.push(JSON.stringify({ nodos: ACT.nodos, enlaces: ACT.enlaces }));
+    if (HIST.length > 60) HIST.shift();
+    $('#btnDeshacer').disabled = false;
+  }
+  function cambio() {
+    programarGuardado();
+    // Repinta los contadores sin perder el "Guardando…".
+    const g = $('#estadoGuardado') ? $('#estadoGuardado').textContent : '';
+    pintarCabecera(); pintarGuardado(g);
+    pintarLista();
+  }
+  function deshacer() {
+    if (!HIST.length) return;
+    const s = JSON.parse(HIST.pop());
+    ACT.nodos = s.nodos; ACT.enlaces = s.enlaces;
+    if (SEL && !nodo(SEL)) SEL = null;
+    SEL_ENL = null;
+    pintarLienzo(); pintarInspector(); cambio();
+  }
+
+  // ═══════════════ EL LIENZO ═══════════════
+  const nodo = id => ACT.nodos.find(n => n.id === id);
+  const elNodo = id => document.querySelector('.nodo[data-id="' + CSS.escape(id) + '"]');
+
+  function htmlNodo(n) {
+    const t = TIPOS[n.tipo] ? n.tipo : 'interno';
+    const sel = SEL === n.id ? ' sel' : '';
+    if (t === 'nota') {
+      return `<div class="nodo t-nota${sel}" data-id="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px">
+        <div class="n-tit">${esc(n.titulo) || '<i>Nota</i>'}</div>
+        ${n.detalle ? `<div class="n-det">${esc(n.detalle)}</div>` : ''}
+      </div>`;
+    }
+    const ent = t !== 'disparador' ? '<span class="puerto in" data-p="in"></span>' : '';
+    const sal = t === 'condicion'
+      ? '<span class="puerto out si" data-salida="si"><b>sí</b></span><span class="puerto out no" data-salida="no"><b>no</b></span>'
+      : '<span class="puerto out" data-salida="a"></span>';
+    const est = ESTADOS[n.estado] ? n.estado : 'anda';
+    return `<div class="nodo t-${t} e-${est}${sel}" data-id="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px" title="${esc(n.detalle)}">
+      <div class="n-cab"><span class="n-ico">${ico(t)}</span><span class="n-tipo">${TIPOS[t].nom}</span><span class="n-est" title="${ESTADOS[est].t}"></span></div>
+      <div class="n-tit">${esc(n.titulo) || '<i>¿Qué pasa acá?</i>'}</div>
+      ${n.tabla ? `<div class="n-tabla">${esc(n.tabla)}</div>` : ''}
+      ${n.como && est !== 'anda' ? `<div class="n-como">con ${esc(n.como)}</div>` : ''}
+      ${ent}${sal}
+    </div>`;
+  }
+
+  function pintarLienzo() {
+    $('#nodos').innerHTML = ACT.nodos.map(htmlNodo).join('');
+    $('#vacioLienzo').style.display = ACT.nodos.length ? 'none' : '';
+    pintarEnlaces();
+  }
+  function repintarNodo(id) {
+    const n = nodo(id), el = elNodo(id);
+    if (!n || !el) return pintarLienzo();
+    el.outerHTML = htmlNodo(n);
+    pintarEnlaces();
+  }
+
+  // Dónde está cada puerto, en coordenadas del mundo. Lee el tamaño real
+  // del nodo: un título largo lo hace más alto y el puerto tiene que
+  // seguir en el medio.
+  function puntoSalida(n, salida) {
+    const el = elNodo(n.id);
+    const w = el ? el.offsetWidth : 230, h = el ? el.offsetHeight : 80;
+    const f = salida === 'si' ? 0.32 : salida === 'no' ? 0.72 : 0.5;
+    return { x: n.x + w + 1, y: n.y + h * f };
+  }
+  function puntoEntrada(n) {
+    const el = elNodo(n.id);
+    const h = el ? el.offsetHeight : 80;
+    return { x: n.x - 1, y: n.y + h / 2 };
+  }
+  function curva(p1, p2) {
+    const dx = Math.max(60, Math.abs(p2.x - p1.x) / 2);
+    const c1 = { x: p1.x + dx, y: p1.y }, c2 = { x: p2.x - dx, y: p2.y };
+    return {
+      d: `M${p1.x} ${p1.y} C${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p2.x} ${p2.y}`,
+      mid: { x: (p1.x + 3 * c1.x + 3 * c2.x + p2.x) / 8, y: (p1.y + 3 * c1.y + 3 * c2.y + p2.y) / 8 }
+    };
+  }
+
+  function pintarEnlaces() {
+    let html = '', borrar = null;
+    ACT.enlaces.forEach(e => {
+      const a = nodo(e.de), b = nodo(e.a);
+      if (!a || !b) return;
+      const p1 = puntoSalida(a, e.salida), p2 = puntoEntrada(b);
+      const c = curva(p1, p2);
+      const plan = (a.estado && a.estado !== 'anda' && a.tipo !== 'nota') || (b.estado && b.estado !== 'anda');
+      const sel = SEL_ENL === e.id;
+      html += `<g class="enl${plan ? ' plan' : ''}${sel ? ' sel' : ''}" data-enlace="${esc(e.id)}">
+        <path class="hit" d="${c.d}"></path>
+        <path class="linea" d="${c.d}" marker-end="url(#${sel ? 'flechaSel' : 'flecha'})"></path>
+      </g>`;
+      if (sel) borrar = c.mid;
+    });
+    $('#gEnlaces').innerHTML = html;
+    $('#gEnlaces').querySelectorAll('.hit').forEach(h => {
+      h.addEventListener('pointerdown', ev => {
+        ev.stopPropagation();
+        SEL_ENL = h.parentNode.dataset.enlace; SEL = null;
+        cerrarPaleta(); pintarLienzo(); pintarInspector();
+      });
+    });
+    const viejo = $('#enlBorrar'); if (viejo) viejo.remove();
+    if (borrar) {
+      const b = document.createElement('button');
+      b.className = 'enl-borrar'; b.id = 'enlBorrar'; b.title = 'Borrar esta conexión';
+      b.style.left = borrar.x + 'px'; b.style.top = borrar.y + 'px';
+      b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>';
+      b.addEventListener('pointerdown', ev => ev.stopPropagation());
+      b.addEventListener('click', borrarEnlaceSel);
+      $('#mundo').appendChild(b);
+    }
+  }
+
+  function borrarEnlaceSel() {
+    if (!SEL_ENL) return;
+    foto();
+    ACT.enlaces = ACT.enlaces.filter(e => e.id !== SEL_ENL);
+    SEL_ENL = null;
+    pintarEnlaces(); cambio();
+  }
+
+  // ── Vista: mover y hacer zoom ──
+  function aplicarVista() {
+    $('#mundo').style.transform = `translate(${VIEW.x}px, ${VIEW.y}px) scale(${VIEW.z})`;
+    const lz = $('#lienzo');
+    const g = 22 * VIEW.z;
+    lz.style.backgroundSize = `${g}px ${g}px`;
+    lz.style.backgroundPosition = `${VIEW.x}px ${VIEW.y}px`;
+    $('#zPct').textContent = Math.round(VIEW.z * 100) + '%';
+    clearTimeout(aplicarVista._t);
+    const id = ACT && ACT.id;
+    aplicarVista._t = setTimeout(() => { try { if (id) localStorage.setItem(LS_VISTA + id, JSON.stringify(VIEW)); } catch (e) {} }, 400);
+  }
+  function zoomEn(px, py, nz) {
+    nz = Math.min(1.8, Math.max(0.25, nz));
+    VIEW.x = px - (px - VIEW.x) * (nz / VIEW.z);
+    VIEW.y = py - (py - VIEW.y) * (nz / VIEW.z);
+    VIEW.z = nz;
+    aplicarVista();
+  }
+  function encajar() {
+    const lz = $('#lienzo');
+    const W = lz.clientWidth, H = lz.clientHeight;
+    if (!ACT.nodos.length || !W) { VIEW = { x: 120, y: H / 2 - 40, z: 1 }; aplicarVista(); return; }
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    ACT.nodos.forEach(n => {
+      const el = elNodo(n.id);
+      const w = el ? el.offsetWidth : 230, h = el ? el.offsetHeight : 80;
+      x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y);
+      x1 = Math.max(x1, n.x + w); y1 = Math.max(y1, n.y + h);
+    });
+    const pad = 70;
+    const ancho = W - (SEL ? 330 : 0);
+    const z = Math.min(1.1, Math.max(0.3, Math.min((ancho - pad * 2) / (x1 - x0), (H - pad * 2 - 60) / (y1 - y0))));
+    VIEW = { z, x: (ancho - (x1 - x0) * z) / 2 - x0 * z, y: (H - 60 - (y1 - y0) * z) / 2 - y0 * z };
+    aplicarVista();
+  }
+  // Que el nodo elegido no quede tapado por el inspector ni por los
+  // bordes: si hace falta, el lienzo se corre lo justo, sin saltos.
+  function asegurarVisible(id) {
+    const n = nodo(id), el = elNodo(id), lz = $('#lienzo');
+    if (!n || !el) return;
+    const movil = window.innerWidth <= 900;
+    const W = lz.clientWidth - (!movil && !$('#insp').hidden ? 340 : 0);
+    const H = lz.clientHeight - (movil && !$('#insp').hidden ? lz.clientHeight * 0.62 : 0);
+    const m = 24;
+    const x0 = VIEW.x + n.x * VIEW.z, y0 = VIEW.y + n.y * VIEW.z;
+    const x1 = x0 + el.offsetWidth * VIEW.z, y1 = y0 + el.offsetHeight * VIEW.z;
+    let dx = 0, dy = 0;
+    if (x1 > W - m) dx = (W - m) - x1;
+    if (x0 + dx < m) dx = m - x0;
+    if (y1 > H - m) dy = (H - m) - y1;
+    if (y0 + dy < m) dy = m - y0;
+    if (!dx && !dy) return;
+    lz.classList.add('suave');
+    VIEW.x += dx; VIEW.y += dy; aplicarVista();
+    clearTimeout(asegurarVisible._t);
+    asegurarVisible._t = setTimeout(() => lz.classList.remove('suave'), 320);
+  }
+
+  const aMundo = (cx, cy) => {
+    const r = $('#lienzo').getBoundingClientRect();
+    return { x: (cx - r.left - VIEW.x) / VIEW.z, y: (cy - r.top - VIEW.y) / VIEW.z };
+  };
+
+  // ═══════════════ INTERACCIÓN CON EL MOUSE ═══════════════
+  let GESTO = null;
+
+  function empezar(e) {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (e.target.closest('.paleta, .insp, .zoom, .leyenda, .enl-borrar')) return;
+    cerrarPaleta();
+    const puerto = e.target.closest('.puerto.out');
+    const nEl = e.target.closest('.nodo');
+    const lz = $('#lienzo');
+
+    if (puerto && nEl) {
+      GESTO = { modo: 'conectar', de: nEl.dataset.id, salida: puerto.dataset.salida };
+      lz.classList.add('conectando');
+    } else if (nEl) {
+      const n = nodo(nEl.dataset.id);
+      const cambiaSel = SEL !== n.id || SEL_ENL;
+      SEL = n.id; SEL_ENL = null;
+      if (cambiaSel) {
+        document.querySelectorAll('.nodo.sel').forEach(x => x.classList.remove('sel'));
+        nEl.classList.add('sel');
+        pintarEnlaces(); pintarInspector();
+      }
+      GESTO = { modo: 'nodo', id: n.id, sx: e.clientX, sy: e.clientY, nx: n.x, ny: n.y, movio: false };
+    } else {
+      if (SEL || SEL_ENL) { SEL = null; SEL_ENL = null; pintarLienzo(); pintarInspector(); }
+      GESTO = { modo: 'pan', sx: e.clientX, sy: e.clientY, vx: VIEW.x, vy: VIEW.y };
+      lz.classList.add('paneando');
+    }
+    try { lz.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+
+  function mover(e) {
+    if (!GESTO) return;
+    if (GESTO.modo === 'pan') {
+      VIEW.x = GESTO.vx + (e.clientX - GESTO.sx);
+      VIEW.y = GESTO.vy + (e.clientY - GESTO.sy);
+      aplicarVista();
+    } else if (GESTO.modo === 'nodo') {
+      const dx = (e.clientX - GESTO.sx) / VIEW.z, dy = (e.clientY - GESTO.sy) / VIEW.z;
+      if (!GESTO.movio && Math.abs(dx) + Math.abs(dy) < 3) return;
+      if (!GESTO.movio) { foto(); GESTO.movio = true; const el = elNodo(GESTO.id); if (el) el.classList.add('arrastrando'); }
+      const n = nodo(GESTO.id);
+      // Se pega a una grilla de 10: los diagramas quedan prolijos sin esfuerzo.
+      n.x = Math.round((GESTO.nx + dx) / 10) * 10;
+      n.y = Math.round((GESTO.ny + dy) / 10) * 10;
+      const el = elNodo(n.id);
+      if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
+      pintarEnlaces();
+    } else if (GESTO.modo === 'conectar') {
+      const a = nodo(GESTO.de);
+      const p1 = puntoSalida(a, GESTO.salida), p2 = aMundo(e.clientX, e.clientY);
+      $('#tmp').setAttribute('d', curva(p1, p2).d);
+      document.querySelectorAll('.puerto.in.destino').forEach(x => x.classList.remove('destino'));
+      const bajo = document.elementFromPoint(e.clientX, e.clientY);
+      const dest = bajo && bajo.closest('.nodo');
+      if (dest && dest.dataset.id !== GESTO.de) { const pin = dest.querySelector('.puerto.in'); if (pin) pin.classList.add('destino'); }
+    }
+  }
+
+  function terminar(e) {
+    if (!GESTO) return;
+    const g = GESTO; GESTO = null;
+    const lz = $('#lienzo');
+    lz.classList.remove('paneando', 'conectando');
+    if (g.modo === 'nodo' && g.movio) {
+      const el = elNodo(g.id); if (el) el.classList.remove('arrastrando');
+      cambio();
+    }
+    if (g.modo === 'nodo' && !g.movio) asegurarVisible(g.id);
+    if (g.modo === 'conectar') {
+      $('#tmp').setAttribute('d', '');
+      document.querySelectorAll('.puerto.in.destino').forEach(x => x.classList.remove('destino'));
+      const bajo = document.elementFromPoint(e.clientX, e.clientY);
+      const dest = bajo && bajo.closest('.nodo');
+      if (dest) conectar(g.de, dest.dataset.id, g.salida);
+      else if (bajo && bajo.closest('#lienzo')) {
+        // Soltaste en el vacío: como en n8n, se abre la paleta y el nodo
+        // que elijas queda conectado.
+        abrirPaleta(e.clientX, e.clientY, { de: g.de, salida: g.salida });
+      }
+    }
+  }
+
+  function conectar(de, a, salida) {
+    const nb = nodo(a);
+    if (!nb || de === a) return;
+    if (nb.tipo === 'nota') { toast('Las notas no se conectan'); return; }
+    if (nb.tipo === 'disparador') { toast('Un “Cuando…” arranca el flujo: no recibe flechas'); return; }
+    if (ACT.enlaces.some(x => x.de === de && x.a === a && x.salida === salida)) return;
+    foto();
+    ACT.enlaces.push({ id: nuevoId('e'), de, a, salida: salida || 'a' });
+    pintarEnlaces(); cambio();
+  }
+
+  // ═══════════════ PALETA ═══════════════
+  let PAL = null;   // { mundo: {x,y}, pendiente: {de, salida} | null }
+  let PAL_FOCO = 0;
+
+  function abrirPaleta(cx, cy, pendiente) {
+    const lz = $('#lienzo'), r = lz.getBoundingClientRect();
+    const pal = $('#paleta');
+    PAL = { mundo: aMundo(cx, cy), pendiente: pendiente || null };
+    let left = cx - r.left + 8, top = cy - r.top + 8;
+    left = Math.min(left, r.width - 300); top = Math.min(top, r.height - 430);
+    pal.style.left = Math.max(8, left) + 'px'; pal.style.top = Math.max(8, top) + 'px';
+    pal.hidden = false;
+    $('#palBuscar').value = '';
+    PAL_FOCO = 0;
+    pintarPaleta('');
+    setTimeout(() => $('#palBuscar').focus(), 10);
+  }
+  function cerrarPaleta() { $('#paleta').hidden = true; PAL = null; }
+  function tiposPaleta(q) {
+    q = (q || '').toLowerCase();
+    return ORDEN_TIPOS.filter(t => {
+      if (PAL && PAL.pendiente && (t === 'nota' || t === 'disparador')) return false;
+      return !q || (TIPOS[t].nom + ' ' + TIPOS[t].desc).toLowerCase().indexOf(q) !== -1;
+    });
+  }
+  function pintarPaleta(q) {
+    const ts = tiposPaleta(q);
+    if (PAL_FOCO >= ts.length) PAL_FOCO = 0;
+    $('#palLista').innerHTML = ts.map((t, i) => `
+      <button class="pal-item t-${t}${i === PAL_FOCO ? ' foco' : ''}" data-tipo="${t}">
+        <span class="n-ico">${ico(t)}</span>
+        <span><div class="pal-nom">${TIPOS[t].nom}</div><div class="pal-desc">${TIPOS[t].desc}</div></span>
+      </button>`).join('') || '<div style="padding:10px;font-size:12px;color:var(--ink-mute)">Ninguno.</div>';
+    $('#palLista').querySelectorAll('[data-tipo]').forEach(b => b.addEventListener('click', () => crearNodo(b.dataset.tipo)));
+  }
+
+  function crearNodo(tipo) {
+    if (!PAL) return;
+    foto();
+    // Lo que agregues en un flujo de fábrica arranca como "a construir":
+    // si ya andara, estaría en el diagrama. En uno nuevo, todo es idea.
+    const estado = ACT.grupo === 'sistema' ? 'construir' : 'idea';
+    const n = {
+      id: nuevoId('n'), tipo,
+      x: Math.round((PAL.mundo.x - (PAL.pendiente ? 0 : 115)) / 10) * 10,
+      y: Math.round((PAL.mundo.y - 36) / 10) * 10,
+      titulo: '', detalle: '', tabla: '', estado, como: ''
+    };
+    ACT.nodos.push(n);
+    if (PAL.pendiente && tipo !== 'nota' && tipo !== 'disparador') {
+      ACT.enlaces.push({ id: nuevoId('e'), de: PAL.pendiente.de, a: n.id, salida: PAL.pendiente.salida || 'a' });
+    }
+    SEL = n.id; SEL_ENL = null;
+    cerrarPaleta();
+    pintarLienzo(); pintarInspector(); cambio();
+    asegurarVisible(n.id);
+    setTimeout(() => { const i = $('#iTit'); if (i) i.focus({ preventScroll: true }); }, 30);
+  }
+
+  // ═══════════════ INSPECTOR ═══════════════
+  function pintarInspector() {
+    const box = $('#insp');
+    const n = SEL && nodo(SEL);
+    if (!n) { box.hidden = true; return; }
+    box.hidden = false;
+    const esNota = n.tipo === 'nota';
+    const entran = ACT.enlaces.filter(e => e.a === n.id).map(e => nodo(e.de)).filter(Boolean);
+    const salen = ACT.enlaces.filter(e => e.de === n.id).map(e => ({ n: nodo(e.a), s: e.salida })).filter(x => x.n);
+    const nom = x => esc(x.titulo || TIPOS[x.tipo].nom);
+
+    box.innerHTML = `
+      <div class="insp-head t-${n.tipo}">
+        <span class="n-ico">${ico(n.tipo)}</span>
+        <span class="n-tipo">${TIPOS[n.tipo].nom}</span>
+        <button class="insp-x" id="iCerrar" title="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg></button>
+      </div>
+      <div class="insp-body">
+        <div class="campo">
+          <label class="campo-lab" for="iTit">${esNota ? 'Título de la nota' : 'Qué pasa'}</label>
+          <input id="iTit" value="${esc(n.titulo)}" placeholder="${esNota ? 'Algo para no olvidarse' : 'Ej: Se crea el egreso'}" maxlength="140">
+        </div>
+        <div class="campo">
+          <label class="campo-lab" for="iDet">${esNota ? 'Texto' : 'Detalle'}</label>
+          <textarea id="iDet" placeholder="${esNota ? '' : 'Por qué, qué cuidar, qué se rompe si falla…'}">${esc(n.detalle)}</textarea>
+        </div>
+        ${esNota ? '' : `
+        <div class="campo">
+          <span class="campo-lab">Estado</span>
+          <div class="seg" id="iEst">
+            ${Object.keys(ESTADOS).map(k => `<button class="s-${k}${n.estado === k ? ' on' : ''}" data-est="${k}">${ESTADOS[k].t}</button>`).join('')}
+          </div>
+        </div>
+        <div class="campo">
+          <label class="campo-lab" for="iTabla">Tabla o campo</label>
+          <input id="iTabla" value="${esc(n.tabla)}" placeholder="trabajo_extra, cobro.estado…">
+        </div>
+        <div class="campo">
+          <label class="campo-lab" for="iComo">Cómo se hace</label>
+          <input id="iComo" value="${esc(n.como)}" list="iComoLista" placeholder="n8n, trigger, botón…">
+          <datalist id="iComoLista">${COMO_SUGERIDO.map(c => `<option value="${esc(c)}">`).join('')}</datalist>
+          <div class="ayuda">Mientras no ande, esto aparece en el nodo. Sirve para ver de un vistazo qué se arma con n8n y qué con la base.</div>
+        </div>
+        <div class="campo">
+          <label class="campo-lab" for="iTipo">Tipo de paso</label>
+          <select id="iTipo">${ORDEN_TIPOS.filter(t => t !== 'nota').map(t => `<option value="${t}"${t === n.tipo ? ' selected' : ''}>${TIPOS[t].nom}</option>`).join('')}</select>
+        </div>
+        <div class="campo">
+          <span class="campo-lab">Conexiones</span>
+          <div class="conexiones">
+            ${entran.map(x => `<div class="cx"><span>viene de</span><button data-ir="${esc(x.id)}">${nom(x)}</button></div>`).join('')}
+            ${salen.map(x => `<div class="cx"><span>${x.s === 'si' ? 'si sí →' : x.s === 'no' ? 'si no →' : 'sigue en'}</span><button data-ir="${esc(x.n.id)}">${nom(x.n)}</button></div>`).join('')}
+            ${!entran.length && !salen.length ? '<span style="color:var(--ink-mute)">Suelto. Arrastrá desde el punto de la derecha para conectarlo.</span>' : ''}
+          </div>
+        </div>`}
+        <div class="insp-acc">
+          <button class="btn-ghost" id="iDup">Duplicar</button>
+          <button class="btn-ghost peligro" id="iBorrar">Borrar</button>
+        </div>
+      </div>`;
+
+    // Una foto por campo editado, no una por tecla: deshacer vuelve al
+    // texto de antes de que empezaras a escribir, no letra por letra.
+    const campo = (sel, prop) => {
+      const el = $(sel); if (!el) return;
+      let tocado = false;
+      el.addEventListener('input', () => {
+        if (!tocado) { foto(); tocado = true; }
+        n[prop] = el.value; repintarNodo(n.id); cambio();
+      });
+    };
+    campo('#iTit', 'titulo'); campo('#iDet', 'detalle'); campo('#iTabla', 'tabla'); campo('#iComo', 'como');
+    $('#iCerrar').addEventListener('click', () => { SEL = null; pintarLienzo(); pintarInspector(); });
+    box.querySelectorAll('[data-est]').forEach(b => b.addEventListener('click', () => {
+      foto(); n.estado = b.dataset.est; pintarLienzo(); pintarInspector(); cambio();
+    }));
+    const ti = $('#iTipo');
+    if (ti) ti.addEventListener('change', () => { foto(); n.tipo = ti.value; normalizar(n); pintarLienzo(); pintarInspector(); cambio(); });
+    box.querySelectorAll('[data-ir]').forEach(b => b.addEventListener('click', () => { SEL = b.dataset.ir; pintarLienzo(); pintarInspector(); asegurarVisible(SEL); }));
+    $('#iDup').addEventListener('click', () => {
+      foto();
+      const c = Object.assign(clonar(n), { id: nuevoId('n'), x: n.x + 30, y: n.y + 110 });
+      ACT.nodos.push(c); SEL = c.id; pintarLienzo(); pintarInspector(); cambio();
+    });
+    $('#iBorrar').addEventListener('click', borrarNodoSel);
+  }
+
+  // Cuando un nodo cambia de tipo, las flechas que ya no tienen sentido
+  // se acomodan o se van. Un "Si / No" que deja de serlo pierde el sí y
+  // el no; un "Cuando…" no puede recibir flechas.
+  function normalizar(n) {
+    if (n.tipo === 'disparador') ACT.enlaces = ACT.enlaces.filter(e => e.a !== n.id);
+    if (n.tipo === 'condicion') {
+      let i = 0;
+      ACT.enlaces.forEach(e => { if (e.de === n.id && e.salida === 'a') e.salida = (i++ % 2 === 0) ? 'si' : 'no'; });
+    } else {
+      const vistos = {};
+      ACT.enlaces = ACT.enlaces.filter(e => {
+        if (e.de !== n.id) return true;
+        e.salida = 'a';
+        if (vistos[e.a]) return false;
+        vistos[e.a] = true; return true;
+      });
+    }
+  }
+
+  function borrarNodoSel() {
+    if (!SEL) return;
+    foto();
+    ACT.nodos = ACT.nodos.filter(n => n.id !== SEL);
+    ACT.enlaces = ACT.enlaces.filter(e => e.de !== SEL && e.a !== SEL);
+    SEL = null;
+    pintarLienzo(); pintarInspector(); cambio();
+  }
+
+  // ═══════════════ EVENTOS ═══════════════
+  function montar() {
+    const lz = $('#lienzo');
+    lz.addEventListener('pointerdown', empezar);
+    lz.addEventListener('pointermove', mover);
+    lz.addEventListener('pointerup', terminar);
+    lz.addEventListener('pointercancel', terminar);
+    lz.addEventListener('dblclick', e => {
+      // Se mira qué hay debajo del mouse y no e.target: con el puntero
+      // capturado, algunos navegadores le mandan el evento al lienzo y un
+      // doble click sobre un nodo abriría la paleta.
+      const bajo = document.elementFromPoint(e.clientX, e.clientY) || e.target;
+      if (bajo.closest('.nodo, .paleta, .insp, .zoom, .leyenda, .enl-borrar')) {
+        if (bajo.closest('.nodo')) setTimeout(() => { const i = $('#iTit'); if (i) { i.focus(); i.select(); } }, 20);
+        return;
+      }
+      abrirPaleta(e.clientX, e.clientY, null);
+    });
+    // Rueda: mueve. Con ⌘/Ctrl (o pellizcando el trackpad): zoom.
+    lz.addEventListener('wheel', e => {
+      if (e.target.closest('.paleta, .insp')) return;
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) {
+        const r = lz.getBoundingClientRect();
+        zoomEn(e.clientX - r.left, e.clientY - r.top, VIEW.z * Math.exp(-e.deltaY * 0.01));
+      } else {
+        VIEW.x -= e.deltaX; VIEW.y -= e.deltaY; aplicarVista();
+      }
+    }, { passive: false });
+
+    const centro = () => ({ x: lz.clientWidth / 2, y: lz.clientHeight / 2 });
+    $('#zMas').addEventListener('click', () => { const c = centro(); zoomEn(c.x, c.y, VIEW.z * 1.2); });
+    $('#zMenos').addEventListener('click', () => { const c = centro(); zoomEn(c.x, c.y, VIEW.z / 1.2); });
+    $('#zEncajar').addEventListener('click', encajar);
+    $('#cerrarLey').addEventListener('click', () => { $('#leyenda').style.display = 'none'; try { localStorage.setItem('comakers.diagramas.sinley', '1'); } catch (e) {} });
+    try { if (localStorage.getItem('comakers.diagramas.sinley')) $('#leyenda').style.display = 'none'; } catch (e) {}
+
+    $('#btnAgregar').addEventListener('click', () => {
+      const r = lz.getBoundingClientRect();
+      abrirPaleta(r.left + r.width / 2 - 145, r.top + 90, null);
+      PAL.mundo = aMundo(r.left + r.width / 2, r.top + r.height / 2);
+    });
+    $('#btnDeshacer').addEventListener('click', deshacer);
+
+    $('#palBuscar').addEventListener('input', e => { PAL_FOCO = 0; pintarPaleta(e.target.value); });
+    $('#palBuscar').addEventListener('keydown', e => {
+      const ts = tiposPaleta($('#palBuscar').value);
+      if (e.key === 'ArrowDown') { e.preventDefault(); PAL_FOCO = (PAL_FOCO + 1) % ts.length; pintarPaleta($('#palBuscar').value); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); PAL_FOCO = (PAL_FOCO - 1 + ts.length) % ts.length; pintarPaleta($('#palBuscar').value); }
+      if (e.key === 'Enter' && ts[PAL_FOCO]) { e.preventDefault(); crearNodo(ts[PAL_FOCO]); }
+      if (e.key === 'Escape') cerrarPaleta();
+    });
+
+    const tit = $('#fTit'), desc = $('#fDesc');
+    tit.addEventListener('input', () => { ACT.titulo = tit.value; $('#bmTitulo').textContent = tit.value; programarGuardado(); pintarLista(); });
+    desc.addEventListener('input', () => { ACT.descripcion = desc.value; programarGuardado(); });
+    [tit, desc].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') i.blur(); }));
+
+    $('#btnDuplicar').addEventListener('click', () => {
+      const f = clonar(ACT);
+      f.id = nuevoId('f-'); f.grupo = 'nuevas'; f.guardado = false;
+      f.titulo = (ACT.titulo || 'Flujo') + ' (copia)';
+      FLUJOS.push(f); guardar(f); abrir(f.id);
+      toast('Copia creada: ahí podés romper todo tranquila');
+    });
+    $('#btnBorrarFlujo').addEventListener('click', async () => {
+      const fab = esFabrica(ACT.id);
+      const ok = window.confirm(fab
+        ? '¿Volver a la versión original? Se pierden los cambios que le hiciste a este flujo.'
+        : '¿Borrar “' + (ACT.titulo || 'este flujo') + '”? No se puede deshacer.');
+      if (!ok) return;
+      clearTimeout(tGuardar); tGuardar = null;
+      const id = ACT.id;
+      if (!(await borrarFila(id))) return;
+      try { localStorage.removeItem(LS_VISTA + id); } catch (e) {}
+      if (fab) {
+        const i = FLUJOS.findIndex(f => f.id === id);
+        FLUJOS[i] = Object.assign(clonar(FABRICA.find(f => f.id === id)), { guardado: false });
+        abrir(id); toast('Restaurado');
+      } else {
+        FLUJOS = FLUJOS.filter(f => f.id !== id);
+        abrir(FLUJOS[0].id); toast('Borrado');
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      const a = document.activeElement;
+      const escribiendo = a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !escribiendo) { e.preventDefault(); deshacer(); return; }
+      if (escribiendo) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (SEL) { e.preventDefault(); borrarNodoSel(); }
+        else if (SEL_ENL) { e.preventDefault(); borrarEnlaceSel(); }
+      }
+      if (e.key === 'Escape') {
+        cerrarPaleta();
+        if (SEL || SEL_ENL) { SEL = null; SEL_ENL = null; pintarLienzo(); pintarInspector(); }
+      }
+    });
+    document.addEventListener('pointerdown', e => {
+      if (!$('#paleta').hidden && !e.target.closest('.paleta') && !e.target.closest('#btnAgregar') && !e.target.closest('#lienzo')) cerrarPaleta();
+    });
+    // Antes de irte, lo que esté esperando se guarda ya.
+    window.addEventListener('beforeunload', () => { if (tGuardar && ACT) { clearTimeout(tGuardar); guardar(ACT); } });
+
+    $('#bmMenu').addEventListener('click', () => { $('#sidebar').classList.toggle('abierto'); $('#tapaMenu').classList.toggle('on'); });
+    $('#tapaMenu').addEventListener('click', () => { $('#sidebar').classList.remove('abierto'); $('#tapaMenu').classList.remove('on'); });
+    $('#btnTema').addEventListener('click', () => {
+      const osc = document.documentElement.dataset.tema === 'oscuro';
+      if (osc) delete document.documentElement.dataset.tema; else document.documentElement.dataset.tema = 'oscuro';
+      try { localStorage.setItem('comakers-tema', osc ? 'claro' : 'oscuro'); } catch (e) {}
+    });
+  }
+
+  // ═══════════════ ARRANQUE ═══════════════
+  function iniciales(n, e) {
+    const p = (n || e || '?').trim().split(/\s+/);
+    return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase();
+  }
+
+  async function iniciar() {
+    if (!SB) { $('#cargando').textContent = 'No se pudo conectar con la base.'; return; }
+    const { data: sess } = await SB.auth.getSession();
+    if (!sess || !sess.session) { window.location.replace('login-comakers.html'); return; }
+
+    const { data: prof, error } = await SB.from('profiles')
+      .select('id, email, nombre, tipo, agencia, super_admin, rol, activo')
+      .eq('id', sess.session.user.id).single();
+    if (error || !prof) { $('#cargando').textContent = 'No pudimos leer tu perfil.'; return; }
+    if (prof.tipo !== 'agencia' && !prof.super_admin) { window.location.replace('panel-comakers.html'); return; }
+    if (prof.activo === false) { $('#cargando').innerHTML = 'Tu acceso al panel está dado de baja.<br>Si es un error, escribile a Delfi.'; return; }
+    if (!(prof.rol === 'socia' || prof.super_admin)) {
+      $('#cargando').style.display = 'none'; $('#puerta').style.display = ''; return;
+    }
+    ME = prof;
+    $('#miNombre').textContent = prof.nombre || prof.email;
+    $('#miAvatar').textContent = iniciales(prof.nombre, prof.email);
+    $('#miRol').textContent = (prof.super_admin ? 'Super admin · ' : 'Socia · ') + (prof.agencia || 'CoMakers');
+
+    await cargarFlujos();
+    $('#cargando').style.display = 'none';
+    $('#raiz').style.display = '';
+    montar();
+    const h = decodeURIComponent((location.hash || '').replace('#', ''));
+    abrir(FLUJOS.some(f => f.id === h) ? h : FLUJOS[0].id);
+  }
+
+  iniciar();
+})();
+</script>
+</body>
+</html>
