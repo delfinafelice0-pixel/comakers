@@ -481,6 +481,15 @@ Deno.serve(async (req) => {
     const interPorTipo: Record<string, number> = {};
     let follows: number | null = null, unfollows: number | null = null;
 
+    // Métricas de cuenta (22/09/2026).
+    let visitasPerfil: number | null = null, clicsWeb: number | null = null;
+    let viewsSeguidores: number | null = null, viewsNoSeguidores: number | null = null;
+    let reachSeguidores: number | null = null, reachNoSeguidores: number | null = null;
+    let cuentasEngaged: number | null = null, unicosDias: number | null = null;
+    // Seguidores conectados: Meta manda las 24 horas de cada día; se promedian.
+    const horasSuma: Record<string, number> = {};
+    const horasDias: Record<string, number> = {};
+
     for (const v of ventanas) {
       // (a) Métricas simples, en una sola llamada.
       const SIMPLES = 'views,reach,likes,comments,saves,shares,replies,reposts';
@@ -548,6 +557,103 @@ Deno.serve(async (req) => {
         if (f !== null) follows = sumar(follows, f);
         if (u !== null) unfollows = sumar(unfollows, u);
       }
+
+      // (e) Visitas al perfil y clics al enlace de la bio. Dos llamadas
+      //     y no una: si Meta deja de reconocer una métrica, la otra
+      //     igual llega.
+      const pv = await pedir('metric=profile_views&period=day&metric_type=total_value', 'visitas_al_perfil', v);
+      if (pv) visitasPerfil = sumar(visitasPerfil, valorTotal(pv, 'profile_views'));
+
+      const wc = await pedir('metric=website_clicks&period=day&metric_type=total_value', 'clics_al_enlace', v);
+      if (wc) clicsWeb = sumar(clicsWeb, valorTotal(wc, 'website_clicks'));
+
+      // (f) Vistas de seguidores y de no seguidores. Son conteos de
+      //     vistas, no de personas: se suman entre ventanas.
+      const vSeg = await pedir('metric=views&period=day&metric_type=total_value&breakdown=follow_type', 'vistas_por_seguidor', v);
+      if (vSeg) {
+        const d = porBreakdown(vSeg, 'views');
+        viewsSeguidores = sumar(viewsSeguidores, d['FOLLOWER'] ?? null);
+        viewsNoSeguidores = sumar(viewsNoSeguidores, d['NON_FOLLOWER'] ?? null);
+      }
+
+      // (g) Personas únicas: solo de la PRIMERA ventana, y se anota
+      //     cuántos días cubren. Sumar dos ventanas contaría dos veces
+      //     a quien apareció en las dos mitades del mes.
+      if (v === ventanas[0]) {
+        unicosDias = Math.round((v.until - v.since) / 86400);
+
+        const rSeg = await pedir('metric=reach&period=day&metric_type=total_value&breakdown=follow_type', 'alcance_por_seguidor', v);
+        if (rSeg) {
+          const d = porBreakdown(rSeg, 'reach');
+          reachSeguidores = d['FOLLOWER'] ?? null;
+          reachNoSeguidores = d['NON_FOLLOWER'] ?? null;
+        }
+
+        const eng = await pedir('metric=accounts_engaged&period=day&metric_type=total_value', 'cuentas_que_interactuaron', v);
+        if (eng) cuentasEngaged = valorTotal(eng, 'accounts_engaged');
+      }
+
+      // (h) Seguidores conectados por hora: un objeto de 24 horas por
+      //     día. Se acumula para promediar después.
+      const onl = await pedir('metric=online_followers&period=lifetime', 'conectados_por_hora', v);
+      for (const dia of (onl?.data?.[0]?.values ?? [])) {
+        for (const [h, n] of Object.entries(dia?.value ?? {})) {
+          const hora = String(parseInt(h, 10));
+          if (hora === 'NaN') continue;
+          horasSuma[hora] = (horasSuma[hora] ?? 0) + (Number(n) || 0);
+          horasDias[hora] = (horasDias[hora] ?? 0) + 1;
+        }
+      }
+    }
+
+    // ── 3.c La foto del momento ───────────────────────────────
+    // followers_count y la demografía son de HOY: la API no guarda
+    // historia. Se escriben solo si el mes que se está trayendo es el
+    // actual, o el anterior el día 1 (lo más cerca del cierre real).
+    // Un pull manual de un mes viejo no le pega la foto de hoy encima.
+    const hoyBA = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+    const tomarFoto = mes === mesActualEnBA()
+      || (mes === mesAnterior(mesActualEnBA()) && Number(hoyBA.slice(8, 10)) === 1);
+
+    let seguidoresTotal: number | null = null;
+    let demografia: Record<string, unknown> | null = null;
+
+    if (tomarFoto) {
+      try {
+        const perfil = await graph(`/${igId}?fields=followers_count`, token);
+        if (typeof perfil?.followers_count === 'number') seguidoresTotal = perfil.followers_count;
+      } catch (e) {
+        if (e instanceof ErrorMeta && (e.code === 190 || e.code === 368)) throw e;
+        fallos['seguidores_total'] = e instanceof ErrorMeta ? e.mensaje : String(e);
+      }
+
+      // Una llamada por corte. Meta la devuelve solo con 100+ seguidores.
+      // De ciudades se guardan las 20 primeras: la lista completa son
+      // cientos de filas de una o dos personas.
+      const topN = (d: Record<string, number>, n: number) =>
+        Object.fromEntries(Object.entries(d).sort((a, b) => b[1] - a[1]).slice(0, n));
+      const dem: Record<string, unknown> = {};
+      for (const [nombre, corte] of [['edad', 'age'], ['genero', 'gender'], ['ciudad', 'city'], ['pais', 'country']]) {
+        try {
+          const r = await graph(
+            `/${igId}/insights?metric=follower_demographics&period=lifetime&metric_type=total_value&breakdown=${corte}`,
+            token,
+          );
+          const d = porBreakdown(r, 'follower_demographics');
+          if (Object.keys(d).length) dem[nombre] = corte === 'city' ? topN(d, 20) : d;
+        } catch (e) {
+          if (e instanceof ErrorMeta && (e.code === 190 || e.code === 368)) throw e;
+          fallos['demografia_' + nombre] = e instanceof ErrorMeta ? e.mensaje : String(e);
+        }
+      }
+      if (Object.keys(dem).length) demografia = dem;
+    }
+
+    const conectadosHora: Record<string, number> = {};
+    for (const h of Object.keys(horasSuma)) {
+      if (horasDias[h]) conectadosHora[h] = Math.round(horasSuma[h] / horasDias[h]);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -654,9 +760,34 @@ Deno.serve(async (req) => {
       inter_reels_org: juntar(interPorTipo, ['REEL', 'REELS']),
       follows_mes: follows,
       unfollows_mes: unfollows,
+      // Métricas de cuenta. Los conteos van siempre, aunque sean null:
+      // null es "no sabemos" y es la verdad de ese mes.
+      visitas_perfil_org: visitasPerfil,
+      clics_web_org: clicsWeb,
+      views_seguidores_org: viewsSeguidores,
+      views_no_seguidores_org: viewsNoSeguidores,
+      reach_seguidores_org: reachSeguidores,
+      reach_no_seguidores_org: reachNoSeguidores,
+      cuentas_interactuaron_org: cuentasEngaged,
+      unicos_dias: unicosDias,
       fuente: 'instagram',
       sincronizado_en: new Date().toISOString(),
     };
+
+    // Las fotos del momento se agregan solo si llegaron: escribir null
+    // acá borraría la foto buena que guardó una corrida anterior.
+    if (seguidoresTotal !== null) {
+      fila.seguidores_total = seguidoresTotal;
+      fila.seguidores_total_en = new Date().toISOString();
+    }
+    if (demografia) {
+      fila.demografia_org = demografia;
+      fila.demografia_org_en = new Date().toISOString();
+    }
+    if (Object.keys(conectadosHora).length) {
+      fila.conectados_hora = conectadosHora;
+      fila.conectados_hora_en = new Date().toISOString();
+    }
 
     // ¿Tiene pauta? Antes salía de una columna de `clientes` que
     // quedó obsoleta; ahora de cliente_modulo, igual que pull-ads.
