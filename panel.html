@@ -677,7 +677,12 @@
   const mesLabel = m => { const [y, mm] = m.split('-'); return MESES_ES[parseInt(mm, 10) - 1] + ' ' + y; };
   const mesCorto = m => { const [y, mm] = m.split('-'); return MESES_ES[parseInt(mm, 10) - 1].slice(0, 3) + ' ' + y.slice(2); };
   const slug = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'metrica';
-  const mesActual = () => new Date().toISOString().slice(0, 7);
+  // En hora de Buenos Aires, igual que los pulls. Con toISOString (UTC),
+  // desde las 21:00 del último día el panel creía que ya era el mes
+  // siguiente: marca de parcial y botón Hoy en el mes equivocado.
+  const mesActual = () => new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit'
+  }).format(new Date()).slice(0, 7);
   const iniciales = n => String(n || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('') || '·';
 
   function fmt(v, u) {
@@ -1599,7 +1604,12 @@
     // el módulo), se abre Cuenta.
     const solapaAbierta = SOLAPAS.some(s => s[0] === SOLAPA) ? SOLAPA : 'cuenta';
 
-    if (SOLAPAS.length > 1) {
+    // Un solo servicio (solo pauta o solo orgánico): no hay nada que
+    // cruzar, así que no hay solapa Cuenta ni solapas. Todo va en una
+    // sola página. null = tiene los dos (o ninguno).
+    const soloServicio = MODULOS.organico === MODULOS.pauta ? null : (MODULOS.pauta ? 'pauta' : 'organico');
+
+    if (SOLAPAS.length > 1 && !soloServicio) {
       html += '<div class="solapas" role="tablist">' + SOLAPAS.map((s, i) =>
         '<button type="button" class="solapa' + (s[0] === solapaAbierta ? ' activa' : '') + '" data-solapa="' + s[0] + '">' +
         '<span class="t">' + esc(s[1]) + '</span><span class="s">' + esc(s[2]) + '</span></button>').join('') +
@@ -1629,8 +1639,10 @@
 
     const bloques = { cuenta: '', organico: '', pauta: '' };
 
-    if (r.resumen) bloques.cuenta += '<p class="prosa">' + esc(r.resumen) + '</p>';
-    else if (AGENCIA) bloques.cuenta += '<p class="prosa mute solo-pantalla">Falta escribir qué pasó este mes.</p>';
+    // El resumen va aparte: con dos servicios encabeza la solapa Cuenta;
+    // con uno solo, encabeza la página entera.
+    const resumenHtml = r.resumen ? '<p class="prosa">' + esc(r.resumen) + '</p>'
+      : (AGENCIA ? '<p class="prosa mute solo-pantalla">Falta escribir qué pasó este mes.</p>' : '');
 
     // El analisis va al final de cada solapa: primero los numeros,
     // despues la lectura. Se arma aca y se inserta mas abajo.
@@ -1714,7 +1726,7 @@
       '<button type="button" class="btn chico" data-bcancel="1">Cancelar</button>' +
       '</div></div></section>';
 
-    const bloquesExtra = (mod) => {
+    const bloquesExtra = (mod, conAgregar = true) => {
       let s = '';
       listaBl.forEach((b, idx) => {
         if ((b.modulo || 'cuenta') !== mod) return;
@@ -1729,7 +1741,7 @@
           '</section>';
       });
       if (AGENCIA && BEDIT && BEDIT.nuevo === mod) s += formBloque({}, -1, mod);
-      if (AGENCIA && BEDIT === null) s += '<div class="agregar-bloque">' +
+      if (AGENCIA && BEDIT === null && conAgregar) s += '<div class="agregar-bloque">' +
         '<button type="button" class="btn chico" data-badd="' + mod + '">+ Agregar sección</button></div>';
       return s;
     };
@@ -1796,9 +1808,12 @@
     if (MODULOS.pauta)    paresCuenta.push(['pauta', 'resultados']);
     if (MODULOS.organico) paresCuenta.push(['organico', 'alcance'], ['organico', 'seguidores']);
     if (MODULOS.pauta)    paresCuenta.push(['pauta', 'inversion'], ['pauta', 'costo_resultado']);
-    bloques.cuenta = filaDe(paresCuenta, true) + bloques.cuenta;
+    // Con un solo servicio la fila de Cuenta repetiría la del servicio.
+    if (!soloServicio) bloques.cuenta = filaDe(paresCuenta, true) + resumenHtml + bloques.cuenta;
 
-    bloques.cuenta   += bloquesExtra('cuenta');
+    // Con un solo servicio, un solo "+ Agregar sección": el del servicio.
+    // Las secciones que ya estaban en "cuenta" se siguen mostrando.
+    bloques.cuenta   += bloquesExtra('cuenta', !soloServicio);
     bloques.organico += bloquesExtra('organico');
     bloques.pauta    += bloquesExtra('pauta');
 
@@ -1810,7 +1825,12 @@
 
     // Si hay una sola solapa no se dibujan paneles: sería una caja
     // vacía alrededor de todo el contenido.
-    if (SOLAPAS.length > 1) {
+    if (soloServicio) {
+      // Primero qué pasó, después los números del servicio y al final
+      // la lectura general y los próximos pasos.
+      html += (resumenHtml ? '<div style="margin-bottom:24px">' + resumenHtml + '</div>' : '') +
+        bloques[soloServicio] + bloques.cuenta;
+    } else if (SOLAPAS.length > 1) {
       html += SOLAPAS.map((s, i) =>
         '<div class="pane' + (s[0] === solapaAbierta ? ' activa' : '') + (bloques[s[0]] ? '' : ' solo-pantalla') + '" data-pane="' + s[0] + '">' +
         '<h2 class="pdf-solapa solo-pdf">' + esc(s[1]) + '<small>' + esc(s[2]) + '</small></h2>' +
