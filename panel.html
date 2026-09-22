@@ -433,6 +433,32 @@
   .formatos td.flojo { color: var(--ink-mute); }
   .nota-bloque { font-size: 12px; color: var(--ink-mute); margin-top: 10px; }
 
+  /* Barras de seguidores vs gente nueva, y de demografía. Nada de
+     porcentajes sueltos: al lado va siempre el número absoluto. */
+  .barras { display: flex; flex-direction: column; gap: 18px; }
+  .barra-bloque .b-tit { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .barra { display: flex; height: 34px; border-radius: 9px; overflow: hidden; background: var(--line-soft); }
+  .barra .seg { display: flex; align-items: center; padding: 0 10px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .barra .seg.propios { background: var(--lime); color: var(--ink); }
+  .barra .seg.nuevos  { background: var(--ink); color: #fff; }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); }
+  .leyenda .punto { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+  .leyenda .punto.propios { background: var(--lime); }
+  .leyenda .punto.nuevos  { background: var(--ink); }
+
+  .demo { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 26px; }
+  .demo h3 { font-family: var(--body); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+             color: var(--ink-mute); font-weight: 600; margin: 0 0 10px; }
+  .demo-fila { display: grid; grid-template-columns: 104px 1fr auto; align-items: center; gap: 10px; margin-bottom: 7px; font-size: 12.5px; }
+  .demo-fila .et { color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .demo-fila .riel { background: var(--line-soft); border-radius: 999px; height: 8px; }
+  .demo-fila .riel span { display: block; height: 8px; border-radius: 999px; background: var(--accent); }
+  .demo-fila .n { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  @media (max-width: 760px) {
+    .demo { gap: 20px; }
+    .demo-fila { grid-template-columns: 64px 1fr auto; }
+  }
+
   /* Lo que mejor funcionó / Lo que ajustamos: el anuncio arriba y la
      nota de la agencia abajo, en la misma tarjeta. */
   .anuncios-nota { display: flex; flex-direction: column; gap: 10px; }
@@ -774,6 +800,9 @@
     const { data: reps, error } = await SB.from('reporte')
       .select('id, mes, estado, resumen, proximos_pasos, publicado_en, fuente, sincronizado_en, ' +
               'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes, ' +
+              'visitas_perfil_org, clics_web_org, views_seguidores_org, views_no_seguidores_org, ' +
+              'reach_seguidores_org, reach_no_seguidores_org, cuentas_interactuaron_org, unicos_dias, ' +
+              'seguidores_total, seguidores_total_en, demografia_org, demografia_org_en, ' +
               'inversion_ads, moneda_ads, resultados_ads, accion_ads, costo_resultado_ads, ' +
               'reach_ads, impresiones_ads, frecuencia_ads, clics_ads, ctr_ads, cpm_ads, ads_sincronizado_en, ' +
               'analisis, analisis_organico, analisis_pauta, analisis_generado_en, bloques')
@@ -973,7 +1002,15 @@
     { clave: 'visualizaciones', etiqueta: 'Visualizaciones', col: c => c.views_org },
     { clave: 'interacciones',   etiqueta: 'Interacciones',
       col: c => sumaONull([c.likes_org, c.comments_org, c.shares_org, c.saves_org]) },
-    { clave: 'guardados',       etiqueta: 'Guardados',       col: c => c.saves_org }
+    { clave: 'guardados',       etiqueta: 'Guardados',       col: c => c.saves_org },
+    { clave: 'visitas_perfil',  etiqueta: 'Visitas al perfil', col: c => c.visitas_perfil_org,
+      ayuda: 'cuántas veces entraron a ver el perfil' },
+    { clave: 'clics_web',       etiqueta: 'Clics al enlace',   col: c => c.clics_web_org,
+      ayuda: 'toques en el enlace de la bio' },
+    { clave: 'cuentas_interactuaron', etiqueta: 'Cuentas que interactuaron', col: c => c.cuentas_interactuaron_org,
+      ayuda: c => 'personas distintas · cubre ' + (c.unicos_dias || '?') + ' días del mes' },
+    { clave: 'seguidores_total', etiqueta: 'Seguidores en total', col: c => c.seguidores_total,
+      ayuda: c => c.seguidores_total_en ? 'foto al ' + fechaDia(new Date(c.seguidores_total_en)) : 'foto del momento' }
   ];
 
   // Suma solo lo que existe. Si no existe nada, devuelve null (vacío),
@@ -1003,8 +1040,9 @@
         clave: def.clave,
         etiqueta: previa ? previa.etiqueta : def.etiqueta,
         valor: v == null ? null : Number(v),
-        unidad: 'num',
-        mejor: 'sube',
+        unidad: def.unidad || 'num',
+        mejor: def.mejor || 'sube',
+        ayuda: typeof def.ayuda === 'function' ? def.ayuda(c) : (def.ayuda || null),
         orden: i,
         origen: 'instagram'
       };
@@ -1089,7 +1127,9 @@
   // Tasas: lo único que se puede comparar entre un mes a medias y uno
   // completo. Un total a mitad de mes siempre "baja" contra el mes
   // entero, y eso no es información.
-  const TASAS = ['costo_resultado', 'costo_por_resultado', 'ctr', 'cpm'];
+  // 'seguidores_total' es una foto, no un acumulado del mes: comparar
+  // la de hoy contra la del mes pasado es válido aunque el mes siga.
+  const TASAS = ['costo_resultado', 'costo_por_resultado', 'ctr', 'cpm', 'seguidores_total'];
 
   // Cuándo se trajeron los números por última vez (Instagram o Meta Ads).
   function ultimaSincro(r) {
@@ -1214,6 +1254,14 @@
     { clave: 'engagement', etiqueta: 'Más engagement', q: 'de engagement', val: engagement,                                     fmt: v => v.toFixed(1).replace('.', ',') + '%' },
     { clave: 'guardados',  etiqueta: 'Más guardados',  q: 'guardados',    val: p => (p.saves == null ? null : Number(p.saves)), fmt: v => fmt(v, 'num') }
   ];
+
+  const NOMBRE_DEMO = { F: 'Mujeres', M: 'Varones', U: 'Sin dato' };
+
+  // "VILLA KRAUSE, SAN JUAN" → "Villa Krause". La provincia se repite
+  // en casi todas las filas y hace que los nombres se corten justo
+  // donde se distinguen.
+  const nombreLugar = s => String(s).split(',')[0].toLowerCase().split(' ')
+    .map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : w).join(' ');
 
   const ETIQUETA_TIPO = { reel: 'Reel', video: 'Video', carrusel: 'Carrusel', imagen: 'Imagen', historia: 'Historia' };
   const fechaCorta = iso => {
@@ -1505,6 +1553,88 @@
     return s;
   }
 
+  // ── Seguidores y gente nueva ────────────────────────────────
+  // Dos barras: las vistas (cuántas veces se vio) y las personas
+  // alcanzadas (cuánta gente distinta). Pueden contar historias
+  // distintas: en FOS, más de la mitad de las vistas son de
+  // seguidores, pero la mayoría de las personas alcanzadas no
+  // seguían la cuenta.
+  function renderPublicos(r) {
+    const c = r.cols || {};
+    const n = x => (x == null || x === '' ? null : Number(x));
+
+    const barra = (titulo, propios, nuevos, nota) => {
+      if (propios == null && nuevos == null) return '';
+      const p = propios || 0, u = nuevos || 0, total = p + u;
+      if (!total) return '';
+      const pp = Math.round(p / total * 100), pu = 100 - pp;
+      return '<div class="barra-bloque">' +
+        '<div class="b-tit">' + esc(titulo) + '</div>' +
+        '<div class="barra">' +
+        (p ? '<div class="seg propios" style="width:' + pp + '%">' + pp + '%</div>' : '') +
+        (u ? '<div class="seg nuevos" style="width:' + pu + '%">' + pu + '%</div>' : '') +
+        '</div>' +
+        '<div class="leyenda">' +
+        '<span><span class="punto propios"></span>Ya te seguían: ' + esc(fmt(p, 'num')) + '</span>' +
+        '<span><span class="punto nuevos"></span>Todavía no te seguían: ' + esc(fmt(u, 'num')) + '</span>' +
+        '</div>' +
+        (nota ? '<p class="nota-bloque">' + esc(nota) + '</p>' : '') +
+        '</div>';
+    };
+
+    const dias = n(c.unicos_dias);
+    const html =
+      barra('Vistas del contenido', n(c.views_seguidores_org), n(c.views_no_seguidores_org), '') +
+      barra('Personas alcanzadas', n(c.reach_seguidores_org), n(c.reach_no_seguidores_org),
+        dias ? 'Personas distintas. Meta no deja pedir más de 30 días de una vez, así que esto cubre los primeros ' + dias + ' días del mes.' : '');
+    if (!html) return '';
+    return '<section class="bloque"><h2>Seguidores y gente nueva</h2>' +
+      '<div class="barras">' + html + '</div></section>';
+  }
+
+  // ── Quién te sigue ──────────────────────────────────────────
+  // Es una foto de hoy, no del mes: Meta no guarda la historia. Por
+  // eso va con fecha y sin comparación contra el mes anterior.
+  function renderDemografia(r) {
+    const c = r.cols || {};
+    const d = c.demografia_org;
+    if (!d || typeof d !== 'object') return '';
+
+    // El porcentaje de ciudades va sobre el total de seguidores, no
+    // sobre la suma de las 20 guardadas: si no, San Juan diría 58%
+    // cuando en realidad es el 27% de la cuenta.
+    const lista = (obj, orden, max, totalFijo) => {
+      let filas = Object.entries(obj || {}).map(([k, v]) => [k, Number(v) || 0]);
+      if (!filas.length) return '';
+      filas = orden ? filas.sort((a, b) => orden.indexOf(a[0]) - orden.indexOf(b[0]))
+                    : filas.sort((a, b) => b[1] - a[1]);
+      if (max) filas = filas.slice(0, max);
+      const tope = Math.max.apply(null, filas.map(f => f[1])) || 1;
+      const total = totalFijo || Object.values(obj).reduce((a, b) => a + (Number(b) || 0), 0) || 1;
+      return filas.map(([k, v]) =>
+        '<div class="demo-fila"><span class="et" title="' + esc(k) + '">' + esc(NOMBRE_DEMO[k] || nombreLugar(k)) + '</span>' +
+        '<span class="riel"><span style="width:' + Math.round(v / tope * 100) + '%"></span></span>' +
+        '<span class="n">' + Math.round(v / total * 100) + '%</span></div>').join('');
+    };
+
+    const cols = [];
+    const edad = lista(d.edad, ['13-17', '18-24', '25-34', '35-44', '45-54', '55-64', '65+']);
+    if (edad) cols.push('<div><h3>Edad</h3>' + edad + '</div>');
+    const gen = lista(d.genero);
+    if (gen) cols.push('<div><h3>Género</h3>' + gen + '</div>');
+    const totalSeg = Number(c.seguidores_total) ||
+      Object.values(d.pais || {}).reduce((a, b) => a + (Number(b) || 0), 0) || 0;
+    const ciu = lista(d.ciudad, null, 6, totalSeg);
+    if (ciu) cols.push('<div><h3>Dónde viven</h3>' + ciu + '</div>');
+    if (!cols.length) return '';
+
+    const cuando = c.demografia_org_en ? ' · foto al ' + fechaDia(new Date(c.demografia_org_en)) : '';
+    return '<section class="bloque"><h2>Quién te sigue</h2>' +
+      '<div class="demo">' + cols.join('') + '</div>' +
+      '<p class="nota-bloque">Porcentajes sobre el total de seguidores de la cuenta' + esc(cuando) +
+      '. No es del mes: Meta solo dice cómo está hoy.</p></section>';
+  }
+
   function renderReporte() {
     const r = reporteDe(MES);
     const main = $('#main');
@@ -1696,6 +1826,8 @@
     // que todavía no revisaste.
     const postsMes = (r.estado === 'publicado' || AGENCIA) ? postsDelMes(MES) : [];
     bloques.organico += renderPosts(postsMes);
+    bloques.organico += renderPublicos(r);
+    bloques.organico += renderDemografia(r);
 
     // Detalle de pauta, con el mismo criterio de estado y respetando
     // el módulo.
