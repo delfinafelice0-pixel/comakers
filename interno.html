@@ -2753,7 +2753,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v21/09 15:31</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v22/09 13:39</div>
     </div>
   </aside>
 
@@ -3830,6 +3830,20 @@
       else if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     } catch (e) { /* si el navegador no deja, no pasa nada */ }
     setTimeout(() => { HASH_PROPIO = false; }, 0);
+    pintarPestaña(id);
+  }
+
+  // ── EL NOMBRE DE LA PESTAÑA ─────────────────────────────────
+  //  Con tres pestañas del panel abiertas, las tres decían "Interno ·
+  //  CoMakers" y había que entrar a cada una para saber cuál era cuál.
+  //  La que tiene una tarea abierta ahora lo dice arriba.
+  const TITULO_BASE = document.title;
+  function pintarPestaña(id) {
+    const t = (id && typeof TAREAS !== 'undefined') ? TAREAS.find(x => x.id === id) : null;
+    let nom = t ? textoPlano(t.titulo).trim() : '';
+    // La pestaña es angosta: un título kilométrico no aporta nada.
+    if (nom.length > 60) nom = nom.slice(0, 60).trim() + '…';
+    document.title = nom ? nom + ' · CoMakers' : TITULO_BASE;
   }
 
   function clienteHeredado(t) {
@@ -5851,7 +5865,40 @@
   // Nunca guardamos HTML escrito por el usuario: escapamos TODO
   // primero y recién después convertimos lo que reconocemos nosotros.
   // Así el panel del cliente puede mostrar el mismo texto sin riesgo.
-  const RE_LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  //
+  //  Ojo con el texto de adentro de los corchetes: los títulos de acá
+  //  empiezan casi siempre con el cliente entre corchetes —"[Comakers]
+  //  Contenido de - Pelis"—, así que el texto de un link LLEVA `]`.
+  //  Con el `[^\]]` de antes el link no se reconocía y se veía crudo.
+  //  Lo que sí se prohíbe es un `](` adentro (ahí arranca la URL) y un
+  //  corchete suelto sin cerrar: así "mirá [nota] y [esto](http://…)"
+  //  sigue agarrando solo el segundo y no se come media oración.
+  const TXT_LINK = '(?:[^\\[\\]\\n]|\\[[^\\[\\]\\n]*\\])+';
+  const RE_LINK = new RegExp('\\[(' + TXT_LINK + ')\\]\\((https?:\\/\\/[^\\s)]+)\\)', 'g');
+
+  // Un link envuelto en otro link: se queda el de adentro.
+  //
+  //  De dónde salía el bicho: pegabas el link de una tarea, se veía
+  //  como pastilla, y al guardar la pastilla volvía a texto como
+  //  `[título](url)`. Pero ese texto no se reconocía (por el `]` del
+  //  cliente), así que al abrir de nuevo solo se dibujaba la URL de
+  //  adentro y el `[título](` quedaba de adorno… y al guardar se
+  //  envolvía otra vez. Cada vuelta sumaba una capa:
+  //    [T]([T]([T]([T](url))))
+  //  Esto desarma lo que ya quedó escrito así, sin tocar la base: se
+  //  endereza al mostrarlo y se guarda derecho la próxima vez.
+  const RE_ENVOLTORIO = new RegExp(
+    '\\[' + TXT_LINK + '\\]\\(\\s*(\\[' + TXT_LINK + '\\]\\(https?:\\/\\/[^\\s)]+\\))\\s*\\)', 'g');
+  function enderezarLinks(txt) {
+    let s = String(txt == null ? '' : txt);
+    if (s.indexOf('](') === -1) return s;   // el 99% de los textos, sin gastar nada
+    for (let i = 0; i < 20; i++) {
+      const antes = s;
+      s = s.replace(RE_ENVOLTORIO, '$1');
+      if (s === antes) break;
+    }
+    return s;
+  }
   // Las menciones se guardan como @[Nombre](uuid): sobreviven a que la
   // persona se cambie el nombre y no hay que adivinar quién es "@marti".
   // El id no se limita a la forma de un uuid a propósito: si algún día
@@ -5946,7 +5993,7 @@
 
   function renderTexto(txt) {
     if (!txt) return '';
-    let h = esc(String(txt).replace(/\u0000/g, ''));
+    let h = esc(enderezarLinks(String(txt).replace(/\u0000/g, '')));
 
     // Guardamos menciones y links aparte antes de tocar el formato: si no,
     // una URL con __ adentro rompería su propio atributo href.
@@ -6016,7 +6063,7 @@
 
   // Para previews de una línea: se ve la palabra, no el markdown.
   function textoPlano(txt) {
-    return (txt || '')
+    return enderezarLinks(txt || '')
       .replace(RE_MENCION, '@$1')
       .replace(RE_LINK, '$1')
       .replace(/\*\*([\s\S]+?)\*\*/g, '$1')
@@ -6157,8 +6204,31 @@
         continue;
       }
       // La pastilla de una tarea: vuelve a ser su link.
+      //
+      //  Si lo que dice la pastilla es el título de la tarea —o sea,
+      //  lo pusimos nosotros—, se guarda el link PELADO. Dos motivos:
+      //  la pastilla va a mostrar siempre el título de ahora (si le
+      //  cambian el nombre a la tarea, se actualiza sola), y no hay
+      //  nada que envolver la próxima vez que se abra.
+      //  Si alguien le escribió un texto propio —"[mirá acá](url)"—,
+      //  ese sí se respeta.
       if (n.dataset && n.dataset.tlink) {
-        s += '[' + n.textContent.trim() + '](' + linkDeTarea(n.dataset.tlink) + ')';
+        const id = n.dataset.tlink;
+        const txt = n.textContent.trim();
+        const tt = (typeof TAREAS !== 'undefined') ? TAREAS.find(x => x.id === id) : null;
+        if (tt && txt && txt !== textoPlano(tt.titulo).trim()) {
+          s += '[' + txt + '](' + linkDeTarea(id) + ')';
+          continue;
+        }
+        // Un link pelado necesita aire a los costados: si se le pega
+        // la palabra de al lado, se la come adentro de la URL.
+        if (s && !/[\s(]$/.test(s)) s += ' ';
+        s += linkDeTarea(id);
+        const sig = nodos[k + 1];
+        const pegado = sig && (sig.nodeType === 3
+          ? !/^[\s)]/.test(sig.nodeValue)
+          : sig.tagName !== 'BR');
+        if (pegado) s += ' ';
         continue;
       }
       if (tag === 'A') {
@@ -6191,7 +6261,7 @@
   function leerTexto(el) {
     if (!el) return '';
     if (!esEditor(el)) return el.value || '';
-    return serieNodos(el.childNodes)
+    return enderezarLinks(serieNodos(el.childNodes))
       .replace(/ /g, ' ')          // el espacio duro que mete el navegador
       .replace(/[ \t]+$/gm, '')
       .replace(/\n{3,}/g, '\n\n')
@@ -8465,6 +8535,9 @@
   }
 
   function llenarDrawer(t) {
+    // Que la pestaña diga cómo se llama la tarea AHORA: si le cambiás
+    // el nombre con el detalle abierto, se actualiza sola.
+    pintarPestaña(t.id);
     // Si es una subtarea, arriba de todo va de quién cuelga y se puede
     // volver a la madre de un click.
     const madre = madreDe(t);
