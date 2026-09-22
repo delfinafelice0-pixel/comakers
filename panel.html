@@ -711,9 +711,17 @@
   }).format(new Date()).slice(0, 7);
   const iniciales = n => String(n || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('') || '·';
 
+  // La moneda del reporte que se está mirando. La unidad 'ars' quedó
+  // con ese nombre de cuando todo era en pesos; lo que decide el
+  // símbolo es esto, que sale de reporte.moneda_ads.
+  let MONEDA_ACTUAL = 'ARS';
+  const SIMBOLO = { ARS: '$', USD: 'US$', EUR: '€', BRL: 'R$', UYU: '$U', CLP: '$', MXN: '$' };
+  const NOMBRE_MONEDA = { USD: 'dólares (USD)', EUR: 'euros (EUR)', BRL: 'reales (BRL)', UYU: 'pesos uruguayos (UYU)', CLP: 'pesos chilenos (CLP)', MXN: 'pesos mexicanos (MXN)' };
+  const simboloMoneda = m => SIMBOLO[m] || ((m || 'ARS') + ' ');
+
   function fmt(v, u) {
     v = Number(v) || 0;
-    if (u === 'ars') return '$' + v.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+    if (u === 'ars') return simboloMoneda(MONEDA_ACTUAL) + v.toLocaleString('es-AR', { maximumFractionDigits: 0 });
     if (u === 'pct') return v.toLocaleString('es-AR', { maximumFractionDigits: 1 }) + '%';
     if (u === 'dec') return v.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
     return v.toLocaleString('es-AR', { maximumFractionDigits: 0 });
@@ -1690,6 +1698,10 @@
       return (pm && pm.valor != null && pm.valor !== '') ? pm.valor : null;
     };
 
+    // Toda la plata de este reporte se muestra en la moneda de su
+    // cuenta publicitaria. Sin pauta, queda en pesos y no se usa.
+    MONEDA_ACTUAL = (r.cols && r.cols.moneda_ads) || 'ARS';
+
     // Mes en curso: los totales no se comparan contra un mes completo.
     const enCurso = esMesEnCurso(r.mes);
     const deltaMes = (m, mod) => (enCurso && TASAS.indexOf(m.clave) === -1)
@@ -1926,7 +1938,13 @@
 
     ['organico', 'pauta'].forEach(mod => {
       if (!MODULOS[mod]) return;
-      bloques[mod] = filaDe(DESTACADAS[mod].map(c => [mod, c]), false) + bloques[mod];
+      // Si la cuenta no es en pesos, se dice con todas las letras: el
+      // símbolo solo no alcanza para que nadie lea mal el número.
+      const aviso = (mod === 'pauta' && MONEDA_ACTUAL !== 'ARS')
+        ? '<p class="nota-bloque" style="margin:-18px 0 22px">Los importes están en ' +
+          esc(NOMBRE_MONEDA[MONEDA_ACTUAL] || MONEDA_ACTUAL) + ', la moneda de la cuenta publicitaria.</p>'
+        : '';
+      bloques[mod] = filaDe(DESTACADAS[mod].map(c => [mod, c]), false) + aviso + bloques[mod];
     });
 
     // En Cuenta conviven las dos patas. Van rotuladas por origen
@@ -1941,7 +1959,11 @@
     if (MODULOS.organico) paresCuenta.push(['organico', 'alcance'], ['organico', 'seguidores']);
     if (MODULOS.pauta)    paresCuenta.push(['pauta', 'inversion'], ['pauta', 'costo_resultado']);
     // Con un solo servicio la fila de Cuenta repetiría la del servicio.
-    if (!soloServicio) bloques.cuenta = filaDe(paresCuenta, true) + resumenHtml + bloques.cuenta;
+    const avisoCuenta = (MODULOS.pauta && MONEDA_ACTUAL !== 'ARS')
+      ? '<p class="nota-bloque" style="margin:-18px 0 22px">Los importes de pauta están en ' +
+        esc(NOMBRE_MONEDA[MONEDA_ACTUAL] || MONEDA_ACTUAL) + '.</p>'
+      : '';
+    if (!soloServicio) bloques.cuenta = filaDe(paresCuenta, true) + avisoCuenta + resumenHtml + bloques.cuenta;
 
     // Con un solo servicio, un solo "+ Agregar sección": el del servicio.
     // Las secciones que ya estaban en "cuenta" se siguen mostrando.
@@ -2166,7 +2188,7 @@
 
   function renderEditor() {
     const b = BORRADOR;
-    const opU = u => ['num', 'ars', 'pct'].map(x => '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + ({ num: 'cantidad', ars: 'pesos', pct: '%' }[x]) + '</option>').join('');
+    const opU = u => ['num', 'ars', 'pct'].map(x => '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + ({ num: 'cantidad', ars: 'plata', pct: '%' }[x]) + '</option>').join('');
     const opM = m => ['sube', 'baja'].map(x => '<option value="' + x + '"' + (x === m ? ' selected' : '') + '>' + (x === 'sube' ? 'más es mejor' : 'menos es mejor') + '</option>').join('');
     const opT = t => ['logro', 'alerta', 'dato'].map(x => '<option value="' + x + '"' + (x === t ? ' selected' : '') + '>' + x + '</option>').join('');
 
