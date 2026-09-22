@@ -2737,7 +2737,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
         Ir a administración
       </a>
-      <a class="link-cliente" href="panel-comakers.html">
+      <a class="link-cliente" href="panel.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         Ver panel de cliente
       </a>
@@ -3990,7 +3990,7 @@
 
     // Guard de rol: este panel es solo para la agencia.
     if (prof.tipo !== 'agencia' && !prof.super_admin) {
-      window.location.replace('panel-comakers.html');
+      window.location.replace('panel.html');
       return;
     }
     // Dada de baja: se corta acá. La base tampoco la deja leer nada,
