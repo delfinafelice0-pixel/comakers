@@ -110,6 +110,43 @@
   /* ── LAYOUT ───────────────────────────────── */
   .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
 
+  /* ── La barra se pliega ─────────────────────────────────────
+     Como en Asana: la cerrás y el tablero se queda con los 240px.
+     En el calendario eso son 34px más por cada día de la semana,
+     que es justo lo que falta para que un título entre entero.
+
+     Solo en escritorio: en el celular la barra ya es un cajón que
+     entra y sale, y mezclar las dos cosas la dejaría trabada. */
+  .barra-abrir { display: none; }
+  @media (min-width: 901px) {
+    /* UNA sola columna, no "0 1fr": con la barra en `display:none`
+       el `main` es el único hijo y la grilla lo mete en la primera
+       celda, que mediría cero. Se veía el tablero en 200px. */
+    .app.barra-oculta { grid-template-columns: 1fr; }
+    .app.barra-oculta .sidebar { display: none; }
+    .barra-cerrar {
+      position: absolute; top: 18px; right: 12px; z-index: 3;
+      width: 26px; height: 26px; border-radius: 7px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: none; background: none; color: var(--ink-mute);
+      cursor: pointer; opacity: 0; transition: opacity .13s, background .13s;
+    }
+    .barra-cerrar svg { width: 15px; height: 15px; }
+    .sidebar:hover .barra-cerrar, .barra-cerrar:focus-visible { opacity: 1; }
+    .barra-cerrar:hover { background: var(--line-soft); color: var(--ink); }
+    .app.barra-oculta .barra-abrir {
+      display: inline-flex; align-items: center; justify-content: center;
+      position: fixed; top: 16px; left: 14px; z-index: 40;
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid var(--line); background: var(--bg-elev);
+      color: var(--ink-mute); cursor: pointer; box-shadow: var(--shadow);
+    }
+    .app.barra-oculta .barra-abrir svg { width: 16px; height: 16px; }
+    .app.barra-oculta .barra-abrir:hover { color: var(--ink); border-color: var(--ink-soft); }
+    /* El contenido se corre para no quedar abajo del botón flotante. */
+    .app.barra-oculta .main { padding-left: 54px; }
+  }
+
   /* ── SIDEBAR ───────────────────────────────── */
   .sidebar {
     background: var(--bg-elev);
@@ -1427,10 +1464,56 @@
   }
   .btn-hoy:hover { border-color: var(--ink-soft); color: var(--ink); }
 
+  /* ── El ancho del día y el alto de la semana se estiran ──────
+     Como las columnas de Excel: agarrás el borde y tirás. Los siete
+     días miden siempre lo mismo —un calendario con el lunes ancho y
+     el martes angosto no se entiende— así que un tirón los mueve a
+     todos. Si no entran, el calendario se desliza al costado.
+
+     Por defecto `--dia` es `1fr`: entra justo en la pantalla y nadie
+     nota que esto existe hasta que lo usa. */
+  .calendario { --dia: 1fr; --carriles: 4; }
+  .cal-scroll { overflow-x: auto; }
+  .cal-ancho { width: 100%; }
+  .calendario.ancho-fijo { --dia: var(--dia-px); }
+  .calendario.ancho-fijo .cal-ancho {
+    width: calc(7 * var(--dia-px)); min-width: 100%;
+  }
+
   .cal-cabecera {
-    display: grid; grid-template-columns: repeat(7, 1fr);
+    display: grid; grid-template-columns: repeat(7, var(--dia));
     border-bottom: 1px solid var(--line);
   }
+  /* La manija: una franja finita en el borde derecho de cada día.
+     Se ve al pasar el mouse, como en una planilla. */
+  .cal-cabecera div { position: relative; }
+  .col-tirador {
+    position: absolute; top: 0; bottom: -1px; right: -3px; width: 7px;
+    cursor: col-resize; z-index: 4;
+  }
+  .col-tirador::after {
+    content: ''; position: absolute; top: 4px; bottom: 4px; left: 2px;
+    width: 2px; border-radius: 2px; background: var(--ink);
+    opacity: 0; transition: opacity .12s;
+  }
+  .col-tirador:hover::after, .calendario.estirando .col-tirador::after { opacity: 0.35; }
+
+  /* Lo mismo para el alto, en el borde de abajo de cada semana. */
+  .fila-tirador {
+    position: absolute; left: 0; right: 0; bottom: -3px; height: 7px;
+    cursor: row-resize; z-index: 4;
+  }
+  .fila-tirador::after {
+    content: ''; position: absolute; left: 4px; right: 4px; top: 2px;
+    height: 2px; border-radius: 2px; background: var(--ink);
+    opacity: 0; transition: opacity .12s;
+  }
+  .fila-tirador:hover::after { opacity: 0.35; }
+  /* Mientras se estira, el cursor manda en toda la pantalla y nada
+     se selecciona sin querer. */
+  .calendario.estirando { user-select: none; }
+  .calendario.estirando * { cursor: col-resize !important; }
+  .calendario.estirando-alto * { cursor: row-resize !important; }
   .cal-cabecera div {
     padding: 8px 10px; font-size: 10px; font-weight: 600;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute);
@@ -1439,7 +1522,7 @@
 
   .sem { position: relative; border-bottom: 1px solid var(--line-soft); }
   .sem:last-child { border-bottom: none; }
-  .sem-dias { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .sem-dias { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, var(--dia)); }
   .dia { border-right: 1px solid var(--line-soft); padding: 6px 8px; transition: background 0.12s; }
   .dia:last-child { border-right: none; }
   .dia.fuera { background: var(--bg); }
@@ -1483,9 +1566,12 @@
   }
 
   .sem-barras {
-    position: relative; display: grid; grid-template-columns: repeat(7, 1fr);
+    position: relative; display: grid; grid-template-columns: repeat(7, var(--dia));
     grid-auto-rows: 25px; align-content: start;
-    gap: 3px 0; padding: 27px 3px 7px; min-height: 96px; pointer-events: none;
+    gap: 3px 0; padding: 27px 3px 7px; pointer-events: none;
+    /* El alto sale de cuántos carriles se quieren ver: 28px cada uno
+       (25 de la barra + 3 de separación) más lo de arriba y abajo. */
+    min-height: calc(var(--carriles) * 28px + 34px);
   }
   .calendario.semana .sem-barras { min-height: 430px; padding-top: 32px; grid-auto-rows: 29px; }
   .calendario.semana .sem { border-bottom: none; }
@@ -1498,8 +1584,11 @@
     background: var(--line-soft); border: 1px solid var(--line);
     cursor: grab; overflow: hidden; white-space: nowrap;
     margin: 0 2px; transition: filter 0.12s, box-shadow 0.12s;
+    /* La barrita de color del proyecto, que reemplaza al "[Cliente]"
+       que antes iba escrito adentro del título. */
+    box-shadow: inset 3px 0 0 var(--proy, transparent);
   }
-  .cal-bar:hover { filter: brightness(0.97); box-shadow: var(--shadow); }
+  .cal-bar:hover { filter: brightness(0.97); box-shadow: inset 3px 0 0 var(--proy, transparent), var(--shadow); }
   .cal-bar:active { cursor: grabbing; }
   .cal-bar.dragging { opacity: 0.4; }
   .cal-bar .txt { overflow: hidden; text-overflow: ellipsis; }
@@ -1534,7 +1623,33 @@
     background: var(--bg-elev); border: 1px solid var(--line);
     border-radius: var(--radius-lg); padding: 14px; position: sticky; top: 20px;
   }
-  .bandeja-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  /* El botón es toda la fila del título y tiene alto de sobra: antes
+     eran 17px de alto y había que apuntarle. Un botón que hay que
+     buscar con el mouse es un botón que no existe. */
+  .bandeja-head {
+    display: flex; align-items: center; gap: 7px; margin: -4px -6px 2px;
+    width: calc(100% + 12px); border: none; background: none;
+    padding: 8px 6px; border-radius: 8px;
+    cursor: pointer; text-align: left; color: inherit;
+    transition: background .12s;
+  }
+  .bandeja-head:hover { background: var(--line-soft); }
+  .bandeja-head:hover .bandeja-flecha { color: var(--ink); }
+  .bandeja-head .bandeja-title { flex: 1; }
+  .bandeja-flecha { width: 13px; height: 13px; flex-shrink: 0; color: var(--ink-mute); transition: transform .15s; }
+  .bandeja:not(.plegada) .bandeja-flecha { transform: rotate(90deg); }
+
+  /* Plegada: una tira finita al costado con el número. Los 250px que
+     libera se los queda el calendario, que es lo que se quería. */
+  .calendario.sin-bandeja { grid-template-columns: 1fr 42px; }
+  .bandeja.plegada { padding: 12px 6px; }
+  .bandeja.plegada .bandeja-sub,
+  .bandeja.plegada .bandeja-body { display: none; }
+  .bandeja.plegada .bandeja-head { flex-direction: column; gap: 10px; margin-bottom: 0; }
+  .bandeja.plegada .bandeja-title {
+    writing-mode: vertical-rl; font-size: 12.5px; color: var(--ink-mute); flex: none;
+  }
+  .bandeja.plegada .bandeja-flecha { transform: rotate(180deg); }
   .bandeja-title { font-family: var(--display); font-size: 15px; font-weight: 500; letter-spacing: -0.01em; }
   .bandeja-sub { font-size: 11px; color: var(--ink-mute); margin-bottom: 12px; line-height: 1.4; }
   .bandeja-body { display: flex; flex-direction: column; gap: 7px; max-height: 62vh; overflow-y: auto; }
@@ -2588,7 +2703,13 @@
 <div class="app">
 
   <!-- ═══════════ SIDEBAR ═══════════ -->
+  <button class="barra-abrir" id="barraAbrir" title="Abrir la barra (⌘\)" aria-label="Abrir la barra">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+  </button>
   <aside class="sidebar">
+    <button class="barra-cerrar" id="barraCerrar" title="Cerrar la barra (⌘\)" aria-label="Cerrar la barra">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+    </button>
     <div class="brand">
       <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
       <div class="brand-sub">Administración</div>
@@ -2650,7 +2771,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v18/09 13:03</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v21/09 15:31</div>
     </div>
   </aside>
 
@@ -3310,6 +3431,43 @@
     if (error || !data) return;         // falta la migración 41, o es tu primera vez
     aplicarTema(data.tema);
   }
+  // ── Lo que está plegado ──────────────────────────────────────
+  //  La barra de la izquierda y la bandeja de "Sin fecha".
+  //
+  //  Va al navegador y NO a la base, a diferencia del modo oscuro:
+  //  esto es cuánto lugar tenés en ESTA pantalla. En el monitor
+  //  grande querés la barra abierta y en la notebook cerrada, y que
+  //  te siga de una a la otra sería molesto, no útil.
+  const PLEG_LS = 'comakers-plegado';
+  let PLEGADO = { barra: false, bandeja: false };
+
+  function leerPlegado() {
+    try {
+      const x = JSON.parse(localStorage.getItem(PLEG_LS) || '{}');
+      PLEGADO.barra = !!x.barra;
+      PLEGADO.bandeja = !!x.bandeja;
+    } catch (_) {}
+    pintarPlegado();
+  }
+  function pintarPlegado() {
+    const app = document.querySelector('.app');
+    if (app) app.classList.toggle('barra-oculta', PLEGADO.barra);
+    // La bandeja de "Sin fecha" vive solo en el panel interno.
+    const b = document.querySelector('.bandeja');
+    if (b) b.classList.toggle('plegada', PLEGADO.bandeja);
+    const c = $si('#calendario');
+    if (c) c.classList.toggle('sin-bandeja', PLEGADO.bandeja);
+    const bt = $si('#bandejaToggle');
+    if (bt) bt.title = PLEGADO.bandeja
+      ? 'Abrir la bandeja de lo que no tiene fecha'
+      : 'Achicar — el calendario se queda con el lugar';
+  }
+  function plegar(cual) {
+    PLEGADO[cual] = !PLEGADO[cual];
+    pintarPlegado();
+    try { localStorage.setItem(PLEG_LS, JSON.stringify(PLEGADO)); } catch (_) {}
+  }
+
   function guardarVistas() {
     try { localStorage.setItem(VISTA_LS, JSON.stringify(VISTAS)); } catch (e) {}
   }
@@ -3829,6 +3987,7 @@
     }
 
     cargarVistas();          // con qué vista dejaste cada proyecto la última vez
+    leerPlegado();           // la barra y la bandeja, como las dejaste
     cargarTema();            // claro u oscuro, lo que elegiste vos (no se espera)
 
     $('#miNombre').textContent = prof.nombre || prof.email;
@@ -9791,6 +9950,22 @@
     $('#tapaMenu').classList.toggle('on', abierto);
   });
   on('#tapaMenu', 'click', cerrarMenuMovil);
+
+  // ── Plegar la barra y la bandeja ─────────────────────────────
+  //  Delegado en `document` y no colgado de cada botón. Con `on()`
+  //  el evento se engancha UNA vez, al arrancar, y si el elemento se
+  //  vuelve a dibujar —o si algo corre antes y lo reemplaza— el
+  //  botón queda mudo sin que se note. Así no puede pasar.
+  document.addEventListener('click', e => {
+    if (!e.target.closest) return;
+    if (e.target.closest('#barraCerrar, #barraAbrir')) { plegar('barra'); return; }
+    if (e.target.closest('#bandejaToggle')) { plegar('bandeja'); return; }
+  });
+
+  // ⌘\ es el atajo que usan Asana, Notion y el resto para esto.
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === '\\') { e.preventDefault(); plegar('barra'); }
+  });
   // Elegir cualquier cosa del menú lo cierra: si no, tapa lo que fuiste
   // a buscar y hay que cerrarlo a mano cada vez.
   document.querySelector('.sidebar').addEventListener('click', e => {
