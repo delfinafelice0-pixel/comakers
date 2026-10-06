@@ -1132,6 +1132,20 @@
   const enDestacadas = (mod, clave) => (DESTACADAS_MOD[mod] || [])
     .some(k => (ALIAS_MOD[mod + ':' + k] || [k]).indexOf(clave) !== -1);
 
+  // Todos los nombres que puede tener la misma métrica, buscando en
+  // cualquier dirección. ALIAS_MOD está escrito con la clave canónica
+  // adelante ('pauta:costo_resultado'), pero el mes que se está
+  // mirando puede ser el manual: ahí la clave que tenemos en la mano
+  // es 'costo_por_resultado' y no hay ninguna entrada con ese nombre.
+  // Buscar el GRUPO que la contiene resuelve las dos direcciones.
+  const clavesEquivalentes = (mod, clave) => {
+    for (const k in ALIAS_MOD) {
+      if (k.indexOf(mod + ':') !== 0) continue;
+      if (ALIAS_MOD[k].indexOf(clave) !== -1) return ALIAS_MOD[k];
+    }
+    return [clave];
+  };
+
   // Tasas: lo único que se puede comparar entre un mes a medias y uno
   // completo. Un total a mitad de mes siempre "baja" contra el mes
   // entero, y eso no es información.
@@ -1692,10 +1706,19 @@
     }
 
     const prev = anteriorA(MES);
+    // El mes anterior puede llamar distinto a la misma métrica:
+    // pull-ads escribe 'costo_resultado' y 'alcance_pauta', y un mes
+    // cargado a mano usa 'costo_por_resultado' y 'alcance'. Sin pasar
+    // por los alias, un mes traído de Meta contra uno manual decía
+    // "sin mes anterior" justo en esas dos tarjetas y comparaba bien
+    // todas las demás: media comparación muda y sin explicación.
     const prevVal = (mod, clave) => {
       if (!prev) return null;
-      const pm = prev.metricas.find(x => x.modulo === mod && x.clave === clave);
-      return (pm && pm.valor != null && pm.valor !== '') ? pm.valor : null;
+      for (const k of clavesEquivalentes(mod, clave)) {
+        const pm = prev.metricas.find(x => x.modulo === mod && x.clave === k);
+        if (pm && pm.valor != null && pm.valor !== '') return pm.valor;
+      }
+      return null;
     };
 
     // Toda la plata de este reporte se muestra en la moneda de su
@@ -1762,12 +1785,19 @@
     // genera la misma llamada y se revisan juntos.
     const esBorradorAn = !!r.analisis_generado_en;
     const analisisViejo = analisisDesactualizado(r);
+    // El chip, el borde coral y el cartel son señales internas: le
+    // dicen a la agencia que ese texto todavía no lo revisó nadie. Al
+    // cliente no le hablan —el cartel le decía "Editalo y guardalo"— y
+    // un reporte publicado con el borrador todavía marcado se los
+    // mostraba en pantalla. En el PDF ya estaban fuera por el
+    // @media print; faltaba el gate en pantalla.
+    const marcaBorrador = AGENCIA && esBorradorAn;
     const bloqueTexto = (titulo, texto, conBoton) => {
       if (!texto && !AGENCIA) return '';
-      let s = '<section class="bloque analisis' + (esBorradorAn && texto ? ' es-borrador' : '') + (texto ? '' : ' solo-pantalla') + '">' +
-        '<h2>' + titulo + (esBorradorAn && texto ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
+      let s = '<section class="bloque analisis' + (marcaBorrador && texto ? ' es-borrador' : '') + (texto ? '' : ' solo-pantalla') + '">' +
+        '<h2>' + titulo + (marcaBorrador && texto ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
       if (texto) {
-        if (esBorradorAn) s += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
+        if (marcaBorrador) s += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
         if (AGENCIA && analisisViejo) s += '<p class="aviso viejo">Ojo: este borrador se escribió el ' +
           esc(fechaHora(r.analisis_generado_en)) + ' y los números se actualizaron después (' + esc(fechaHora(sincro)) +
           '). Puede citar cifras que ya no coinciden con las tarjetas. Corregilas en Editar, o borrá el texto y generalo de nuevo.</p>';
@@ -2106,7 +2136,17 @@
         ba.disabled = false; ba.textContent = 'Generar borrador';
       }
     });
-    const bp = $('#btnPublicar'); if (bp) bp.addEventListener('click', () => cambiarEstado(r, 'publicado'));
+    // Publicar es lo único que el cliente ve de verdad. Descargar el
+    // PDF ya preguntaba antes de llevarse un borrador sin revisar;
+    // publicárselo al cliente no preguntaba nada.
+    const bp = $('#btnPublicar');
+    if (bp) bp.addEventListener('click', () => {
+      const hayBorrador = esBorradorAn && !!(r.analisis || r.analisis_organico || r.analisis_pauta);
+      if (hayBorrador && !confirm('El análisis todavía es un borrador sin revisar: lo escribió Claude y nadie lo editó.' +
+          (analisisViejo ? '\n\nAdemás los números se actualizaron después de escribirlo: puede citar cifras que ya no coinciden con las tarjetas.' : '') +
+          '\n\n¿Publicarlo igual? El cliente lo va a ver.')) return;
+      cambiarEstado(r, 'publicado');
+    });
     const bd = $('#btnDespublicar'); if (bd) bd.addEventListener('click', () => cambiarEstado(r, 'borrador'));
   }
 
@@ -2149,7 +2189,14 @@
 
   async function cambiarEstado(r, estado) {
     const fila = { estado, actualizado_en: new Date().toISOString() };
+    // Volver a borrador también borra la fecha. Un reporte que el
+    // cliente no ve no puede seguir diciendo que se publicó el 3, y
+    // `publicado_en` es una de las tres condiciones por las que el
+    // cron decide si le toca generar el análisis: dejarla puesta lo
+    // excluía para siempre. guardar() ya lo hacía así; esto era la
+    // única puerta que quedaba inconsistente.
     if (estado === 'publicado') fila.publicado_en = new Date().toISOString().slice(0, 10);
+    else fila.publicado_en = null;
     const { error } = await SB.from('reporte').update(fila).eq('id', r.id);
     if (error) { toast('No se pudo cambiar: ' + error.message, true); return; }
     toast(estado === 'publicado' ? 'Publicado. El cliente ya lo ve.' : 'Volvió a borrador.');
