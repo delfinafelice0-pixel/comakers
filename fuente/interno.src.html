@@ -110,6 +110,43 @@
   /* ── LAYOUT ───────────────────────────────── */
   .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
 
+  /* ── La barra se pliega ─────────────────────────────────────
+     Como en Asana: la cerrás y el tablero se queda con los 240px.
+     En el calendario eso son 34px más por cada día de la semana,
+     que es justo lo que falta para que un título entre entero.
+
+     Solo en escritorio: en el celular la barra ya es un cajón que
+     entra y sale, y mezclar las dos cosas la dejaría trabada. */
+  .barra-abrir { display: none; }
+  @media (min-width: 901px) {
+    /* UNA sola columna, no "0 1fr": con la barra en `display:none`
+       el `main` es el único hijo y la grilla lo mete en la primera
+       celda, que mediría cero. Se veía el tablero en 200px. */
+    .app.barra-oculta { grid-template-columns: 1fr; }
+    .app.barra-oculta .sidebar { display: none; }
+    .barra-cerrar {
+      position: absolute; top: 18px; right: 12px; z-index: 3;
+      width: 26px; height: 26px; border-radius: 7px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: none; background: none; color: var(--ink-mute);
+      cursor: pointer; opacity: 0; transition: opacity .13s, background .13s;
+    }
+    .barra-cerrar svg { width: 15px; height: 15px; }
+    .sidebar:hover .barra-cerrar, .barra-cerrar:focus-visible { opacity: 1; }
+    .barra-cerrar:hover { background: var(--line-soft); color: var(--ink); }
+    .app.barra-oculta .barra-abrir {
+      display: inline-flex; align-items: center; justify-content: center;
+      position: fixed; top: 16px; left: 14px; z-index: 40;
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid var(--line); background: var(--bg-elev);
+      color: var(--ink-mute); cursor: pointer; box-shadow: var(--shadow);
+    }
+    .app.barra-oculta .barra-abrir svg { width: 16px; height: 16px; }
+    .app.barra-oculta .barra-abrir:hover { color: var(--ink); border-color: var(--ink-soft); }
+    /* El contenido se corre para no quedar abajo del botón flotante. */
+    .app.barra-oculta .main { padding-left: 54px; }
+  }
+
   /* ── SIDEBAR ───────────────────────────────── */
   .sidebar {
     background: var(--bg-elev);
@@ -986,6 +1023,22 @@
      abajo, así se lee como una sola rama y no como dos ganchos sueltos. */
   .fila.sub + .fila.sub .fila-rama { top: -50%; }
 
+  /* El botón para plegar las subtareas de una fila. Va pegado al título
+     y no a la izquierda: ahí está la manito de arrastrar. */
+  .subs-pill {
+    display: inline-flex; align-items: center; gap: 3px; vertical-align: 1px;
+    margin-left: 7px; padding: 1px 7px 1px 4px; border: none; border-radius: 999px;
+    background: var(--line-soft); color: var(--ink-mute); cursor: pointer;
+    font-family: var(--body); font-size: 10.5px; font-weight: 600; line-height: 16px;
+    font-variant-numeric: tabular-nums; transition: background .12s, color .12s;
+  }
+  .subs-pill svg { width: 11px; height: 11px; transition: transform .15s; }
+  .subs-pill.cerrada svg { transform: rotate(-90deg); }
+  .subs-pill:hover { background: var(--linea-fuerte); color: var(--ink); }
+  .subs-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .subs-pill.alerta { background: var(--warn-soft); color: var(--warn); }
+  @media (prefers-reduced-motion: reduce) { .subs-pill svg { transition: none; } }
+
   /* ── A PAGAR ──────────────────────────────── */
   /* El contador de la solapa: cuántos trabajos hay sin saldar. */
   .tab-n {
@@ -1427,10 +1480,56 @@
   }
   .btn-hoy:hover { border-color: var(--ink-soft); color: var(--ink); }
 
+  /* ── El ancho del día y el alto de la semana se estiran ──────
+     Como las columnas de Excel: agarrás el borde y tirás. Los siete
+     días miden siempre lo mismo —un calendario con el lunes ancho y
+     el martes angosto no se entiende— así que un tirón los mueve a
+     todos. Si no entran, el calendario se desliza al costado.
+
+     Por defecto `--dia` es `1fr`: entra justo en la pantalla y nadie
+     nota que esto existe hasta que lo usa. */
+  .calendario { --dia: 1fr; --carriles: 4; }
+  .cal-scroll { overflow-x: auto; }
+  .cal-ancho { width: 100%; }
+  .calendario.ancho-fijo { --dia: var(--dia-px); }
+  .calendario.ancho-fijo .cal-ancho {
+    width: calc(7 * var(--dia-px)); min-width: 100%;
+  }
+
   .cal-cabecera {
-    display: grid; grid-template-columns: repeat(7, 1fr);
+    display: grid; grid-template-columns: repeat(7, var(--dia));
     border-bottom: 1px solid var(--line);
   }
+  /* La manija: una franja finita en el borde derecho de cada día.
+     Se ve al pasar el mouse, como en una planilla. */
+  .cal-cabecera div { position: relative; }
+  .col-tirador {
+    position: absolute; top: 0; bottom: -1px; right: -3px; width: 7px;
+    cursor: col-resize; z-index: 4;
+  }
+  .col-tirador::after {
+    content: ''; position: absolute; top: 4px; bottom: 4px; left: 2px;
+    width: 2px; border-radius: 2px; background: var(--ink);
+    opacity: 0; transition: opacity .12s;
+  }
+  .col-tirador:hover::after, .calendario.estirando .col-tirador::after { opacity: 0.35; }
+
+  /* Lo mismo para el alto, en el borde de abajo de cada semana. */
+  .fila-tirador {
+    position: absolute; left: 0; right: 0; bottom: -3px; height: 7px;
+    cursor: row-resize; z-index: 4;
+  }
+  .fila-tirador::after {
+    content: ''; position: absolute; left: 4px; right: 4px; top: 2px;
+    height: 2px; border-radius: 2px; background: var(--ink);
+    opacity: 0; transition: opacity .12s;
+  }
+  .fila-tirador:hover::after { opacity: 0.35; }
+  /* Mientras se estira, el cursor manda en toda la pantalla y nada
+     se selecciona sin querer. */
+  .calendario.estirando { user-select: none; }
+  .calendario.estirando * { cursor: col-resize !important; }
+  .calendario.estirando-alto * { cursor: row-resize !important; }
   .cal-cabecera div {
     padding: 8px 10px; font-size: 10px; font-weight: 600;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute);
@@ -1439,7 +1538,7 @@
 
   .sem { position: relative; border-bottom: 1px solid var(--line-soft); }
   .sem:last-child { border-bottom: none; }
-  .sem-dias { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .sem-dias { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, var(--dia)); }
   .dia { border-right: 1px solid var(--line-soft); padding: 6px 8px; transition: background 0.12s; }
   .dia:last-child { border-right: none; }
   .dia.fuera { background: var(--bg); }
@@ -1483,9 +1582,12 @@
   }
 
   .sem-barras {
-    position: relative; display: grid; grid-template-columns: repeat(7, 1fr);
+    position: relative; display: grid; grid-template-columns: repeat(7, var(--dia));
     grid-auto-rows: 25px; align-content: start;
-    gap: 3px 0; padding: 27px 3px 7px; min-height: 96px; pointer-events: none;
+    gap: 3px 0; padding: 27px 3px 7px; pointer-events: none;
+    /* El alto sale de cuántos carriles se quieren ver: 28px cada uno
+       (25 de la barra + 3 de separación) más lo de arriba y abajo. */
+    min-height: calc(var(--carriles) * 28px + 34px);
   }
   .calendario.semana .sem-barras { min-height: 430px; padding-top: 32px; grid-auto-rows: 29px; }
   .calendario.semana .sem { border-bottom: none; }
@@ -1498,8 +1600,11 @@
     background: var(--line-soft); border: 1px solid var(--line);
     cursor: grab; overflow: hidden; white-space: nowrap;
     margin: 0 2px; transition: filter 0.12s, box-shadow 0.12s;
+    /* La barrita de color del proyecto, que reemplaza al "[Cliente]"
+       que antes iba escrito adentro del título. */
+    box-shadow: inset 3px 0 0 var(--proy, transparent);
   }
-  .cal-bar:hover { filter: brightness(0.97); box-shadow: var(--shadow); }
+  .cal-bar:hover { filter: brightness(0.97); box-shadow: inset 3px 0 0 var(--proy, transparent), var(--shadow); }
   .cal-bar:active { cursor: grabbing; }
   .cal-bar.dragging { opacity: 0.4; }
   .cal-bar .txt { overflow: hidden; text-overflow: ellipsis; }
@@ -1534,7 +1639,33 @@
     background: var(--bg-elev); border: 1px solid var(--line);
     border-radius: var(--radius-lg); padding: 14px; position: sticky; top: 20px;
   }
-  .bandeja-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  /* El botón es toda la fila del título y tiene alto de sobra: antes
+     eran 17px de alto y había que apuntarle. Un botón que hay que
+     buscar con el mouse es un botón que no existe. */
+  .bandeja-head {
+    display: flex; align-items: center; gap: 7px; margin: -4px -6px 2px;
+    width: calc(100% + 12px); border: none; background: none;
+    padding: 8px 6px; border-radius: 8px;
+    cursor: pointer; text-align: left; color: inherit;
+    transition: background .12s;
+  }
+  .bandeja-head:hover { background: var(--line-soft); }
+  .bandeja-head:hover .bandeja-flecha { color: var(--ink); }
+  .bandeja-head .bandeja-title { flex: 1; }
+  .bandeja-flecha { width: 13px; height: 13px; flex-shrink: 0; color: var(--ink-mute); transition: transform .15s; }
+  .bandeja:not(.plegada) .bandeja-flecha { transform: rotate(90deg); }
+
+  /* Plegada: una tira finita al costado con el número. Los 250px que
+     libera se los queda el calendario, que es lo que se quería. */
+  .calendario.sin-bandeja { grid-template-columns: 1fr 42px; }
+  .bandeja.plegada { padding: 12px 6px; }
+  .bandeja.plegada .bandeja-sub,
+  .bandeja.plegada .bandeja-body { display: none; }
+  .bandeja.plegada .bandeja-head { flex-direction: column; gap: 10px; margin-bottom: 0; }
+  .bandeja.plegada .bandeja-title {
+    writing-mode: vertical-rl; font-size: 12.5px; color: var(--ink-mute); flex: none;
+  }
+  .bandeja.plegada .bandeja-flecha { transform: rotate(180deg); }
   .bandeja-title { font-family: var(--display); font-size: 15px; font-weight: 500; letter-spacing: -0.01em; }
   .bandeja-sub { font-size: 11px; color: var(--ink-mute); margin-bottom: 12px; line-height: 1.4; }
   .bandeja-body { display: flex; flex-direction: column; gap: 7px; max-height: 62vh; overflow-y: auto; }
@@ -1818,6 +1949,35 @@
   .editor s { color: var(--ink-mute); }
   .editor a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
   .editor .mencion { cursor: default; }
+
+  /* ── Resaltado, línea y checklist ──────────
+     Van sin el prefijo .editor porque el mismo texto se dibuja también
+     en comentarios, en el Resumen y en administración. */
+  :root { --resalte: #FFEC85; }
+  html[data-tema="oscuro"] { --resalte: rgba(240, 194, 75, .34); }
+  mark {
+    background: var(--resalte); color: inherit; border-radius: 3px; padding: 0 2px;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  }
+  hr { border: none; border-top: 1px solid var(--linea-fuerte); margin: 10px 0; height: 0; }
+  li.chk { list-style: none; }
+  /* La casilla ocupa el lugar de la viñeta: el texto queda alineado con
+     el de los renglones comunes de la misma lista. */
+  .chk-box {
+    display: inline-block; position: relative; vertical-align: -2px;
+    width: 14px; height: 14px; margin: 0 7px 0 -21px; box-sizing: border-box;
+    border: 1.5px solid var(--ink-mute); border-radius: 4px; background: transparent;
+    transition: background .12s, border-color .12s; user-select: none;
+  }
+  .editor .chk-box { cursor: pointer; }
+  .editor .chk-box:hover { border-color: var(--ink); }
+  .chk-box.on { background: var(--accent); border-color: var(--accent); }
+  .chk-box.on::after {
+    content: ""; position: absolute; left: 3.5px; top: 0.5px; width: 3.5px; height: 7px;
+    border: solid var(--sobre-acento); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg);
+  }
+  li.chk.hecho { color: var(--ink-mute); }
+  li.chk.hecho > ul, li.chk.hecho > ol { color: var(--ink); }
 
   /* ── EL COMENTARIO, PEGADO ABAJO ────────────
      Como en Asana: por más que scrollees la tarea entera, el casillero
@@ -2590,7 +2750,13 @@
 <div class="app">
 
   <!-- ═══════════ SIDEBAR ═══════════ -->
+  <button class="barra-abrir" id="barraAbrir" title="Abrir la barra (⌘\)" aria-label="Abrir la barra">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+  </button>
   <aside class="sidebar">
+    <button class="barra-cerrar" id="barraCerrar" title="Cerrar la barra (⌘\)" aria-label="Cerrar la barra">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+    </button>
     <div class="brand">
       <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
 <!--@@INTERNO-->
@@ -2805,8 +2971,14 @@
             <button data-calmodo="semana">Semana</button>
           </div>
         </div>
-        <div class="cal-cabecera" id="calCabecera"></div>
-        <div id="calSemanas"></div>
+        <!-- Todo lo que se estira va adentro del scroll, para que la
+             cabecera y las semanas se muevan juntas. -->
+        <div class="cal-scroll" id="calScroll">
+          <div class="cal-ancho">
+            <div class="cal-cabecera" id="calCabecera"></div>
+            <div id="calSemanas"></div>
+          </div>
+        </div>
       </div>
 <!--@@FIN-->
 <!--@@ADMIN-->
@@ -2816,10 +2988,11 @@
 
 <!--@@INTERNO-->
       <div class="bandeja">
-        <div class="bandeja-head">
+        <button class="bandeja-head" id="bandejaToggle" title="Achicar — el calendario se queda con el lugar">
+          <svg class="bandeja-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
           <div class="bandeja-title">Sin fecha</div>
           <div class="grupo-count" id="bandejaCount">0</div>
-        </div>
+        </button>
         <div class="bandeja-sub">Arrastralas a un día del calendario para agendarlas.</div>
         <div class="bandeja-body" id="bandejaBody"></div>
       </div>
@@ -3678,8 +3851,11 @@
           <button class="mini-btn fmt" data-fmt="*" title="Cursiva (⌘I)"><i>i</i></button>
           <button class="mini-btn fmt" data-fmt="__" title="Subrayado (⌘U)"><u>U</u></button>
           <button class="mini-btn fmt" data-fmt="~~" title="Tachado"><s>S</s></button>
+          <button class="mini-btn fmt" data-fmt="==" title="Resaltar (⌘⇧H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"></path><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></svg></button>
           <button class="mini-btn fmt" data-lista="" title="Lista">•—</button>
           <button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>
+          <button class="mini-btn fmt" data-chk="" title="Checklist (⌘↵ tilda el renglón)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></svg></button>
+          <button class="mini-btn fmt" data-hr="" title="Línea divisoria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><polyline points="8 7 12 3 16 7"></polyline><polyline points="16 17 12 21 8 17"></polyline></svg></button>
           <button class="mini-btn" id="dEmojiDesc" title="Poner un emoji">🙂</button>
           <button class="mini-btn" id="dLinkDesc" title="Poner un link (⌘K)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -3691,7 +3867,7 @@
            editaba veías los ** crudos. -->
       <div class="d-desc editor" id="dDesc" contenteditable="true" role="textbox" aria-multiline="true"
            data-ph="Escribí acá qué hay que hacer, con qué material y qué se espera de vuelta…"></div>
-      <div class="d-hint" id="dHint" style="display:none">Seleccioná texto y usá los botones de arriba, o ⌘B negrita · ⌘I cursiva · ⌘U subrayado · ⌘K link.</div>
+      <div class="d-hint" id="dHint" style="display:none">Seleccioná texto y usá los botones de arriba, o ⌘B negrita · ⌘I cursiva · ⌘U subrayado · ⌘⇧H resaltar · ⌘K link.</div>
     </div>
 
     <!-- Solo lo ven las socias. No es un `display:none` decorativo: la
@@ -3893,6 +4069,43 @@
     if (error || !data) return;         // falta la migración 41, o es tu primera vez
     aplicarTema(data.tema);
   }
+  // ── Lo que está plegado ──────────────────────────────────────
+  //  La barra de la izquierda y la bandeja de "Sin fecha".
+  //
+  //  Va al navegador y NO a la base, a diferencia del modo oscuro:
+  //  esto es cuánto lugar tenés en ESTA pantalla. En el monitor
+  //  grande querés la barra abierta y en la notebook cerrada, y que
+  //  te siga de una a la otra sería molesto, no útil.
+  const PLEG_LS = 'comakers-plegado';
+  let PLEGADO = { barra: false, bandeja: false };
+
+  function leerPlegado() {
+    try {
+      const x = JSON.parse(localStorage.getItem(PLEG_LS) || '{}');
+      PLEGADO.barra = !!x.barra;
+      PLEGADO.bandeja = !!x.bandeja;
+    } catch (_) {}
+    pintarPlegado();
+  }
+  function pintarPlegado() {
+    const app = document.querySelector('.app');
+    if (app) app.classList.toggle('barra-oculta', PLEGADO.barra);
+    // La bandeja de "Sin fecha" vive solo en el panel interno.
+    const b = document.querySelector('.bandeja');
+    if (b) b.classList.toggle('plegada', PLEGADO.bandeja);
+    const c = $si('#calendario');
+    if (c) c.classList.toggle('sin-bandeja', PLEGADO.bandeja);
+    const bt = $si('#bandejaToggle');
+    if (bt) bt.title = PLEGADO.bandeja
+      ? 'Abrir la bandeja de lo que no tiene fecha'
+      : 'Achicar — el calendario se queda con el lugar';
+  }
+  function plegar(cual) {
+    PLEGADO[cual] = !PLEGADO[cual];
+    pintarPlegado();
+    try { localStorage.setItem(PLEG_LS, JSON.stringify(PLEGADO)); } catch (_) {}
+  }
+
   function guardarVistas() {
     try { localStorage.setItem(VISTA_LS, JSON.stringify(VISTAS)); } catch (e) {}
   }
@@ -3924,7 +4137,23 @@
     violeta: '#A98BE0', ocre: '#DCA84E', gris: '#938C99'
   };
   let EDITANDO = null;
+  // Las secciones y grupos plegados de la lista, y las tareas con las
+  // subtareas escondidas. Van al navegador como la barra de la
+  // izquierda: es cuánto querés ver en ESTA pantalla.
+  //  Cada grupo se anota con cómo estabas agrupando ("sec:…",
+  //  "responsable:…"), así plegar "Sin responsable" no pliega también
+  //  un grupo que casualmente tiene la misma clave en otra vista.
+  const COL_LS = 'cm_grupos_plegados';
+  const SUBS_LS = 'cm_subtareas_plegadas';
   let COLAPSADOS = {};
+  let SUBS_PLEG = new Set();
+  try { COLAPSADOS = JSON.parse(localStorage.getItem(COL_LS) || '{}') || {}; } catch (_) { COLAPSADOS = {}; }
+  try { SUBS_PLEG = new Set(JSON.parse(localStorage.getItem(SUBS_LS) || '[]')); } catch (_) { SUBS_PLEG = new Set(); }
+  function guardarColapsados() {
+    // Lo desplegado no se anota: la lista arranca abierta.
+    Object.keys(COLAPSADOS).forEach(k => { if (!COLAPSADOS[k]) delete COLAPSADOS[k]; });
+    try { localStorage.setItem(COL_LS, JSON.stringify(COLAPSADOS)); } catch (_) {}
+  }
   let PROYECTOS = [];
   let MIEMBROS = {};  // proyecto_id → [user_id]
   let SECCIONES = []; // todas las secciones de los proyectos visibles
@@ -4247,6 +4476,20 @@
       else if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     } catch (e) { /* si el navegador no deja, no pasa nada */ }
     setTimeout(() => { HASH_PROPIO = false; }, 0);
+    pintarPestaña(id);
+  }
+
+  // ── EL NOMBRE DE LA PESTAÑA ─────────────────────────────────
+  //  Con tres pestañas del panel abiertas, las tres decían "Interno ·
+  //  CoMakers" y había que entrar a cada una para saber cuál era cuál.
+  //  La que tiene una tarea abierta ahora lo dice arriba.
+  const TITULO_BASE = document.title;
+  function pintarPestaña(id) {
+    const t = (id && typeof TAREAS !== 'undefined') ? TAREAS.find(x => x.id === id) : null;
+    let nom = t ? textoPlano(t.titulo).trim() : '';
+    // La pestaña es angosta: un título kilométrico no aporta nada.
+    if (nom.length > 60) nom = nom.slice(0, 60).trim() + '…';
+    document.title = nom ? nom + ' · CoMakers' : TITULO_BASE;
   }
 
   function clienteHeredado(t) {
@@ -4419,6 +4662,10 @@
 /*@@FIN*/
 
     cargarVistas();          // con qué vista dejaste cada proyecto la última vez
+    leerPlegado();           // la barra y la bandeja, como las dejaste
+/*@@INTERNO*/
+    leerMedidas();           // y cuánto mide un día en el calendario
+/*@@FIN*/
     cargarTema();            // claro u oscuro, lo que elegiste vos (no se espera)
 
     $('#miNombre').textContent = prof.nombre || prof.email;
@@ -7150,7 +7397,40 @@
   // Nunca guardamos HTML escrito por el usuario: escapamos TODO
   // primero y recién después convertimos lo que reconocemos nosotros.
   // Así el panel del cliente puede mostrar el mismo texto sin riesgo.
-  const RE_LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  //
+  //  Ojo con el texto de adentro de los corchetes: los títulos de acá
+  //  empiezan casi siempre con el cliente entre corchetes —"[Comakers]
+  //  Contenido de - Pelis"—, así que el texto de un link LLEVA `]`.
+  //  Con el `[^\]]` de antes el link no se reconocía y se veía crudo.
+  //  Lo que sí se prohíbe es un `](` adentro (ahí arranca la URL) y un
+  //  corchete suelto sin cerrar: así "mirá [nota] y [esto](http://…)"
+  //  sigue agarrando solo el segundo y no se come media oración.
+  const TXT_LINK = '(?:[^\\[\\]\\n]|\\[[^\\[\\]\\n]*\\])+';
+  const RE_LINK = new RegExp('\\[(' + TXT_LINK + ')\\]\\((https?:\\/\\/[^\\s)]+)\\)', 'g');
+
+  // Un link envuelto en otro link: se queda el de adentro.
+  //
+  //  De dónde salía el bicho: pegabas el link de una tarea, se veía
+  //  como pastilla, y al guardar la pastilla volvía a texto como
+  //  `[título](url)`. Pero ese texto no se reconocía (por el `]` del
+  //  cliente), así que al abrir de nuevo solo se dibujaba la URL de
+  //  adentro y el `[título](` quedaba de adorno… y al guardar se
+  //  envolvía otra vez. Cada vuelta sumaba una capa:
+  //    [T]([T]([T]([T](url))))
+  //  Esto desarma lo que ya quedó escrito así, sin tocar la base: se
+  //  endereza al mostrarlo y se guarda derecho la próxima vez.
+  const RE_ENVOLTORIO = new RegExp(
+    '\\[' + TXT_LINK + '\\]\\(\\s*(\\[' + TXT_LINK + '\\]\\(https?:\\/\\/[^\\s)]+\\))\\s*\\)', 'g');
+  function enderezarLinks(txt) {
+    let s = String(txt == null ? '' : txt);
+    if (s.indexOf('](') === -1) return s;   // el 99% de los textos, sin gastar nada
+    for (let i = 0; i < 20; i++) {
+      const antes = s;
+      s = s.replace(RE_ENVOLTORIO, '$1');
+      if (s === antes) break;
+    }
+    return s;
+  }
   // Las menciones se guardan como @[Nombre](uuid): sobreviven a que la
   // persona se cambie el nombre y no hay que adivinar quién es "@marti".
   // El id no se limita a la forma de un uuid a propósito: si algún día
@@ -7174,6 +7454,11 @@
     { re: /\*\*([\s\S]+?)\*\*/g,  a: '<strong>', z: '</strong>' },
     { re: /__([\s\S]+?)__/g,      a: '<u>',      z: '</u>' },
     { re: /~~([\s\S]+?)~~/g,      a: '<s>',      z: '</s>' },
+    // El resaltador. Pide algo pegado a los `==` de los dos lados: así
+    // un "a == b" escrito en el medio de una frase no se pinta solo.
+    // (Los links ya están guardados aparte, así que el `==` de un
+    // base64 en una URL tampoco lo toca.)
+    { re: /==(?=\S)([\s\S]*?\S)==/g, a: '<mark>', z: '</mark>' },
     { re: /(^|[^*])\*([^\n*]+)\*(?!\*)/g, a: '<em>', z: '</em>', pre: true }
   ];
 
@@ -7229,7 +7514,7 @@
     const tipo = items[i].tipo;
     let html = '<' + tipo + '>';
     while (i < items.length && items[i].nivel === nivel && items[i].tipo === tipo) {
-      html += '<li>' + items[i].texto;
+      html += abrirLi(items[i]);
       i++;
       // Lo que venga más adentro cuelga de este renglón.
       while (i < items.length && items[i].nivel > nivel) {
@@ -7243,9 +7528,22 @@
     return { html: html + '</' + tipo + '>', i: i };
   }
 
+  // Un renglón de checklist es una viñeta que arranca con `[ ]` o `[x]`.
+  // La casilla es `contenteditable=false`: adentro del editor se clickea
+  // pero no se puede escribir encima ni borrarla letra por letra.
+  const RE_CHK = /^\[([ xX])\](?:[ \t]+|$)/;
+  function cajaChk(hecha) {
+    return '<span class="chk-box' + (hecha ? ' on' : '') + '" contenteditable="false"' +
+      ' role="checkbox" aria-checked="' + (hecha ? 'true' : 'false') + '"></span>';
+  }
+  function abrirLi(it) {
+    if (it.chk == null) return '<li>' + it.texto;
+    return '<li class="chk' + (it.chk ? ' hecho' : '') + '">' + cajaChk(it.chk) + it.texto;
+  }
+
   function renderTexto(txt) {
     if (!txt) return '';
-    let h = esc(String(txt).replace(/\u0000/g, ''));
+    let h = esc(enderezarLinks(String(txt).replace(/\u0000/g, '')));
 
     // Guardamos menciones y links aparte antes de tocar el formato: si no,
     // una URL con __ adentro rompería su propio atributo href.
@@ -7302,7 +7600,18 @@
         // Si no, el árbol queda con agujeros y el dibujo se cuelga.
         const nivel = Math.min(Math.floor(ancho / 2), nivAnt + 1);
         nivAnt = nivel;
-        pend.push({ nivel: nivel, tipo: (m[2] === '-' || m[2] === '•') ? 'ul' : 'ol', texto: m[3] });
+        const tipo = (m[2] === '-' || m[2] === '•') ? 'ul' : 'ol';
+        // La casilla solo va en viñetas: "1. [ ]" se deja como texto.
+        const c = tipo === 'ul' ? m[3].match(RE_CHK) : null;
+        pend.push({ nivel: nivel, tipo: tipo,
+                    texto: c ? m[3].slice(c[0].length) : m[3],
+                    chk: c ? (c[1] !== ' ' ? 1 : 0) : null });
+      } else if (/^[ \t]*-{3,}[ \t]*$/.test(l)) {
+        // Un renglón de puros guiones es una línea divisoria. Los
+        // "-------" que ya venían escritos a mano se ven como línea
+        // sin tocar nada.
+        cerrar();
+        salida += '<hr>';
       } else {
         cerrar();
         salida += l + (i < lineas.length - 1 ? '<br>' : '');
@@ -7315,13 +7624,16 @@
 
   // Para previews de una línea: se ve la palabra, no el markdown.
   function textoPlano(txt) {
-    return (txt || '')
+    return enderezarLinks(txt || '')
       .replace(RE_MENCION, '@$1')
       .replace(RE_LINK, '$1')
       .replace(/\*\*([\s\S]+?)\*\*/g, '$1')
       .replace(/__([\s\S]+?)__/g, '$1')
       .replace(/~~([\s\S]+?)~~/g, '$1')
+      .replace(/==(?=\S)([\s\S]*?\S)==/g, '$1')
       .replace(/(^|[^*])\*([^\n*]+)\*(?!\*)/g, '$1$2')
+      .replace(/^[ \t]*-{3,}[ \t]*$/gm, '')
+      .replace(/^\s*[-•]\s+\[[ xX]\](?:[ \t]+|$)/gm, '')
       .replace(/^\s*[-•]\s+/gm, '')
       .replace(/^\s*\d+[.)]\s+/gm, '');
   }
@@ -7409,7 +7721,7 @@
   }
 
   // De qué marca es cada etiqueta, al volver a texto.
-  const TAG_MARCA = { B: '**', STRONG: '**', I: '*', EM: '*', U: '__', S: '~~', STRIKE: '~~', DEL: '~~' };
+  const TAG_MARCA = { B: '**', STRONG: '**', I: '*', EM: '*', U: '__', S: '~~', STRIKE: '~~', DEL: '~~', MARK: '==' };
 
   // Una lista, con las que le cuelguen adentro. Cada nivel son dos
   // espacios de sangría, que es lo que después lee `renderTexto`.
@@ -7433,10 +7745,23 @@
         const c = h.childNodes[k];
         ((c.tagName === 'UL' || c.tagName === 'OL') ? subs : propios).push(c);
       }
-      s += sangria + (tag === 'UL' ? '- ' : (i++) + '. ') + serieNodos(propios).trim() + '\n';
+      // La casilla no tiene texto: lo que dice es si está tildada.
+      const caja = tag === 'UL' ? cajaDe(h) : null;
+      const pre = caja ? (caja.classList.contains('on') ? '[x] ' : '[ ] ') : '';
+      s += sangria + (tag === 'UL' ? '- ' : (i++) + '. ') + (pre + serieNodos(propios).trim()).trimEnd() + '\n';
       subs.forEach(u => { s += serieLista(u, nivel + 1); });
     }
     return s;
+  }
+
+  // La casilla de un renglón de checklist: la que es hija directa, no la
+  // de una sublista que cuelgue de él.
+  function cajaDe(li) {
+    for (let k = 0; k < li.childNodes.length; k++) {
+      const c = li.childNodes[k];
+      if (c.nodeType === 1 && c.classList.contains('chk-box')) return c;
+    }
+    return null;
   }
 
   function serieNodos(nodos) {
@@ -7449,6 +7774,12 @@
 
       if (tag === 'BR') { s += '\n'; continue; }
       if (tag === 'SVG' || tag === 'svg') continue;
+      // La línea divisoria: un renglón propio con tres guiones.
+      if (tag === 'HR') {
+        if (s && !/\n$/.test(s)) s += '\n';
+        s += '---\n';
+        continue;
+      }
 
       // Una mención: vuelve a ser @[Nombre](id).
       if (n.classList && n.classList.contains('mencion')) {
@@ -7456,8 +7787,31 @@
         continue;
       }
       // La pastilla de una tarea: vuelve a ser su link.
+      //
+      //  Si lo que dice la pastilla es el título de la tarea —o sea,
+      //  lo pusimos nosotros—, se guarda el link PELADO. Dos motivos:
+      //  la pastilla va a mostrar siempre el título de ahora (si le
+      //  cambian el nombre a la tarea, se actualiza sola), y no hay
+      //  nada que envolver la próxima vez que se abra.
+      //  Si alguien le escribió un texto propio —"[mirá acá](url)"—,
+      //  ese sí se respeta.
       if (n.dataset && n.dataset.tlink) {
-        s += '[' + n.textContent.trim() + '](' + linkDeTarea(n.dataset.tlink) + ')';
+        const id = n.dataset.tlink;
+        const txt = n.textContent.trim();
+        const tt = (typeof TAREAS !== 'undefined') ? TAREAS.find(x => x.id === id) : null;
+        if (tt && txt && txt !== textoPlano(tt.titulo).trim()) {
+          s += '[' + txt + '](' + linkDeTarea(id) + ')';
+          continue;
+        }
+        // Un link pelado necesita aire a los costados: si se le pega
+        // la palabra de al lado, se la come adentro de la URL.
+        if (s && !/[\s(]$/.test(s)) s += ' ';
+        s += linkDeTarea(id);
+        const sig = nodos[k + 1];
+        const pegado = sig && (sig.nodeType === 3
+          ? !/^[\s)]/.test(sig.nodeValue)
+          : sig.tagName !== 'BR');
+        if (pegado) s += ' ';
         continue;
       }
       if (tag === 'A') {
@@ -7476,6 +7830,10 @@
       if (tag === 'DIV' || tag === 'P' || /^H[1-6]$/.test(tag)) {
         if (s && !/\n$/.test(s)) s += '\n';
         s += serieNodos(n.childNodes);
+        // Un renglón-bloque seguido de texto suelto: el texto va abajo,
+        // no pegado al final ("Guionesdespués").
+        const sig = nodos[k + 1];
+        if (sig && sig.nodeType === 3 && sig.nodeValue.length && !/\n$/.test(s)) s += '\n';
         continue;
       }
       const marca = TAG_MARCA[tag];
@@ -7490,7 +7848,7 @@
   function leerTexto(el) {
     if (!el) return '';
     if (!esEditor(el)) return el.value || '';
-    return serieNodos(el.childNodes)
+    return enderezarLinks(serieNodos(el.childNodes))
       .replace(/ /g, ' ')          // el espacio duro que mete el navegador
       .replace(/[ \t]+$/gm, '')
       .replace(/\n{3,}/g, '\n\n')
@@ -7509,7 +7867,10 @@
   // tocás el campo y desde ahí ya no está vacío para el CSS.
   function marcarVacio(el) {
     if (!el) return;
-    const vacio = !el.textContent.trim() && !el.querySelector('img, .mencion, a');
+    // Una viñeta recién creada todavía no tiene texto, pero no está
+    // vacía: si se la tratara como vacía se borraba en el acto, y por eso
+    // el botón de lista no hacía nada en un detalle en blanco.
+    const vacio = !el.textContent.trim() && !el.querySelector('img, .mencion, a, hr, .chk-box, li');
     el.classList.toggle('vacio', vacio);
     if (vacio && el.innerHTML && el.innerHTML !== '<br>') el.innerHTML = '';
   }
@@ -7549,20 +7910,25 @@
       if (e.key === 'Tab' && enViñeta()) {
         e.preventDefault();
         mandar(e.shiftKey ? 'outdent' : 'indent');
+        ordenarChecklist(el);
         guardarCampoDe(el);
         return;
       }
 
+      // La checklist tiene su propio Enter, su Backspace y su ⌘↵.
+      if (tecladoChecklist(e, el)) return;
+
       const meta = e.metaKey || e.ctrlKey;
       if (!meta) return;
       const k = (e.key || '').toLowerCase();
+      if (k === 'h' && e.shiftKey) { e.preventDefault(); resaltar(el); return; }
       if (k === 'b' || k === 'i' || k === 'u') {
         e.preventDefault();
         mandar(k === 'b' ? 'bold' : k === 'i' ? 'italic' : 'underline');
       }
     });
 
-    el.addEventListener('input', () => marcarVacio(el));
+    el.addEventListener('input', () => { ordenarChecklist(el); marcarVacio(el); });
     el.addEventListener('blur', () => marcarVacio(el));
     marcarVacio(el);
   }
@@ -7586,7 +7952,7 @@
 
   // Gancho para las pruebas automáticas. No expone datos ni permisos:
   // son funciones puras de texto.
-  window.__panel = { renderTexto: renderTexto, textoPlano: textoPlano, leerTexto: leerTexto };
+  window.__panel = { renderTexto: renderTexto, textoPlano: textoPlano, leerTexto: leerTexto, ponerTexto: ponerTexto };
 
   // Al clickear el botón de emoji o el de link, el campo pierde el foco.
   // Sin esto, el editor se cerraría justo antes de que insertemos nada.
@@ -7718,6 +8084,337 @@
     guardarCampoDe(el);
   }
 
+  // ── Resaltar ─────────────────────────────────────────────────
+  //  En el editor se le pide al navegador que pinte el fondo (así se
+  //  arregla solo con selecciones que cruzan renglones o viñetas) con un
+  //  color de contraseña, y enseguida cada pedazo pintado se cambia por
+  //  un <mark> nuestro. El color de verdad lo pone la hoja de estilo, por
+  //  eso en modo oscuro también se ve bien.
+  //  Si lo seleccionado ya estaba resaltado, se despinta: el mismo botón
+  //  prende y apaga, como la negrita.
+  const COLOR_SEÑA = 'rgb(255, 254, 1)';
+
+  function desenvolver(n) {
+    const p = n.parentNode;
+    if (!p) return;
+    while (n.firstChild) p.insertBefore(n.firstChild, n);
+    p.removeChild(n);
+  }
+
+  // Con el atajo el foco ya está en el campo y la selección de ahora es
+  // la buena. Solo un click en la barra se lleva el foco, y ahí sí hay
+  // que volver a donde estaba el cursor.
+  function alCursor(el) {
+    if (document.activeElement !== el) volverAlCursor(el);
+  }
+
+  function resaltar(el) {
+    if (!el) return;
+    if (!esEditor(el)) { envolver(el, '=='); return; }
+    el = raizEditor(el);
+    alCursor(el);
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const r = sel.getRangeAt(0);
+    if (!el.contains(r.commonAncestorContainer)) return;
+
+    const pintadas = Array.from(el.querySelectorAll('mark')).filter(m => r.intersectsNode(m));
+    if (pintadas.length) {
+      pintadas.forEach(desenvolver);
+      el.normalize();
+      guardarCampoDe(el);
+      return;
+    }
+    if (r.collapsed) return;
+
+    try { document.execCommand('styleWithCSS', false, true); } catch (_) {}
+    try { document.execCommand('hiliteColor', false, COLOR_SEÑA); } catch (_) {}
+    try { document.execCommand('styleWithCSS', false, false); } catch (_) {}
+
+    const nuevas = [];
+    el.querySelectorAll('[style]').forEach(n => {
+      if (n.style.backgroundColor !== COLOR_SEÑA) return;
+      if (n.tagName === 'SPAN' && !n.classList.contains('mencion')) {
+        const m = document.createElement('mark');
+        n.parentNode.insertBefore(m, n);
+        while (n.firstChild) m.appendChild(n.firstChild);
+        n.remove();
+        nuevas.push(m);
+      } else {
+        // Algo nuestro (una mención, un renglón) que el navegador pintó
+        // por arriba: se le saca el fondo y queda como estaba.
+        n.style.removeProperty('background-color');
+        if (!n.getAttribute('style')) n.removeAttribute('style');
+      }
+    });
+    // Dos pedazos pegados quedan como uno solo.
+    nuevas.forEach(m => {
+      const sig = m.nextSibling;
+      if (sig && sig.nodeType === 1 && sig.tagName === 'MARK') {
+        while (sig.firstChild) m.appendChild(sig.firstChild);
+        sig.remove();
+      }
+    });
+    const vivas = nuevas.filter(m => m.isConnected);
+    if (vivas.length) {
+      const nr = document.createRange();
+      nr.setStartBefore(vivas[0]);
+      nr.setEndAfter(vivas[vivas.length - 1]);
+      sel.removeAllRanges();
+      sel.addRange(nr);
+    }
+    guardarCampoDe(el);
+  }
+
+  // ── Línea divisoria ──────────────────────────────────────────
+  //  Adentro de una viñeta no se mete: la línea iría a parar adentro del
+  //  renglón y al guardar partiría la lista en dos. Va abajo de la lista
+  //  entera, con un renglón vacío después para seguir escribiendo.
+  function divisor(el) {
+    if (!el) return;
+    if (!esEditor(el)) { insertarEn(el, '\n---\n'); return; }
+    el = raizEditor(el);
+    alCursor(el);
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    let n = sel.getRangeAt(0).startContainer;
+    if (n.nodeType === 3) n = n.parentNode;
+    const li = n.closest ? n.closest('li') : null;
+    if (li && el.contains(li)) {
+      let tope = li;
+      while (tope.parentNode && tope.parentNode !== el) tope = tope.parentNode;
+      const hr = document.createElement('hr');
+      const sig = document.createElement('div');
+      sig.appendChild(document.createElement('br'));
+      tope.after(hr, sig);
+      const r = document.createRange();
+      r.setStart(sig, 0); r.collapse(true);
+      sel.removeAllRanges(); sel.addRange(r);
+    } else {
+      mandar('insertHorizontalRule');
+    }
+    marcarVacio(el);
+    guardarCampoDe(el);
+  }
+
+  // ── Checklist ────────────────────────────────────────────────
+  //  Un renglón de checklist es un <li class="chk"> con su casilla
+  //  adelante. Se guarda como `- [ ] texto` o `- [x] texto`.
+  function nuevaCaja(hecha) {
+    const t = document.createElement('template');
+    t.innerHTML = cajaChk(hecha);
+    return t.content.firstChild;
+  }
+  function ponerChk(li) {
+    if (!cajaDe(li)) li.insertBefore(nuevaCaja(false), li.firstChild);
+    li.classList.add('chk');
+  }
+  function sacarChk(li) {
+    const c = cajaDe(li);
+    if (c) c.remove();
+    li.classList.remove('chk', 'hecho');
+    if (!li.getAttribute('class')) li.removeAttribute('class');
+  }
+  function liDelCursor(el) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    const r = sel.getRangeAt(0);
+    let n = r.startContainer;
+    if (n.nodeType === 3) n = n.parentNode;
+    let li = n && n.closest ? n.closest('li') : null;
+    // Recién creada una lista, el navegador deja el cursor "apuntando" a
+    // la lista desde afuera (el campo, posición 0) aunque lo que escribas
+    // vaya adentro del renglón. Se busca el renglón al que apunta.
+    if (!li && r.startContainer.nodeType === 1) {
+      const kids = r.startContainer.childNodes;
+      const desp = kids[r.startOffset], ant = kids[r.startOffset - 1];
+      const c = (desp && desp.nodeType === 1) ? desp : ant;
+      if (c && c.nodeType === 1) {
+        if (c.tagName === 'LI') li = c;
+        else if (c.tagName === 'UL' || c.tagName === 'OL') {
+          const todos = c.querySelectorAll('li');
+          li = c === desp ? todos[0] : todos[todos.length - 1];
+        }
+      }
+    }
+    return (li && el.contains(li)) ? li : null;
+  }
+  // Los renglones que toca la selección. Si seleccionás un renglón con
+  // sublista adentro, cuenta el renglón y no todos los de abajo.
+  function lisDeSeleccion(el) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return [];
+    const r = sel.getRangeAt(0);
+    const propio = liDelCursor(el);
+    if (r.collapsed) return propio ? [propio] : [];
+    const tocadas = Array.from(el.querySelectorAll('li')).filter(li => r.intersectsNode(li));
+    return tocadas.filter(li => li === propio || !tocadas.some(o => o !== li && li.contains(o)));
+  }
+
+  function checklist(el) {
+    if (!el || !esEditor(el)) return;
+    el = raizEditor(el);
+    alCursor(el);
+    let lis = lisDeSeleccion(el);
+    // Fuera de una lista, o en una numerada: primero se vuelve viñeta.
+    if (!lis.length || lis.some(li => li.parentNode.tagName === 'OL')) {
+      mandar('insertUnorderedList');
+      lis = lisDeSeleccion(el);
+      if (lis.some(li => li.parentNode.tagName === 'OL')) { mandar('insertUnorderedList'); lis = lisDeSeleccion(el); }
+    }
+    if (!lis.length) return;
+    const todas = lis.every(li => li.classList.contains('chk'));
+    lis.forEach(li => todas ? sacarChk(li) : ponerChk(li));
+    // En un renglón vacío el cursor va DESPUÉS de la casilla: si quedara
+    // adelante, lo que escribas iría antes que ella.
+    if (!todas && lis.length === 1 && !textoPropio(lis[0])) {
+      const c = cajaDe(lis[0]);
+      const r = document.createRange();
+      r.setStartAfter(c); r.collapse(true);
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    }
+    marcarVacio(el);
+    guardarCampoDe(el);
+  }
+
+  function tildar(caja) {
+    const li = caja.closest('li');
+    const on = !caja.classList.contains('on');
+    caja.classList.toggle('on', on);
+    caja.setAttribute('aria-checked', on ? 'true' : 'false');
+    if (li) li.classList.toggle('hecho', on);
+  }
+
+  // Lo que el renglón tiene escrito, sin contar sus sublistas.
+  function textoPropio(li) {
+    let t = '';
+    li.childNodes.forEach(c => {
+      if (c.nodeType === 1 && (c.tagName === 'UL' || c.tagName === 'OL')) return;
+      t += c.textContent;
+    });
+    return t.replace(/\u00a0/g, ' ').trim();
+  }
+
+  // El navegador no sabe qué es una casilla: al partir, juntar o correr
+  // renglones la puede dejar en cualquier lado. Esto la vuelve a su lugar
+  // después de cada cambio, sin tocar el texto.
+  function ordenarChecklist(el) {
+    el.querySelectorAll('.chk-box').forEach(c => {
+      const li = c.parentNode && c.parentNode.tagName === 'LI' ? c.parentNode : null;
+      // Una casilla suelta (afuera de una viñeta, o en una numerada) sobra.
+      if (!li || li.parentNode.tagName !== 'UL') { c.remove(); if (li) li.classList.remove('chk', 'hecho'); return; }
+      // Solo vale la que está primera. Las demás vienen de juntar renglones.
+      let primero = li.firstChild;
+      while (primero && primero.nodeType === 3 && !primero.nodeValue.length) primero = primero.nextSibling;
+      if (primero !== c) {
+        // Si adelante hay OTRA casilla, esta sobra (vino de juntar dos
+        // renglones). Si no, es la del renglón y se la vuelve al principio.
+        if (primero && primero.nodeType === 1 && primero.classList.contains('chk-box')) { c.remove(); return; }
+        li.insertBefore(c, li.firstChild);
+      }
+      li.classList.add('chk');
+      li.classList.toggle('hecho', c.classList.contains('on'));
+      // Al correr renglones el navegador le pega estilos copiados (un
+      // fondo blanco, la tipografía): taparían el rosa de tildada.
+      if (c.hasAttribute('style')) c.removeAttribute('style');
+    });
+    // Un renglón marcado que se quedó sin casilla la recupera.
+    el.querySelectorAll('li.chk').forEach(li => {
+      if (li.parentNode.tagName !== 'UL') { li.classList.remove('chk', 'hecho'); return; }
+      if (!cajaDe(li)) li.insertBefore(nuevaCaja(li.classList.contains('hecho')), li.firstChild);
+    });
+  }
+
+  function tecladoChecklist(e, el) {
+    if (e.isComposing) return false;
+    const li = liDelCursor(el);
+    if (!li || !li.classList.contains('chk')) return false;
+    const sel = window.getSelection();
+    const r = sel.getRangeAt(0);
+
+    // ⌘↵ tilda o destilda el renglón donde estás.
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      const c = cajaDe(li);
+      if (c) { tildar(c); guardarCampoDe(el); }
+      return true;
+    }
+
+    // Borrar al principio del renglón saca la casilla y deja una viñeta
+    // común. Un segundo borrar ya hace lo de siempre.
+    if (e.key === 'Backspace' && r.collapsed && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      const antes = document.createRange();
+      antes.setStart(li, 0);
+      antes.setEnd(r.startContainer, r.startOffset);
+      if (!antes.toString().replace(/\u00a0/g, ' ').length) {
+        e.preventDefault();
+        sacarChk(li);
+        if (!li.firstChild) li.appendChild(document.createElement('br'));
+        guardarCampoDe(el);
+        return true;
+      }
+      return false;
+    }
+
+    if (e.key !== 'Enter' || e.shiftKey || e.altKey) return false;
+    e.preventDefault();
+
+    // Enter en un renglón vacío: en una sublista lo trae un nivel para
+    // afuera; en el primer nivel sale de la checklist.
+    if (!textoPropio(li) && !li.querySelector('ul, ol')) {
+      const anidado = li.parentNode.parentNode && li.parentNode.parentNode.tagName === 'LI';
+      if (anidado) { mandar('outdent'); ordenarChecklist(el); }
+      else {
+        sacarChk(li);
+        if (!li.firstChild) li.appendChild(document.createElement('br'));
+        mandar('insertUnorderedList');
+      }
+      guardarCampoDe(el);
+      return true;
+    }
+
+    // Enter con texto: se parte el renglón y el pedazo de la derecha va
+    // a un renglón nuevo, también con casilla (sin tildar). Las
+    // sublistas se quedan colgando del renglón de arriba.
+    if (!r.collapsed) r.deleteContents();
+    const resto = document.createRange();
+    resto.setStart(r.startContainer, r.startOffset);
+    const sub = Array.from(li.childNodes).find(c => c.nodeType === 1 && (c.tagName === 'UL' || c.tagName === 'OL'));
+    if (sub) resto.setEndBefore(sub); else resto.setEnd(li, li.childNodes.length);
+    const pedazo = resto.extractContents();
+
+    const nuevo = document.createElement('li');
+    nuevo.className = 'chk';
+    const caja = nuevaCaja(false);
+    nuevo.appendChild(caja);
+    nuevo.appendChild(pedazo);
+    if (!nuevo.textContent.trim() && !nuevo.querySelector('br, img, .mencion')) nuevo.appendChild(document.createElement('br'));
+    if (!textoPropio(li) && !Array.from(li.childNodes).some(c => c.nodeType === 1 && c.tagName === 'BR')) {
+      li.insertBefore(document.createElement('br'), sub || null);
+    }
+    li.after(nuevo);
+
+    const cur = document.createRange();
+    cur.setStartAfter(caja); cur.collapse(true);
+    sel.removeAllRanges(); sel.addRange(cur);
+    marcarVacio(el);
+    guardarCampoDe(el);
+    return true;
+  }
+
+  // Click en una casilla: se tilda y se guarda. Solo adentro de un
+  // editor; en un comentario ya mandado o en administración la casilla
+  // se ve pero no se toca.
+  document.addEventListener('mousedown', e => {
+    const caja = e.target.closest && e.target.closest('.chk-box');
+    if (!caja) return;
+    const ed = caja.closest('[contenteditable="true"]');
+    if (!ed) return;
+    e.preventDefault();          // que el cursor no salte a la casilla
+    tildar(caja);
+    guardarCampoDe(ed);
+  });
+
   // Cada campo se guarda donde corresponde
   function guardarCampoDe(el) {
     if (!el) return;
@@ -7737,6 +8434,7 @@
     '<button class="mini-btn fmt" data-fmt="*" title="Cursiva (⌘I)"><i>i</i></button>' +
     '<button class="mini-btn fmt" data-fmt="__" title="Subrayado (⌘U)"><u>U</u></button>' +
     '<button class="mini-btn fmt" data-fmt="~~" title="Tachado"><s>S</s></button>' +
+    '<button class="mini-btn fmt" data-fmt="==" title="Resaltar (⌘⇧H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"></path><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></svg></button>' +
     '<button class="mini-btn fmt" data-lista="" title="Lista">•—</button>' +
     '<button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>';
 
@@ -9633,11 +10331,50 @@
   const DIAS_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const MAX_CARRILES = 4;
 
+  // ── Cuánto mide un día y cuánto una semana ───────────────────
+  //  `ancho` en px, o null = que entre justo en la pantalla (lo de
+  //  siempre). `carriles` es cuántas tareas apiladas se ven en una
+  //  semana antes del "+N más".
+  //
+  //  Va al navegador: es cuánta pantalla tenés, igual que lo plegado.
+  const CAL_LS = 'comakers-calendario';
+  let CAL_MEDIDAS = { ancho: null, carriles: MAX_CARRILES };
+
+  function leerMedidas() {
+    try {
+      const x = JSON.parse(localStorage.getItem(CAL_LS) || '{}');
+      if (x.ancho) CAL_MEDIDAS.ancho = Math.min(400, Math.max(90, +x.ancho || 0)) || null;
+      if (x.carriles) CAL_MEDIDAS.carriles = Math.min(14, Math.max(1, +x.carriles || 0)) || MAX_CARRILES;
+    } catch (_) {}
+  }
+  function guardarMedidas() {
+    try { localStorage.setItem(CAL_LS, JSON.stringify(CAL_MEDIDAS)); } catch (_) {}
+  }
+  function pintarMedidas() {
+    const c = $si('#calendario');
+    if (!c) return;
+    c.classList.toggle('ancho-fijo', !!CAL_MEDIDAS.ancho);
+    c.style.setProperty('--dia-px', (CAL_MEDIDAS.ancho || 0) + 'px');
+    c.style.setProperty('--carriles', CAL_MEDIDAS.carriles);
+  }
+  // El alto cambia cuántas tareas entran, así que hay que redibujar.
+  function medirDeNuevo(redibujar) {
+    guardarMedidas();
+    pintarMedidas();
+    if (redibujar) render();
+  }
+
   function renderCalendario(list) {
     $('#calendario').classList.toggle('semana', CAL_MODO === 'semana');
 
     const chico = window.innerWidth < 900;
-    $('#calCabecera').innerHTML = (chico ? DIAS_CORTO : DIAS).map(d => '<div>' + d + '</div>').join('');
+    pintarMedidas();
+    // La manija va en los seis primeros: la del último día no tendría
+    // borde derecho que agarrar.
+    $('#calCabecera').innerHTML = (chico ? DIAS_CORTO : DIAS).map((d, i) =>
+      '<div>' + d + (i < 6
+        ? '<span class="col-tirador" data-colancho="1" title="Estirá para ensanchar los días · doble click para volver"></span>'
+        : '') + '</div>').join('');
 
     // Semanas a dibujar
     let semanas = [];
@@ -9718,7 +10455,7 @@
       puestos.push({ x: x, c1: c1, c2: c2, carril: carril });
     });
 
-    const tope = CAL_MODO === 'semana' ? 99 : MAX_CARRILES;
+    const tope = CAL_MODO === 'semana' ? 99 : CAL_MEDIDAS.carriles;
     const visibles = puestos.filter(p => p.carril < tope);
     const ocultas = puestos.length - visibles.length;
 
@@ -9732,10 +10469,10 @@
       const quien = resps.length
         ? (nombrePersona(resps[0]) || '') + (resps.length > 1 ? ' +' + (resps.length - 1) : '')
         : '';
-      const cp = t.proyecto_id ? 'box-shadow: inset 0 0 0 1px ' + colorProyecto(t.proyecto_id) + '55;' : '';
+      const cp = t.proyecto_id ? '--proy:' + colorProyecto(t.proyecto_id) + ';' : '';
       return '<div class="' + cls.join(' ') + '" draggable="true" data-id="' + t.id + '" data-bar="1" ' +
              'style="grid-column:' + p.c1 + ' / ' + (p.c2 + 1) + '; grid-row:' + (p.carril + 1) + ';' + cp + '" ' +
-             'title="' + esc(t.titulo) + ' · ' + esc(rangoTxt(t)) + '">' +
+             'title="' + esc(t.titulo) + ' · ' + esc(rangoTxt(t)) + (quien ? ' · ' + esc(quien) : '') + '">' +
                '<span class="tirador ini" draggable="true" data-tirador="ini" data-id="' + t.id + '" title="Mover el inicio"></span>' +
                '<span class="txt">' + esc(t.titulo) + '</span>' +
                (quien ? '<span class="quien">· ' + esc(quien.split(' ')[0]) + '</span>' : '') +
@@ -9747,7 +10484,8 @@
       ? '<button class="cal-mas" data-versemana="' + isoIni + '" style="grid-row:' + (tope + 1) + '">+ ' + ocultas + ' más esta semana</button>'
       : '';
 
-    return '<div class="sem"><div class="sem-dias">' + celdas + '</div><div class="sem-barras">' + barras + mas + '</div></div>';
+    return '<div class="sem"><div class="sem-dias">' + celdas + '</div><div class="sem-barras">' + barras + mas + '</div>' +
+      '<span class="fila-tirador" data-filaalto="1" title="Estirá para ver más tareas por semana · doble click para volver"></span></div>';
   }
 
   // ── Alta rápida desde el calendario ──────────────────────────
@@ -10235,9 +10973,10 @@
       const vencidas = todos.filter(estaVencida).length;
       const abiertas = todos.filter(t => !t.completada).length;
       const items = ordenarFilas(g.items);
-      const col = COLAPSADOS[k] ? ' collapsed' : '';
+      const ck = AGRUPAR + ':' + k;
+      const col = COLAPSADOS[ck] ? ' collapsed' : '';
       return '' +
-        '<div class="grupo' + col + (NOTA_GRUPO[k] ? ' grupo-sin' : '') + '" data-grupo="' + esc(k) + '">' +
+        '<div class="grupo' + col + (NOTA_GRUPO[k] ? ' grupo-sin' : '') + '" data-grupo="' + esc(k) + '" data-pleg="' + esc(ck) + '">' +
           cabezaGrupo(g.label, vencidas, abiertas, todos.length, NOTA_GRUPO[k] || '') +
           '<div class="grupo-body">' + items.map(filaHTML).join('') + '</div>' +
         '</div>';
@@ -10336,12 +11075,15 @@
     const todos = conSubs ? conSubs(items) : items;
     const vencidas = todos.filter(estaVencida).length;
     const abiertas = todos.filter(t => !t.completada).length;
-    const col = COLAPSADOS[sec.id] ? ' collapsed' : '';
+    // "Sin sección" tiene la misma clave en todos los proyectos: se le
+    // suma el proyecto para que plegarla en uno no la pliegue en todos.
+    const ck = 'sec:' + (sec.id === SIN_SEC && p ? p.id + ':' : '') + sec.id;
+    const col = COLAPSADOS[ck] ? ' collapsed' : '';
     // Sí se pueden arrastrar desde "Sin sección": justamente sacarlas de
     // ahí es para lo que está. Lo que no tiene sentido es agregar una
     // tarea nueva adentro, así que esa fila no va.
     const movible = !!p;
-    return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '">' +
+    return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '" data-pleg="' + esc(ck) + '">' +
       cabezaGrupo(sec.nombre, vencidas, abiertas, todos.length,
         sinSeccion ? 'Están en el proyecto pero no cayeron en ninguna sección. Arrastralas a la que corresponda y este grupo desaparece solo.' : '') +
       '<div class="grupo-body" data-col="' + esc(sec.id) + '" data-tipo="' + esc(sec.tipo || '') + '">' +
@@ -10377,9 +11119,19 @@
   //
   //  No se pueden arrastrar: su lugar lo decide de quién cuelgan, no
   //  el orden de la sección.
+  //
+  //  Una tarea con subtareas se puede plegar, como una sección. Plegada
+  //  muestra cuántas tiene, y en rojo si alguna de las escondidas está
+  //  vencida: plegar no puede ser la forma de que lo atrasado desaparezca.
+  //  Buscando, lo plegado no cuenta: si no, el resultado podría quedar
+  //  escondido adentro de una madre cerrada.
   function filaHTML(t, movible) {
-    return filaSola(t, movible) +
-      subsVisibles(t.id).map(s => filaSola(s, false, true)).join('');
+    const subs = subsVisibles(t.id);
+    const buscando = !!FILTRO.texto.trim();
+    const plegada = !!subs.length && !buscando && SUBS_PLEG.has(t.id);
+    const info = (subs.length && !buscando) ? { subs: subs, plegada: plegada } : null;
+    return filaSola(t, movible, false, info) +
+      (plegada ? '' : subs.map(s => filaSola(s, false, true)).join(''));
 /*@@FIN*/
 /*@@ADMIN*/
   function campoDet(lbl, val, ancho) {
@@ -10389,7 +11141,29 @@
   }
 
 /*@@INTERNO*/
-  function filaSola(t, movible, esSub) {
+  const CHEV_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+
+  function pillSubs(t, info) {
+    if (!info) return '';
+    const n = info.subs.length;
+    const venc = info.plegada ? info.subs.filter(estaVencida).length : 0;
+    const titulo = info.plegada
+      ? 'Mostrar las ' + n + ' subtarea' + (n === 1 ? '' : 's') + (venc ? ' (' + venc + ' vencida' + (venc === 1 ? '' : 's') + ')' : '')
+      : 'Esconder las subtareas';
+    return '<button class="subs-pill' + (info.plegada ? ' cerrada' : '') + (venc ? ' alerta' : '') + '"' +
+      ' data-plegsub="' + t.id + '" aria-expanded="' + (info.plegada ? 'false' : 'true') + '" title="' + titulo + '">' +
+      CHEV_SVG + n + (venc ? ' · ' + venc + ' vencida' + (venc === 1 ? '' : 's') : '') + '</button>';
+  }
+
+  function plegarSubs(id) {
+    if (SUBS_PLEG.has(id)) SUBS_PLEG.delete(id); else SUBS_PLEG.add(id);
+    // Las que ya no existen se limpian solas, para que la lista no crezca para siempre.
+    SUBS_PLEG.forEach(x => { if (!TAREAS.some(t => t.id === x)) SUBS_PLEG.delete(x); });
+    try { localStorage.setItem(SUBS_LS, JSON.stringify(Array.from(SUBS_PLEG))); } catch (_) {}
+    render();
+  }
+
+  function filaSola(t, movible, esSub, info) {
     const desc = resumenTexto(t.descripcion);
     const f = fechaTxt(t.vence);
     const done = !!t.completada;
@@ -10401,7 +11175,7 @@
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
         '<div class="fila-main">' +
           '<div class="fila-titulo">' + esc(t.titulo) +
-            pillEspera(t) + '</div>' +
+            pillSubs(t, info) + pillEspera(t) + '</div>' +
           (desc ? '<div class="fila-desc">' + esc(desc) + '</div>' : '') +
 /*@@FIN*/
 /*@@ADMIN*/
@@ -11753,6 +12527,9 @@
 
 /*@@INTERNO*/
   function llenarDrawer(t) {
+    // Que la pestaña diga cómo se llama la tarea AHORA: si le cambiás
+    // el nombre con el detalle abierto, se actualiza sola.
+    pintarPestaña(t.id);
     // Si es una subtarea, arriba de todo va de quién cuelga y se puede
     // volver a la madre de un click.
     const madre = madreDe(t);
@@ -13428,6 +14205,83 @@
     $('#tapaMenu').classList.toggle('on', abierto);
   });
   on('#tapaMenu', 'click', cerrarMenuMovil);
+
+  // ── Plegar la barra y la bandeja ─────────────────────────────
+  //  Delegado en `document` y no colgado de cada botón. Con `on()`
+  //  el evento se engancha UNA vez, al arrancar, y si el elemento se
+  //  vuelve a dibujar —o si algo corre antes y lo reemplaza— el
+  //  botón queda mudo sin que se note. Así no puede pasar.
+  document.addEventListener('click', e => {
+    if (!e.target.closest) return;
+    if (e.target.closest('#barraCerrar, #barraAbrir')) { plegar('barra'); return; }
+    if (e.target.closest('#bandejaToggle')) { plegar('bandeja'); return; }
+  });
+
+/*@@INTERNO*/
+  // ── Estirar los días y las semanas ───────────────────────────
+  //  Se escucha en `document` y no en cada manija: las manijas se
+  //  redibujan con cada render y los listeners se perderían.
+  //
+  //  El calendario vive solo en el panel interno, así que todo esto
+  //  no viaja a administración.
+  document.addEventListener('mousedown', e => {
+    const col = e.target.closest && e.target.closest('[data-colancho]');
+    const fil = e.target.closest && e.target.closest('[data-filaalto]');
+    if (!col && !fil) return;
+    const cal = $si('#calendario');
+    if (!cal) return;
+    e.preventDefault();
+
+    const x0 = e.clientX, y0 = e.clientY;
+    // De cuánto se parte: si nunca se tocó, del ancho que tiene hoy.
+    const anchoIni = CAL_MEDIDAS.ancho ||
+      Math.round((document.querySelector('.cal-cabecera').getBoundingClientRect().width) / 7);
+    const carrilesIni = CAL_MEDIDAS.carriles;
+
+    cal.classList.add(col ? 'estirando' : 'estirando-alto');
+    let ultimoCarril = carrilesIni;
+
+    const mover = ev => {
+      if (col) {
+        CAL_MEDIDAS.ancho = Math.min(400, Math.max(90, anchoIni + (ev.clientX - x0)));
+        pintarMedidas();
+      } else {
+        // 28px = un carril. Se redondea, así que la semana crece de a
+        // una tarea y no queda a medio camino.
+        const n = Math.min(14, Math.max(1, carrilesIni + Math.round((ev.clientY - y0) / 28)));
+        if (n !== ultimoCarril) {
+          ultimoCarril = n;
+          CAL_MEDIDAS.carriles = n;
+          medirDeNuevo(true);     // cambia cuántas entran: hay que redibujar
+        }
+      }
+    };
+    const soltar = () => {
+      document.removeEventListener('mousemove', mover);
+      document.removeEventListener('mouseup', soltar);
+      cal.classList.remove('estirando', 'estirando-alto');
+      medirDeNuevo(false);
+    };
+    document.addEventListener('mousemove', mover);
+    document.addEventListener('mouseup', soltar);
+  });
+
+  // Doble click en una manija: vuelve a como venía de fábrica.
+  document.addEventListener('dblclick', e => {
+    if (!e.target.closest) return;
+    if (e.target.closest('[data-colancho]')) {
+      CAL_MEDIDAS.ancho = null; medirDeNuevo(false);
+      toast('Los días vuelven a entrar justo en la pantalla');
+    } else if (e.target.closest('[data-filaalto]')) {
+      CAL_MEDIDAS.carriles = MAX_CARRILES; medirDeNuevo(true);
+      toast('Vuelven a verse ' + MAX_CARRILES + ' tareas por semana');
+    }
+  });
+/*@@FIN*/
+  // ⌘\ es el atajo que usan Asana, Notion y el resto para esto.
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === '\\') { e.preventDefault(); plegar('barra'); }
+  });
 /*@@INTERNO*/
   on('#bmNueva', 'click', () => { cerrarMenuMovil(); abrirForm(null); });
 /*@@FIN*/
@@ -13622,6 +14476,9 @@
     const el = campoDeLaBarra(b);
     if (!el) return;
     if (b.hasAttribute('data-lista')) listar(el, b.dataset.lista === '1');
+    else if (b.hasAttribute('data-chk')) checklist(el);
+    else if (b.hasAttribute('data-hr')) divisor(el);
+    else if (b.dataset.fmt === '==') resaltar(el);
     else envolver(el, b.dataset.fmt);
   }, true);
 
@@ -13936,7 +14793,9 @@
   });
   on('#filtroPersona', 'change', e => { FILTRO.persona = e.target.value; e.target.classList.toggle('on', !!e.target.value); render(); });
   on('#filtroCliente', 'change', e => { FILTRO.cliente = e.target.value; e.target.classList.toggle('on', !!e.target.value); render(); });
-  on('#agrupar', 'change', e => { AGRUPAR = e.target.value; COLAPSADOS = {}; render(); });
+  // Ya no se borra lo plegado al cambiar de agrupación: cada una tiene
+  // sus propias claves, y volver a la anterior la deja como estaba.
+  on('#agrupar', 'change', e => { AGRUPAR = e.target.value; render(); });
   on('#btnMias', 'click', function () { FILTRO.mias = !FILTRO.mias; this.classList.toggle('active', FILTRO.mias); render(); });
   on('#btnLimpiar', 'click', () => {
     FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false };
@@ -13997,6 +14856,9 @@
     const check = e.target.closest('[data-check]');
     if (check) { e.stopPropagation(); alternarCompletada(check.dataset.check); return; }
 
+    const plegSub = e.target.closest('[data-plegsub]');
+    if (plegSub) { e.stopPropagation(); plegarSubs(plegSub.dataset.plegsub); return; }
+
     // Ordenar por columna. Segundo click en la misma: al revés.
     const ord = e.target.closest('[data-orden]');
     if (ord) {
@@ -14012,7 +14874,8 @@
     if (head) {
       const g = head.closest('.grupo');
       g.classList.toggle('collapsed');
-      COLAPSADOS[g.dataset.grupo] = g.classList.contains('collapsed');
+      COLAPSADOS[g.dataset.pleg || g.dataset.grupo] = g.classList.contains('collapsed');
+      if (g.dataset.pleg) guardarColapsados();
       return;
     }
 
