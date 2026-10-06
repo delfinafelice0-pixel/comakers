@@ -10,3 +10,7 @@ supabase/.temp/
 .env.*
 supabase/functions/**/*.bak
 *.bak-*
+
+# Lo que genera fuente/probar-panel.sh: capturas y paginas de prueba.
+_prueba/
+_prueba-*.html
