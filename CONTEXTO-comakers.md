@@ -380,10 +380,37 @@ propuesta del chat del 16/09. Dos cosas a no olvidar:
 
 **`analizar-reporte`:**
 - Que no use la nomenclatura interna de los anuncios ("Creativo nuevo | ").
-- Botón "Generar de nuevo" en el cartel de análisis desactualizado. Según
-  el guardián de la función, un borrador generado sí se regenera, así que
-  probablemente es solo un cambio del panel (hoy el botón aparece solo
-  cuando no hay texto). Confirmar leyendo la función.
+- **Botón "Regenerar análisis" en el panel. CONFIRMADO el 06/10/2026 que
+  es solo un cambio del panel: la función ya lo acepta.** El guardián de
+  `analizar-reporte` devuelve 409 únicamente si hay texto **y**
+  `analisis_generado_en` es null (o sea, si lo escribió una persona). Un
+  borrador generado se regenera sin problema. Lo que falta es del lado
+  del panel: hoy el botón se dibuja solo cuando el texto está **vacío**
+  (`conBoton` en `bloqueTexto`), así que para regenerar hay que entrar a
+  Editar, borrar el textarea y guardar — y eso además borra y reinserta
+  todas las filas de `reporte_metrica` y `reporte_destacado`, que no
+  tiene nada que ver. Mientras no exista el botón, el camino bueno es la
+  consola (ver "Cómo invoco las funciones para probar").
+  Al hacerlo, tres cosas:
+  - Mostrarlo cuando `analisis_generado_en` tiene fecha, no solo cuando
+    el texto está vacío. En el cartel de desactualizado es donde más se
+    necesita.
+  - **Solo para la agencia, y pedir confirmación**: cada generación es
+    una llamada paga a la API de Claude.
+  - Avisar que pisa `resumen`, `proximos_pasos`, `analisis_organico` y
+    `analisis_pauta`, no solo `analisis`.
+- **El cron nunca va a refrescar un borrador viejo, y es a propósito.**
+  `sync_diario()` exige las tres condiciones (`publicado_en is null`,
+  `analisis_generado_en is null`, `analisis` vacío) para no pisar texto
+  ni pagar dos veces la misma generación. Por eso el botón manual no es
+  un lujo: es el único camino para un borrador con números que
+  cambiaron. La definición quedó guardada en
+  `supabase/migrations/20261006_cron_v3_analisis.sql`.
+- **Falta poder editar `analisis_organico` y `analisis_pauta`.** El
+  editor solo tiene campos para `resumen`, `analisis` y
+  `proximos_pasos`, pero `guardar()` pone `analisis_generado_en = null`
+  siempre: da por revisados dos textos que el panel no muestra
+  editables. Hoy solo se corrigen por SQL.
 
 **Mejor horario para publicar.** Los datos ya están calculados en
 `v_timing`, pero con 14 posts de FOS y 3 de Visitando ningún horario llega
