@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   /* ═══════════════════════════════════════════════════════════
      CRM · Consultas de WhatsApp
@@ -57,7 +58,21 @@
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
-  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  /* Fail-closed: el panel no se dibuja hasta que el JS confirma que
+     quien entró es de la agencia. Sin JS, sin sesión o si es un
+     cliente, queda oculto y solo se ve el aviso de abajo. Mientras el
+     módulo tenga datos de ejemplo, un cliente no tiene que verlo. */
+  .app { display: none; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  .app.listo { display: grid; }
+
+  .gate {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 32px; text-align: center;
+  }
+  .gate-caja { max-width: 420px; }
+  .gate-caja h1 { font-family: var(--display); font-size: 26px; font-weight: 500; margin-bottom: 10px; }
+  .gate-caja p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; }
+  .gate-caja a { color: var(--accent); font-weight: 600; text-decoration: none; }
 
   /* ── SIDEBAR ──────────────────────────────────────────── */
   .sidebar {
@@ -337,6 +352,12 @@
 </head>
 <body>
 
+<div class="gate" id="gate">
+  <div class="gate-caja">
+    <p id="gateMsg">Cargando…</p>
+  </div>
+</div>
+
 <div class="app">
   <!-- ══════════ SIDEBAR ══════════ -->
   <aside class="sidebar">
@@ -573,6 +594,17 @@
 <script>
 (function () {
   'use strict';
+
+  // ── Conexión y control de acceso ────────────────────────────
+  // Igual que panel.html. Mientras este módulo muestre datos de
+  // ejemplo, solo la agencia puede verlo: un cliente que entre a
+  // comakers.com.ar/crm no tiene que ver conversaciones que no son
+  // suyas. El chequeo es contra profiles (RLS), no contra el DOM.
+  const LOGIN = 'login-comakers.html';
+  const SB = supabase.createClient(
+    'https://ggcstolnadkkqhsqpzql.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs'
+  );
 
   // ═══════════════════════════════════════════════════════════
   //  DATOS MOCK
@@ -1035,9 +1067,45 @@
     toast('Nota guardada');
   });
 
-  renderLista();
-  renderHilo();
-  renderNumeros();
+  // ── Gate de acceso ───────────────────────────────────────
+  // Nadie ve el panel hasta que esto confirme agencia. El .app
+  // arranca en display:none por CSS; recién acá se lo revela.
+  async function arrancar() {
+    let session = null;
+    try {
+      const r = await SB.auth.getSession();
+      session = r.data && r.data.session;
+    } catch (e) { session = null; }
+
+    if (!session) { location.replace(LOGIN); return; }
+
+    let perfil = null;
+    try {
+      const r = await SB.from('profiles')
+        .select('tipo, super_admin').eq('id', session.user.id).single();
+      perfil = r.data;
+    } catch (e) { perfil = null; }
+
+    const agencia = !!(perfil && (perfil.tipo === 'agencia' || perfil.super_admin));
+
+    if (!agencia) {
+      // Cliente (o perfil que no se pudo leer): no se muestra nada.
+      $('gateMsg').innerHTML =
+        '<strong>Este módulo todavía no está disponible.</strong><br>' +
+        'Las consultas de WhatsApp se están preparando. ' +
+        'Volvé al <a href="panel.html">panel</a>.';
+      return;
+    }
+
+    // Agencia: se monta el panel y se revela.
+    $('gate').style.display = 'none';
+    document.querySelector('.app').classList.add('listo');
+    renderLista();
+    renderHilo();
+    renderNumeros();
+  }
+
+  arrancar();
 })();
 </script>
 </body>
