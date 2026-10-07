@@ -542,3 +542,10 @@ Deploy de una función:
 ```bash
 cd ~/Desktop/Aplicaciones/CoMakers/HubCoMakers && npx supabase functions deploy NOMBRE --project-ref ggcstolnadkkqhsqpzql
 ```
+
+**En la máquina Windows de CoMakers (07/10/2026):** el repo vive en
+`C:\Users\USUARIO\Desktop\Claude\CoMakers` y hay que invocar `npx.cmd`,
+no `npx` (PowerShell bloquea `npx`). El login del CLI (`supabase login`)
+vive en la sesión de Delfi: un proceso que Claude lance aparte no lo ve,
+así que el deploy lo corre Delfi en su terminal. CLI probada: v2.120.0,
+no necesita Docker para `functions deploy`.

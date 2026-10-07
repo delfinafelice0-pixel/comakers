@@ -69,10 +69,24 @@ armar() {
   var hacer = (typeof textoDelMock === 'function') ? textoDelMock : module.exports.textoDelMock;
   eval(hacer(DATOS_ADMIN, SESION_ADMIN));
 
-  // confirm() en headless se auto-descarta: devolvemos true para que el
-  // flujo de prender un módulo no se corte, y lo dibujamos aparte.
+  // confirm() en headless se auto-descarta y no se puede fotografiar: se
+  // captura el texto y se dibuja, avisando qué es. Se devuelve false, así
+  // que el toggle no avanza: la captura es del TEXTO de la confirmación.
   window.__CONFIRMS = [];
-  window.confirm = function (msg) { window.__CONFIRMS.push(msg); return true; };
+  window.confirm = function (msg) {
+    window.__CONFIRMS.push(msg);
+    var d = document.createElement('div');
+    d.setAttribute('style', 'position:fixed;z-index:9999;left:50%;top:40px;transform:translateX(-50%);max-width:560px;background:#fff;border:2px solid #c0392b;border-radius:10px;font:14px/1.5 system-ui;box-shadow:0 18px 50px rgba(0,0,0,.35);overflow:hidden');
+    var h = document.createElement('div');
+    h.setAttribute('style', 'background:#c0392b;color:#fff;padding:8px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase');
+    h.textContent = 'texto capturado de window.confirm() — no es el diálogo nativo';
+    var b = document.createElement('div');
+    b.setAttribute('style', 'padding:14px 16px;white-space:pre-wrap');
+    b.textContent = msg;
+    d.appendChild(h); d.appendChild(b);
+    document.body.appendChild(d);
+    return false;
+  };
 
   function esperar(sel, fn, n) {
     n = n || 0;
@@ -88,14 +102,20 @@ BOOT
 }
 
 NADA='void 0;'
+B1='String.fromCharCode(91)'   # [
+B2='String.fromCharCode(93)'   # ]
 # Abrir el popup de FOS: clic en su engranaje (data-cabrir="c-fos").
-POPUP='esperar(String.fromCharCode(91)+"data-cabrir=\"c-fos\""+String.fromCharCode(93), function (b) { b.click(); });'
+POPUP='esperar('"$B1"'+"data-cabrir=\"c-fos\""+'"$B2"', function (b) { b.click(); });'
 # Prender "Ver inactivos".
 INACTIVOS='esperar("#verInactivosBtn", function (b) { b.click(); });'
+# Abrir el popup de FOS y prender el toggle del CRM: dispara el confirm,
+# que el harness dibuja con su texto (la confirmación específica del CRM).
+CRM='esperar('"$B1"'+"data-cabrir=\"c-fos\""+'"$B2"', function (b) { b.click(); esperar('"$B1"'+"data-clmod=\"crm\""+'"$B2"', function (m) { m.click(); }); });'
 
 armar _prueba-admin-lista.html     "$NADA"
 armar _prueba-admin-popup.html     "$POPUP"
 armar _prueba-admin-inactivos.html "$INACTIVOS"
+armar _prueba-admin-crm.html       "$CRM"
 
 capturar() {
   local nombre="$1" archivo="$2"
@@ -110,6 +130,7 @@ echo "Capturas:"
 capturar admin-lista     _prueba-admin-lista.html
 capturar admin-popup     _prueba-admin-popup.html
 capturar admin-inactivos _prueba-admin-inactivos.html
+capturar admin-crm       _prueba-admin-crm.html
 
 rm -f _prueba-admin-*.html
 echo "Listo. Las capturas quedaron en $OUT/"

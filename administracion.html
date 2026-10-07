@@ -2879,7 +2879,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 11:54</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 17:26</div>
     </div>
   </aside>
 
@@ -6552,18 +6552,28 @@
 
   // ══════════════ Panel de cliente (popup) ══════════════
   // Catálogo de módulos del panel de cliente. Para sumar uno nuevo
-  // (calendario, estrategia…) agregás UNA línea acá y aparece solo en el
-  // popup, apagado por defecto. organico y pauta ya tienen fila en
-  // cliente_modulo para todos los clientes, así que conservan su estado.
+  // agregás UNA línea acá y aparece solo en el popup. Cada módulo trae:
+  //   def       — qué pasa SIN fila en cliente_modulo. El servidor trata
+  //               "sin fila = prendido" para organico y pauta (def:true).
+  //               El CRM es un servicio que se cobra aparte, así que sin
+  //               fila está apagado (def:false): se lee al revés.
+  //   confirmar — (opcional) función(nombreCliente)→texto para el confirm
+  //               al PRENDER. Sin esto se usa el genérico. El CRM lo usa
+  //               porque prenderlo expone datos de terceros.
   //
   // OJO: panel.html solo DIBUJA los módulos que conoce en su propio
   // MODULOS (`if (m.modulo in MODULOS)`); sumar una clave acá NO la hace
   // visible en el panel hasta que se le escriba el render del otro lado.
-  // Acá esta constante solo decide qué toggle se ve y qué fila se escribe
-  // en cliente_modulo.
+  // Acá esta constante solo decide qué toggle se ve, con qué default, y
+  // qué fila se escribe en cliente_modulo.
   const CAT_MODULOS = [
-    { clave: 'organico', nombre: 'Orgánico', ayuda: 'Contenido y comunidad de Instagram.' },
-    { clave: 'pauta',    nombre: 'Pauta',    ayuda: 'Inversión publicitaria en Meta. Necesita la cuenta de ads conectada.' },
+    { clave: 'organico', nombre: 'Orgánico', def: true,  ayuda: 'Contenido y comunidad de Instagram.' },
+    { clave: 'pauta',    nombre: 'Pauta',    def: true,  ayuda: 'Inversión publicitaria en Meta. Necesita la cuenta de ads conectada.' },
+    { clave: 'crm',      nombre: 'CRM',      def: false, ayuda: 'Consultas de WhatsApp. Se cobra aparte: arranca apagado.',
+      confirmar: function (q) {
+        return 'Prender el CRM le da a ' + q + ' acceso a las conversaciones de WhatsApp de SUS clientes: ' +
+               'datos personales de terceros. ¿Seguro que querés prenderlo?';
+      } },
   ];
 
   // Las dos conexiones posibles, en orden. `tipo` = valor real de
@@ -6599,12 +6609,14 @@
       pintarConexiones();
     }
 
-    // Sin fila = apagado EN PANTALLA. No creamos filas al abrir: la fila
-    // se escribe recién cuando prendés el toggle. organico/pauta ya tienen
-    // fila para todos los clientes, así que no hay ambigüedad; un módulo
-    // nuevo sin fila se muestra apagado (y el servidor no lo mira).
+    // Cada módulo arranca en su default de catálogo (organico/pauta
+    // prendidos "sin fila", crm apagado) y la fila de cliente_modulo lo
+    // pisa si existe. No creamos filas al abrir: la fila se escribe recién
+    // al togglear, y apagar es update activo=false (nunca borrar), así que
+    // el default solo manda cuando el cliente no tiene fila de ese módulo.
     CL_MODULOS = {};
-    if (!rm.error) (rm.data || []).forEach(m => { CL_MODULOS[m.modulo] = m.activo !== false; });
+    CAT_MODULOS.forEach(m => { CL_MODULOS[m.clave] = m.def === true; });
+    if (!rm.error) (rm.data || []).forEach(m => { if (m.modulo in CL_MODULOS) CL_MODULOS[m.modulo] = m.activo !== false; });
     pintarModulosCliente(rm.error);
   }
 
@@ -6659,18 +6671,29 @@
     }).join('');
   }
 
-  // Prende/apaga un módulo. Escribe SIEMPRE una fila explícita (upsert),
-  // nunca borra: todo el servidor (sync_diario, los pulls, el panel) trata
-  // "sin fila = prendido", así que apagar borrando dejaría el módulo
-  // prendido del otro lado.
+  // Prende/apaga un módulo. Escribe SIEMPRE una fila explícita (upsert
+  // con activo true/false), NUNCA borra: para organico/pauta el servidor
+  // trata "sin fila = prendido", así que apagar borrando los dejaría
+  // prendidos del otro lado; y para el CRM, borrar la fila lo volvería a
+  // su default (apagado), que da igual, pero la regla es una sola para
+  // todos: apagar = update activo=false.
   async function alternarModuloCliente(clave) {
     if (!CL_EDIT) return;
+    const cat = CAT_MODULOS.find(m => m.clave === clave) || {};
+    const nom = cat.nombre || clave;
     const nuevo = !(CL_MODULOS[clave] === true);
-    const nom = (CAT_MODULOS.find(m => m.clave === clave) || {}).nombre || clave;
+    const quien = CL_EDIT.nombre || 'este cliente';
     // Prender le muestra algo nuevo al cliente: se confirma. Apagar no,
     // porque solo le saca una solapa (los datos los sigue trayendo el
-    // pull, que ya no depende del módulo).
-    if (nuevo && !confirm('¿Mostrarle “' + nom + '” a ' + (CL_EDIT.nombre || 'este cliente') + ' en su panel?')) return;
+    // pull, que ya no depende del módulo). Si el módulo trae su propio
+    // texto de confirmación (el CRM, que expone datos de terceros), ese
+    // manda sobre el genérico.
+    if (nuevo) {
+      const msg = typeof cat.confirmar === 'function'
+        ? cat.confirmar(quien)
+        : '¿Mostrarle “' + nom + '” a ' + quien + ' en su panel?';
+      if (!confirm(msg)) return;
+    }
     CL_MODULOS[clave] = nuevo;                 // optimista
     pintarModulosCliente(null);
     const { error } = await SB.from('cliente_modulo')

@@ -54,11 +54,15 @@ var DATOS_ADMIN = {
     { id: 'ci-vis-ig',  cliente_id: 'c-visit', tipo: 'meta_ig',  cuenta_id: '17841463436895688', cuenta_nombre: '@visitandotandil', activo: true, ultimo_sync: null, ultimo_error: '2026-09 · El acceso a Instagram venció. Hay que generar un token nuevo en Meta.' }
   ],
 
+  // crm lo creó la migración 46 con activo=false para todos los clientes
+  // existentes (se lee al revés: sin fila o con activo=false está apagado).
   cliente_modulo: [
     { cliente_id: 'c-fos',   modulo: 'organico', activo: true },
     { cliente_id: 'c-fos',   modulo: 'pauta',    activo: true },
+    { cliente_id: 'c-fos',   modulo: 'crm',      activo: false },
     { cliente_id: 'c-visit', modulo: 'organico', activo: true },
-    { cliente_id: 'c-visit', modulo: 'pauta',    activo: false }
+    { cliente_id: 'c-visit', modulo: 'pauta',    activo: false },
+    { cliente_id: 'c-visit', modulo: 'crm',      activo: false }
   ]
 };
 
