@@ -1155,6 +1155,46 @@
   /* Una tabla vacía (inactivos ocultos) no deja una caja fantasma. */
   .tabla:empty { display: none; }
 
+  /* Distribución: caja de Supuestos y columna de verificación. */
+  .supuestos {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font-size: 11.5px; color: var(--ink-mute); margin: 0 0 12px;
+    padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev);
+  }
+  .supuestos b { color: var(--ink); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  .supuestos span { background: var(--line-soft); border-radius: 20px; padding: 2px 9px; }
+  .supuestos .sep { background: none; padding: 0; color: var(--line); }
+  .supuestos .supuestos-warn { background: var(--warn-soft); color: var(--ink); }
+  .verif { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 5px; }
+  .verif.ok  { color: var(--verde-txt, #4E7C1C); }
+  .verif.err { color: #b23; background: var(--warn-soft); }
+
+  /* Fondo + Gastos: la tabla de gastos. */
+  .gasto-tabla { min-width: 820px; }
+  .gasto-row { display: grid; grid-template-columns: 72px minmax(150px,2fr) 132px 96px 112px minmax(120px,1.4fr) 104px 34px; }
+  .gasto-row .g-desc { font-weight: 500; overflow-wrap: anywhere; }
+  .gasto-row .g-comp { color: var(--ink-mute); font-size: 11.5px; overflow-wrap: anywhere; }
+  .g-borrar {
+    width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
+    color: var(--ink-mute); cursor: pointer; opacity: 0; transition: opacity .15s, color .15s, border-color .15s;
+  }
+  .gasto-row:hover .g-borrar { opacity: 1; }
+  .g-borrar:hover { color: #b23; border-color: var(--line); }
+
+  /* Servicios del cliente en el popup. */
+  .cl-serv-row {
+    display: flex; align-items: center; gap: 8px; padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft); font-size: 13px;
+  }
+  .cl-serv-row:last-child { border-bottom: none; }
+  .cl-serv-nom { font-weight: 500; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .cl-serv-monto { color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+  .cl-serv-x {
+    width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
+    color: var(--ink-mute); cursor: pointer;
+  }
+  .cl-serv-x:hover { color: #b23; border-color: var(--line); }
+
   /* ── Popup de cliente · sección Panel ── */
   .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
   .panel-tit-sub { font-weight: 400; color: var(--ink-mute); }
@@ -2861,7 +2901,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 17:26</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 18:39</div>
     </div>
   </aside>
 
@@ -5879,8 +5919,8 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios',
-    etiquetas: 'Etiquetas'
+    dist: 'Distribución', fondo: 'Fondo + Gastos', wiki: 'Wiki', equipo: 'Equipo',
+    servicios: 'Servicios', etiquetas: 'Etiquetas'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -5902,7 +5942,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
+         || m === 'fondo' || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -5939,6 +5979,7 @@
     mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
+    mostrar('#modFondo',     MODULO === 'fondo');
     mostrar('#modWiki',      MODULO === 'wiki');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
@@ -5949,7 +5990,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navFondo', '#navEtiquetas']
         .forEach(sel => mostrar(sel, true));
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
@@ -5967,6 +6008,7 @@
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
     activar('#navDist',     MODULO === 'dist');
+    activar('#navFondo',    MODULO === 'fondo');
     activar('#navEquipo',   MODULO === 'equipo');
 
     const t = $si('#tituloGlobal');
@@ -5985,6 +6027,7 @@
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
       dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
+      fondo:    ['El <em>fondo</em> + gastos', 'El 10% que junta el fondo cada mes, y en qué se va.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
       etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página

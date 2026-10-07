@@ -1155,6 +1155,46 @@
   /* Una tabla vacía (inactivos ocultos) no deja una caja fantasma. */
   .tabla:empty { display: none; }
 
+  /* Distribución: caja de Supuestos y columna de verificación. */
+  .supuestos {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font-size: 11.5px; color: var(--ink-mute); margin: 0 0 12px;
+    padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev);
+  }
+  .supuestos b { color: var(--ink); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  .supuestos span { background: var(--line-soft); border-radius: 20px; padding: 2px 9px; }
+  .supuestos .sep { background: none; padding: 0; color: var(--line); }
+  .supuestos .supuestos-warn { background: var(--warn-soft); color: var(--ink); }
+  .verif { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 5px; }
+  .verif.ok  { color: var(--verde-txt, #4E7C1C); }
+  .verif.err { color: #b23; background: var(--warn-soft); }
+
+  /* Fondo + Gastos: la tabla de gastos. */
+  .gasto-tabla { min-width: 820px; }
+  .gasto-row { display: grid; grid-template-columns: 72px minmax(150px,2fr) 132px 96px 112px minmax(120px,1.4fr) 104px 34px; }
+  .gasto-row .g-desc { font-weight: 500; overflow-wrap: anywhere; }
+  .gasto-row .g-comp { color: var(--ink-mute); font-size: 11.5px; overflow-wrap: anywhere; }
+  .g-borrar {
+    width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
+    color: var(--ink-mute); cursor: pointer; opacity: 0; transition: opacity .15s, color .15s, border-color .15s;
+  }
+  .gasto-row:hover .g-borrar { opacity: 1; }
+  .g-borrar:hover { color: #b23; border-color: var(--line); }
+
+  /* Servicios del cliente en el popup. */
+  .cl-serv-row {
+    display: flex; align-items: center; gap: 8px; padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft); font-size: 13px;
+  }
+  .cl-serv-row:last-child { border-bottom: none; }
+  .cl-serv-nom { font-weight: 500; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .cl-serv-monto { color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+  .cl-serv-x {
+    width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
+    color: var(--ink-mute); cursor: pointer;
+  }
+  .cl-serv-x:hover { color: #b23; border-color: var(--line); }
+
   /* ── Popup de cliente · sección Panel ── */
   .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
   .panel-tit-sub { font-weight: 400; color: var(--ink-mute); }
@@ -2883,6 +2923,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
           Distribución
         </button>
+        <button class="nav-item" id="navFondo" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg>
+          Fondo + Gastos
+        </button>
         <button class="nav-item" id="navWiki">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           Wiki
@@ -3083,6 +3127,9 @@
 
     <!-- ═══════════ DISTRIBUCIÓN ═══════════ -->
     <div id="modDist" style="display:none"></div>
+
+    <!-- ═══════════ FONDO + GASTOS ═══════════ -->
+    <div id="modFondo" style="display:none"></div>
 
     <!-- ═══════════ WIKI ═══════════ -->
     <div id="modWiki" style="display:none"></div>
@@ -3458,6 +3505,20 @@
     <div class="campo" id="clSlugWrap" style="display:none">
       <label class="campo-label">Identificador</label>
       <div class="res-sub" id="clSlug" style="margin:0"></div>
+    </div>
+
+    <!-- Servicios: lo que tiene contratado. Es la MISMA relación que la
+         tabla de Clientes y la Distribución (tabla `contrato`), no una
+         copia. Solo al editar un cliente que ya existe. -->
+    <div class="campo" id="clServiciosWrap" style="display:none">
+      <div class="sep-inv"></div>
+      <label class="campo-label">Servicios</label>
+      <div class="res-sub" style="margin:0 0 8px">Lo que tiene contratado. Agregá o quitá eligiendo del catálogo de la solapa Servicios.</div>
+      <div id="clServicios"></div>
+      <div class="res-alta" id="clServAlta">
+        <select class="sel" id="clServSel" style="flex:1;min-width:0"></select>
+        <button class="btn-ghost" id="clServAgregar">Agregar</button>
+      </div>
     </div>
 
     <!-- Panel de cliente. Dos partes: lo que TRAEMOS (cliente_integracion)
@@ -6549,8 +6610,8 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios',
-    etiquetas: 'Etiquetas'
+    dist: 'Distribución', fondo: 'Fondo + Gastos', wiki: 'Wiki', equipo: 'Equipo',
+    servicios: 'Servicios', etiquetas: 'Etiquetas'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -6572,7 +6633,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
+         || m === 'fondo' || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -6612,6 +6673,7 @@
     mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
+    mostrar('#modFondo',     MODULO === 'fondo');
     mostrar('#modWiki',      MODULO === 'wiki');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
@@ -6622,7 +6684,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navFondo', '#navEtiquetas']
         .forEach(sel => mostrar(sel, true));
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
@@ -6640,6 +6702,7 @@
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
     activar('#navDist',     MODULO === 'dist');
+    activar('#navFondo',    MODULO === 'fondo');
     activar('#navEquipo',   MODULO === 'equipo');
 
     const t = $si('#tituloGlobal');
@@ -6658,6 +6721,7 @@
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
       dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
+      fondo:    ['El <em>fondo</em> + gastos', 'El 10% que junta el fondo cada mes, y en qué se va.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
       etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página
@@ -7130,8 +7194,9 @@
     // ya existe: necesita su id para leer y escribir cliente_integracion /
     // cliente_modulo. En "Nuevo cliente" no se muestra.
     $('#clPanel').style.display = c ? '' : 'none';
+    $('#clServiciosWrap').style.display = c ? '' : 'none';
     CL_MODULOS = {}; CL_INTEG = []; CL_CX_EDIT = null;
-    if (c) cargarPanelCliente(c);
+    if (c) { cargarPanelCliente(c); cargarServiciosCliente(c); }
     abrir('ovCliente');
     setTimeout(() => $('#clNombre').focus(), 60);
   }
@@ -7409,6 +7474,65 @@
     CL_CX_EDIT = null;
     toast('Conexión guardada', 'ok');
     if (CL_EDIT) cargarPanelCliente(CL_EDIT);
+  }
+
+  // ── Servicios del cliente (sección del popup) ──────────────────
+  // La relación es `contrato`: la misma que alimenta la tabla de Clientes
+  // y la Distribución. No se duplica nada. Agregar inserta un contrato
+  // con el servicio elegido del catálogo; quitar lo archiva.
+  async function cargarServiciosCliente(c) {
+    pintarClServicios(c);                 // los contratos ya están en memoria
+    if (!SERV_CARGADO) { await cargarServicios(); if (!CL_EDIT || CL_EDIT.id !== c.id) return; }
+    pintarClServicios(c);                 // ahora con el catálogo para el selector
+  }
+
+  function pintarClServicios(c) {
+    const cts = CONTRATOS.filter(x => x.cliente_id === c.id && x.activo !== false);
+    $('#clServicios').innerHTML = cts.length
+      ? cts.map(ct => '<div class="cl-serv-row">' +
+          '<span class="cl-serv-nom">' + esc(ct.nombre || '—') + '</span>' +
+          (ct.monto != null && ct.monto !== '' ? '<span class="cl-serv-monto">' + plata(ct.monto) + '</span>' : '') +
+          '<button class="cl-serv-x" data-clservquitar="' + ct.id + '" title="Quitar servicio">✕</button>' +
+        '</div>').join('')
+      : '<div class="vacio-mini">Sin servicios asignados.</div>';
+
+    const asignados = cts.map(ct => ct.servicio_id).filter(Boolean);
+    const vivos = (SERVICIOS || []).filter(s => !s.archivado && asignados.indexOf(s.id) === -1);
+    const sel = $('#clServSel'); if (!sel) return;
+    sel.innerHTML = '<option value="">Elegí un servicio del catálogo…</option>' +
+      vivos.map(s => '<option value="' + s.id + '">' + esc(s.nombre) +
+        (s.precio != null ? ' · ' + plata(s.precio) : '') + '</option>').join('');
+    // Sin catálogo (o todo asignado) no tiene sentido el selector.
+    $('#clServAlta').style.display = (SERV_CARGADO && vivos.length) ? '' : 'none';
+  }
+
+  async function agregarServicioCliente() {
+    if (!CL_EDIT) return;
+    const sid = $('#clServSel').value;
+    if (!sid) { toast('Elegí un servicio del catálogo', 'warn'); return; }
+    const s = (SERVICIOS || []).find(x => x.id === sid);
+    if (!s) return;
+    const fila = { cliente_id: CL_EDIT.id, servicio_id: s.id, nombre: s.nombre, activo: true,
+                   tipo: 'mensual', monto: (s.precio != null ? s.precio : null), dia_desde: 1, dia_hasta: 10 };
+    const { data, error } = await SB.from('contrato').insert(fila).select('*').single();
+    if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
+    if (data) CONTRATOS.push(data);
+    toast('Servicio agregado', 'ok');
+    pintarClServicios(CL_EDIT);
+    render();                             // refresca la tabla de Clientes
+  }
+
+  async function quitarServicioCliente(ctId) {
+    const ct = CONTRATOS.find(x => x.id === ctId);
+    if (!confirm('Quitar "' + (ct ? ct.nombre : 'este servicio') + '" de ' +
+        (CL_EDIT ? CL_EDIT.nombre : 'el cliente') + '?\n\n' +
+        'No se borra: queda archivado y deja de generar cobros. Lo ya cobrado sigue en Contabilidad.')) return;
+    const { error } = await SB.from('contrato').update({ activo: false }).eq('id', ctId);
+    if (error) { toast('No se pudo quitar: ' + error.message, 'warn'); return; }
+    if (ct) ct.activo = false;
+    toast('Servicio quitado', 'ok');
+    pintarClServicios(CL_EDIT);
+    render();
   }
 
   async function crearCliente(nombre, agencia) {
@@ -8900,6 +9024,8 @@
   let MOVIMIENTOS = [], REPARTO = null, SOCIA_PCT = {};
   let FALTA_M14 = false, PLATA_CARGADA = false;
   let FALTA_M16 = false, FALTA_M17 = false;
+  // Fondo + Gastos (migración 48). FONDO_INI: el saldo inicial único.
+  let GASTOS = [], FONDO_INI = null, FALTA_M48 = false;
   let PERIODO = primerDelMes(new Date());
   let PLATA_TAB = 'dashboard', PL_RANGO = 'mes';
   let CT_EDIT = null, CT_EJECUTAN = [], CB_EDIT = null, CB_EJECUTAN = [], MV_EDIT = null;
@@ -8980,6 +9106,16 @@
     }
 
     await cargarTrabajosExtra();
+
+    // Fondo + Gastos (migración 48). Van aparte y guardadas: si la
+    // migración no corrió, la solapa avisa y el resto de la plata sigue.
+    const [gg, fi] = await Promise.all([
+      SB.from('gasto').select('*').order('fecha', { ascending: false }),
+      SB.from('fondo_inicial').select('*').maybeSingle()
+    ]);
+    if (gg.error) { FALTA_M48 = faltaDeVerdad(gg.error); GASTOS = []; }
+    else { FALTA_M48 = false; GASTOS = gg.data || []; }
+    FONDO_INI = (fi && !fi.error) ? (fi.data || null) : null;
 
     PLATA_CARGADA = true;
 /*@@FIN*/
@@ -9416,37 +9552,65 @@
           (REPARTO ? REPARTO.pct_fondo : 10) + '% del neto', '') +
     '</div>';
 
-    // El ancho de la grilla depende de cuántas colaboradoras haya, así
-    // que las columnas se arman acá y no en el CSS.
-    const anchos = ['minmax(190px,1.7fr)', '64px', '104px']
-      .concat(colabs.map(() => '100px'))
-      .concat(['104px', 'minmax(110px,1fr)'])
-      .concat(socias.map(() => '106px'))
-      .concat(['98px']);
+    // Porcentajes del reparto (los "Supuestos"). Salen de la tabla
+    // `reparto` / `socia_reparto`, no de acá.
+    const pe = Number(REPARTO.pct_ejecutora), psoc = Number(REPARTO.pct_socias), pf = Number(REPARTO.pct_fondo);
+    const pctSocia = p => (SOCIA_PCT[p.id] || 0);
+
+    const supuestos = '<div class="supuestos"><b>Supuestos</b>' +
+      '<span>' + pe + '% ejecutora</span><span>' + psoc + '% socias</span><span>' + pf + '% fondo</span>' +
+      '<span class="sep">·</span>' +
+      socias.map(p => '<span>' + esc(primerNombre(p.nombre || p.email)) + ' ' + pctSocia(p) + '%</span>').join('') +
+      (Math.round(pe + psoc + pf) !== 100 ? '<span class="supuestos-warn">⚠️ ejec+socias+fondo no suman 100%</span>' : '') +
+    '</div>';
+
+    // El ancho de la grilla depende de cuántas colaboradoras y socias
+    // haya, así que las columnas se arman acá. El desglose replica la hoja
+    // Dist: 85% ejecutora, el 5% repartido por socia, 10% fondo, y los
+    // totales por persona y del fondo, más una columna de verificación.
+    const px = a => { const m = String(a).match(/(\d+)px/); return m ? Number(m[1]) : 100; };
+    const anchos = ['minmax(180px,1.5fr)', '62px', '94px']
+      .concat(colabs.map(() => '88px'))              // Pago colaboradora
+      .concat(['92px', 'minmax(96px,1fr)', '96px'])  // Neto · Ejecuta · 85% ejec
+      .concat(socias.map(() => '94px'))              // socia (45/30/25%)
+      .concat(['84px', '84px'])                      // 5% socias · 10% fondo
+      .concat(socias.map(() => '98px'))              // Total socia
+      .concat(['94px', '64px']);                     // Total fondo · Verif
     const gt = ' style="grid-template-columns:' + anchos.join(' ') + '"';
-    const ancho = ' style="min-width:' + (190 + 64 + 104 + colabs.length * 100 + 104 + 110 +
-      socias.length * 106 + 98 + (anchos.length + 1) * 10 + 28) + 'px"';
+    const ancho = ' style="min-width:' + (anchos.reduce((s, a) => s + px(a), 0) + (anchos.length + 1) * 10 + 28) + 'px"';
 
     const cab = '<div class="prow cab dist-row"' + gt + '>' +
       '<div>Cliente · Servicio</div><div>Fecha</div><div class="num">Cobrado</div>' +
       colabs.map(c => '<div class="num" title="' + esc(c.nombre) + '">Pago ' +
         esc(primerNombre(c.nombre)) + '</div>').join('') +
       '<div class="num">Neto</div><div>Ejecuta</div>' +
-      socias.map(p => '<div class="num">' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
-      '<div class="num">Fondo</div></div>';
+      '<div class="num">' + pe + '% ejec.</div>' +
+      socias.map(p => '<div class="num">' + esc(primerNombre(p.nombre || p.email)) + ' (' + pctSocia(p) + '%)</div>').join('') +
+      '<div class="num">' + psoc + '% soc.</div><div class="num">' + pf + '% fondo</div>' +
+      socias.map(p => '<div class="num">Total ' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
+      '<div class="num">Total fondo</div><div class="num">Verif.</div></div>';
 
+    const nd = '<span class="cel-nada">—</span>';
     const filas = cobros.map(cb => {
       const ct = contratoDe(cb.contrato_id);
       const r = repartoDe(cb);
       const nc = cb.estado === 'no_corresponde';
       const ejec = (COBRO_EJ[cb.id] || []).map(u => primerNombre(nombrePersona(u) || '')).filter(Boolean);
+      const parteEjec = r.neto * pe / 100;
+      const parteSoc  = r.neto * psoc / 100;
+      // Verif: los totales mostrados (socias + fondo) tienen que sumar el
+      // neto. Si ejecuta alguien que NO es socia, su parte del 85% no cae
+      // en ninguna columna de socia y esto da ERROR: es la señal de que
+      // el desglose no cierra, igual que la columna de control del Sheets.
+      const sumaTot = socias.reduce((a, p) => a + (r.personas[p.id] || 0), 0) + r.fondo;
+      const verifOk = Math.abs(sumaTot - r.neto) < 1;
 
       return '<div class="prow dist-row' + (nc ? ' apagada' : '') + '"' + gt + '>' +
         '<div class="celda-serv"><span class="nom">' + esc(nombreCliente(cb.cliente_id)) + '</span>' +
           '<span class="sub">' + esc(ct ? ct.nombre : '—') + '</span></div>' +
         '<div style="color:var(--ink-mute);font-size:11.5px">' +
-          (cb.fecha_cobro ? fechaDia(cb.fecha_cobro) : '<span class="cel-nada">—</span>') + '</div>' +
-        '<div class="num">' + (nc ? '<span class="cel-nada">—</span>' : plata(cb.monto)) + '</div>' +
+          (cb.fecha_cobro ? fechaDia(cb.fecha_cobro) : nd) + '</div>' +
+        '<div class="num">' + (nc ? nd : plata(cb.monto)) + '</div>' +
         colabs.map(c => {
           const lista = trabajosDe(cb.id, c.key);
           const suma = sumaTrabajos(lista);
@@ -9456,20 +9620,27 @@
             '">' + (suma ? plata(suma) + (lista.length > 1 ? '<i>' + lista.length + '</i>' : '')
                          : '<span class="mas">+</span>') + '</button></div>';
         }).join('') +
-        '<div class="num">' + (nc ? '<span class="cel-nada">—</span>' : plata(r.neto)) + '</div>' +
+        '<div class="num">' + (nc ? nd : plata(r.neto)) + '</div>' +
         '<div style="color:var(--ink-mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis">' +
           (ejec.length ? esc(ejec.join('/')) : '<span class="cel-nada">sin asignar</span>') + '</div>' +
-        socias.map(p => '<div class="num">' +
-          (r.personas[p.id] ? plata(r.personas[p.id]) : '<span class="cel-nada">—</span>') + '</div>').join('') +
-        '<div class="num">' + (r.fondo ? plata(r.fondo) : '<span class="cel-nada">—</span>') + '</div>' +
+        '<div class="num">' + (nc ? nd : plata(parteEjec)) + '</div>' +
+        socias.map(p => '<div class="num">' + (nc ? nd : plata(parteSoc * pctSocia(p) / 100)) + '</div>').join('') +
+        '<div class="num">' + (nc ? nd : plata(parteSoc)) + '</div>' +
+        '<div class="num">' + (nc ? nd : plata(r.fondo)) + '</div>' +
+        socias.map(p => '<div class="num">' + (r.personas[p.id] ? plata(r.personas[p.id]) : nd) + '</div>').join('') +
+        '<div class="num">' + (r.fondo ? plata(r.fondo) : nd) + '</div>' +
+        '<div class="num">' + (nc ? nd : '<span class="verif ' + (verifOk ? 'ok' : 'err') + '">' + (verifOk ? '✓' : 'ERROR') + '</span>') + '</div>' +
       '</div>';
     }).join('');
 
     // La fila de totales, igual que la de tu planilla.
     const cobrados = cobros.filter(c => c.estado === 'cobrado');
     const totSoc = {};
+    let totNeto = 0, totFondo = 0, totEjec = 0, totParteSoc = 0;
     cobrados.forEach(cb => {
       const r = repartoDe(cb);
+      totNeto += r.neto; totFondo += r.fondo;
+      totEjec += r.neto * pe / 100; totParteSoc += r.neto * psoc / 100;
       Object.keys(r.personas).forEach(u => { totSoc[u] = (totSoc[u] || 0) + r.personas[u]; });
     });
     const totales = '<div class="prow dist-row totales"' + gt + '>' +
@@ -9477,15 +9648,18 @@
       '<div class="num">' + plata(cobrados.reduce((a, c) => a + Number(c.monto || 0), 0)) + '</div>' +
       colabs.map(c => '<div class="num">' +
         plata(sumaTrabajos(trab.filter(m => claveColab(m) === c.key))) + '</div>').join('') +
-      '<div class="num">' + plata(cobrados.reduce((a, c) => a + netoDeCobro(c), 0)) + '</div>' +
-      '<div></div>' +
+      '<div class="num">' + plata(totNeto) + '</div><div></div>' +
+      '<div class="num">' + plata(totEjec) + '</div>' +
+      socias.map(p => '<div class="num">' + plata(totParteSoc * pctSocia(p) / 100) + '</div>').join('') +
+      '<div class="num">' + plata(totParteSoc) + '</div><div class="num">' + plata(totFondo) + '</div>' +
       socias.map(p => '<div class="num">' + plata(totSoc[p.id] || 0) + '</div>').join('') +
-      '<div class="num">' + plata(cobrados.reduce((a, c) => a + repartoDe(c).fondo, 0)) + '</div>' +
+      '<div class="num">' + plata(totFondo) + '</div><div></div>' +
     '</div>';
 
-    return kpis +
+    return kpis + supuestos +
       '<div class="cel-ayuda">Tocá una celda de «Pago …» para ver o cargar lo que esa persona hizo ' +
-        'para ese cliente. Si hizo dos trabajos, quedan los dos anotados adentro.</div>' +
+        'para ese cliente. El desglose (85/' + psoc + '/' + pf + ' y ' + socias.map(pctSocia).join('/') +
+        ') sale de los Supuestos. <b>Verif.</b> da ✓ cuando los totales por persona más el fondo suman el neto.</div>' +
       avisoBajas() +
       '<div class="tabla-ancha"><div class="tabla"' + ancho + '>' + cab +
         (filas || '<div class="prow"><div class="res-vacio">No hay cobros cargados este mes.</div></div>') +
@@ -11628,6 +11802,197 @@
     TE = TE.filter(x => x.etiqueta_id !== id);
     renderEtiquetas();
     toast('Etiqueta borrada');
+  }
+
+  // ══════════════ Fondo + Gastos ══════════════
+  const CAT_GASTO = ['Nafta/Traslados', 'Insumos/Materiales', 'Apps/Plataformas',
+                     'Herramientas', 'Publicidad propia', 'Otros'];
+  let FD_SALDO_EDIT = false;   // mostrar el form del saldo inicial aunque ya esté cargado
+
+  // El 10% de fondo de un mes: suma el fondo de cada cobro COBRADO de ese
+  // mes. Usa el mismo repartoDe que la Distribución, así nunca difiere.
+  function fondoDelMes(periodo) {
+    return COBROS.filter(c => c.estado === 'cobrado' && mesDe(c.periodo) === mesDe(periodo))
+      .reduce((a, c) => a + repartoDe(c).fondo, 0);
+  }
+  function gastosDeMes(periodo) {
+    return GASTOS.filter(g => mesDe(g.fecha) === mesDe(periodo));
+  }
+  // Fondo acumulado ANTES del mes `periodo`: el saldo inicial, más el
+  // fondo de cada mes desde `desde` hasta el anterior, menos los gastos
+  // de esos meses. Se saca de lo que ya está cargado (cobros y gastos),
+  // no se itera el calendario. null si todavía no hay saldo inicial.
+  function fondoAntesDe(periodo) {
+    if (!FONDO_INI) return null;
+    const desde = mesDe(FONDO_INI.desde), hasta = mesDe(periodo);
+    let suma = Number(FONDO_INI.saldo || 0);
+    COBROS.filter(c => c.estado === 'cobrado').forEach(c => {
+      const m = mesDe(c.periodo);
+      if (m >= desde && m < hasta) suma += repartoDe(c).fondo;
+    });
+    GASTOS.forEach(g => {
+      const m = mesDe(g.fecha);
+      if (m >= desde && m < hasta) suma -= Number(g.monto || 0);
+    });
+    return suma;
+  }
+
+  MODULOS.fondo = renderFondo;
+  function renderFondo() {
+    if (!soySocia()) { $('#modFondo').innerHTML = ''; return; }
+    if (FALTA_M14) { $('#modFondo').innerHTML = avisoM14(); return; }
+
+    const barra = '<div class="plata-barra">' +
+      '<div class="mes-nav">' +
+        '<button data-fmes="-1" title="Mes anterior">‹</button>' +
+        '<span class="mes-txt">' + mesLargo(PERIODO) + '</span>' +
+        '<button data-fmes="1" title="Mes siguiente">›</button>' +
+        '<button data-fmes="0" title="Volver a este mes">Hoy</button>' +
+      '</div>' +
+      '<div class="der">' +
+        (FALTA_M48 ? '' :
+          (FONDO_INI ? '<button class="btn-ghost" id="fdSaldoIni">Editar saldo inicial</button>' : '') +
+          '<button class="btn-primary" id="fdNuevoGasto">Nuevo gasto</button>') +
+      '</div>' +
+    '</div>';
+
+    if (FALTA_M48) {
+      $('#modFondo').innerHTML = barra +
+        '<div class="res-falta">Falta correr <code>migracion-interno-48-fondo-gastos.sql</code>. ' +
+        'Hasta que la corras, los gastos y el saldo inicial no se guardan.</div>';
+      return;
+    }
+
+    const delMes = fondoDelMes(PERIODO);
+    const antes = fondoAntesDe(PERIODO);                 // null = sin saldo inicial
+    const gastos = gastosDeMes(PERIODO).slice()
+      .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+    const totalGastado = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
+    const disponible = (antes === null ? delMes : antes + delMes);
+    const saldoFinal = disponible - totalGastado;
+
+    const kpis = '<div class="kpis">' +
+      kpi('Fondo del mes', plata(delMes), '10% de la distribución cobrada', '') +
+      kpi('Fondo de meses anteriores', antes === null ? '—' : plata(antes),
+          antes === null ? 'Cargá el saldo inicial' : 'Acumulado hasta este mes', '') +
+      kpi('Gastado este mes', plata(totalGastado), gastos.length + ' gasto(s)', totalGastado ? 'rojo' : '') +
+      kpi('Saldo del fondo', plata(saldoFinal), 'Fondo disponible menos gastos del mes', saldoFinal < 0 ? 'rojo' : 'verde') +
+    '</div>';
+
+    // El form del saldo inicial: cuando todavía no está, o cuando tocaste
+    // "Editar saldo inicial". Se carga una sola vez; después se acumula solo.
+    const mostrarSetup = (antes === null) || FD_SALDO_EDIT;
+    const setup = mostrarSetup
+      ? '<div class="res-card"><h4>Saldo inicial del fondo</h4>' +
+        '<div class="res-sub">Cuánto había en el fondo y desde qué mes se empieza a acumular. ' +
+        'Se carga una sola vez; de ahí en más el fondo de cada mes se calcula solo.</div>' +
+        '<div class="res-alta">' +
+          '<input type="number" id="fiSaldo" placeholder="Saldo ($)" value="' +
+            (FONDO_INI ? esc(String(FONDO_INI.saldo)) : '') + '" style="flex:1;min-width:0">' +
+          '<input type="month" id="fiDesde" value="' +
+            (FONDO_INI ? mesDe(FONDO_INI.desde) : mesDe(PERIODO)) + '" style="flex:1;min-width:0">' +
+          '<button class="btn-primary" id="fiGuardar">Guardar</button>' +
+          (FD_SALDO_EDIT ? '<button class="btn-ghost" id="fiCancelar">Cancelar</button>' : '') +
+        '</div></div>'
+      : '';
+
+    const saldoIniLinea = (FONDO_INI && !mostrarSetup)
+      ? '<div class="cel-ayuda">Saldo inicial: <b>' + plata(FONDO_INI.saldo) + '</b> desde ' +
+        mesLargo(FONDO_INI.desde) + '. El fondo de cada mes (10% de la distribución) y los gastos se acumulan solos sobre eso.</div>'
+      : '';
+
+    // Alta de gasto, plegada hasta que tocás "Nuevo gasto".
+    const alta = '<div class="res-alta plegada" id="altaGasto">' +
+      '<input type="date" id="gaFecha" value="' + hoyISO() + '">' +
+      '<input type="text" id="gaDesc" placeholder="Descripción">' +
+      '<select class="sel" id="gaCat">' + CAT_GASTO.map(c => '<option>' + esc(c) + '</option>').join('') + '</select>' +
+      '<input type="number" id="gaMonto" placeholder="Monto ($)">' +
+      '<select class="sel" id="gaPagado"><option value="">Pagado por…</option>' +
+        (PERSONAS || []).map(p => '<option value="' + p.id + '">' + esc(p.nombre || p.email) + '</option>').join('') +
+      '</select>' +
+      '<input type="text" id="gaComp" placeholder="Comprobante / nota (opcional)">' +
+      '<button class="btn-ghost" id="gaGuardar">Agregar gasto</button>' +
+    '</div>';
+
+    const cab = '<div class="prow cab gasto-row">' +
+      '<div>Fecha</div><div>Descripción</div><div>Categoría</div><div class="num">Monto</div>' +
+      '<div>Pagado por</div><div>Comprobante/nota</div><div class="num">Saldo</div><div></div></div>';
+    let corr = disponible;
+    const filas = gastos.map(g => {
+      corr -= Number(g.monto || 0);
+      return '<div class="prow gasto-row" data-gid="' + g.id + '">' +
+        '<div style="color:var(--ink-mute);font-size:11.5px">' + (g.fecha ? fechaDia(g.fecha) : '—') + '</div>' +
+        '<div class="g-desc">' + esc(g.descripcion || '—') + '</div>' +
+        '<div>' + esc(g.categoria || '—') + '</div>' +
+        '<div class="num">' + plata(g.monto) + '</div>' +
+        '<div>' + esc(g.pagado_por ? (nombrePersona(g.pagado_por) || '—') : '—') + '</div>' +
+        '<div class="g-comp">' + esc(g.comprobante || '') + '</div>' +
+        '<div class="num">' + plata(corr) + '</div>' +
+        '<div><button class="g-borrar" data-gborrar="' + g.id + '" title="Borrar gasto">✕</button></div>' +
+      '</div>';
+    }).join('');
+    const pie = '<div class="prow gasto-row totales">' +
+      '<div></div><div class="nom">Total gastado · Saldo final</div><div></div>' +
+      '<div class="num">' + plata(totalGastado) + '</div><div></div><div></div>' +
+      '<div class="num">' + plata(saldoFinal) + '</div><div></div></div>';
+
+    $('#modFondo').innerHTML = barra + kpis + setup + saldoIniLinea + alta +
+      '<div class="tabla-ancha"><div class="tabla gasto-tabla">' + cab +
+        (filas || '<div class="prow"><div class="res-vacio">No hay gastos cargados este mes.</div></div>') +
+        (gastos.length ? pie : '') +
+      '</div></div>';
+  }
+
+  async function recargarFondo() {
+    const [gg, fi] = await Promise.all([
+      SB.from('gasto').select('*').order('fecha', { ascending: false }),
+      SB.from('fondo_inicial').select('*').maybeSingle()
+    ]);
+    if (!gg.error) GASTOS = gg.data || [];
+    FONDO_INI = (fi && !fi.error) ? (fi.data || null) : FONDO_INI;
+  }
+
+  async function guardarGasto() {
+    const fecha = $('#gaFecha').value || hoyISO();
+    const descripcion = $('#gaDesc').value.trim() || null;
+    const categoria = $('#gaCat').value || null;
+    const monto = Number($('#gaMonto').value);
+    const comprobante = $('#gaComp').value.trim() || null;
+    const pagado_por = $('#gaPagado').value || null;
+    if (!monto || monto <= 0) { toast('Poné un monto', 'warn'); $('#gaMonto').focus(); return; }
+    const { error } = await SB.from('gasto')
+      .insert({ fecha: fecha, descripcion: descripcion, categoria: categoria,
+                monto: monto, comprobante: comprobante, pagado_por: pagado_por });
+    if (error) { toast('No se pudo guardar el gasto: ' + error.message, 'warn'); return; }
+    await recargarFondo();
+    toast('Gasto agregado', 'ok');
+    renderFondo();
+  }
+
+  async function borrarGasto(id) {
+    const g = GASTOS.find(x => x.id === id);
+    if (!confirm('Borrar el gasto' + (g && g.descripcion ? ' "' + g.descripcion + '"' : '') +
+      (g ? ' de ' + plata(g.monto) : '') + '? No hay vuelta atrás.')) return;
+    const { error } = await SB.from('gasto').delete().eq('id', id);
+    if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+    GASTOS = GASTOS.filter(x => x.id !== id);
+    renderFondo();
+  }
+
+  async function guardarSaldoInicial() {
+    const saldo = Number($('#fiSaldo').value);
+    const mesVal = $('#fiDesde').value;                 // 'YYYY-MM'
+    if (isNaN(saldo)) { toast('Poné un saldo', 'warn'); $('#fiSaldo').focus(); return; }
+    if (!mesVal) { toast('Elegí desde qué mes', 'warn'); return; }
+    const desde = mesVal + '-01';
+    const { error } = await SB.from('fondo_inicial')
+      .upsert({ id: true, saldo: saldo, desde: desde, actualizado_en: new Date().toISOString() },
+              { onConflict: 'id' });
+    if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); return; }
+    FD_SALDO_EDIT = false;
+    await recargarFondo();
+    toast('Saldo inicial guardado', 'ok');
+    renderFondo();
   }
 
   MODULOS.servicios = renderServicios;
@@ -15369,6 +15734,27 @@
   // ── Clientes ─────────────────────────────────────────────────
   // ── Eventos de Distribución ──────────────────────────────────
   on('#navDist', 'click', () => cambiarModulo('dist'));
+  on('#navFondo', 'click', () => cambiarModulo('fondo'));
+  on('#modFondo', 'click', e => {
+    const fm = e.target.closest('[data-fmes]');
+    if (fm) {
+      const n = Number(fm.dataset.fmes);
+      PERIODO = n === 0 ? primerDelMes(new Date()) : sumarMeses(PERIODO, n);
+      renderFondo();
+      return;
+    }
+    if (e.target.closest('#fdNuevoGasto')) {
+      const a = $('#altaGasto'); if (a) a.classList.remove('plegada');
+      const d = $('#gaDesc'); if (d) d.focus();
+      return;
+    }
+    if (e.target.closest('#gaGuardar')) { guardarGasto().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+    const gb = e.target.closest('[data-gborrar]');
+    if (gb) { borrarGasto(gb.dataset.gborrar).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+    if (e.target.closest('#fdSaldoIni')) { FD_SALDO_EDIT = true; renderFondo(); return; }
+    if (e.target.closest('#fiCancelar')) { FD_SALDO_EDIT = false; renderFondo(); return; }
+    if (e.target.closest('#fiGuardar')) { guardarSaldoInicial().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+  });
 
   on('#modDist', 'click', e => {
     const t = e.target.closest('[data-disttab]');
@@ -15737,6 +16123,11 @@
     if (e.target.closest('[data-cxcancelar]')) { cancelarConexion(); return; }
     const gu = e.target.closest('[data-cxguardar]');
     if (gu) { guardarConexion(gu.dataset.cxguardar).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+  });
+  on('#clServiciosWrap', 'click', e => {
+    const q = e.target.closest('[data-clservquitar]');
+    if (q) { quitarServicioCliente(q.dataset.clservquitar).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+    if (e.target.closest('#clServAgregar')) { agregarServicioCliente().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
   });
   on('#clGuardar', 'click', () => {
     guardarClienteModal().catch(e => toast('No se pudo guardar: ' + (e.message || e), 'warn'));

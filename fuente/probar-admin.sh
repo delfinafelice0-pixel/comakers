@@ -111,16 +111,23 @@ INACTIVOS='esperar("#verInactivosBtn", function (b) { b.click(); });'
 # Abrir el popup de FOS y prender el toggle del CRM: dispara el confirm,
 # que el harness dibuja con su texto (la confirmación específica del CRM).
 CRM='esperar('"$B1"'+"data-cabrir=\"c-fos\""+'"$B2"', function (b) { b.click(); esperar('"$B1"'+"data-clmod=\"crm\""+'"$B2"', function (m) { m.click(); }); });'
+# Ir a la solapa Distribución y a Fondo + Gastos. En Distribución la grilla
+# es muy ancha (scroll horizontal): para la captura se destraba el overflow
+# así entra entera, incluida la columna Verif.
+DIST='esperar("#navDist", function (b) { b.click(); setTimeout(function () { var ts = document.querySelectorAll(".tabla-ancha"); for (var i = 0; i < ts.length; i++) ts[i].style.overflow = "visible"; }, 400); });'
+FONDO='esperar("#navFondo", function (b) { b.click(); });'
 
 armar _prueba-admin-lista.html     "$NADA"
 armar _prueba-admin-popup.html     "$POPUP"
 armar _prueba-admin-inactivos.html "$INACTIVOS"
 armar _prueba-admin-crm.html       "$CRM"
+armar _prueba-admin-dist.html      "$DIST"
+armar _prueba-admin-fondo.html     "$FONDO"
 
 capturar() {
   local nombre="$1" archivo="$2"
   "$CHROME" --headless=new --disable-gpu --no-sandbox --hide-scrollbars \
-    --user-data-dir="$DIR_PERFIL" --window-size=1500,2100 --virtual-time-budget=9000 \
+    --user-data-dir="$DIR_PERFIL" --window-size=2600,2000 --virtual-time-budget=9000 \
     --screenshot="$DIR_OUT/cap-$nombre.png" "$URL_RAIZ/$archivo" >/dev/null 2>&1 || true
   if [ -s "$OUT/cap-$nombre.png" ]; then echo "  OK    $OUT/cap-$nombre.png"
   else echo "  FALLÓ $nombre" >&2; fi
@@ -131,6 +138,8 @@ capturar admin-lista     _prueba-admin-lista.html
 capturar admin-popup     _prueba-admin-popup.html
 capturar admin-inactivos _prueba-admin-inactivos.html
 capturar admin-crm       _prueba-admin-crm.html
+capturar admin-dist      _prueba-admin-dist.html
+capturar admin-fondo     _prueba-admin-fondo.html
 
 rm -f _prueba-admin-*.html
 echo "Listo. Las capturas quedaron en $OUT/"
