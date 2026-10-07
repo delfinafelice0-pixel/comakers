@@ -1188,12 +1188,34 @@
   }
   .cl-serv-row:last-child { border-bottom: none; }
   .cl-serv-nom { font-weight: 500; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-  .cl-serv-monto { color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+  .cl-serv-monto { display: inline-flex; align-items: center; gap: 2px; color: var(--ink-mute); }
+  .cl-serv-monto .peso { font-size: 12px; }
+  .cl-serv-input {
+    width: 96px; text-align: right; font-variant-numeric: tabular-nums;
+    padding: 4px 6px; font-size: 12.5px;
+  }
   .cl-serv-x {
     width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
     color: var(--ink-mute); cursor: pointer;
   }
   .cl-serv-x:hover { color: #b23; border-color: var(--line); }
+
+  /* Servicios: resumen de costo/margen del plan y toggle de proyección. */
+  .sv-costo-resumen {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--ink-soft); margin: 8px 0 2px;
+    padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev);
+  }
+  .sv-costo-resumen .sep { color: var(--line); }
+  .cs-costo { color: var(--ink-mute); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  .margen-ok  { color: var(--verde-txt, #4E7C1C); }
+  .margen-mal { color: #b23; }
+  .proy-toggle { display: inline-flex; gap: 4px; margin-left: auto; }
+  .proy-toggle button {
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-soft);
+    border-radius: 20px; padding: 4px 11px; font-size: 12px; cursor: pointer;
+  }
+  .proy-toggle button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
 
   /* ── Popup de cliente · sección Panel ── */
   .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
@@ -3516,7 +3538,8 @@
       <div class="res-sub" style="margin:0 0 8px">Lo que tiene contratado. Agregá o quitá eligiendo del catálogo de la solapa Servicios.</div>
       <div id="clServicios"></div>
       <div class="res-alta" id="clServAlta">
-        <select class="sel" id="clServSel" style="flex:1;min-width:0"></select>
+        <select class="sel" id="clServSel" style="flex:2;min-width:0"></select>
+        <input type="number" id="clServMonto" min="0" step="1000" placeholder="Monto pactado ($)" style="flex:1;min-width:0">
         <button class="btn-ghost" id="clServAgregar">Agregar</button>
       </div>
     </div>
@@ -3621,8 +3644,9 @@
     </div>
     <div class="campo campo-row">
       <div>
-        <label class="campo-label">¿Cuánto sale?</label>
-        <input type="number" id="svPrecio" placeholder="0" min="0" step="1000">
+        <label class="campo-label" title="Solo para cotizar. A cada cliente se le pacta su monto aparte; nunca se copia.">Precio de referencia (opcional)</label>
+        <input type="number" id="svPrecio" placeholder="—" min="0" step="1000">
+        <div class="res-sub" style="margin-top:4px">Solo para cotizar a futuro. A cada cliente se le pacta su monto aparte; no se copia.</div>
       </div>
       <div>
         <label class="campo-label">Cada</label>
@@ -3695,6 +3719,17 @@
         <select class="sel" id="svAddItem" style="font-size:12px;padding:4px 8px;margin-left:auto;max-width:200px;"></select>
       </label>
       <div id="svItems"></div>
+      <div id="svResumenCosto"></div>
+      <!-- Crear un entregable nuevo sin salir del plan. Se guarda en la
+           misma tabla `entregable`, así funciona igual en Distribución y
+           en Mis costos. Se abre desde "➕ Crear entregable nuevo" del
+           selector de arriba. -->
+      <div class="res-alta plegada" id="svNuevoEnt">
+        <input type="text" id="neNombre" placeholder="Nombre (ej: Reel)" style="flex:2;min-width:0">
+        <select class="sel" id="neUnidad" style="flex:1;min-width:0"></select>
+        <input type="number" id="neCosto" min="0" step="100" placeholder="Me cuesta ($)" style="flex:1;min-width:0">
+        <button type="button" class="btn-ghost" id="neCrear">Crear</button>
+      </div>
       <div class="res-sub" style="margin-top:6px">Son los mismos entregables que repartís en Distribución.
         Así "8 reels vendidos" y "8 reels hechos" se pueden comparar.</div>
 <!--@@FIN-->
@@ -7488,10 +7523,14 @@
 
   function pintarClServicios(c) {
     const cts = CONTRATOS.filter(x => x.cliente_id === c.id && x.activo !== false);
+    // Cada servicio con su MONTO PACTADO editable: es lo que cobra la
+    // tabla de Clientes. No sale del precio de lista (eso es referencia).
     $('#clServicios').innerHTML = cts.length
       ? cts.map(ct => '<div class="cl-serv-row">' +
           '<span class="cl-serv-nom">' + esc(ct.nombre || '—') + '</span>' +
-          (ct.monto != null && ct.monto !== '' ? '<span class="cl-serv-monto">' + plata(ct.monto) + '</span>' : '') +
+          '<span class="cl-serv-monto"><span class="peso">$</span>' +
+            '<input type="number" min="0" step="1000" class="cl-serv-input" data-clservmonto="' + ct.id + '" ' +
+            'value="' + (ct.monto != null && ct.monto !== '' ? esc(String(ct.monto)) : '') + '" placeholder="pactado"></span>' +
           '<button class="cl-serv-x" data-clservquitar="' + ct.id + '" title="Quitar servicio">✕</button>' +
         '</div>').join('')
       : '<div class="vacio-mini">Sin servicios asignados.</div>';
@@ -7501,7 +7540,7 @@
     const sel = $('#clServSel'); if (!sel) return;
     sel.innerHTML = '<option value="">Elegí un servicio del catálogo…</option>' +
       vivos.map(s => '<option value="' + s.id + '">' + esc(s.nombre) +
-        (s.precio != null ? ' · ' + plata(s.precio) : '') + '</option>').join('');
+        (s.precio != null ? ' · ref. ' + plata(s.precio) : '') + '</option>').join('');
     // Sin catálogo (o todo asignado) no tiene sentido el selector.
     $('#clServAlta').style.display = (SERV_CARGADO && vivos.length) ? '' : 'none';
   }
@@ -7512,14 +7551,33 @@
     if (!sid) { toast('Elegí un servicio del catálogo', 'warn'); return; }
     const s = (SERVICIOS || []).find(x => x.id === sid);
     if (!s) return;
+    const montoRaw = ($('#clServMonto').value || '').trim();
+    const monto = montoRaw === '' ? null : Number(montoRaw);
+    // El monto NO se copia del precio de lista: arranca en lo que pactaste
+    // acá (o vacío, para cargarlo después en la tabla de Clientes).
     const fila = { cliente_id: CL_EDIT.id, servicio_id: s.id, nombre: s.nombre, activo: true,
-                   tipo: 'mensual', monto: (s.precio != null ? s.precio : null), dia_desde: 1, dia_hasta: 10 };
+                   tipo: 'mensual', monto: monto, dia_desde: 1, dia_hasta: 10 };
     const { data, error } = await SB.from('contrato').insert(fila).select('*').single();
     if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
     if (data) CONTRATOS.push(data);
+    const mi = $('#clServMonto'); if (mi) mi.value = '';
     toast('Servicio agregado', 'ok');
     pintarClServicios(CL_EDIT);
     render();                             // refresca la tabla de Clientes
+  }
+
+  // Guarda el monto pactado de un servicio del cliente (desde el popup).
+  async function guardarMontoServicioCliente(ctId, valor) {
+    const ct = CONTRATOS.find(x => x.id === ctId);
+    if (!ct) return;
+    const nuevo = (valor === '' || valor == null) ? null : Number(valor);
+    if ((ct.monto ?? null) === (nuevo ?? null)) return;
+    const antes = ct.monto;
+    ct.monto = nuevo;
+    const { error } = await SB.from('contrato').update({ monto: nuevo }).eq('id', ctId);
+    if (error) { ct.monto = antes; toast('No se pudo guardar el monto: ' + error.message, 'warn'); return; }
+    flashGuardado();
+    render();                             // la tabla de Clientes muestra este monto
   }
 
   async function quitarServicioCliente(ctId) {
@@ -11651,6 +11709,7 @@
   let ENTREGABLES = [], SERVICIOS = [], SERV_ITEMS = [];
   let CT_SERVICIO = null;   // el plan al que está atado el contrato que estás editando
   let SERV_TAB = 'catalogo';
+  let PROY_POR = 'cliente';   // la proyección se ve por cliente o por servicio
 
   async function cargarServicios() {
     const q = (t, cols, ord) => SB.from(t).select(cols).order(ord);
@@ -12047,7 +12106,7 @@
     }
     return '<div class="tabla-ancha"><div class="tabla serv-tabla">' +
       '<div class="tabla-head">' +
-        '<div>Plan</div><div>Incluye</div><div class="der">Precio</div>' +
+        '<div>Plan</div><div>Incluye</div><div class="der">Precio ref.</div>' +
         '<div>Clientes</div><div class="der">Por mes</div><div></div>' +
       '</div>' +
       vivos.map(sv => {
@@ -12064,11 +12123,12 @@
                 (its.length > 3 ? '<span class="pill mas-cli">+' + (its.length - 3) + '</span>' : '')
               : '<span class="res-sub">sin detalle</span>') +
           '</div>' +
-          '<div class="der"><b>' + plata(sv.precio) + '</b> ' +
+          '<div class="der"><b>' + (sv.precio != null ? plata(sv.precio) : '—') + '</b> ' +
             '<span class="res-sub">' + (PERIODO_TXT[sv.periodo] || '') + '</span>' +
             (costo === null
-              ? '<div class="res-sub" title="Falta cargar el costo de algún entregable">margen: —</div>'
-              : '<div class="res-sub">te queda ' + plata(Number(sv.precio || 0) - costo) + '</div>') +
+              ? '<div class="res-sub" title="Falta cargar el costo de algún entregable">costo: — · margen: —</div>'
+              : '<div class="res-sub">costo ' + plata(costo) +
+                 (sv.precio != null ? ' · te queda ' + plata(Number(sv.precio) - costo) : '') + '</div>') +
           '</div>' +
           '<div>' + (cs.length
               ? cs.slice(0, 2).map(c => '<span class="pill">' + esc(nombreCliente(c.cliente_id)) + '</span>').join('') +
@@ -12092,14 +12152,22 @@
     // Los de cuotas se muestran aparte: no son plata que se repite.
     const enCuotas = CONTRATOS.filter(c => contratoVivo(c) && c.tipo === 'cuotas');
     const unicos = enCuotas.reduce((a, c) => a + Number(c.monto || 0), 0);
-    // Cuánto dependés de cada cliente. Es el número que nadie mira hasta
-    // que se va el grande.
-    const porCli = {};
+    // Cuánto facturás agrupado por cliente o por servicio. El de cliente
+    // es el número que nadie mira hasta que se va el grande; el de
+    // servicio dice de qué parte del catálogo dependés.
+    const porCli = {}, porServ = {};
     CONTRATOS.filter(contratoVivo).forEach(c => {
       porCli[c.cliente_id] = (porCli[c.cliente_id] || 0) + montoMes(c);
+      const k = c.servicio_id || '__sin__';
+      porServ[k] = (porServ[k] || 0) + montoMes(c);
     });
-    const orden = Object.keys(porCli).sort((a, b) => porCli[b] - porCli[a]);
-    const mayor = orden.length ? porCli[orden[0]] : 0;
+    const porServicio = PROY_POR === 'servicio';
+    const grupo = porServicio ? porServ : porCli;
+    const orden = Object.keys(grupo).sort((a, b) => grupo[b] - grupo[a]);
+    const mayor = orden.length ? grupo[orden[0]] : 0;
+    const nombreDe = k => porServicio
+      ? (k === '__sin__' ? 'Sin plan asignado' : ((SERVICIOS.find(s => s.id === k) || {}).nombre || '—'))
+      : nombreCliente(k);
 
     return '<div class="res-nums serv-nums">' +
         '<div class="res-num"><b>' + plata(mrr) + '</b><span>por mes, si nada cambia</span></div>' +
@@ -12111,20 +12179,28 @@
         ' contrato(s) en cuotas por ' + plata(unicos) + ' en total. En el "por mes" entra ' +
         'solo la cuota, no el total: si no, la facturación mensual saldría inflada.</div>' : '') +
       '<div class="res-card" style="margin-top:16px">' +
-        '<h4>Cuánto dependés de cada cliente</h4>' +
-        '<div class="res-sub">Si se va el más grande, cuánto se te cae.</div>' +
+        '<div class="mod-head" style="margin:0 0 8px"><h4 style="margin:0">Cuánto dependés de cada ' +
+          (porServicio ? 'servicio' : 'cliente') + '</h4>' +
+          '<div class="proy-toggle">' +
+            '<button data-proypor="cliente" class="' + (porServicio ? '' : 'on') + '">Por cliente</button>' +
+            '<button data-proypor="servicio" class="' + (porServicio ? 'on' : '') + '">Por servicio</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="res-sub">' + (porServicio
+          ? 'De qué parte del catálogo viene la facturación.'
+          : 'Si se va el más grande, cuánto se te cae.') + '</div>' +
         (orden.length
           ? '<div class="dep-barras">' + orden.map(id => {
-              const v = porCli[id], pc = mrr ? Math.round(v / mrr * 100) : 0;
+              const v = grupo[id], pc = mrr ? Math.round(v / mrr * 100) : 0;
               return '<div class="dep-b">' +
-                '<div class="dep-n"><span>' + esc(nombreCliente(id)) + '</span>' +
+                '<div class="dep-n"><span>' + esc(nombreDe(id)) + '</span>' +
                   '<b>' + pc + '%</b></div>' +
                 '<div class="dep-riel"><i style="width:' + pc + '%"></i></div>' +
                 '<div class="res-sub">' + plata(v) + ' por mes</div>' +
               '</div>';
             }).join('') + '</div>' +
-            (mayor && mrr && mayor / mrr > 0.33
-              ? '<div class="aviso-secreto">Si se va <b>' + esc(nombreCliente(orden[0])) + '</b> perdés ' +
+            (!porServicio && mayor && mrr && mayor / mrr > 0.33
+              ? '<div class="aviso-secreto">Si se va <b>' + esc(nombreDe(orden[0])) + '</b> perdés ' +
                 plata(mayor) + ' por mes — más de un tercio de lo que facturás.</div>'
               : '')
           : '<div class="res-vacio">Todavía no hay contratos cargados.</div>') +
@@ -12173,21 +12249,70 @@
 
   function pintarItemsServicio() {
     const usados = SV_ITEMS_TMP.map(i => i.entregable_id);
+    let costoTotal = 0, faltaCosto = false;
     $('#svItems').innerHTML = SV_ITEMS_TMP.length
       ? SV_ITEMS_TMP.map(i => {
           const e = ENTREGABLES.find(x => x.id === i.entregable_id);
           if (!e) return '';
-          return '<div class="cs-fila" style="grid-template-columns:60px 1fr auto">' +
-            '<input type="number" min="1" step="1" value="' + Number(i.cantidad || 1) + '" data-svcant="' + e.id + '">' +
+          const cant = Number(i.cantidad || 1);
+          const csItem = (e.cuesta == null) ? null : Number(e.cuesta) * cant;
+          if (csItem == null) faltaCosto = true; else costoTotal += csItem;
+          return '<div class="cs-fila" style="grid-template-columns:56px 1fr 92px auto">' +
+            '<input type="number" min="1" step="1" value="' + cant + '" data-svcant="' + e.id + '">' +
             '<div>' + esc(e.nombre) + ' <span class="sis">· ' + esc(e.unidad) + '</span></div>' +
+            '<div class="num cs-costo">' + (csItem == null ? '<span class="cel-nada">s/costo</span>' : plata(csItem)) + '</div>' +
             '<button type="button" class="mini-btn del" data-svdel="' + e.id + '" title="Sacar">' + TACHO_SVG + '</button>' +
           '</div>';
         }).join('')
       : '<div class="res-vacio">Sin detalle. Está bien: una consultoría o un trabajo puntual no siempre lo necesitan.</div>';
+
+    // Costo total (cantidad × costo de cada entregable) y margen contra el
+    // precio de referencia. Solo socias — y este modal ya es de socias.
+    const precio = $('#svPrecio').value === '' ? null : Number($('#svPrecio').value);
+    const rc = $('#svResumenCosto');
+    if (rc) rc.innerHTML = SV_ITEMS_TMP.length
+      ? '<div class="sv-costo-resumen">' +
+          '<span>Costo total: <b>' + ((faltaCosto && !costoTotal) ? '—' : plata(costoTotal)) + '</b>' +
+            (faltaCosto ? ' <span class="cel-nada">· falta algún costo</span>' : '') + '</span>' +
+          (precio != null
+            ? '<span class="sep">·</span>' + (faltaCosto
+                ? '<span class="cel-nada">margen: cargá los costos</span>'
+                : '<span>Margen: <b class="' + (precio - costoTotal >= 0 ? 'margen-ok' : 'margen-mal') + '">' +
+                  plata(precio - costoTotal) + '</b></span>')
+            : '') +
+        '</div>'
+      : '';
+
+    // El selector de unidad del "crear entregable" se puebla acá (UNIDADES
+    // es la única verdad). Si ya tiene opciones, no las repito.
+    const nu = $('#neUnidad');
+    if (nu && !nu.options.length) nu.innerHTML = UNIDADES.map(u => '<option value="' + u + '">' + u + '</option>').join('');
+
     const libres = ENTREGABLES.filter(e => e.activo !== false && usados.indexOf(e.id) === -1);
     $('#svAddItem').innerHTML = '<option value="">+ Agregar entregable</option>'
-      + libres.map(e => '<option value="' + e.id + '">' + esc(e.nombre) + '</option>').join('');
+      + libres.map(e => '<option value="' + e.id + '">' + esc(e.nombre) + '</option>').join('')
+      + '<option value="__nuevo__">➕ Crear entregable nuevo…</option>';
     $('#svAddItem').value = '';
+  }
+
+  // Crea un entregable nuevo (propio, no de fábrica) desde el editor de
+  // plan y lo agrega al plan. Va a la misma tabla `entregable`, así queda
+  // disponible en Distribución y en Mis costos como cualquier otro.
+  async function crearEntregableNuevo() {
+    const nombre = ($('#neNombre').value || '').trim();
+    if (!nombre) { toast('Ponele un nombre al entregable', 'warn'); $('#neNombre').focus(); return; }
+    const unidad = $('#neUnidad').value || 'pieza';
+    const cuestaRaw = ($('#neCosto').value || '').trim();
+    const cuesta = cuestaRaw === '' ? null : Number(cuestaRaw);
+    const fila = { nombre: nombre, unidad: unidad, cuesta: cuesta, sistema: false, activo: true, orden: Date.now() / 1000 };
+    const { data, error } = await SB.from('entregable').insert(fila).select('*').single();
+    if (error) { toast('No se pudo crear el entregable: ' + error.message, 'warn'); return; }
+    ENTREGABLES.push(data);
+    SV_ITEMS_TMP.push({ entregable_id: data.id, cantidad: 1 });
+    $('#neNombre').value = ''; $('#neCosto').value = '';
+    const f = $('#svNuevoEnt'); if (f) f.classList.add('plegada');
+    toast('Entregable creado', 'ok');
+    pintarItemsServicio();
   }
 
   async function guardarServicio() {
@@ -12755,9 +12880,10 @@
     $('#ctCliente').value = ct ? ct.cliente_id : (clienteId || '');
     $('#ctNombre').value = ct ? ct.nombre : (servPre ? servPre.nombre : '');
     $('#ctDetalle').value = ct ? (ct.detalle || '') : '';
-    // El monto arranca en el de lista pero se puede pisar: por eso el
-    // precio vive en el contrato y no se hereda para siempre del plan.
-    $('#ctMonto').value = ct ? ct.monto : (servPre && servPre.precio != null ? servPre.precio : '');
+    // El monto NO se hereda del plan: el precio de lista es solo
+    // referencia y a cada cliente se le pacta el suyo. Arranca vacío para
+    // que se cargue a propósito, nunca copiado.
+    $('#ctMonto').value = ct ? ct.monto : '';
     $('#ctTipo').value = ct ? ct.tipo : 'mensual';
     $('#ctCuotas').value = ct ? (ct.cuotas_total || '') : '';
     $('#ctCuotaDesde').value = ct ? (ct.cuota_desde || '') : '';
@@ -15865,6 +15991,8 @@
     if (e.target.closest('#svCostos')) { abrirCostos(); return; }
     const tab = e.target.closest('[data-svtab]');
     if (tab) { SERV_TAB = tab.dataset.svtab; render(); return; }
+    const pp = e.target.closest('[data-proypor]');
+    if (pp) { PROY_POR = pp.dataset.proypor; render(); return; }
     // El "+ Cliente" está adentro de la fila, así que se atiende ANTES:
     // si no, clickearlo abriría también el plan.
     const cli = e.target.closest('[data-svcli]');
@@ -15882,9 +16010,22 @@
 
   on('#svAddItem', 'change', e => {
     const id = e.target.value;
+    if (id === '__nuevo__') {
+      const f = $('#svNuevoEnt'); if (f) f.classList.remove('plegada');
+      const n = $('#neNombre'); if (n) n.focus();
+      e.target.value = '';
+      return;
+    }
     if (id && !SV_ITEMS_TMP.some(i => i.entregable_id === id)) SV_ITEMS_TMP.push({ entregable_id: id, cantidad: 1 });
     pintarItemsServicio();
   });
+  on('#neCrear', 'click', () => { crearEntregableNuevo().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); });
+  // El margen se recalcula al cambiar el precio de referencia. Solo repinta
+  // #svItems/#svResumenCosto, así que no pierde el foco del precio.
+  on('#svPrecio', 'input', () => pintarItemsServicio());
+  // La cantidad cambia el costo del ítem: repintar en 'change' (no en cada
+  // tecla) para no perder el foco mientras tipeás.
+  on('#svItems', 'change', e => { if (e.target.closest('[data-svcant]')) pintarItemsServicio(); });
   on('#svItems', 'click', e => {
     const d = e.target.closest('[data-svdel]');
     if (!d) return;
@@ -16128,6 +16269,10 @@
     const q = e.target.closest('[data-clservquitar]');
     if (q) { quitarServicioCliente(q.dataset.clservquitar).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
     if (e.target.closest('#clServAgregar')) { agregarServicioCliente().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+  });
+  on('#clServiciosWrap', 'change', e => {
+    const m = e.target.closest('[data-clservmonto]');
+    if (m) guardarMontoServicioCliente(m.dataset.clservmonto, m.value).catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
   });
   on('#clGuardar', 'click', () => {
     guardarClienteModal().catch(e => toast('No se pudo guardar: ' + (e.message || e), 'warn'));

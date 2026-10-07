@@ -116,6 +116,12 @@ CRM='esperar('"$B1"'+"data-cabrir=\"c-fos\""+'"$B2"', function (b) { b.click(); 
 # así entra entera, incluida la columna Verif.
 DIST='esperar("#navDist", function (b) { b.click(); setTimeout(function () { var ts = document.querySelectorAll(".tabla-ancha"); for (var i = 0; i < ts.length; i++) ts[i].style.overflow = "visible"; }, 400); });'
 FONDO='esperar("#navFondo", function (b) { b.click(); });'
+# Servicios: la tabla de planes (con costo/margen).
+SERV='esperar("#navServicios", function (b) { b.click(); });'
+# Editor de un plan: abre el plan CM y despliega "Crear entregable nuevo".
+PLAN='esperar("#navServicios", function (b) { b.click(); var B = String.fromCharCode(91), C = String.fromCharCode(93); esperar(B + "data-serv=\"sv-cm\"" + C, function (r) { r.click(); setTimeout(function () { var s = document.querySelector("#svAddItem"); if (s) { s.value = "__nuevo__"; s.dispatchEvent(new Event("change", { bubbles: true })); } }, 350); }); });'
+# Proyección por servicio (el toggle nuevo).
+PROY='esperar("#navServicios", function (b) { b.click(); var B = String.fromCharCode(91), C = String.fromCharCode(93); esperar(B + "data-svtab=\"proyeccion\"" + C, function (t) { t.click(); setTimeout(function () { var s = document.querySelector(B + "data-proypor=\"servicio\"" + C); if (s) s.click(); }, 350); }); });'
 
 armar _prueba-admin-lista.html     "$NADA"
 armar _prueba-admin-popup.html     "$POPUP"
@@ -123,6 +129,9 @@ armar _prueba-admin-inactivos.html "$INACTIVOS"
 armar _prueba-admin-crm.html       "$CRM"
 armar _prueba-admin-dist.html      "$DIST"
 armar _prueba-admin-fondo.html     "$FONDO"
+armar _prueba-admin-serv.html      "$SERV"
+armar _prueba-admin-plan.html      "$PLAN"
+armar _prueba-admin-proy.html      "$PROY"
 
 capturar() {
   local nombre="$1" archivo="$2"
@@ -140,6 +149,9 @@ capturar admin-inactivos _prueba-admin-inactivos.html
 capturar admin-crm       _prueba-admin-crm.html
 capturar admin-dist      _prueba-admin-dist.html
 capturar admin-fondo     _prueba-admin-fondo.html
+capturar admin-serv      _prueba-admin-serv.html
+capturar admin-plan      _prueba-admin-plan.html
+capturar admin-proy      _prueba-admin-proy.html
 
 rm -f _prueba-admin-*.html
 echo "Listo. Las capturas quedaron en $OUT/"

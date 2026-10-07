@@ -29,10 +29,25 @@ var DATOS_ADMIN = {
 
   // Catálogo de servicios (solapa Servicios). Lo usa el selector del popup.
   servicio: [
-    { id: 'sv-cm',      nombre: 'CM',       categoria: 'Contenido', descripcion: null, precio: 120000, periodo: 'mensual', archivado: false, orden: 1 },
-    { id: 'sv-pauta',   nombre: 'Pauta',    categoria: 'Ads',       descripcion: null, precio: 60000,  periodo: 'mensual', archivado: false, orden: 2 },
-    { id: 'sv-landing', nombre: 'Landing',  categoria: 'Web',       descripcion: null, precio: 90000,  periodo: 'unico',   archivado: false, orden: 3 },
-    { id: 'sv-videos',  nombre: 'Videos',   categoria: 'Contenido', descripcion: null, precio: 70000,  periodo: 'mensual', archivado: false, orden: 4 }
+    { id: 'sv-cm',      nombre: 'CM',       categoria: 'Contenido', descripcion: null, precio: 120000, periodo: 'mes',   archivado: false, orden: 1 },
+    { id: 'sv-pauta',   nombre: 'Pauta',    categoria: 'Ads',       descripcion: null, precio: 60000,  periodo: 'mes',   archivado: false, orden: 2 },
+    { id: 'sv-landing', nombre: 'Landing',  categoria: 'Web',       descripcion: null, precio: 90000,  periodo: 'unica', archivado: false, orden: 3 },
+    { id: 'sv-videos',  nombre: 'Videos',   categoria: 'Contenido', descripcion: null, precio: 70000,  periodo: 'mes',   archivado: false, orden: 4 }
+  ],
+
+  // Entregables (con costo interno) y qué incluye cada plan. El costo del
+  // plan sale de cantidad × costo de cada entregable.
+  entregable: [
+    { id: 'e-reel',    nombre: 'Reel',             unidad: 'pieza',    cuesta: 8000,  horas: 2,   sistema: true,  activo: true, orden: 1 },
+    { id: 'e-carr',    nombre: 'Carrusel',         unidad: 'pieza',    cuesta: 5000,  horas: 1.5, sistema: true,  activo: true, orden: 2 },
+    { id: 'e-hist',    nombre: 'Historias',        unidad: 'pieza',    cuesta: 2000,  horas: 0.5, sistema: true,  activo: true, orden: 3 },
+    { id: 'e-pauta',   nombre: 'Gestión de pauta', unidad: 'campaña',  cuesta: 15000, horas: 3,   sistema: true,  activo: true, orden: 4 }
+  ],
+  servicio_item: [
+    { id: 'si-1', servicio_id: 'sv-cm',    entregable_id: 'e-reel', cantidad: 8,  orden: 100 },
+    { id: 'si-2', servicio_id: 'sv-cm',    entregable_id: 'e-hist', cantidad: 12, orden: 200 },
+    { id: 'si-3', servicio_id: 'sv-pauta', entregable_id: 'e-pauta', cantidad: 1, orden: 100 },
+    { id: 'si-4', servicio_id: 'sv-videos', entregable_id: 'e-reel', cantidad: 4, orden: 100 }
   ],
 
   // La relación cliente-servicio: `contrato`. FOS tiene dos servicios.

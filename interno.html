@@ -1188,12 +1188,34 @@
   }
   .cl-serv-row:last-child { border-bottom: none; }
   .cl-serv-nom { font-weight: 500; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-  .cl-serv-monto { color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+  .cl-serv-monto { display: inline-flex; align-items: center; gap: 2px; color: var(--ink-mute); }
+  .cl-serv-monto .peso { font-size: 12px; }
+  .cl-serv-input {
+    width: 96px; text-align: right; font-variant-numeric: tabular-nums;
+    padding: 4px 6px; font-size: 12.5px;
+  }
   .cl-serv-x {
     width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
     color: var(--ink-mute); cursor: pointer;
   }
   .cl-serv-x:hover { color: #b23; border-color: var(--line); }
+
+  /* Servicios: resumen de costo/margen del plan y toggle de proyección. */
+  .sv-costo-resumen {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--ink-soft); margin: 8px 0 2px;
+    padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev);
+  }
+  .sv-costo-resumen .sep { color: var(--line); }
+  .cs-costo { color: var(--ink-mute); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  .margen-ok  { color: var(--verde-txt, #4E7C1C); }
+  .margen-mal { color: #b23; }
+  .proy-toggle { display: inline-flex; gap: 4px; margin-left: auto; }
+  .proy-toggle button {
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-soft);
+    border-radius: 20px; padding: 4px 11px; font-size: 12px; cursor: pointer;
+  }
+  .proy-toggle button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
 
   /* ── Popup de cliente · sección Panel ── */
   .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
@@ -2901,7 +2923,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 18:39</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 19:18</div>
     </div>
   </aside>
 
