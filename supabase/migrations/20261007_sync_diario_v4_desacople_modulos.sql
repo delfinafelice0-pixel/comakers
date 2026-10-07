@@ -172,12 +172,15 @@ revoke all on function public.sync_diario() from anon, authenticated;
 -- no hay usuaria logueada y auth.uid() es null, así que una llamada a
 -- es_socia() cortaría el script y desharía los create de arriba.
 --
--- v4: además de lo de siempre, confirmamos que la definición YA NO
--- menciona cliente_modulo (tiene que dar false).
+-- v4: confirmamos que YA NO filtra los pulls por módulo. OJO: no sirve
+-- buscar 'cliente_modulo' con ilike porque matchea el COMENTARIO de esta
+-- misma función (que nombra la tabla para explicar que ya no la usa).
+-- Buscamos en cambio el token de CÓDIGO que solo existía en la v3: la
+-- variable `quiere_org` del cursor. En v4 no está → tiene que dar false.
 select
   p.oid::regprocedure                                       as funcion,
   p.prosecdef                                               as security_definer,
-  pg_get_functiondef(p.oid) ilike '%cliente_modulo%'        as todavia_mira_cliente_modulo,
+  pg_get_functiondef(p.oid) ilike '%quiere_org%'            as todavia_filtra_por_modulo,
   pg_get_functiondef(p.oid) ilike '%analizar-reporte%'       as llama_a_analizar_reporte,
   pg_get_functiondef(p.oid) ilike '%pull-ads%'               as llama_a_pull_ads,
   pg_get_functiondef(p.oid) ilike '%pull-instagram%'         as llama_a_pull_instagram,
@@ -186,5 +189,5 @@ select
 from pg_proc p
 join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public' and p.proname = 'sync_diario';
--- Esperado: security_definer = true, todavia_mira_cliente_modulo = FALSE,
+-- Esperado: security_definer = true, todavia_filtra_por_modulo = FALSE,
 -- las tres llamadas = true, y los dos has_function_privilege = false.
