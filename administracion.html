@@ -1140,6 +1140,69 @@
   .cliente-row .nomc [contenteditable]:focus { background: var(--bg-elev); box-shadow: 0 0 0 1px var(--accent); }
   .cliente-row.inactivo { opacity: .55; }
 
+  /* ── Botón de configuración (engranaje) en la tabla de clientes ── */
+  .prow .cli .cfg-cli {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-mute);
+    border-radius: 6px; width: 20px; height: 20px; margin-left: 6px; padding: 0;
+    cursor: pointer; vertical-align: middle; opacity: .55;
+    transition: opacity .15s, border-color .15s, color .15s;
+  }
+  .prow .cli .cfg-cli svg { width: 13px; height: 13px; }
+  .prow:hover .cli .cfg-cli, .prow .cli .cfg-cli:focus { opacity: 1; }
+  .prow .cli .cfg-cli:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* Una tabla vacía (inactivos ocultos) no deja una caja fantasma. */
+  .tabla:empty { display: none; }
+
+  /* ── Popup de cliente · sección Panel ── */
+  .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+  .panel-tit-sub { font-weight: 400; color: var(--ink-mute); }
+  .panel-mods { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mod-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: var(--bg);
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500;
+    color: var(--ink-soft); cursor: pointer; transition: all .15s;
+  }
+  .mod-chip:hover { border-color: var(--ink-soft); }
+  .mod-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .mod-chip .mod-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--line); transition: background .15s;
+  }
+  .mod-chip.on .mod-dot { background: var(--accent); }
+
+  .conex {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 12px; margin-bottom: 8px; background: var(--bg-elev);
+  }
+  .conex.apagada { opacity: .7; }
+  .conex-cab { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .conex-nom { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .conex-estado {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px;
+    padding: 2px 7px; border-radius: 20px; margin-left: auto;
+  }
+  .conex-estado.on { background: var(--good-soft); color: var(--ink); }
+  .conex-estado.off { background: var(--line-soft); color: var(--ink-mute); }
+  .conex-id { display: flex; align-items: baseline; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
+  .conex-id .k { font-size: 11px; color: var(--ink-mute); }
+  .conex-id code {
+    font-size: 12px; font-family: var(--mono, monospace); color: var(--ink);
+    background: var(--line-soft); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere;
+  }
+  .conex-sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 2px; }
+  .conex-err {
+    font-size: 11.5px; color: var(--ink); background: var(--warn-soft);
+    border-radius: 6px; padding: 5px 8px; margin-top: 6px; overflow-wrap: anywhere;
+  }
+  .conex .btn-ghost.chico { margin-top: 9px; }
+  .conex .conex-acc { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .conex.editando input[type="text"] { width: 100%; }
+  .campo-label.chico { font-size: 11px; color: var(--ink-mute); display: block; margin-bottom: 3px; }
+  .btn-ghost.chico, .btn-primary.chico { padding: 6px 11px; font-size: 12px; }
+
   /* Wiki */
   .wiki { display: grid; grid-template-columns: 250px minmax(0,1fr); gap: 18px; align-items: start; }
   @media (max-width: 900px) { .wiki { grid-template-columns: 1fr; } }
@@ -2800,7 +2863,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         Volver al panel
       </a>
-      <a class="link-cliente" href="panel-comakers.html">
+      <a class="link-cliente" href="panel.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         Ver panel de cliente
       </a>
@@ -2816,7 +2879,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v06/10 15:38</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 11:54</div>
     </div>
   </aside>
 
@@ -3217,18 +3280,31 @@
       <label class="campo-label">Identificador</label>
       <div class="res-sub" id="clSlug" style="margin:0"></div>
     </div>
-    <!-- Fusionar y borrar: solo cuando estás EDITANDO uno que ya existe.
-         Al crear no tiene sentido y sería un botón peligroso al pedo. -->
+
+    <!-- Panel de cliente. Dos partes: lo que TRAEMOS (cliente_integracion)
+         y lo que VE el cliente (acceso_cliente + cliente_modulo). Solo
+         aparece al editar un cliente que ya existe. -->
+    <div class="campo" id="clPanel" style="display:none">
+      <div class="sep-inv"></div>
+      <label class="campo-label">Panel de cliente</label>
+
+      <div class="panel-tit">Conexiones <span class="panel-tit-sub">— lo que traemos de Meta</span></div>
+      <div id="clConexiones"><div class="vacio-mini">Cargando…</div></div>
+
+      <div class="panel-tit" style="margin-top:16px">Lo que ve el cliente</div>
+      <div class="res-sub" id="clAcceso" style="margin:0 0 8px"></div>
+      <div class="panel-mods" id="clModulos"></div>
+      <div class="res-sub" style="margin:8px 0 0">Los módulos encienden las solapas del panel. Un módulo nuevo
+        arranca apagado y no se ve hasta que lo prendas.</div>
+    </div>
+
+    <!-- Eliminar: solo cuando estás EDITANDO uno que ya existe, y solo
+         si no tiene nada cargado. Para archivar está el botón del pie.
+         (La fusión de duplicados se sacó: archivar o eliminar, nada más.) -->
     <div class="campo" id="clPeligro" style="display:none">
       <div class="sep-inv"></div>
-      <label class="campo-label">¿Está repetido?</label>
-      <div class="res-alta">
-        <select class="sel" id="clFusionCon" style="flex:1;min-width:0"></select>
-        <button class="btn-ghost" id="clFusionar">Fusionar</button>
-      </div>
-      <div class="res-sub" style="margin-top:6px">Pasa <b>todo</b> lo de este cliente al que elijas
-        —tareas, proyectos, contratos, cobros— y después borra la ficha repetida. No se pierde nada.</div>
-      <div class="res-sub" id="clCuelga" style="margin-top:10px"></div>
+      <label class="campo-label">Eliminar</label>
+      <div class="res-sub" id="clCuelga" style="margin-top:6px"></div>
       <button class="btn-danger" id="clBorrar" style="margin-top:8px">Borrar este cliente</button>
     </div>
     <div class="modal-foot">
@@ -4038,7 +4114,7 @@
 
     // Guard de rol: este panel es solo para la agencia.
     if (prof.tipo !== 'agencia' && !prof.super_admin) {
-      window.location.replace('panel-comakers.html');
+      window.location.replace('panel.html');
       return;
     }
     // Dada de baja: se corta acá. La base tampoco la deja leer nada,
@@ -5782,6 +5858,11 @@
   let SALUDO_BASE = '';
   let ACCESOS = {};                 // cliente_id → [user_id]
   let CL_EDIT = null, CL_PERSONAS = [], CL_CUELGA = [];
+  // Estado del popup de cliente para la sección Panel y de la solapa.
+  let CL_MODULOS = {};              // modulo → activo (del cliente abierto)
+  let CL_INTEG = [];                // filas de cliente_integracion del cliente abierto
+  let CL_CX_EDIT = null;            // tipo de conexión en modo edición, o null
+  let VER_INACTIVOS = false;        // toggle de la barra: mostrar clientes archivados
   let EQUIPO = [];            // todo el equipo, incluidas las bajas
   let WIKI_CARPETAS = [], WIKI_PAGINAS = [], WIKI_SEL = null, WIKI_CARGADA = false;
 
@@ -6368,30 +6449,20 @@
     pintarClPersonas();
     $('#clPeligro').style.display = c ? '' : 'none';
     if (c) pintarPeligroCliente(c);
+    // El Panel (conexiones + módulos) solo tiene sentido en un cliente que
+    // ya existe: necesita su id para leer y escribir cliente_integracion /
+    // cliente_modulo. En "Nuevo cliente" no se muestra.
+    $('#clPanel').style.display = c ? '' : 'none';
+    CL_MODULOS = {}; CL_INTEG = []; CL_CX_EDIT = null;
+    if (c) cargarPanelCliente(c);
     abrir('ovCliente');
     setTimeout(() => $('#clNombre').focus(), 60);
   }
 
-  // Qué cuelga del cliente y con cuál se puede fusionar. La cuenta la
-  // hace la BASE, no el navegador: acá adentro no tenemos cargadas ni la
-  // mitad de las tablas que lo referencian.
+  // ¿Se puede borrar? La cuenta la hace la BASE, no el navegador: acá
+  // adentro no tenemos cargadas ni la mitad de las tablas que lo
+  // referencian. Si tiene algo cargado, no se borra: se archiva.
   async function pintarPeligroCliente(c) {
-    // Los candidatos: primero los que se llaman igual, que es el caso
-    // real (un duplicado). Después el resto.
-    const otros = CLIENTES.filter(x => x.id !== c.id);
-    const mismos = otros.filter(x => normNombre(x.nombre) === normNombre(c.nombre));
-    const resto = otros.filter(x => normNombre(x.nombre) !== normNombre(c.nombre))
-      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-    $('#clFusionCon').innerHTML = '<option value="">Elegí con cuál…</option>' +
-      (mismos.length
-        ? '<optgroup label="Se llaman igual">' +
-            mismos.map(x => '<option value="' + x.id + '">' + esc(x.nombre) + '</option>').join('') +
-          '</optgroup>' : '') +
-      '<optgroup label="Todos">' +
-        resto.map(x => '<option value="' + x.id + '">' + esc(x.nombre) + '</option>').join('') +
-      '</optgroup>';
-    if (mismos.length === 1) $('#clFusionCon').value = mismos[0].id;
-
     $('#clCuelga').textContent = 'Viendo qué tiene cargado…';
     const { data, error } = await SB.rpc('que_cuelga_del_cliente', { c: c.id });
     if (!CL_EDIT || CL_EDIT.id !== c.id) return;      // cerraste o cambiaste
@@ -6411,7 +6482,7 @@
     } else {
       $('#clCuelga').innerHTML = 'Tiene ' +
         filas.map(f => '<b>' + f.cuantas + '</b> en ' + esc(f.tabla)).join(', ') +
-        '. Por eso no se puede borrar: fusionalo o archivalo.';
+        '. Por eso no se puede borrar: archivalo (botón de abajo).';
       $('#clBorrar').disabled = true;
       $('#clBorrar').textContent = 'No se puede borrar';
     }
@@ -6477,6 +6548,167 @@
     llenarSelects();
     render();
     flashRes();
+  }
+
+  // ══════════════ Panel de cliente (popup) ══════════════
+  // Catálogo de módulos del panel de cliente. Para sumar uno nuevo
+  // (calendario, estrategia…) agregás UNA línea acá y aparece solo en el
+  // popup, apagado por defecto. organico y pauta ya tienen fila en
+  // cliente_modulo para todos los clientes, así que conservan su estado.
+  //
+  // OJO: panel.html solo DIBUJA los módulos que conoce en su propio
+  // MODULOS (`if (m.modulo in MODULOS)`); sumar una clave acá NO la hace
+  // visible en el panel hasta que se le escriba el render del otro lado.
+  // Acá esta constante solo decide qué toggle se ve y qué fila se escribe
+  // en cliente_modulo.
+  const CAT_MODULOS = [
+    { clave: 'organico', nombre: 'Orgánico', ayuda: 'Contenido y comunidad de Instagram.' },
+    { clave: 'pauta',    nombre: 'Pauta',    ayuda: 'Inversión publicitaria en Meta. Necesita la cuenta de ads conectada.' },
+  ];
+
+  // Las dos conexiones posibles, en orden. `tipo` = valor real de
+  // cliente_integracion.tipo.
+  const CAT_CONEX = [
+    { tipo: 'meta_ig',  nombre: 'Instagram', etiquetaId: 'ID de la cuenta de Instagram' },
+    { tipo: 'meta_ads', nombre: 'Meta Ads',  etiquetaId: 'Cuenta publicitaria (act_…)' },
+  ];
+
+  // Trae lo del cliente para la sección Panel y lo pinta. Es async, así
+  // que al volver chequea que el modal siga en el mismo cliente (igual
+  // que pintarPeligroCliente): si cerraste o cambiaste, no pisa nada.
+  async function cargarPanelCliente(c) {
+    $('#clConexiones').innerHTML = '<div class="vacio-mini">Cargando…</div>';
+    $('#clModulos').innerHTML = '';
+    const acc = (ACCESOS[c.id] || []).length;
+    $('#clAcceso').innerHTML = acc
+      ? 'Tiene acceso: <b>' + acc + '</b> ' + (acc === 1 ? 'persona de la agencia lo atiende' : 'personas de la agencia lo atienden') + '. Se gestiona arriba, en “Personas que lo atienden”.'
+      : '<b>Sin acceso todavía.</b> Marcá arriba quién lo atiende para que aparezca en el panel.';
+
+    const [ri, rm] = await Promise.all([
+      SB.from('cliente_integracion')
+        .select('id, tipo, cuenta_id, cuenta_nombre, activo, ultimo_sync, ultimo_error')
+        .eq('cliente_id', c.id),
+      SB.from('cliente_modulo').select('modulo, activo').eq('cliente_id', c.id),
+    ]);
+    if (!CL_EDIT || CL_EDIT.id !== c.id) return;      // cerraste o cambiaste
+
+    if (ri.error) {
+      $('#clConexiones').innerHTML = '<div class="vacio-mini">No se pudieron leer las conexiones: ' + esc(ri.error.message) + '</div>';
+    } else {
+      CL_INTEG = ri.data || [];
+      pintarConexiones();
+    }
+
+    // Sin fila = apagado EN PANTALLA. No creamos filas al abrir: la fila
+    // se escribe recién cuando prendés el toggle. organico/pauta ya tienen
+    // fila para todos los clientes, así que no hay ambigüedad; un módulo
+    // nuevo sin fila se muestra apagado (y el servidor no lo mira).
+    CL_MODULOS = {};
+    if (!rm.error) (rm.data || []).forEach(m => { CL_MODULOS[m.modulo] = m.activo !== false; });
+    pintarModulosCliente(rm.error);
+  }
+
+  function pintarConexiones() {
+    const porTipo = {};
+    CL_INTEG.forEach(x => { porTipo[x.tipo] = x; });
+    $('#clConexiones').innerHTML = CAT_CONEX.map(cx => {
+      const it = porTipo[cx.tipo];
+      // Modo edición: formulario explícito, con confirmación al guardar.
+      if (CL_CX_EDIT === cx.tipo) {
+        return '<div class="conex editando">' +
+          '<div class="conex-cab"><span class="conex-nom">' + cx.nombre + '</span></div>' +
+          '<label class="campo-label chico">' + esc(cx.etiquetaId) + '</label>' +
+          '<input type="text" id="cxId" value="' + esc(it ? (it.cuenta_id || '') : '') + '" placeholder="' + esc(cx.etiquetaId) + '">' +
+          '<label class="campo-label chico" style="margin-top:8px">Nombre (opcional)</label>' +
+          '<input type="text" id="cxNom" value="' + esc(it ? (it.cuenta_nombre || '') : '') + '" placeholder="Para reconocerla">' +
+          '<label class="chk-secreto" style="margin-top:8px"><input type="checkbox" id="cxActivo"' + (!it || it.activo !== false ? ' checked' : '') + '> conexión activa (apagada, no se trae nada)</label>' +
+          '<div class="conex-acc">' +
+            '<button class="btn-ghost chico" data-cxcancelar="1">Cancelar</button>' +
+            '<button class="btn-primary chico" data-cxguardar="' + cx.tipo + '">Guardar</button>' +
+          '</div>' +
+        '</div>';
+      }
+      if (!it) {
+        return '<div class="conex vacia">' +
+          '<div class="conex-cab"><span class="conex-nom">' + cx.nombre + '</span>' +
+            '<span class="conex-estado off">sin conectar</span></div>' +
+          '<button class="btn-ghost chico" data-cxeditar="' + cx.tipo + '">Conectar</button>' +
+        '</div>';
+      }
+      const err = it.ultimo_error ? '<div class="conex-err">⚠️ ' + esc(it.ultimo_error) + '</div>' : '';
+      const sync = it.ultimo_sync ? 'Último sync: ' + esc(hace(it.ultimo_sync))
+                                  : (it.ultimo_error ? 'No sincronizó' : 'Todavía no sincronizó');
+      return '<div class="conex' + (it.activo === false ? ' apagada' : '') + '">' +
+        '<div class="conex-cab"><span class="conex-nom">' + cx.nombre + '</span>' +
+          '<span class="conex-estado ' + (it.activo === false ? 'off' : 'on') + '">' +
+            (it.activo === false ? 'apagada' : 'conectada') + '</span></div>' +
+        '<div class="conex-id"><span class="k">' + esc(cx.etiquetaId) + '</span><code>' + esc(it.cuenta_id || '—') + '</code></div>' +
+        (it.cuenta_nombre ? '<div class="conex-sub">' + esc(it.cuenta_nombre) + '</div>' : '') +
+        '<div class="conex-sub">' + sync + '</div>' + err +
+        '<button class="btn-ghost chico" data-cxeditar="' + cx.tipo + '">Editar</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function pintarModulosCliente(err) {
+    if (err) { $('#clModulos').innerHTML = '<div class="vacio-mini">No se pudieron leer los módulos: ' + esc(err.message) + '</div>'; return; }
+    $('#clModulos').innerHTML = CAT_MODULOS.map(m => {
+      const on = CL_MODULOS[m.clave] === true;
+      return '<button class="mod-chip' + (on ? ' on' : '') + '" data-clmod="' + m.clave + '" title="' + esc(m.ayuda) + '">' +
+        '<span class="mod-dot"></span>' + esc(m.nombre) + '</button>';
+    }).join('');
+  }
+
+  // Prende/apaga un módulo. Escribe SIEMPRE una fila explícita (upsert),
+  // nunca borra: todo el servidor (sync_diario, los pulls, el panel) trata
+  // "sin fila = prendido", así que apagar borrando dejaría el módulo
+  // prendido del otro lado.
+  async function alternarModuloCliente(clave) {
+    if (!CL_EDIT) return;
+    const nuevo = !(CL_MODULOS[clave] === true);
+    const nom = (CAT_MODULOS.find(m => m.clave === clave) || {}).nombre || clave;
+    // Prender le muestra algo nuevo al cliente: se confirma. Apagar no,
+    // porque solo le saca una solapa (los datos los sigue trayendo el
+    // pull, que ya no depende del módulo).
+    if (nuevo && !confirm('¿Mostrarle “' + nom + '” a ' + (CL_EDIT.nombre || 'este cliente') + ' en su panel?')) return;
+    CL_MODULOS[clave] = nuevo;                 // optimista
+    pintarModulosCliente(null);
+    const { error } = await SB.from('cliente_modulo')
+      .upsert({ cliente_id: CL_EDIT.id, modulo: clave, activo: nuevo }, { onConflict: 'cliente_id,modulo' });
+    if (error) {
+      CL_MODULOS[clave] = !nuevo;              // revierto
+      pintarModulosCliente(null);
+      toast('No se pudo cambiar el módulo: ' + error.message, 'warn');
+      return;
+    }
+    toast(nom + (nuevo ? ' prendido' : ' apagado'), 'ok');
+  }
+
+  function editarConexion(tipo) { CL_CX_EDIT = tipo; pintarConexiones(); setTimeout(() => { const i = $('#cxId'); if (i) i.focus(); }, 40); }
+  function cancelarConexion() { CL_CX_EDIT = null; pintarConexiones(); }
+
+  async function guardarConexion(tipo) {
+    if (!CL_EDIT) return;
+    const id = ($('#cxId').value || '').trim();
+    const nom = ($('#cxNom').value || '').trim() || null;
+    const activo = $('#cxActivo').checked;
+    if (!id) { toast('Falta el ID de la cuenta.', 'warn'); $('#cxId').focus(); return; }
+    const cxNom = (CAT_CONEX.find(x => x.tipo === tipo) || {}).nombre || tipo;
+    if (!confirm('Vas a guardar la conexión de ' + cxNom + ' con el ID:\n\n' + id +
+        '\n\nSi el ID queda mal, los pulls de Meta fallan en silencio (lo vas a ver en “último error”). ¿Guardamos?')) return;
+    const existe = CL_INTEG.find(x => x.tipo === tipo);
+    let error;
+    if (existe) {
+      ({ error } = await SB.from('cliente_integracion')
+        .update({ cuenta_id: id, cuenta_nombre: nom, activo: activo }).eq('id', existe.id));
+    } else {
+      ({ error } = await SB.from('cliente_integracion')
+        .insert({ cliente_id: CL_EDIT.id, tipo: tipo, cuenta_id: id, cuenta_nombre: nom, activo: activo }));
+    }
+    if (error) { toast('No se pudo guardar la conexión: ' + error.message, 'warn'); return; }
+    CL_CX_EDIT = null;
+    toast('Conexión guardada', 'ok');
+    if (CL_EDIT) cargarPanelCliente(CL_EDIT);
   }
 
   async function crearCliente(nombre, agencia) {
@@ -8894,6 +9126,9 @@
           '<button data-mes="0" title="Volver a este mes">Hoy</button>' +
         '</div>' +
         '<div class="der">' +
+          '<button class="btn-ghost" id="verInactivosBtn">' +
+            (VER_INACTIVOS ? 'Ocultar inactivos' : 'Ver inactivos') + '</button>' +
+          '<button class="btn-ghost" id="nuClienteBtn">Nuevo cliente</button>' +
           '<button class="btn-primary" id="nuContratoBtn">Nuevo servicio</button>' +
         '</div>' +
       '</div>';
@@ -8935,7 +9170,7 @@
       const cts = contratosDe(cl.id).filter(c => c.activo !== false);
       if (!cts.length) {
         filas += '<div class="prow cols-serv clic g-ini" data-ctnuevo="' + cl.id + '">' +
-          '<div class="cli">' + cel(esc(cl.nombre), 'cl', cl.id, 'nombre', cl.nombre, 'text') + '</div>' +
+          '<div class="cli">' + cel(esc(cl.nombre), 'cl', cl.id, 'nombre', cl.nombre, 'text') + botonCfg(cl.id) + '</div>' +
           '<div><div class="sub">Sin servicio cargado — clickeá para agregarle uno</div></div>' +
           '<div class="oculta-mob"></div>' +
           '<div class="num oculta-mob">—</div><div class="oculta-mob"></div>' +
@@ -8979,26 +9214,27 @@
       '<div class="tabla">' + cab +
         (filas || '<div class="prow"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
       '</div>' +
-      '<div class="mod-head" style="margin:26px 0 10px"><p>La ficha de cada cliente. Esta lista es ' +
-        '<b>la misma</b> que ve el panel de cliente: los dos leen la misma tabla. Debajo del nombre está ' +
-        'su identificador, que es lo que usa el otro panel para encontrarlo. El botón de la derecha lo ' +
-        'pasa a <b>inactivo</b>: sale de la tabla de arriba y deja de generar cobros.</p></div>' +
+      // La segunda lista de fichas se sacó: ahora cada cliente se
+      // configura desde el engranaje de la tabla de arriba. Este slot
+      // queda para los inactivos, que aparecen con "Ver inactivos".
+      // El '<div class="tabla">' se mantiene siempre para que el
+      // '</div>' compartido de abajo cierre balanceado; vacío se oculta
+      // solo por CSS (.tabla:empty).
+      (VER_INACTIVOS
+        ? '<div class="mod-head" style="margin:26px 0 10px"><p><b>Inactivos.</b> No aparecen en la tabla ' +
+            'de arriba, no generan cobros y no se ven en el panel de cliente. Lo que ya cobraron sigue en ' +
+            'Contabilidad: archivar no borra historia. Abrí la configuración para reactivarlos.</p></div>'
+        : '') +
       '<div class="tabla">' +
-        (activos.length ? activos.map(fichaCliente).join('')
-                        : '<div class="cliente-row"><div class="res-vacio">Todavía no hay clientes.</div></div>') +
+        (VER_INACTIVOS
+          ? (guardados.length ? guardados.map(fichaCliente).join('')
+                              : '<div class="cliente-row"><div class="res-vacio">No hay clientes inactivos.</div></div>')
+          : '') +
       '</div>' +
-      '<div class="invitar">' +
-        '<h4>Sumar un cliente</h4>' +
-        '<div class="res-sub">Se crea con los mismos datos que pide el panel de cliente: agencia dueña ' +
-          'y quién del equipo lo atiende.</div>' +
-        '<div class="fila-inv"><button class="btn-primary" id="nuClienteBtn">Nuevo cliente</button></div>' +
-      '</div>' +
-      (guardados.length
-        ? '<div class="mod-head" style="margin:22px 0 10px"><p><b>Inactivos.</b> No aparecen en la tabla de ' +
-            'arriba, no se les generan cobros y no se ven en el panel de cliente. Lo que ya cobraron sigue ' +
-            'en Contabilidad: darlos de baja no borra historia.</p></div>' +
-          '<div class="tabla">' + guardados.map(fichaCliente).join('') + '</div>'
-        : '');
+      // "Nuevo cliente" se movió a la barra de arriba; los inactivos
+      // cuelgan del toggle "Ver inactivos", más arriba. Acá solo queda
+      // el cierre del innerHTML.
+      '';
   }
 
   function kpi(lbl, val, sub, clase) {
@@ -9011,6 +9247,15 @@
   function pct(parte, total) {
     if (!total) return '0%';
     return Math.round(parte / total * 100) + '%';
+  }
+
+  // El engranaje que abre la configuración del cliente (el popup). Va en
+  // la celda del nombre, en la tabla de arriba. Usa data-cabrir, que ya
+  // tiene su handler (el mismo que abría la ficha de abajo que se sacó).
+  function botonCfg(id) {
+    return '<button class="cfg-cli" data-cabrir="' + id + '" title="Configuración del cliente">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>' +
+      '</button>';
   }
 
   function filaContrato(cl, ct, primera) {
@@ -9049,7 +9294,8 @@
         '<div class="cli' + (primera ? '' : ' sigue') + '">' +
           (primera
             ? cel(esc(cl.nombre), 'cl', cl.id, 'nombre', cl.nombre, 'text') +
-              '<button class="mas" data-ctnuevo="' + cl.id + '" title="Sumarle otro servicio">+</button>'
+              '<button class="mas" data-ctnuevo="' + cl.id + '" title="Sumarle otro servicio">+</button>' +
+              botonCfg(cl.id)
             : '') +
         '</div>' +
         '<div class="celda-serv">' +
@@ -10894,6 +11140,12 @@
   on('#navPlata', 'click', () => cambiarModulo('plata'));
 
   on('#modClientes', 'click', e => {
+    // El engranaje de configuración y "Nuevo cliente" los maneja el otro
+    // listener (abren el popup). Si el click fue en uno de esos, este
+    // listener no hace nada: sin el guardia, el ⚙ dentro de una fila "sin
+    // servicio" (que es data-ctnuevo) abriría además el alta de servicio.
+    if (e.target.closest('[data-cabrir], #nuClienteBtn')) return;
+    if (e.target.closest('#verInactivosBtn')) { VER_INACTIVOS = !VER_INACTIVOS; renderClientes(); return; }
     const mes = e.target.closest('[data-mes]');
     if (mes) {
       const n = Number(mes.dataset.mes);
@@ -11059,6 +11311,17 @@
     if (i === -1) CL_PERSONAS.push(id); else CL_PERSONAS.splice(i, 1);
     pintarClPersonas();
   });
+  on('#clModulos', 'click', e => {
+    const b = e.target.closest('[data-clmod]');
+    if (b) alternarModuloCliente(b.dataset.clmod).catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+  });
+  on('#clConexiones', 'click', e => {
+    const ed = e.target.closest('[data-cxeditar]');
+    if (ed) { editarConexion(ed.dataset.cxeditar); return; }
+    if (e.target.closest('[data-cxcancelar]')) { cancelarConexion(); return; }
+    const gu = e.target.closest('[data-cxguardar]');
+    if (gu) { guardarConexion(gu.dataset.cxguardar).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+  });
   on('#clGuardar', 'click', () => {
     guardarClienteModal().catch(e => toast('No se pudo guardar: ' + (e.message || e), 'warn'));
   });
@@ -11078,31 +11341,8 @@
     await cargarClientes(); render();
   });
 
-  on('#clFusionar', 'click', async () => {
-    if (!CL_EDIT) return;
-    const dest = $('#clFusionCon').value;
-    if (!dest) { toast('Elegí con cuál lo fusionás', 'warn'); return; }
-    const d = CLIENTES.find(x => x.id === dest);
-    const cuenta = CL_CUELGA.length
-      ? CL_CUELGA.map(f => f.cuantas + ' en ' + f.tabla).join(', ')
-      : 'nada';
-    if (!confirm('Pasar TODO de "' + CL_EDIT.nombre + '" a "' + (d ? d.nombre : '') + '".\n\n' +
-        'Se mueve: ' + cuenta + '.\n' +
-        'Después la ficha de "' + CL_EDIT.nombre + '" se borra.\n\n' +
-        'No hay vuelta atrás. ¿Seguimos?')) return;
-    $('#clFusionar').disabled = true;
-    const { data, error } = await SB.rpc('fusionar_cliente', { origen: CL_EDIT.id, destino: dest });
-    $('#clFusionar').disabled = false;
-    if (error) { toast(error.message, 'warn'); return; }
-    cerrar('ovCliente');
-    toast(data || 'Clientes fusionados');
-    // Cambió medio panel: contratos, tareas, proyectos. Se recarga todo.
-    await cargarClientes();
-    await cargarProyectos();
-    await cargarTareas();
-    if (soySocia()) await refrescarPlata();
-    render();
-  });
+  // La fusión de clientes duplicados se sacó del popup: ahora solo se
+  // archiva (botón de abajo) o se elimina (si no tiene nada cargado).
 
   on('#clArchivar', 'click', async () => {
     if (!CL_EDIT) return;

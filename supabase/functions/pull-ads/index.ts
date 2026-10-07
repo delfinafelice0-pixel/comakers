@@ -146,20 +146,14 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // ── 2. ¿Este cliente reporta pauta? ───────────────────────
-    // Si el módulo está apagado, no gastamos cuota de Meta trayendo
-    // algo que nadie va a ver. cliente_modulo es la única verdad:
-    // clientes.rep_pauta quedó obsoleta.
-    const { data: mod } = await admin
-      .from('cliente_modulo').select('activo')
-      .eq('cliente_id', clienteId).eq('modulo', 'pauta').maybeSingle();
-
-    if (mod && mod.activo === false) {
-      return json({
-        ok: true, cliente: cliente.nombre, mes,
-        omitido: 'El módulo de pauta está apagado para este cliente.',
-      });
-    }
+    // ── 2. (v4) Desacople de cliente_modulo ───────────────────
+    // Antes, si el módulo pauta estaba apagado, acá se hacía `return` y
+    // no se bajaba nada. Eso convertía "que el cliente no lo vea" en
+    // "dejá de traer datos", y con el límite de retención de Meta ese
+    // hueco no se recupera. Ahora pull-ads depende SOLO de que exista
+    // una integración meta_ads activa (el select de abajo ya la exige
+    // con .eq('activo', true)). cliente_modulo pasó a controlar solo
+    // qué ve el cliente en el panel, no la captura. Igual que sync_diario v4.
 
     // ── 3. La cuenta publicitaria ─────────────────────────────
     const { data: integ } = await admin

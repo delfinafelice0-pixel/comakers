@@ -35,6 +35,18 @@ ponerlo en manos de clientes reales o venderlo a otras agencias).
   `actividad_tarea`) nacen con RLS prendida en la propia migración.
 - 🔲 Regla a mantener: **cada tabla nueva, prenderle RLS** y darle policies
   antes de usarla. Una tabla con RLS apagada = abierta con la anon key pública.
+- 🔲 **Revisar los GRANT de `anon` en todas las tablas de `public`** (06/10/2026).
+  Al chequear la RLS de `cliente_integracion` / `cliente_modulo` para el
+  rediseño de la solapa Clientes salió que `anon` tiene
+  `SELECT/INSERT/UPDATE/DELETE/REFERENCES/TRIGGER/TRUNCATE` en las dos (los
+  *default privileges* de Supabase los da solos). Hoy no es un agujero porque
+  la **RLS** de cada tabla igual filtra —`anon` no pasa ningún `es_*()` ni
+  `acceso_cliente`—, pero es la segunda puerta de las "DOS puertas" (ver §11):
+  una tabla a la que un día se le olvide la RLS queda abierta con la anon key
+  pública. Pendiente: `REVOKE` a `anon` de todo lo que el front anónimo no
+  use (en esta base, prácticamente todo salvo lo que lea el login). Hacerlo
+  **junto con** el repaso de RLS tabla por tabla, no suelto. No es parte del
+  rediseño de Clientes: solo queda anotado acá.
 
 ## 2. service_role key
 - ✅ No aparece en el front.

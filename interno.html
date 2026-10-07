@@ -1140,6 +1140,69 @@
   .cliente-row .nomc [contenteditable]:focus { background: var(--bg-elev); box-shadow: 0 0 0 1px var(--accent); }
   .cliente-row.inactivo { opacity: .55; }
 
+  /* ── Botón de configuración (engranaje) en la tabla de clientes ── */
+  .prow .cli .cfg-cli {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-mute);
+    border-radius: 6px; width: 20px; height: 20px; margin-left: 6px; padding: 0;
+    cursor: pointer; vertical-align: middle; opacity: .55;
+    transition: opacity .15s, border-color .15s, color .15s;
+  }
+  .prow .cli .cfg-cli svg { width: 13px; height: 13px; }
+  .prow:hover .cli .cfg-cli, .prow .cli .cfg-cli:focus { opacity: 1; }
+  .prow .cli .cfg-cli:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* Una tabla vacía (inactivos ocultos) no deja una caja fantasma. */
+  .tabla:empty { display: none; }
+
+  /* ── Popup de cliente · sección Panel ── */
+  .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+  .panel-tit-sub { font-weight: 400; color: var(--ink-mute); }
+  .panel-mods { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mod-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: var(--bg);
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500;
+    color: var(--ink-soft); cursor: pointer; transition: all .15s;
+  }
+  .mod-chip:hover { border-color: var(--ink-soft); }
+  .mod-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .mod-chip .mod-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--line); transition: background .15s;
+  }
+  .mod-chip.on .mod-dot { background: var(--accent); }
+
+  .conex {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 12px; margin-bottom: 8px; background: var(--bg-elev);
+  }
+  .conex.apagada { opacity: .7; }
+  .conex-cab { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .conex-nom { font-weight: 600; font-size: 13px; color: var(--ink); }
+  .conex-estado {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px;
+    padding: 2px 7px; border-radius: 20px; margin-left: auto;
+  }
+  .conex-estado.on { background: var(--good-soft); color: var(--ink); }
+  .conex-estado.off { background: var(--line-soft); color: var(--ink-mute); }
+  .conex-id { display: flex; align-items: baseline; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
+  .conex-id .k { font-size: 11px; color: var(--ink-mute); }
+  .conex-id code {
+    font-size: 12px; font-family: var(--mono, monospace); color: var(--ink);
+    background: var(--line-soft); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere;
+  }
+  .conex-sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 2px; }
+  .conex-err {
+    font-size: 11.5px; color: var(--ink); background: var(--warn-soft);
+    border-radius: 6px; padding: 5px 8px; margin-top: 6px; overflow-wrap: anywhere;
+  }
+  .conex .btn-ghost.chico { margin-top: 9px; }
+  .conex .conex-acc { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .conex.editando input[type="text"] { width: 100%; }
+  .campo-label.chico { font-size: 11px; color: var(--ink-mute); display: block; margin-bottom: 3px; }
+  .btn-ghost.chico, .btn-primary.chico { padding: 6px 11px; font-size: 12px; }
+
   /* Wiki */
   .wiki { display: grid; grid-template-columns: 250px minmax(0,1fr); gap: 18px; align-items: start; }
   @media (max-width: 900px) { .wiki { grid-template-columns: 1fr; } }
@@ -2782,7 +2845,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
         Ir a administración
       </a>
-      <a class="link-cliente" href="panel-comakers.html">
+      <a class="link-cliente" href="panel.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         Ver panel de cliente
       </a>
@@ -2798,7 +2861,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v06/10 15:38</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 11:54</div>
     </div>
   </aside>
 
@@ -4054,7 +4117,7 @@
 
     // Guard de rol: este panel es solo para la agencia.
     if (prof.tipo !== 'agencia' && !prof.super_admin) {
-      window.location.replace('panel-comakers.html');
+      window.location.replace('panel.html');
       return;
     }
     // Dada de baja: se corta acá. La base tampoco la deja leer nada,
@@ -5799,6 +5862,11 @@
   let SALUDO_BASE = '';
   let ACCESOS = {};                 // cliente_id → [user_id]
   let CL_EDIT = null, CL_PERSONAS = [], CL_CUELGA = [];
+  // Estado del popup de cliente para la sección Panel y de la solapa.
+  let CL_MODULOS = {};              // modulo → activo (del cliente abierto)
+  let CL_INTEG = [];                // filas de cliente_integracion del cliente abierto
+  let CL_CX_EDIT = null;            // tipo de conexión en modo edición, o null
+  let VER_INACTIVOS = false;        // toggle de la barra: mostrar clientes archivados
   let EQUIPO = [];            // todo el equipo, incluidas las bajas
   let WIKI_CARPETAS = [], WIKI_PAGINAS = [], WIKI_SEL = null, WIKI_CARGADA = false;
 

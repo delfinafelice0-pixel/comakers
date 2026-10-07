@@ -14,3 +14,11 @@ supabase/functions/**/*.bak
 # Lo que genera fuente/probar-panel.sh: capturas y paginas de prueba.
 _prueba/
 _prueba-*.html
+
+# Salida de fuente/build.py: se genera en fuente/ y se copia a la raíz,
+# que es lo servido. Los de fuente/ son build-artifact, no van al repo.
+fuente/administracion.html
+fuente/interno.html
+
+# node_modules local (acorn/acorn-walk para fuente/revisar-paginas.js).
+fuente/node_modules/
