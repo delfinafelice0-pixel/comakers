@@ -2417,12 +2417,23 @@
      columna por colaboradora, así que no entra en una pantalla. En vez
      de achicar la letra hasta que no se lea, scrollea al costado y la
      primera columna (el cliente) queda pegada. */
-  .tabla-ancha { overflow-x: auto; max-width: 100%; padding-bottom: 4px; }
+  .tabla-ancha { overflow-x: auto; max-width: 100%; padding-bottom: 4px; scrollbar-color: var(--ink-soft) var(--line-soft); }
   .tabla-ancha .tabla { overflow: visible; border-radius: var(--radius-lg); }
+  /* La barra de scroll, bien visible: con el mouse (sin trackpad) es la
+     única forma de llegar a las columnas de la derecha, así que no puede
+     pasar desapercibida. El scroll lateral además se hace con la rueda
+     (ver el handler 'wheel' sobre #modDist). */
+  .tabla-ancha::-webkit-scrollbar { height: 10px; }
+  .tabla-ancha::-webkit-scrollbar-track { background: var(--line-soft); border-radius: 6px; }
+  .tabla-ancha::-webkit-scrollbar-thumb { background: var(--ink-soft); border-radius: 6px; }
+  .tabla-ancha::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
   .dist-row { gap: 10px; }
   .dist-row > div:first-child {
     position: sticky; left: 0; z-index: 2;
     background: var(--bg-elev); margin: -6px 0; padding: 6px 0;
+    /* Sombrita a la derecha: avisa que la columna queda fija y que hay
+       más tabla corrida por debajo. */
+    box-shadow: 7px 0 7px -7px rgba(0, 0, 0, .18);
   }
   .prow.cab.dist-row > div:first-child { background: var(--line-soft); margin: -5px 0; padding: 5px 0; }
   .dist-row.apagada { opacity: .5; }
@@ -9766,7 +9777,8 @@
         'la ejecutora (repartida en partes iguales entre quienes ejecutaron ese cobro). «' + psoc + '% Socias» ' +
         'es el ' + psoc + '% del neto, que se reparte ' + socias.map(pctSocia).join('/') + ' recién en la fila ' +
         'de TOTALES. El «Total» de cada socia suma sus dos partes. <b>Verif.</b> da ✓ cuando los totales por ' +
-        'persona más el fondo suman el neto.</div>' +
+        'persona más el fondo suman el neto. <span style="color:var(--ink-mute)">La columna Cliente ' +
+        'queda fija: deslizá la tabla al costado (o girá la rueda sobre ella) para ver el resto.</span></div>' +
       avisoBajas() +
       '<div class="tabla-ancha"><div class="tabla"' + ancho + '>' + cab +
         (filas || '<div class="prow"><div class="res-vacio">No hay cobros cargados este mes.</div></div>') +
@@ -15943,6 +15955,23 @@
   // ── Clientes ─────────────────────────────────────────────────
   // ── Eventos de Distribución ──────────────────────────────────
   on('#navDist', 'click', () => cambiarModulo('dist'));
+
+  // La grilla de Distribución es más ancha que la pantalla. Con trackpad
+  // se desliza al costado solo; con mouse no hay forma salvo arrastrar una
+  // barra que, en un mes largo, queda allá abajo. Esto hace que la rueda
+  // del mouse mueva la tabla en horizontal mientras el cursor está encima,
+  // y recién cuando llegó al borde deja que la página siga scrolleando.
+  on('#modDist', 'wheel', e => {
+    const cont = e.target.closest('.tabla-ancha');
+    if (!cont || cont.scrollWidth <= cont.clientWidth) return;
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;  // ya es gesto lateral
+    const d = e.deltaY;
+    const enIni = cont.scrollLeft <= 0;
+    const enFin = cont.scrollLeft + cont.clientWidth >= cont.scrollWidth - 1;
+    if ((d < 0 && enIni) || (d > 0 && enFin)) return;      // borde: scrollea la página
+    cont.scrollLeft += d;
+    e.preventDefault();
+  }, { passive: false });
 
   on('#modDist', 'click', e => {
     const t = e.target.closest('[data-disttab]');
