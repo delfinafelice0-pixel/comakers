@@ -49,14 +49,75 @@ const ETIQUETA_ACCION: Record<string, string> = {
   'video_view': 'reproducciones',
 };
 
+// ─────────────────────────────────────────────────────────────
+//  El objetivo de la campaña → qué acción contar como "resultado"
+//
+//  Antes se adivinaba probando la lista de mensajería primero, así que
+//  una cuenta de ventas aparecía como "conversaciones". Ahora se lee el
+//  OBJETIVO real de cada campaña (campo `objective` de Meta) y se traduce
+//  a la acción correcta. Cubre los objetivos ODAX (OUTCOME_*) y los
+//  viejos. Los de alcance/reconocimiento no tienen una acción de
+//  resultado: ahí `accion = null` y el panel muestra el alcance.
+// ─────────────────────────────────────────────────────────────
+const OBJETIVO_ACCION: Record<string, string | null> = {
+  OUTCOME_SALES: 'purchase',
+  CONVERSIONS: 'purchase',
+  PRODUCT_CATALOG_SALES: 'purchase',
+  OUTCOME_LEADS: 'lead',
+  LEAD_GENERATION: 'lead',
+  OUTCOME_TRAFFIC: 'link_click',
+  LINK_CLICKS: 'link_click',
+  TRAFFIC: 'link_click',
+  OUTCOME_ENGAGEMENT: 'onsite_conversion.total_messaging_connection',
+  ENGAGEMENT: 'onsite_conversion.total_messaging_connection',
+  MESSAGES: 'onsite_conversion.total_messaging_connection',
+  POST_ENGAGEMENT: 'post_engagement',
+  VIDEO_VIEWS: 'video_view',
+  OUTCOME_AWARENESS: null,
+  BRAND_AWARENESS: null,
+  REACH: null,
+  OUTCOME_APP_PROMOTION: 'omni_app_install',
+  APP_INSTALLS: 'omni_app_install',
+};
+
+// Si el objetivo no se conoce, se cae a esta heurística: la primera de
+// estas acciones que tenga valor. Son las que optimizan estos clientes.
+const FALLBACK_ACCIONES = [
+  'onsite_conversion.total_messaging_connection',
+  'onsite_conversion.messaging_conversation_started_7d',
+  'onsite_conversion.messaging_first_reply',
+  'lead', 'purchase', 'link_click', 'landing_page_view', 'post_engagement', 'video_view',
+];
+
+// Resuelve qué acción cuenta para un objetivo dado.
+//  - `override` (accion_principal del cliente) pisa todo.
+//  - Objetivo de engagement: puede ser mensajería o interacciones; lo
+//    decide lo que la campaña haya generado.
+//  - Objetivo conocido: su acción mapeada, aunque este mes dé 0 (una
+//    campaña de ventas sigue siendo de ventas si no vendió nada).
+//  - Objetivo desconocido: la heurística de FALLBACK_ACCIONES.
+function resolverAccion(objetivo: string | null, acciones: any[], override: string | null): string | null {
+  if (override) return override;
+  if (objetivo && objetivo in OBJETIVO_ACCION) {
+    if (objetivo === 'OUTCOME_ENGAGEMENT' || objetivo === 'ENGAGEMENT') {
+      for (const m of ACCIONES_MENSAJES) if (buscarAccion(acciones, m) !== null) return m;
+      return buscarAccion(acciones, 'post_engagement') !== null ? 'post_engagement' : null;
+    }
+    return OBJETIVO_ACCION[objetivo];
+  }
+  for (const cand of FALLBACK_ACCIONES) if (buscarAccion(acciones, cand) !== null) return cand;
+  return null;
+}
+
 const CAMPOS = [
   'spend', 'reach', 'impressions', 'frequency', 'clicks', 'ctr', 'cpm',
   'actions', 'cost_per_action_type', 'account_currency',
 ].join(',');
 
-// Para el detalle: lo mismo más quién es cada anuncio.
+// Para el detalle: lo mismo más quién es cada anuncio. `campaign_id` sirve
+// para saber el objetivo de la campaña a la que pertenece cada anuncio.
 const CAMPOS_AD = [
-  'ad_id', 'ad_name', 'campaign_name', 'adset_name',
+  'ad_id', 'ad_name', 'campaign_id', 'campaign_name', 'adset_name',
   'spend', 'reach', 'impressions', 'frequency', 'clicks', 'ctr', 'cpm',
   'actions', 'cost_per_action_type', 'account_currency',
 ].join(',');
@@ -199,29 +260,94 @@ Deno.serve(async (req) => {
     const notas: string[] = [];
     if (!fila0) notas.push('Meta no devolvió actividad publicitaria en ese mes.');
 
-    // ── 5. Qué acción es "el resultado" ───────────────────────
+    // ── 5. El objetivo de cada campaña ────────────────────────
+    // Se lee el objetivo campaña por campaña y se agrupa por él. Si la
+    // cuenta mezcla objetivos (p. ej. ventas + mensajes), se arma un
+    // desglose por objetivo y el titular toma el que más invirtió.
+    const override: string | null = integ.accion_principal || null;
     const acciones = fila0?.actions ?? [];
     const costos = fila0?.cost_per_action_type ?? [];
 
-    let accion: string | null = integ.accion_principal || null;
-    let resultados: number | null = null;
-
-    if (accion) {
-      resultados = buscarAccion(acciones, accion);
-      if (resultados === null) {
-        notas.push(`La acción configurada (${accion}) no aparece en este mes.`);
+    // 5.a Objetivo por campaña (id → objetivo). Si falla, se sigue sin él
+    // (cae a la heurística de siempre).
+    const objetivoDeCamp: Record<string, string> = {};
+    try {
+      const camps = await graph(`/${actId}/campaigns?fields=id,objective&limit=200`, token);
+      for (const c of (camps?.data ?? [])) {
+        if (c?.id && c?.objective) objetivoDeCamp[String(c.id)] = String(c.objective);
       }
-    } else {
-      for (const cand of ACCIONES_MENSAJES) {
-        const v = buscarAccion(acciones, cand);
-        if (v !== null) { accion = cand; resultados = v; break; }
-      }
-      if (accion === null && acciones.length) {
-        notas.push('Ninguna acción de mensajería en este mes. Si la cuenta optimiza a otra cosa, configurá accion_principal.');
-      }
+    } catch (e) {
+      if (e instanceof ErrorMeta && (e.code === 190 || e.code === 368)) throw e;
+      notas.push('No se pudo leer el objetivo de las campañas; se usó la detección automática.');
     }
 
+    // 5.b Insights por campaña, para agrupar por objetivo. Clave del grupo
+    // = acción resultante ('' agrupa las de puro alcance, sin acción).
+    const grupos: Record<string, any> = {};
+    try {
+      const qsC = `level=campaign&fields=campaign_id,campaign_name,${CAMPOS}&limit=200` +
+        `&time_range=${encodeURIComponent(JSON.stringify(rango))}`;
+      const resC = await graph(`/${actId}/insights?${qsC}`, token);
+      for (const fc of (resC?.data ?? [])) {
+        const obj = objetivoDeCamp[String(fc.campaign_id)] || null;
+        const acc = resolverAccion(obj, fc.actions ?? [], override);
+        const k = acc || '';
+        const g = grupos[k] || (grupos[k] = {
+          accion: acc, objetivo: obj, inversion: 0, resultados: 0,
+          reach: 0, impresiones: 0, clics: 0, _cpmNum: 0, _ctrNum: 0, campanias: 0,
+        });
+        g.inversion    += num(fc.spend) || 0;
+        g.resultados   += acc ? (buscarAccion(fc.actions, acc) || 0) : 0;
+        g.reach        += ent(fc.reach) || 0;
+        g.impresiones  += ent(fc.impressions) || 0;
+        g.clics        += ent(fc.clicks) || 0;
+        g._cpmNum      += (num(fc.cpm) || 0) * (ent(fc.impressions) || 0);
+        g._ctrNum      += (num(fc.ctr) || 0) * (ent(fc.impressions) || 0);
+        g.campanias    += 1;
+      }
+    } catch (e) {
+      if (e instanceof ErrorMeta && (e.code === 190 || e.code === 368)) throw e;
+      notas.push('No se pudo abrir la pauta por campaña: ' + (e instanceof ErrorMeta ? e.mensaje : String(e)));
+    }
+
+    // CTR/CPM se promedian ponderados por impresiones (no se suman). El
+    // reach por objetivo es la suma de las campañas del grupo: aproximado
+    // (Meta deduplica personas solo a nivel cuenta), suficiente para el
+    // desglose; el reach exacto del mes sigue siendo el de la cuenta.
+    const desglose = Object.values(grupos).map((g: any) => ({
+      accion: g.accion,
+      etiqueta: g.accion ? (ETIQUETA_ACCION[g.accion] || 'resultados') : 'alcance',
+      objetivo: g.objetivo,
+      campanias: g.campanias,
+      inversion: Math.round(g.inversion),
+      resultados: g.accion ? Math.round(g.resultados) : null,
+      costo_resultado: g.accion && g.resultados > 0 ? +(g.inversion / g.resultados).toFixed(2) : null,
+      reach: g.reach, impresiones: g.impresiones, clics: g.clics,
+      ctr: g.impresiones ? +(g._ctrNum / g.impresiones).toFixed(4) : null,
+      cpm: g.impresiones ? +(g._cpmNum / g.impresiones).toFixed(2) : null,
+    })).sort((a, b) => b.inversion - a.inversion);
+
+    // 5.c El titular de la cuenta. Con override, ese. Si hay grupos, el que
+    // más invirtió. Si no hubo info de campaña, la heurística de mensajería.
+    let accion: string | null = override;
+    if (!accion && desglose.length) accion = desglose[0].accion;
+    if (!accion && !desglose.length) {
+      for (const cand of ACCIONES_MENSAJES) {
+        if (buscarAccion(acciones, cand) !== null) { accion = cand; break; }
+      }
+    }
+    // Resultados del titular: del total de cuenta; si Meta no lo agregó, lo
+    // sumado por campaña para esa acción.
+    let resultados: number | null = accion ? buscarAccion(acciones, accion) : null;
+    if (accion && resultados === null) {
+      const g = desglose.find(x => x.accion === accion);
+      resultados = g ? g.resultados : null;
+    }
     const costoResultado = accion ? buscarAccion(costos, accion) : null;
+
+    // El desglose solo se guarda cuando hay más de un objetivo: en el caso
+    // normal (un solo objetivo) el titular ya lo dice todo y queda null.
+    const desgloseAds = desglose.length >= 2 ? desglose : null;
 
     // ── 6. La fila ────────────────────────────────────────────
     const datos: Record<string, unknown> = {
@@ -230,6 +356,7 @@ Deno.serve(async (req) => {
       resultados_ads:      resultados === null ? null : Math.round(resultados),
       accion_ads:          accion,
       costo_resultado_ads: costoResultado,
+      desglose_ads:        desgloseAds,
       reach_ads:           ent(fila0?.reach),
       impresiones_ads:     ent(fila0?.impressions),
       frecuencia_ads:      num(fila0?.frequency),
@@ -266,18 +393,12 @@ Deno.serve(async (req) => {
         const adId = String(a.ad_id ?? '');
         if (!adId) continue;
 
-        // Qué acción contó este anuncio. Puede no ser la misma que el
-        // total del mes: un anuncio de tráfico dentro de una cuenta
-        // que sobre todo hace mensajes.
-        let accAd: string | null = integ.accion_principal || null;
-        let resAdN: number | null = accAd ? buscarAccion(a.actions, accAd) : null;
-        if (resAdN === null) {
-          accAd = null;
-          for (const cand of ACCIONES_MENSAJES) {
-            const v = buscarAccion(a.actions, cand);
-            if (v !== null) { accAd = cand; resAdN = v; break; }
-          }
-        }
+        // Qué acción contó este anuncio: la del objetivo de SU campaña
+        // (no la del mes). Un anuncio de ventas cuenta compras aunque la
+        // cuenta sea sobre todo de mensajes. El override pisa igual.
+        const objAd = objetivoDeCamp[String(a.campaign_id)] || null;
+        const accAd: string | null = resolverAccion(objAd, a.actions ?? [], override);
+        const resAdN: number | null = accAd ? buscarAccion(a.actions, accAd) : null;
 
         // Creativo: nombre, estado y miniatura. Si falla, el anuncio
         // se guarda igual sin imagen.
@@ -391,6 +512,8 @@ Deno.serve(async (req) => {
       rango,
       accion_contada: accion,
       etiqueta: accion ? (ETIQUETA_ACCION[accion] || 'resultados') : null,
+      objetivos: desglose.map(g => ({ objetivo: g.objetivo, etiqueta: g.etiqueta,
+        campanias: g.campanias, inversion: g.inversion, resultados: g.resultados })),
       anuncios_escritos: anuncios,
       miniaturas: { nuevas: thumbsOk, fallidas: thumbsMal },
       escrito: datos,

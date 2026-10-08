@@ -882,6 +882,17 @@
       });
     }
 
+    // Desglose de pauta por objetivo (pauta_2). Consulta aparte y
+    // autofallida, igual que notas_anuncios: si la migración no corrió, la
+    // columna no existe y el panel sigue con el titular de siempre.
+    if (ids.length) {
+      const { data: filasDes, error: eDes } = await SB.from('reporte').select('id, desglose_ads').in('id', ids);
+      if (!eDes) (filasDes || []).forEach(row => {
+        const rep = REPORTES.find(x => x.id === row.id);
+        if (rep && rep.cols && Array.isArray(row.desglose_ads)) rep.cols.desglose_ads = row.desglose_ads;
+      });
+    }
+
     await cargarPosts();
     await cargarAnuncios();
     await cargarSnapshots();
@@ -1699,6 +1710,41 @@
     return s;
   }
 
+  // ── Pauta por objetivo ──────────────────────────────────────
+  // Cuando la cuenta corrió campañas con objetivos distintos (ventas +
+  // mensajes, etc.), pull-ads deja en `desglose_ads` un grupo por objetivo.
+  // Acá se muestran separados: cada objetivo con SU métrica, porque el
+  // costo de una venta no se compara con el de una conversación. Con un
+  // solo objetivo no hay desglose y esto no renderiza nada (el titular
+  // arriba ya lo dice).
+  function renderDesglosePauta(r) {
+    const d = r.cols && r.cols.desglose_ads;
+    if (!Array.isArray(d) || d.length < 2) return '';
+    const card = g => {
+      const et   = g.accion ? (ETIQUETA_ACCION[g.accion] || 'Resultados') : 'Alcance';
+      const sing = g.accion ? (ACCION_SINGULAR[g.accion] || 'resultado') : null;
+      const mets = [];
+      mets.push('<div class="met"><div class="et">Inversión</div><div class="val">' + esc(fmt(g.inversion, 'ars')) + '</div></div>');
+      if (g.accion) {
+        mets.push('<div class="met"><div class="et">' + esc(et) + '</div><div class="val">' +
+          (g.resultados == null ? '<span class="vacio">—</span>' : esc(fmt(g.resultados, 'num'))) + '</div></div>');
+        if (g.costo_resultado != null)
+          mets.push('<div class="met"><div class="et">Costo por ' + esc(sing) + '</div><div class="val">' + esc(fmt(g.costo_resultado, 'ars')) + '</div></div>');
+      } else {
+        mets.push('<div class="met"><div class="et">Alcance</div><div class="val">' + esc(fmt(g.reach, 'num')) + '</div></div>');
+      }
+      const cuantas = (g.campanias || 0) + ' campaña' + (g.campanias === 1 ? '' : 's');
+      return '<section class="bloque"><h2>' + esc(et) + '</h2>' +
+        '<p class="pregunta">' + esc(cuantas) + ' con este objetivo.</p>' +
+        '<div class="metricas">' + mets.join('') + '</div></section>';
+    };
+    return '<section class="bloque"><h2>Pauta por objetivo</h2>' +
+      '<p class="prosa">Este mes la pauta corrió con más de un objetivo. Cada uno se mide ' +
+      'con su propia métrica (el costo de una venta no se compara con el de una conversación), ' +
+      'así que van separados.</p></section>' +
+      d.map(card).join('');
+  }
+
   // ── Seguidores y gente nueva ────────────────────────────────
   // Dos barras: las vistas (cuántas veces se vio) y las personas
   // alcanzadas (cuánta gente distinta). Pueden contar historias
@@ -2031,6 +2077,7 @@
     // Detalle de pauta, con el mismo criterio de estado y respetando
     // el módulo.
     if ((r.estado === 'publicado' || AGENCIA) && MODULOS.pauta) {
+      bloques.pauta += renderDesglosePauta(r);
       bloques.pauta += renderAnuncios(MES);
       bloques.pauta += renderAnunciosNotas(r);
     }
