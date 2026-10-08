@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="panel-modulos.css">
 <style>
   :root {
     --bg: #EFEEF2;
@@ -95,7 +96,8 @@
     margin-top: -7px; color: var(--ink-mute); pointer-events: none;
   }
 
-  /* Navegación del panel: un ítem por módulo. Hoy solo Reportes. */
+  /* Navegación del panel: un ítem por módulo prendido (cliente_modulo).
+     Reportes siempre; el resto lo dibuja pintarNav(). */
   .nav-group { display: flex; flex-direction: column; gap: 1px; }
   .nav-item {
     display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
@@ -624,7 +626,7 @@
 
     <label class="cliente-caja" id="clienteCaja"></label>
 
-    <nav class="nav-group">
+    <nav class="nav-group" id="navGrupo">
       <button type="button" class="nav-item active" data-seccion="reportes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>
         Reportes
@@ -654,6 +656,10 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Calendario, Estrategia, Objetivos, One Shot y Servicio. Archivo
+     aparte: este ya pasa las 2.700 líneas. Habla con este script por
+     window.PANEL (abajo) y se registra en window.PanelModulos. -->
+<script src="panel-modulos.js"></script>
 <script>
 (function () {
   'use strict';
@@ -671,6 +677,10 @@
   let CLIENTES = [];
   let CLIENTE = null;
   let MODULOS = { organico: true, pauta: true };   // qué servicios tiene el cliente
+  // Los módulos del panel nuevo nacen APAGADOS: sin fila = apagado
+  // (al revés que organico/pauta, que son de antes).
+  const MODULOS_PANEL = ['calendario', 'estrategia', 'objetivos', 'one_shot', 'servicio'];
+  let SECCION = 'reportes'; // ítem del menú abierto: 'reportes' o un módulo de MODULOS_PANEL
   // Indice del bloque que se esta editando, o {nuevo: modulo}.
   let BEDIT = null;
   let REPORTES = [];        // [{id, mes:'YYYY-MM', estado, resumen, proximos_pasos, metricas:[], destacados:[]}]
@@ -811,8 +821,15 @@
 
     // Qué servicios tiene: sin fila = prendido.
     MODULOS = { organico: true, pauta: true };
+    MODULOS_PANEL.forEach(k => { MODULOS[k] = false; });
     const { data: mods } = await SB.from('cliente_modulo').select('modulo, activo').eq('cliente_id', CLIENTE.id);
-    (mods || []).forEach(m => { if (m.modulo in MODULOS) MODULOS[m.modulo] = m.activo !== false; });
+    (mods || []).forEach(m => {
+      if (MODULOS_PANEL.indexOf(m.modulo) !== -1) MODULOS[m.modulo] = m.activo === true;
+      else if (m.modulo in MODULOS) MODULOS[m.modulo] = m.activo !== false;
+    });
+    if (SECCION !== 'reportes' && !MODULOS[SECCION]) SECCION = 'reportes';
+    if (window.PanelModulos) { PanelModulos.reiniciar(); if (MODULOS.objetivos) await PanelModulos.cargarObjetivos(); }
+    pintarNav();
 
     // Las columnas de métricas de CUENTA (visitas_perfil_org, seguidores_total,
     // demografia…) NO van en este select: van en una consulta aparte, más
@@ -1064,9 +1081,38 @@
   const anteriorA = mes => REPORTES.filter(r => r.mes < mes).sort((a, b) => (a.mes < b.mes ? 1 : -1))[0] || null;
 
   function render() {
+    if (SECCION !== 'reportes' && window.PanelModulos) {
+      PanelModulos.render(SECCION, $('#main'));
+      return;
+    }
     if (EDITANDO) renderEditor(); else renderReporte();
     conectarNavMes();
   }
+
+  // El menú: Reportes siempre, y un ítem por cada módulo prendido.
+  function pintarNav() {
+    const nav = $('#navGrupo');
+    nav.querySelectorAll('.nav-item:not([data-seccion="reportes"])').forEach(b => b.remove());
+    if (window.PanelModulos) PanelModulos.NAV.forEach(([clave, nombre, svg]) => {
+      if (!MODULOS[clave]) return;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'nav-item'; b.dataset.seccion = clave;
+      b.innerHTML = svg + esc(nombre);
+      nav.appendChild(b);
+    });
+    nav.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.seccion === SECCION));
+  }
+  $('#navGrupo').addEventListener('click', e => {
+    const b = e.target.closest('.nav-item');
+    if (!b) return;
+    if (EDITANDO && !confirm('Estás editando. ¿Salir sin guardar?')) return;
+    EDITANDO = false; BEDIT = null; NEDIT = null;
+    SECCION = b.dataset.seccion;
+    $('#navGrupo').querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x === b));
+    $('#bmTitulo').textContent = SECCION === 'reportes' ? CLIENTE.nombre : b.textContent.trim();
+    window.scrollTo(0, 0);
+    render();
+  });
 
   // Qué meses se listan.
   //
@@ -2202,6 +2248,8 @@
     // Con un solo servicio, un solo "+ Agregar sección": el del servicio.
     // Las secciones que ya estaban en "cuenta" se siguen mostrando.
     bloques.cuenta   += bloquesExtra('cuenta', !soloServicio);
+    // Avance de los objetivos medibles con los números de ESTE mes.
+    if (MODULOS.objetivos && window.PanelModulos) bloques.cuenta += PanelModulos.objetivosEnReporte(r, buscar);
     bloques.organico += bloquesExtra('organico');
     bloques.pauta    += bloquesExtra('pauta');
 
@@ -2711,6 +2759,20 @@
 
   // ── Sesión ──────────────────────────────────────────────────
   $('#btnSalir').addEventListener('click', async () => { try { await SB.auth.signOut(); } finally { location.replace(LOGIN); } });
+
+  // ── Puente con panel-modulos.js ─────────────────────────────
+  // Lo justo para que los módulos nuevos no dupliquen la conexión ni
+  // el estado. Getters: el cliente y los reportes cambian.
+  window.PANEL = {
+    SB, esc, toast, fmt, mesLabel, mesActual, vacio,
+    get YO() { return YO; },
+    get AGENCIA() { return AGENCIA; },
+    get CLIENTE() { return CLIENTE; },
+    get MODULOS() { return MODULOS; },
+    get REPORTES() { return REPORTES; },
+    clavesEquivalentes,
+    rerender: () => render(),
+  };
 
   init().catch(e => { $('#main').innerHTML = vacio('Algo falló al cargar', e.message || String(e)); });
 })();

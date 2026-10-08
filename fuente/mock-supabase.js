@@ -141,7 +141,13 @@ function textoDelMock(datos, sesion) {
 
     const cliente = {
       from: consulta,
-      rpc: function () { return { then: function (ok) { return Promise.resolve({ data: null, error: null }).then(ok); } }; },
+      // Las RPC que una prueba necesite se definen en window.__MOCK_RPC
+      // (ver datos-modulos.js). Sin definir, devuelven null como antes.
+      rpc: function (nombre, args) {
+        const f = window.__MOCK_RPC && window.__MOCK_RPC[nombre];
+        const res = f ? f(args || {}) : { data: null, error: null };
+        return { then: function (ok, mal) { return Promise.resolve(res).then(ok, mal); } };
+      },
       channel: function () {
         const ch = { on: function () { return ch; }, subscribe: function () { return ch; }, unsubscribe: function () { return Promise.resolve(); } };
         return ch;
