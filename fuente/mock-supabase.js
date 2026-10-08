@@ -30,6 +30,8 @@ function textoDelMock(datos, sesion) {
     function val(fila, campo) { return fila[campo.split('.').pop()]; }
 
     function cumple(fila, f) {
+      // El `or` no tiene campo propio: antes se leía igual y tiraba error.
+      if (f.op === 'or') return f.partes.some(p => cumple(fila, p));
       const v = val(fila, f.campo);
       switch (f.op) {
         case 'eq':  return v === f.valor;

@@ -16466,14 +16466,33 @@
         'Aceptar = sí, se le saca el acceso a sus usuarios.\n' +
         'Cancelar = no, mantiene el acceso (solo se archiva).');
 
+      // Contratos PRIMERO: se apagan solo los que estaban activos, y quedan
+      // marcados (apagado_por_archivo) para que al reactivar vuelvan esos y
+      // no los que ya estaban archivados de antes (los históricos del
+      // import). Si la marca no se puede guardar (falta la migración 52),
+      // no se archiva nada: archivar sin la marca haría que reactivar
+      // después no supiera qué prender.
+      const { data: apagados, error: eCt } = await SB.from('contrato')
+        .update({ activo: false, apagado_por_archivo: true })
+        .eq('cliente_id', id).or('activo.is.null,activo.eq.true')
+        .select('id');
+      if (eCt) {
+        $('#clActivo').checked = true;
+        throw new Error(/apagado_por_archivo/.test(eCt.message || '')
+          ? 'falta correr la migración 52 (contrato.apagado_por_archivo). No se archivó nada.'
+          : eCt.message);
+      }
+      const idsApagados = (apagados || []).map(k => k.id);
+      (CONTRATOS || []).forEach(k => {
+        if (idsApagados.indexOf(k.id) !== -1) { k.activo = false; k.apagado_por_archivo = true; }
+      });
+
       let { error } = await SB.from('clientes').update({ activo: false }).eq('id', id);
       if (error) throw error;
       CL_EDIT.activo = false;
       const cm = CLIENTES.find(x => x.id === id); if (cm) cm.activo = false;
 
-      // Contratos: dejan de generar cobros. Integraciones: se apagan.
-      await SB.from('contrato').update({ activo: false }).eq('cliente_id', id);
-      (CONTRATOS || []).forEach(k => { if (k.cliente_id === id) k.activo = false; });
+      // Integraciones: se apagan (al reactivar se prenden a mano).
       await SB.from('cliente_integracion').update({ activo: false }).eq('cliente_id', id);
 
       if (cortar) {
@@ -16490,7 +16509,7 @@
 
     } else {
       if (!confirm('¿Reactivar "' + nom + '"?\n\n' +
-          'Vuelve a la lista y sus contratos vuelven a generar cobros. ' +
+          'Vuelve a la lista y vuelven los contratos que se apagaron al archivarlo (los que ya estaban archivados de antes, no). ' +
           'Las integraciones de Meta quedan apagadas: reactivalas a mano desde Conexiones' +
           '. Si le habías cortado el acceso, se vuelve a dar desde el panel de cliente.')) {
         $('#clActivo').checked = false; return;
@@ -16499,9 +16518,19 @@
       if (error) throw error;
       CL_EDIT.activo = true;
       const cm = CLIENTES.find(x => x.id === id); if (cm) cm.activo = true;
-      await SB.from('contrato').update({ activo: true }).eq('cliente_id', id);
-      (CONTRATOS || []).forEach(k => { if (k.cliente_id === id) k.activo = true; });
-      toast(nom + ' reactivado', 'ok');
+      // Vuelven SOLO los contratos que apagó el interruptor. Los que ya
+      // estaban archivados antes de archivar el cliente siguen archivados.
+      const { data: prendidos, error: eCt } = await SB.from('contrato')
+        .update({ activo: true, apagado_por_archivo: false })
+        .eq('cliente_id', id).eq('apagado_por_archivo', true)
+        .select('id');
+      const idsPrendidos = (prendidos || []).map(k => k.id);
+      (CONTRATOS || []).forEach(k => {
+        if (idsPrendidos.indexOf(k.id) !== -1) { k.activo = true; k.apagado_por_archivo = false; }
+      });
+      toast(nom + ' reactivado' + (eCt ? ' (los contratos no: ' + eCt.message + ')'
+        : idsPrendidos.length ? ' · ' + idsPrendidos.length + ' contrato' + (idsPrendidos.length === 1 ? '' : 's') + ' de vuelta'
+        : ' · no había contratos apagados por el archivo'), eCt ? 'warn' : 'ok');
     }
 
     // Reflejar el nuevo estado en el popup (integraciones apagadas) y afuera.
