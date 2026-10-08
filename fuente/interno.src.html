@@ -1495,6 +1495,22 @@
     display: flex; align-items: center; gap: 5px; font-size: 11px;
     color: var(--ink-mute); cursor: pointer; user-select: none; white-space: nowrap;
   }
+  /* Interruptor "Cliente activo" del popup. */
+  .cl-activo { margin-bottom: 4px; }
+  .sw { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
+  .sw input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .sw-pista {
+    width: 38px; height: 22px; border-radius: 999px; background: var(--line);
+    position: relative; flex-shrink: 0; transition: background .15s;
+  }
+  .sw-pista::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+    border-radius: 50%; background: #fff; box-shadow: var(--shadow); transition: transform .15s;
+  }
+  .sw input:checked + .sw-pista { background: var(--verde-txt); }
+  .sw input:checked + .sw-pista::after { transform: translateX(16px); }
+  .sw input:focus-visible + .sw-pista { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
+  .sw-txt { font-size: 13px; font-weight: 500; color: var(--ink); }
   .aviso-secreto {
     background: var(--warn-soft); border-radius: 8px; padding: 9px 11px;
     font-size: 11px; line-height: 1.5; color: var(--ink); margin-top: 14px;
@@ -3514,6 +3530,15 @@
     <div class="modal-head">
       <div class="modal-title" id="clTitulo">Nuevo cliente</div>
       <button class="modal-close" data-cerrar="ovCliente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <!-- Interruptor Cliente activo. Solo al editar uno que ya existe.
+         Apagarlo archiva el cliente: lo saca de la lista, apaga sus
+         contratos e integraciones, y (opcional) le corta el acceso. La
+         historia queda intacta. -->
+    <div class="campo cl-activo" id="clActivoWrap" style="display:none">
+      <label class="sw"><input type="checkbox" id="clActivo"><span class="sw-pista"></span>
+        <span class="sw-txt">Cliente activo</span></label>
+      <div class="res-sub" id="clActivoSub" style="margin:4px 0 0"></div>
     </div>
     <div class="campo">
       <label class="campo-label">Nombre del cliente</label>
@@ -7224,9 +7249,16 @@
     $('#clSlug').textContent = c
       ? (c.slug || '⚠️ Sin identificador. Guardá y se genera solo (el panel de cliente lo necesita).')
       : '';
-    const ba = $('#clArchivar');
-    ba.style.display = c ? '' : 'none';
-    ba.textContent = (c && c.activo === false) ? 'Sacar del archivo' : 'Guardar en el archivo';
+    // El archivado vive ahora en el interruptor de arriba; el botón del pie
+    // queda apagado (se conserva en el DOM para no romper el modal-foot).
+    const ba = $('#clArchivar'); if (ba) ba.style.display = 'none';
+    const activo = !c || c.activo !== false;
+    $('#clActivoWrap').style.display = c ? '' : 'none';
+    $('#clActivo').checked = activo;
+    $('#clActivoSub').textContent = c
+      ? (activo ? 'Activo: aparece en la lista y sus contratos generan cobros.'
+                : 'Inactivo: está archivado. Reactivalo para que vuelva a la lista (las integraciones se reactivan a mano).')
+      : '';
     pintarClPersonas();
     $('#clPeligro').style.display = c ? '' : 'none';
     if (c) pintarPeligroCliente(c);
@@ -16407,14 +16439,78 @@
   // La fusión de clientes duplicados se sacó del popup: ahora solo se
   // archiva (botón de abajo) o se elimina (si no tiene nada cargado).
 
-  on('#clArchivar', 'click', async () => {
-    if (!CL_EDIT) return;
-    const archivar = CL_EDIT.activo !== false;
-    if (archivar && !confirm('¿Guardar "' + CL_EDIT.nombre + '" en el archivo?\n\n' +
-        'No se borra nada: deja de ofrecerse en los selectores de proyectos y tareas.')) return;
-    cerrar('ovCliente');
-    await guardarCliente(CL_EDIT.id, 'activo', !archivar);
+  // Interruptor "Cliente activo". Apagarlo archiva en cascada; prenderlo
+  // reactiva (menos las integraciones, que se reactivan a mano).
+  on('#clActivo', 'change', () => {
+    const el = $('#clActivo');
+    cambiarActivoCliente(el.checked).catch(err => {
+      toast('No se pudo: ' + (err.message || err), 'warn');
+      if (CL_EDIT) el.checked = CL_EDIT.activo !== false;
+    });
   });
+
+  async function cambiarActivoCliente(activar) {
+    if (!CL_EDIT) return;
+    const id = CL_EDIT.id, nom = CL_EDIT.nombre || 'este cliente';
+
+    if (!activar) {
+      if (!confirm('¿Pasar "' + nom + '" a inactivo?\n\n' +
+          '• Sale de la lista (lo seguís viendo con “Ver inactivos”).\n' +
+          '• Sus contratos dejan de generar cobros nuevos.\n' +
+          '• Se apagan sus integraciones de Meta.\n\n' +
+          'La historia (cobros, reportes) queda intacta.')) {
+        $('#clActivo').checked = true; return;
+      }
+      // Casilla "cortar acceso": por defecto NO. Segundo diálogo = opt-in.
+      const cortar = confirm('¿Cortarle también el acceso al panel al cliente?\n\n' +
+        'Aceptar = sí, se le saca el acceso a sus usuarios.\n' +
+        'Cancelar = no, mantiene el acceso (solo se archiva).');
+
+      let { error } = await SB.from('clientes').update({ activo: false }).eq('id', id);
+      if (error) throw error;
+      CL_EDIT.activo = false;
+      const cm = CLIENTES.find(x => x.id === id); if (cm) cm.activo = false;
+
+      // Contratos: dejan de generar cobros. Integraciones: se apagan.
+      await SB.from('contrato').update({ activo: false }).eq('cliente_id', id);
+      (CONTRATOS || []).forEach(k => { if (k.cliente_id === id) k.activo = false; });
+      await SB.from('cliente_integracion').update({ activo: false }).eq('cliente_id', id);
+
+      if (cortar) {
+        // Solo usuarios DEL cliente (tipo 'cliente'); la agencia nunca se toca.
+        const { data: accs } = await SB.from('acceso_cliente').select('user_id').eq('cliente_id', id);
+        const ids = (accs || []).map(a => a.user_id);
+        if (ids.length) {
+          const { data: profs } = await SB.from('profiles').select('id, tipo').in('id', ids);
+          const delIds = (profs || []).filter(p => p.tipo === 'cliente').map(p => p.id);
+          if (delIds.length) await SB.from('acceso_cliente').delete().eq('cliente_id', id).in('user_id', delIds);
+        }
+      }
+      toast(nom + ' pasó a inactivo' + (cortar ? ' (sin acceso)' : ''), 'ok');
+
+    } else {
+      if (!confirm('¿Reactivar "' + nom + '"?\n\n' +
+          'Vuelve a la lista y sus contratos vuelven a generar cobros. ' +
+          'Las integraciones de Meta quedan apagadas: reactivalas a mano desde Conexiones' +
+          '. Si le habías cortado el acceso, se vuelve a dar desde el panel de cliente.')) {
+        $('#clActivo').checked = false; return;
+      }
+      let { error } = await SB.from('clientes').update({ activo: true }).eq('id', id);
+      if (error) throw error;
+      CL_EDIT.activo = true;
+      const cm = CLIENTES.find(x => x.id === id); if (cm) cm.activo = true;
+      await SB.from('contrato').update({ activo: true }).eq('cliente_id', id);
+      (CONTRATOS || []).forEach(k => { if (k.cliente_id === id) k.activo = true; });
+      toast(nom + ' reactivado', 'ok');
+    }
+
+    // Reflejar el nuevo estado en el popup (integraciones apagadas) y afuera.
+    $('#clActivoSub').textContent = CL_EDIT.activo === false
+      ? 'Inactivo: está archivado. Reactivalo para que vuelva a la lista (las integraciones se reactivan a mano).'
+      : 'Activo: aparece en la lista y sus contratos generan cobros.';
+    if (CL_EDIT) cargarPanelCliente(CL_EDIT);
+    llenarSelects(); render();
+  }
 
   // ── Wiki ─────────────────────────────────────────────────────
   on('#modWiki', 'click', e => {
