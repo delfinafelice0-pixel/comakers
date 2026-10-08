@@ -16,9 +16,11 @@
 --       SELECT-only para el cliente (vía acceso_cliente). La agencia no
 --       pierde nada: tiene sus propias policies `_agencia` (ALL).
 --
---  reporte_metrica / reporte_destacado quedan para confirmar: dependen
---  de puede_editar_reporte(); si esa función da false para un cliente,
---  no hace falta tocarlas (ver nota al pie).
+--  reporte_metrica / reporte_destacado NO se tocan: su escritura
+--  (metrica_edita / destacado_edita) depende de puede_editar_reporte(),
+--  que se confirmó el 08/10 que da true SOLO para es_super() o agencia de
+--  su propia agencia — nunca un cliente. Su LECTURA (metrica_lee /
+--  destacado_lee, vía puede_ver_reporte) se cierra en 50B.
 --
 --  Idempotente. Correr en: Supabase → SQL Editor.
 -- ═══════════════════════════════════════════════════════════════
@@ -97,10 +99,3 @@ where n.nspname = 'public'
 order by tabla, cmd;
 -- Esperado: ninguna policy ALL sin rol sobre post_instagram/anuncio_meta
 -- para el cliente; las _lee en SELECT; reporte_publicado con sus 2 policies.
-
--- ── NOTA (pendiente de confirmar, NO incluido arriba) ───────────
--- reporte_metrica.metrica_edita y reporte_destacado.destacado_edita son
--- ALL con predicado puede_editar_reporte(reporte_id). Si esa función da
--- true para un cliente, el cliente puede escribir métricas/destacados y
--- hay que cerrarlo igual que arriba. Confirmar con:
---   select pg_get_functiondef('public.puede_editar_reporte'::regproc);
