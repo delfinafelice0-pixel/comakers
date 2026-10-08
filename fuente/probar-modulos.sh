@@ -130,5 +130,5 @@ if quiero one_shot; then
   caso oneshot-comparar     agencia "irA('one_shot', function () { esperar('[data-comparar]', function (b) { b.click(); }); });" don-felipe 2600
 fi
 
-rm -f _prueba-mod-*.html
+[ -n "${KEEP:-}" ] || rm -f _prueba-mod-*.html
 echo "Listo. Capturas en $OUT/"

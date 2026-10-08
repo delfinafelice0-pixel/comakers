@@ -1030,19 +1030,231 @@
   }
 
   // ═════════════════════════════════════════════════════════════
+  //  OBJETIVOS
+  //  Cualitativos (reconocimiento, posicionamiento): avance a mano.
+  //  Medibles: atados a una métrica del reporte. El avance NO se guarda:
+  //  se calcula con los números del reporte, igual que los deltas.
+  //  Por eso también aparecen solos en el reporte mensual (Cuenta).
+  // ═════════════════════════════════════════════════════════════
+  const OBJ = { cargado: false, falta: false, lista: [] };
+  // [clave, módulo, nombre, mejor]
+  const METRICAS_OBJ = [
+    ['seguidores_total', 'organico', 'Seguidores en total', 'sube'],
+    ['seguidores', 'organico', 'Nuevos seguidores del mes', 'sube'],
+    ['alcance', 'organico', 'Alcance del contenido', 'sube'],
+    ['visualizaciones', 'organico', 'Visualizaciones', 'sube'],
+    ['interacciones', 'organico', 'Interacciones', 'sube'],
+    ['guardados', 'organico', 'Guardados', 'sube'],
+    ['visitas_perfil', 'organico', 'Visitas al perfil', 'sube'],
+    ['clics_web', 'organico', 'Clics al enlace de la bio', 'sube'],
+    ['resultados', 'pauta', 'Resultados de la pauta (consultas, ventas…)', 'sube'],
+    ['costo_resultado', 'pauta', 'Costo por resultado', 'baja'],
+    ['alcance_pauta', 'pauta', 'Alcance de la pauta', 'sube']
+  ];
+  const metInfo = k => METRICAS_OBJ.find(m => m[0] === k) || null;
+  const ESTADOS_OBJ = { en_curso: 'En curso', logrado: 'Logrado', no_logrado: 'No logrado', pausado: 'Pausado' };
+  const MODOS_OBJ = [['pct', 'Mejorar un %'], ['abs', 'Sumar una cantidad'], ['valor', 'Llegar a un número']];
+  const num = (v, u) => v == null ? '—' : (u === 'ars' ? plata(v) : Number(v).toLocaleString('es-AR', { maximumFractionDigits: 1 }));
+
+  async function cargarObjetivos() {
+    const { data, error } = await SB().from('objetivo').select('*').eq('cliente_id', P().CLIENTE.id).order('orden');
+    OBJ.falta = esTablaFaltante(error);
+    OBJ.lista = data || [];
+    OBJ.cargado = true;
+  }
+
+  // El valor de una métrica en un reporte, por cualquiera de sus nombres.
+  function valorEn(r, clave) {
+    const info = metInfo(clave); if (!r || !info) return null;
+    for (const k of P().clavesEquivalentes(info[1], clave)) {
+      const m = (r.metricas || []).find(x => x.modulo === info[1] && x.clave === k);
+      if (m && m.valor != null && m.valor !== '') return { valor: Number(m.valor), unidad: m.unidad };
+    }
+    return null;
+  }
+
+  // Avance de un medible contra el reporte `r` (null = el último que tenga el dato).
+  function avance(o, r) {
+    const info = metInfo(o.metrica); if (!info) return null;
+    const reps = P().REPORTES.slice().sort((a, b) => (a.mes < b.mes ? 1 : -1));
+    const baseMes = o.base_mes ? String(o.base_mes).slice(0, 7) : null;
+    let base = o.base_valor != null ? Number(o.base_valor) : null, unidad = null;
+    if (base == null && baseMes) { const v = valorEn(reps.find(x => x.mes === baseMes), o.metrica); if (v) { base = v.valor; unidad = v.unidad; } }
+    if (!r) r = reps.find(x => (!baseMes || x.mes > baseMes) && valorEn(x, o.metrica));
+    const act = r ? valorEn(r, o.metrica) : null;
+    if (act) unidad = act.unidad;
+    const signo = info[3] === 'baja' ? -1 : 1;
+    let meta = null;
+    if (o.modo === 'valor') meta = Number(o.meta);
+    else if (base != null && o.meta != null) meta = o.modo === 'pct' ? base * (1 + signo * Number(o.meta) / 100) : base + signo * Number(o.meta);
+    let pct = null;
+    if (act && base != null && meta != null) pct = meta === base ? (act.valor * signo >= meta * signo ? 1 : 0) : (act.valor - base) / (meta - base);
+    return { base, meta, actual: act ? act.valor : null, mes: r ? r.mes : null, unidad, pct, info };
+  }
+
+  function barra(pct, clase) {
+    const p = pct == null ? 0 : Math.max(0, Math.min(1, pct));
+    return '<div class="obj-barra ' + (clase || '') + '"><i style="width:' + (p * 100).toFixed(1) + '%"></i></div>';
+  }
+
+  function textoMeta(o) {
+    const info = metInfo(o.metrica);
+    if (!info) return '';
+    const flecha = info[3] === 'baja' ? 'bajar' : 'subir';
+    return o.modo === 'pct' ? flecha + ' ' + num(o.meta) + '% ' + (info[2].toLowerCase())
+      : o.modo === 'abs' ? (info[3] === 'baja' ? 'bajar ' : 'sumar ') + num(o.meta) + ' de ' + info[2].toLowerCase()
+      : 'llegar a ' + num(o.meta) + ' de ' + info[2].toLowerCase();
+  }
+
+  function detalleMedible(o, a) {
+    if (!a) return '';
+    if (a.actual == null) return '<p class="obj-dato">Se mide con ' + esc(a.info[2].toLowerCase()) + ' del reporte' +
+      (a.base != null ? ' · punto de partida: <b>' + esc(num(a.base, a.unidad)) + '</b>' : '') + '. Todavía no hay un reporte con ese dato.</p>';
+    const pctTxt = a.pct == null ? '' : ' · <b>' + Math.round(Math.max(0, a.pct) * 100) + '%</b> del camino';
+    return '<p class="obj-dato">' + (a.base != null ? 'Partimos de <b>' + esc(num(a.base, a.unidad)) + '</b> · ' : '') +
+      'meta <b>' + esc(num(a.meta, a.unidad)) + '</b> · ' + esc(P().mesLabel(a.mes)) + ': <b>' + esc(num(a.actual, a.unidad)) + '</b>' + pctTxt + '</p>';
+  }
+
+  function tarjetaObjetivo(o) {
+    const med = o.tipo === 'medible';
+    const a = med ? avance(o, null) : null;
+    const pct = med ? (a && a.pct) : (o.avance_manual != null ? o.avance_manual / 100 : null);
+    const logrado = o.estado === 'logrado' || (pct != null && pct >= 1);
+    const periodo = (o.desde || o.hasta) ? (o.desde ? P().mesLabel(String(o.desde).slice(0, 7)) : '') + (o.hasta ? ' → ' + P().mesLabel(String(o.hasta).slice(0, 7)) : '') : '';
+    return '<section class="obj-card' + (P().AGENCIA && !o.publicado ? ' oculta' : '') + (logrado ? ' logrado' : '') + '">' +
+      '<div class="obj-chips"><span class="obj-tipo ' + o.tipo + '">' + (med ? 'Medible' : 'Cualitativo') + '</span>' +
+        '<span class="obj-estado ' + esc(o.estado) + '">' + esc(ESTADOS_OBJ[o.estado] || o.estado) + '</span>' +
+        (periodo ? '<span class="obj-periodo">' + esc(periodo) + '</span>' : '') + '</div>' +
+      '<h3>' + esc(o.titulo) + '</h3>' +
+      (med && o.metrica ? '<p class="obj-meta">Meta: ' + esc(textoMeta(o)) + '</p>' : '') +
+      (o.descripcion ? '<p class="pm-prosa">' + prosa(o.descripcion) + '</p>' : '') +
+      barra(pct, logrado ? 'ok' : '') +
+      (med ? detalleMedible(o, a) : '<p class="obj-dato">' + (o.avance_manual != null ? '<b>' + o.avance_manual + '%</b> · ' : '') + esc(o.nota_avance || '') + '</p>') +
+      (edita() ? '<div class="pm-fila-acc">' + pubBoton('objetivo', o.id, o.publicado) +
+        '<button type="button" class="btn chico" data-oed="' + esc(o.id) + '">Editar</button></div>' : '') +
+      '</section>';
+  }
+
+  function renderObjetivos(main) {
+    if (OBJ.falta) { main.innerHTML = cabecera('Objetivos', '', '', '') + faltaMigracion(); conectarVista(main); return; }
+    const lista = OBJ.lista.filter(veo);
+    const grupo = (tipo, titulo, ayuda) => {
+      const xs = lista.filter(o => o.tipo === tipo);
+      return xs.length ? '<h2 class="obj-grupo">' + titulo + ' <small>' + ayuda + '</small></h2><div class="obj-grilla">' + xs.map(tarjetaObjetivo).join('') + '</div>' : '';
+    };
+    main.innerHTML = cabecera('Objetivos', '', '', edita() ? '<button type="button" class="btn primario" data-onuevo="1">+ Objetivo</button>' : '') +
+      (lista.length
+        ? grupo('medible', 'Medibles', 'el avance sale solo del reporte de cada mes') + grupo('cualitativo', 'Cualitativos', 'los que no son un número')
+        : '<div class="vacio"><p>' + (edita() ? 'Todavía no hay objetivos. Cargá alcanzables: algunos cualitativos y otros atados a un número del reporte.'
+            : 'Cuando la agencia publique los objetivos, los vas a ver acá.') + '</p></div>');
+    conectarVista(main);
+    main.addEventListener('click', async e => {
+      const t = e.target;
+      if (t.closest('[data-onuevo]')) { editarObjetivo(null); return; }
+      const ed = t.closest('[data-oed]'); if (ed) { editarObjetivo(OBJ.lista.find(o => o.id === ed.dataset.oed)); return; }
+      const pb = t.closest('[data-pub]'); if (pb) await alternarPub('objetivo', OBJ.lista.find(o => o.id === pb.dataset.id), null, () => P().rerender());
+    });
+  }
+
+  function editarObjetivo(o) {
+    const nuevo = !o;
+    o = o || { tipo: 'medible', titulo: '', descripcion: '', metrica: 'seguidores_total', modo: 'pct', meta: 10, estado: 'en_curso', publicado: false };
+    const mes = d => d ? String(d).slice(0, 7) : '';
+    modal('<h3>' + (nuevo ? 'Nuevo objetivo' : 'Objetivo') + '</h3>' +
+      '<div class="pm-form">' +
+        '<label>Tipo<select id="obTipo">' + opciones([['medible', 'Medible (un número del reporte)'], ['cualitativo', 'Cualitativo']], o.tipo) + '</select></label>' +
+        '<label>Estado<select id="obEst">' + opciones(Object.keys(ESTADOS_OBJ).map(k => [k, ESTADOS_OBJ[k]]), o.estado) + '</select></label>' +
+        '<label class="ancho">Objetivo<input id="obTit" value="' + esc(o.titulo) + '" placeholder="Ej: Que más gente conozca la marca"></label>' +
+        '<label class="ancho">Descripción<textarea id="obDesc" rows="2">' + esc(o.descripcion || '') + '</textarea></label>' +
+        '<label class="ob-med">Métrica del reporte<select id="obMet">' + opciones(METRICAS_OBJ.map(m => [m[0], m[2]]), o.metrica) + '</select></label>' +
+        '<label class="ob-med">Cómo se mide<select id="obModo">' + opciones(MODOS_OBJ, o.modo) + '</select></label>' +
+        '<label class="ob-med">Meta<input type="number" step="any" id="obMeta" value="' + esc(o.meta == null ? '' : o.meta) + '"><small id="obMetaAy"></small></label>' +
+        '<label class="ob-med">Mes de partida<input type="month" id="obBase" value="' + esc(mes(o.base_mes)) + '"><small>Contra este reporte se mide</small></label>' +
+        '<label class="ob-med ancho">Valor de partida (opcional)<input type="number" step="any" id="obBaseV" value="' + esc(o.base_valor == null ? '' : o.base_valor) + '"><small>Vacío = se toma del reporte del mes de partida</small></label>' +
+        '<label class="ob-cual">Avance (%)<input type="number" min="0" max="100" id="obAv" value="' + esc(o.avance_manual == null ? '' : o.avance_manual) + '"></label>' +
+        '<label class="ob-cual ancho">Cómo vamos<textarea id="obNota" rows="2" placeholder="Ej: ya nos recomiendan en grupos de turismo">' + esc(o.nota_avance || '') + '</textarea></label>' +
+        '<label>Desde<input type="month" id="obDesde" value="' + esc(mes(o.desde)) + '"></label>' +
+        '<label>Hasta<input type="month" id="obHasta" value="' + esc(mes(o.hasta)) + '"></label>' +
+        '<label class="pm-chk pub ancho"><input type="checkbox" id="obPub"' + (o.publicado ? ' checked' : '') + '> Visible para el cliente</label>' +
+      '</div><div class="pm-pie">' + (!nuevo ? '<button type="button" class="btn quieto" id="obBorrar">Borrar</button>' : '') +
+      '<span class="pm-esp"></span><button type="button" class="btn" data-cerrar="1">Cancelar</button><button type="button" class="btn primario" id="obOk">Guardar</button></div>',
+      el => {
+        const ajustar = () => {
+          const med = $('#obTipo', el).value === 'medible';
+          $$('.ob-med', el).forEach(x => { x.style.display = med ? '' : 'none'; });
+          $$('.ob-cual', el).forEach(x => { x.style.display = med ? 'none' : ''; });
+          const m = $('#obModo', el).value;
+          $('#obMetaAy', el).textContent = m === 'pct' ? 'En %: 10 = +10%' : m === 'abs' ? 'Cuánto sumar sobre el punto de partida' : 'El número al que hay que llegar';
+        };
+        $('#obTipo', el).addEventListener('change', ajustar); $('#obModo', el).addEventListener('change', ajustar); ajustar();
+        $('#obOk', el).addEventListener('click', async () => {
+          const med = $('#obTipo', el).value === 'medible';
+          const n = id => { const v = val(id, el); return v === '' ? null : Number(v); };
+          const m1 = id => { const v = val(id, el); return v ? v + '-01' : null; };
+          const fila = {
+            cliente_id: P().CLIENTE.id, tipo: med ? 'medible' : 'cualitativo', titulo: val('#obTit', el), descripcion: val('#obDesc', el) || null,
+            estado: val('#obEst', el), desde: m1('#obDesde'), hasta: m1('#obHasta'), publicado: chk('#obPub', el),
+            metrica: med ? val('#obMet', el) : null, modo: med ? val('#obModo', el) : null, meta: med ? n('#obMeta') : null,
+            base_mes: med ? m1('#obBase') : null, base_valor: med ? n('#obBaseV') : null,
+            avance_manual: med ? null : (n('#obAv') == null ? null : Math.max(0, Math.min(100, Math.round(n('#obAv'))))), nota_avance: med ? null : (val('#obNota', el) || null)
+          };
+          if (!fila.titulo) { toast('Escribí el objetivo', true); return; }
+          if (med && fila.meta == null) { toast('Falta la meta', true); return; }
+          if (med && fila.modo !== 'valor' && !fila.base_mes && fila.base_valor == null) { toast('Falta el mes (o el valor) de partida', true); return; }
+          let r;
+          if (nuevo) { fila.orden = Date.now() / 1000; r = await SB().from('objetivo').insert(fila).select('*').single(); if (!r.error) OBJ.lista.push(r.data); }
+          else { r = await SB().from('objetivo').update(fila).eq('id', o.id); if (!r.error) Object.assign(o, fila); }
+          if (r.error) { toast('No se pudo guardar: ' + r.error.message, true); return; }
+          cerrarModal(); toast('Guardado.'); P().rerender();
+        });
+        const b = $('#obBorrar', el);
+        if (b) b.addEventListener('click', async () => {
+          if (!confirm('¿Borrar el objetivo "' + o.titulo + '"?')) return;
+          const { error } = await SB().from('objetivo').delete().eq('id', o.id);
+          if (error) { toast('No se pudo: ' + error.message, true); return; }
+          OBJ.lista = OBJ.lista.filter(x => x.id !== o.id); cerrarModal(); P().rerender();
+        });
+      });
+  }
+
+  // El bloque "Objetivos" de la solapa Cuenta del reporte mensual: el
+  // avance de los medibles con los números de ESE mes. Solo lo
+  // publicado para el cliente; la agencia ve todo, marcado.
+  function objetivosEnReporte(r) {
+    if (!OBJ.cargado || OBJ.falta || !r) return '';
+    const xs = OBJ.lista.filter(o => o.tipo === 'medible' && (P().AGENCIA || o.publicado)).filter(o => {
+      const d = o.desde ? String(o.desde).slice(0, 7) : null, h = o.hasta ? String(o.hasta).slice(0, 7) : null;
+      const b = o.base_mes ? String(o.base_mes).slice(0, 7) : null;
+      return (!d || r.mes >= d) && (!h || r.mes <= h) && (!b || r.mes > b);
+    });
+    if (!xs.length) return '';
+    return '<section class="bloque obj-rep"><h2>Objetivos <small>cómo vamos este mes</small></h2><div class="obj-rep-lista">' + xs.map(o => {
+      const a = avance(o, r);
+      const ok = a && a.pct != null && a.pct >= 1;
+      return '<div class="obj-rep-it' + (P().AGENCIA && !o.publicado ? ' oculta' : '') + '"><div class="obj-rep-cab"><b>' + esc(o.titulo) + '</b>' +
+        '<span>' + (a && a.pct != null ? (ok ? '✓ logrado' : Math.round(Math.max(0, a.pct) * 100) + '%') : 'sin dato') + '</span></div>' +
+        barra(a && a.pct, ok ? 'ok' : '') +
+        '<div class="obj-rep-txt">Meta: ' + esc(textoMeta(o)) + (a && a.actual != null ? ' · este mes ' + esc(num(a.actual, a.unidad)) + (a.meta != null ? ' de ' + esc(num(a.meta, a.unidad)) : '') : '') +
+        (P().AGENCIA && !o.publicado ? ' · <i>oculto para el cliente</i>' : '') + '</div></div>';
+    }).join('') + '</div></section>';
+  }
+
+  // ═════════════════════════════════════════════════════════════
   //  Registro
   // ═════════════════════════════════════════════════════════════
   const ICO = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
   const NAV = [
     ['calendario', 'Calendario', ICO('<rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>')],
     ['estrategia', 'Estrategia', ICO('<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>')],
-    ['servicio', 'Servicio', ICO('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>')]
+    ['servicio', 'Servicio', ICO('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>')],
+    ['objetivos', 'Objetivos', ICO('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>')]
   ];
 
   const MODS = {
     calendario: { estado: CAL, cargar: cargarCalendario, render: renderCalendario },
     estrategia: { estado: EST, cargar: cargarEstrategia, render: renderEstrategia },
-    servicio:   { estado: SRV, cargar: cargarServicio, render: renderServicio }
+    servicio:   { estado: SRV, cargar: cargarServicio, render: renderServicio },
+    objetivos:  { estado: OBJ, cargar: cargarObjetivos, render: renderObjetivos }
   };
 
   // Un solo listener para "Ver como cliente", en cualquier solapa.
@@ -1075,7 +1287,6 @@
 
   window.PanelModulos = {
     NAV, render, reiniciar,
-    cargarObjetivos: async () => {},
-    objetivosEnReporte: () => ''
+    cargarObjetivos, objetivosEnReporte
   };
 })();
