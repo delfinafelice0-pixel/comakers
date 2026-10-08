@@ -680,6 +680,7 @@
   let POSTS = [];           // posts de Instagram del cliente, todos los meses
   let ANUNCIOS = [];        // anuncios de Meta Ads, todos los meses
   let SNAPSHOTS = {};       // mes → snapshot publicado (reporte_publicado)
+  let SNAP_TABLA = false;   // ¿ya existe la tabla reporte_publicado? (50A corrida)
   let CRITERIO = 'alcance'; // con qué se ordena el top de posts
   let SOLAPA = 'cuenta';    // la solapa abierta: sobrevive a guardar y a cambiar de mes
   let NEDIT = null;         // ad_id de la nota de anuncio que se está escribiendo
@@ -977,12 +978,15 @@
     return !!e && (e.code === '42P01' || /does not exist|relation .* does not|no existe/i.test(e.message || ''));
   }
   async function cargarSnapshots() {
-    SNAPSHOTS = {};
+    SNAPSHOTS = {}; SNAP_TABLA = false;
     // Si la tabla todavía no existe (50A sin correr), falla sola y
     // seguimos sin snapshots: el panel cae a lo vivo (fallback temporal).
+    // Mientras no exista, la agencia tampoco ve UI de snapshot (SNAP_TABLA).
     const { data, error } = await SB.from('reporte_publicado')
       .select('mes, snapshot, publicado_en').eq('cliente_id', CLIENTE.id);
-    if (error || !data) return;
+    if (error) return;
+    SNAP_TABLA = true;
+    if (!data) return;
     data.forEach(s => {
       const mes = String(s.mes).slice(0, 7);
       if (s.snapshot && typeof s.snapshot === 'object')
@@ -1862,7 +1866,13 @@
     const pubSnap = tieneSnapshot(r.mes);
     const clienteVe = pubSnap || r.estado === 'publicado';
     const cambios = AGENCIA && pubSnap && hayCambiosSinPublicar(r.mes);
-    const sinSnapshot = AGENCIA && r.estado === 'publicado' && !pubSnap;
+    // El aviso "falta snapshot" (y el calificativo de la pill) solo tienen
+    // sentido una vez que existe la tabla (50A corrida). Antes, el panel
+    // funciona con el fallback a lo vivo y no muestra nada de snapshot.
+    const sinSnapshot = AGENCIA && SNAP_TABLA && r.estado === 'publicado' && !pubSnap;
+    // Para los botones, "publicado" = hay snapshot (post-50A) o, mientras
+    // la tabla no exista, el estado vivo (pre-50A, se comporta como antes).
+    const estaPublicado = SNAP_TABLA ? pubSnap : (r.estado === 'publicado');
 
     const [y, mm] = MES.split('-');
     let html = '<div class="pdf-encabezado solo-pdf">' +
@@ -1872,7 +1882,7 @@
       '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mm, 10) - 1]) + '</em> ' + esc(y) + '</h1>' +
       '<div class="sub">' + esc(CLIENTE.nombre) +
       (AGENCIA ? ' <span class="pill' + (clienteVe ? ' pub' : '') + '">' +
-        (clienteVe ? (pubSnap ? 'publicado' : 'publicado · sin snapshot') : 'borrador, el cliente no lo ve') + '</span>'
+        (clienteVe ? ((pubSnap || !SNAP_TABLA) ? 'publicado' : 'publicado · sin snapshot') : 'borrador, el cliente no lo ve') + '</span>'
         + (cambios ? ' <span class="pill cambios">cambios sin publicar</span>' : '') : '') +
       marcaParcial +
       (prev ? '<span style="color:var(--ink-mute);white-space:nowrap"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +
@@ -1882,7 +1892,7 @@
         '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
         'Descargar PDF</button>' +
       (AGENCIA ? '<button type="button" class="btn" id="btnEditar">Editar</button>' +
-        (pubSnap
+        (estaPublicado
           ? (cambios ? '<button type="button" class="btn lima" id="btnRepublicar">Republicar</button>' : '') +
             '<button type="button" class="btn" id="btnDespublicar">Volver a borrador</button>'
           : '<button type="button" class="btn lima" id="btnPublicar">Publicar</button>') : '') +
