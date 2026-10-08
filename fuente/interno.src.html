@@ -7356,6 +7356,14 @@
         return 'Prender el CRM le da a ' + q + ' acceso a las conversaciones de WhatsApp de SUS clientes: ' +
                'datos personales de terceros. ¿Seguro que querés prenderlo?';
       } },
+    // Las solapas nuevas del panel del cliente (migración 51). Apagadas
+    // por defecto; prender una NO publica nada: cada cosa adentro se
+    // publica aparte desde el panel.
+    { clave: 'calendario', nombre: 'Calendario', def: false, ayuda: 'Calendario de contenidos con aprobaciones. Reemplaza al Canva.' },
+    { clave: 'estrategia', nombre: 'Estrategia', def: false, ayuda: 'Estrategia de contenido orgánico y de pauta.' },
+    { clave: 'objetivos',  nombre: 'Objetivos',  def: false, ayuda: 'Objetivos cualitativos y medibles; los medibles se ven en el reporte.' },
+    { clave: 'one_shot',   nombre: 'One Shot',   def: false, ayuda: 'Diagnóstico inicial y auditorías cada 6 meses.' },
+    { clave: 'servicio',   nombre: 'Servicio',   def: false, ayuda: 'Qué incluye el plan, el monto y sus actualizaciones.' },
   ];
 
   // Las dos conexiones posibles, en orden. `tipo` = valor real de
