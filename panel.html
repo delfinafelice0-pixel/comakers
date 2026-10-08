@@ -805,12 +805,14 @@
     const { data: mods } = await SB.from('cliente_modulo').select('modulo, activo').eq('cliente_id', CLIENTE.id);
     (mods || []).forEach(m => { if (m.modulo in MODULOS) MODULOS[m.modulo] = m.activo !== false; });
 
+    // Las columnas de métricas de CUENTA (visitas_perfil_org, seguidores_total,
+    // demografia…) NO van en este select: van en una consulta aparte, más
+    // abajo. Si la migración de métricas de cuenta todavía no corrió, esas
+    // columnas no existen y el select principal fallaría entero; aparte, la
+    // consulta falla sola y el reporte carga igual (mismo patrón que notas).
     const { data: reps, error } = await SB.from('reporte')
       .select('id, mes, estado, resumen, proximos_pasos, publicado_en, fuente, sincronizado_en, ' +
               'views_org, reach_org, likes_org, comments_org, shares_org, saves_org, follows_mes, ' +
-              'visitas_perfil_org, clics_web_org, views_seguidores_org, views_no_seguidores_org, ' +
-              'reach_seguidores_org, reach_no_seguidores_org, cuentas_interactuaron_org, unicos_dias, ' +
-              'seguidores_total, seguidores_total_en, demografia_org, demografia_org_en, ' +
               'inversion_ads, moneda_ads, resultados_ads, accion_ads, costo_resultado_ads, ' +
               'reach_ads, impresiones_ads, frecuencia_ads, clics_ads, ctr_ads, cpm_ads, ads_sincronizado_en, ' +
               'analisis, analisis_organico, analisis_pauta, analisis_generado_en, bloques')
@@ -836,6 +838,22 @@
       const porId = Object.fromEntries(REPORTES.map(r => [r.id, r]));
       (mets || []).forEach(m => porId[m.reporte_id] && porId[m.reporte_id].metricas.push(m));
       (dest || []).forEach(d => porId[d.reporte_id] && porId[d.reporte_id].destacados.push(d));
+    }
+
+    // Métricas de CUENTA en consulta aparte (igual que notas_anuncios): si
+    // la migración de métricas de cuenta todavía no corrió, estas columnas
+    // no existen, la consulta falla sola y el reporte carga igual. Se
+    // mezclan en r.cols ANTES de mezclarInstagram, que las lee.
+    if (ids.length) {
+      const { data: cuentaRows, error: eCuenta } = await SB.from('reporte')
+        .select('id, visitas_perfil_org, clics_web_org, views_seguidores_org, views_no_seguidores_org, ' +
+                'reach_seguidores_org, reach_no_seguidores_org, cuentas_interactuaron_org, unicos_dias, ' +
+                'seguidores_total, seguidores_total_en, demografia_org, demografia_org_en')
+        .in('id', ids);
+      if (!eCuenta) (cuentaRows || []).forEach(row => {
+        const rep = REPORTES.find(x => x.id === row.id);
+        if (rep && rep.cols) Object.assign(rep.cols, row);
+      });
     }
 
     // Los meses que trajeron los pulls muestran las columnas de Meta
@@ -1802,6 +1820,12 @@
           esc(fechaHora(r.analisis_generado_en)) + ' y los números se actualizaron después (' + esc(fechaHora(sincro)) +
           '). Puede citar cifras que ya no coinciden con las tarjetas. Corregilas en Editar, o borrá el texto y generalo de nuevo.</p>';
         s += '<p class="prosa">' + esc(texto) + '</p>';
+        // Regenerar: solo agencia, solo cuando el análisis es un borrador
+        // GENERADO (analisis_generado_en con fecha). Donde más sirve es
+        // justo acá, bajo el cartel de desactualizado. conBoton es true
+        // solo en la solapa Cuenta, así que aparece una sola vez.
+        if (conBoton && AGENCIA && esBorradorAn)
+          s += '<button type="button" class="btn chico" id="btnRegenerar">Regenerar análisis</button>';
       } else {
         s += '<p class="prosa mute">Todavía no hay análisis de este mes.</p>' +
           (conBoton ? '<button type="button" class="btn chico" id="btnAnalisis">Generar borrador</button>' : '');
@@ -2136,6 +2160,26 @@
         ba.disabled = false; ba.textContent = 'Generar borrador';
       }
     });
+    const brg = $('#btnRegenerar');
+    if (brg) brg.addEventListener('click', async () => {
+      if (!confirm('Regenerar es una llamada PAGA a la API de Claude.\n\n' +
+          'PISA los cinco textos de este mes: el resumen, el análisis, el análisis del contenido, ' +
+          'el análisis de la pauta y los próximos pasos — lo que haya, generado o escrito a mano.\n\n' +
+          '¿Regenerar el análisis?')) return;
+      brg.disabled = true; brg.textContent = 'Regenerando…';
+      try {
+        const { error } = await SB.functions.invoke('analizar-reporte', { body: { cliente_id: CLIENTE.id, mes: MES } });
+        if (error) {
+          let msg = 'No se pudo regenerar el análisis';
+          try { const c = await error.context.json(); if (c && c.error && c.error.message) msg = c.error.message; } catch (e) {}
+          toast(msg, true); brg.disabled = false; brg.textContent = 'Regenerar análisis'; return;
+        }
+        toast('Análisis regenerado. Revisalo antes de publicar.');
+        await cargarCliente();
+      } catch (e) {
+        toast('No se pudo regenerar el análisis', true); brg.disabled = false; brg.textContent = 'Regenerar análisis';
+      }
+    });
     // Publicar es lo único que el cliente ve de verdad. Descargar el
     // PDF ya preguntaba antes de llevarse un borrador sin revisar;
     // publicárselo al cliente no preguntaba nada.
@@ -2214,6 +2258,8 @@
       resumen: r ? r.resumen : '',
       proximos_pasos: r ? r.proximos_pasos : '',
       analisis: r ? r.analisis : '',
+      analisis_organico: r ? r.analisis_organico : '',
+      analisis_pauta: r ? r.analisis_pauta : '',
       analisis_generado_en: r ? r.analisis_generado_en : null,
       incluye: { organico: r ? r.metricas.some(m => m.modulo === 'organico') : MODULOS.organico,
                  pauta:    r ? r.metricas.some(m => m.modulo === 'pauta')    : MODULOS.pauta },
@@ -2266,6 +2312,11 @@
           filasMet(mod) + '</div>' +
           '<button type="button" class="btn chico agregar" data-agregar="' + mod + '">+ Agregar métrica</button>' +
         '</div>').join('') +
+
+      '<div class="campo"><label for="edOrganico">Análisis del contenido (orgánico)</label>' +
+      '<textarea id="edOrganico" placeholder="La lectura de lo orgánico de este mes. Si lo generaste con el botón, revisalo acá.">' + esc(b.analisis_organico) + '</textarea></div>' +
+      '<div class="campo"><label for="edPauta">Análisis de la pauta</label>' +
+      '<textarea id="edPauta" placeholder="La lectura de la pauta de este mes. Si lo generaste con el botón, revisalo acá.">' + esc(b.analisis_pauta) + '</textarea></div>' +
 
       '<div class="ed-modulo"><header><h3>Lo que vale la pena mirar</h3></header>' +
         '<div class="grilla" id="edDest">' +
@@ -2325,6 +2376,8 @@
       b.resumen = $('#edResumen').value;
       b.proximos_pasos = $('#edProx').value;
       b.analisis = $('#edAnalisis').value;
+      const eo = $('#edOrganico'); if (eo) b.analisis_organico = eo.value;
+      const ep = $('#edPauta');    if (ep) b.analisis_pauta = ep.value;
     }
     b._leer = leerTextos;
   }
@@ -2342,7 +2395,13 @@
         b.metricas[mod].forEach((m, i) => {
           const etiqueta = (m.etiqueta || '').trim(); if (!etiqueta) return;
           let clave = m.clave || slug(etiqueta); if (vistas[clave]) clave += '_' + i; vistas[clave] = 1;
-          metricas.push({ modulo: mod, clave, etiqueta, valor: Number(String(m.valor).replace(',', '.')) || 0, unidad: m.unidad || 'num', mejor: m.mejor || 'sube', orden: i });
+          // Vacío es NULL, no 0: una métrica sin dato no es "cero". Un 0 se
+          // compara y dibuja distinto que un hueco, y además inflaría los
+          // deltas del mes siguiente. Solo se castea lo que es un número.
+          const sv = String(m.valor ?? '').trim();
+          const nv = sv === '' ? NaN : Number(sv.replace(',', '.'));
+          const valor = isNaN(nv) ? null : nv;
+          metricas.push({ modulo: mod, clave, etiqueta, valor, unidad: m.unidad || 'num', mejor: m.mejor || 'sube', orden: i });
         });
       });
       const destacados = b.destacados
@@ -2353,8 +2412,11 @@
         cliente_id: CLIENTE.id, mes: b.mes + '-01', estado,
         resumen: b.resumen.trim() || null, proximos_pasos: b.proximos_pasos.trim() || null,
         analisis: b.analisis.trim() || null,
-        // Si una persona guardó el reporte, el análisis quedó frente a
-        // sus ojos: deja de ser un borrador sin revisar.
+        // Los otros dos textos ahora también se editan a mano. Vacío = null.
+        analisis_organico: (b.analisis_organico || '').trim() || null,
+        analisis_pauta:    (b.analisis_pauta || '').trim() || null,
+        // Si una persona guardó el reporte, los cinco textos quedaron frente
+        // a sus ojos: dejan de ser un borrador sin revisar.
         analisis_generado_en: null,
         actualizado_en: new Date().toISOString(),
         publicado_en: estado === 'publicado' ? new Date().toISOString().slice(0, 10) : null
