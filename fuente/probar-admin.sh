@@ -122,6 +122,9 @@ SERV='esperar("#navServicios", function (b) { b.click(); });'
 PLAN='esperar("#navServicios", function (b) { b.click(); var B = String.fromCharCode(91), C = String.fromCharCode(93); esperar(B + "data-serv=\"sv-cm\"" + C, function (r) { r.click(); setTimeout(function () { var s = document.querySelector("#svAddItem"); if (s) { s.value = "__nuevo__"; s.dispatchEvent(new Event("change", { bubbles: true })); } }, 350); }); });'
 # Proyección por servicio (el toggle nuevo).
 PROY='esperar("#navServicios", function (b) { b.click(); var B = String.fromCharCode(91), C = String.fromCharCode(93); esperar(B + "data-svtab=\"proyeccion\"" + C, function (t) { t.click(); setTimeout(function () { var s = document.querySelector(B + "data-proypor=\"servicio\"" + C); if (s) s.click(); }, 350); }); });'
+# Gestor de Entregables (modal). Solo se abre; el toggle "Ver archivados"
+# se ve igual. (Clickearlo durante la apertura hacía fallar la captura.)
+ENT='esperar("#navServicios", function (b) { b.click(); esperar("#svCostos", function (c) { c.click(); }); });'
 
 armar _prueba-admin-lista.html     "$NADA"
 armar _prueba-admin-popup.html     "$POPUP"
@@ -132,6 +135,7 @@ armar _prueba-admin-fondo.html     "$FONDO"
 armar _prueba-admin-serv.html      "$SERV"
 armar _prueba-admin-plan.html      "$PLAN"
 armar _prueba-admin-proy.html      "$PROY"
+armar _prueba-admin-ent.html       "$ENT"
 
 capturar() {
   local nombre="$1" archivo="$2"
@@ -152,6 +156,7 @@ capturar admin-fondo     _prueba-admin-fondo.html
 capturar admin-serv      _prueba-admin-serv.html
 capturar admin-plan      _prueba-admin-plan.html
 capturar admin-proy      _prueba-admin-proy.html
+capturar admin-ent       _prueba-admin-ent.html
 
 rm -f _prueba-admin-*.html
 echo "Listo. Las capturas quedaron en $OUT/"

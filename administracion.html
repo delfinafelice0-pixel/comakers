@@ -1216,6 +1216,8 @@
     border-radius: 20px; padding: 4px 11px; font-size: 12px; cursor: pointer;
   }
   .proy-toggle button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .cs-fila.archivada { opacity: .6; }
+  .cs-fila.archivada input, .cs-fila.archivada select { background: var(--line-soft); }
 
   /* ── Popup de cliente · sección Panel ── */
   .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
@@ -2945,7 +2947,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 19:18</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 23:49</div>
     </div>
   </aside>
 
@@ -3492,14 +3494,16 @@
 <div class="overlay" id="ovCostos">
   <div class="modal ancho">
     <div class="modal-head">
-      <div class="modal-title">Mis costos</div>
+      <div class="modal-title">Entregables</div>
       <button class="modal-close" data-cerrar="ovCostos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
-    <div class="res-sub">Lo que te cuesta producir cada cosa. Es lo que hace que el margen sea un número
-      de verdad y no uno inventado. Podés dejar vacío lo que no sepas: donde falta, el margen dice “—”.</div>
+    <div class="res-sub">Los entregables los armás vos: creá, editá (nombre, unidad, costo) y borrá.
+      El costo es lo que te cuesta producir cada cosa y hace que el margen de los planes sea un número de
+      verdad. Podés dejar el costo vacío: donde falta, el margen dice “—”. Borrar un entregable que ya se
+      usó en un plan no lo borra: lo <b>archiva</b> (deja de ofrecerse, el historial queda).</div>
     <div id="csLista" style="margin-top:14px"></div>
     <div class="res-alta">
-      <input type="text" id="csNuevo" placeholder="Otro entregable (ej: Jornada de rodaje)">
+      <input type="text" id="csNuevo" placeholder="Nuevo entregable (ej: Jornada de rodaje)">
       <button class="btn-ghost" id="csAgregar">Agregar</button>
     </div>
     <div class="modal-foot">
@@ -10016,7 +10020,7 @@
       // y la misma bajada. Repetirlo era ruido puro.
       '<div class="mod-head" style="justify-content:flex-end">' +
         '<div class="mod-acc">' +
-          '<button class="btn-ghost" id="svCostos">Mis costos</button>' +
+          '<button class="btn-ghost" id="svCostos">Entregables</button>' +
           '<button class="btn-primary" id="svNuevo">+ Nuevo plan</button>' +
         '</div>' +
       '</div>' +
@@ -10196,7 +10200,10 @@
     const nu = $('#neUnidad');
     if (nu && !nu.options.length) nu.innerHTML = UNIDADES.map(u => '<option value="' + u + '">' + u + '</option>').join('');
 
-    const libres = ENTREGABLES.filter(e => e.activo !== false && usados.indexOf(e.id) === -1);
+    // Solo los NUESTROS (sistema = false) y activos. Los precargados no se
+    // ofrecen; los que ya están en el plan se siguen mostrando arriba
+    // aunque sean de fábrica o estén archivados (historial).
+    const libres = ENTREGABLES.filter(e => e.activo !== false && !e.sistema && usados.indexOf(e.id) === -1);
     $('#svAddItem').innerHTML = '<option value="">+ Agregar entregable</option>'
       + libres.map(e => '<option value="' + e.id + '">' + esc(e.nombre) + '</option>').join('')
       + '<option value="__nuevo__">➕ Crear entregable nuevo…</option>';
@@ -10261,26 +10268,74 @@
   // ── El modal de costos ───────────────────────────────────────
   const UNIDADES = ['pieza', 'campaña', 'entrega', 'reunión', 'hora'];
 
-  function abrirCostos() { pintarCostos(); abrir('ovCostos'); }
+  let VER_ARCH_ENT = false;   // mostrar los entregables archivados en el gestor
+  function abrirCostos() { VER_ARCH_ENT = false; pintarCostos(); abrir('ovCostos'); }
 
   function pintarCostos() {
-    const vivos = ENTREGABLES.filter(e => e.activo !== false);
+    // Solo los NUESTROS (sistema = false): la lista la armamos nosotras,
+    // los precargados no se ofrecen. Los archivados van aparte, abajo.
+    const vivos = ENTREGABLES.filter(e => e.activo !== false && !e.sistema);
+    const archivados = ENTREGABLES.filter(e => e.activo === false && !e.sistema);
+    const fila = (e, arch) =>
+      '<div class="cs-fila' + (arch ? ' archivada' : '') + '" data-ent="' + e.id + '">' +
+        '<div><input type="text" value="' + esc(e.nombre) + '" data-cs="nombre"' + (arch ? ' disabled' : '') + '></div>' +
+        '<select data-cs="unidad"' + (arch ? ' disabled' : '') + '>' + UNIDADES.map(u =>
+          '<option value="' + u + '"' + (e.unidad === u ? ' selected' : '') + '>' + u + '</option>').join('') + '</select>' +
+        '<input type="number" min="0" step="100" value="' + (e.cuesta ?? '') + '" placeholder="—" data-cs="cuesta"' + (arch ? ' disabled' : '') + '>' +
+        '<input type="number" min="0" step="0.5" value="' + (e.horas ?? '') + '" placeholder="—" data-cs="horas"' + (arch ? ' disabled' : '') + '>' +
+        (arch
+          ? '<button type="button" class="btn-ghost chico" data-csreact="' + e.id + '" title="Volver a ofrecerlo">Reactivar</button>'
+          : '<button type="button" class="mini-btn del" data-csdel="' + e.id + '" title="Borrar (o archivar si ya se usó)">' + TACHO_SVG + '</button>') +
+      '</div>';
     $('#csLista').innerHTML =
       '<div class="cs-fila cs-head"><div>Entregable</div><div>Unidad</div>' +
         '<div>Me cuesta</div><div>Me lleva (hs)</div><div></div></div>' +
-      vivos.map(e =>
-        '<div class="cs-fila" data-ent="' + e.id + '">' +
-          '<div><input type="text" value="' + esc(e.nombre) + '" data-cs="nombre">' +
-            (e.sistema ? '<span class="sis">de fábrica</span>' : '') + '</div>' +
-          '<select data-cs="unidad">' + UNIDADES.map(u =>
-            '<option value="' + u + '"' + (e.unidad === u ? ' selected' : '') + '>' + u + '</option>').join('') + '</select>' +
-          '<input type="number" min="0" step="100" value="' + (e.cuesta ?? '') + '" placeholder="—" data-cs="cuesta">' +
-          '<input type="number" min="0" step="0.5" value="' + (e.horas ?? '') + '" placeholder="—" data-cs="horas">' +
-          '<button type="button" class="mini-btn del" data-csdel="' + e.id + '" title="' +
-            (e.sistema ? 'Esconder (no se borra: hay planes que lo nombran)' : 'Borrar') + '">' + TACHO_SVG + '</button>' +
-        '</div>').join('') +
+      (vivos.length ? vivos.map(e => fila(e, false)).join('')
+                    : '<div class="res-vacio">Todavía no cargaste ningún entregable. Agregá el primero abajo.</div>') +
       '<div class="res-sub" style="margin-top:10px">El costo puede incluir cosas que no son tiempo (música, ' +
-        'un banco de imágenes, una freelance). Por eso va como número aparte de las horas.</div>';
+        'un banco de imágenes, una freelance). Por eso va como número aparte de las horas.</div>' +
+      (archivados.length
+        ? '<div style="margin-top:12px"><button class="btn-ghost chico" id="csVerArch">' +
+            (VER_ARCH_ENT ? 'Ocultar archivados' : 'Ver archivados (' + archivados.length + ')') + '</button></div>' +
+          (VER_ARCH_ENT ? archivados.map(e => fila(e, true)).join('') : '')
+        : '');
+  }
+
+  function esFK(e) { return !!e && (e.code === '23503' || /foreign key|viola/i.test(e.message || '')); }
+
+  // Borra un entregable si no se usó en ningún plan; si se usó, lo archiva
+  // (deja de ofrecerse, el historial queda). El chequeo client-side es por
+  // servicio_item (el único que referencia entregable); el intento de
+  // DELETE + fallback a archivar por FK cubre cualquier referencia que no
+  // tengamos cargada.
+  async function borrarOArchivarEntregable(ent) {
+    const enPlanes = SERV_ITEMS.filter(si => si.entregable_id === ent.id).length;
+    if (enPlanes > 0) {
+      if (!confirm('"' + ent.nombre + '" está en ' + enPlanes + ' plan(es).\n\n' +
+        'No se puede borrar sin romper ese historial: se ARCHIVA (deja de ofrecerse para elegir, ' +
+        'pero los planes que lo nombran quedan intactos).\n\n¿Archivar?')) return;
+      return archivarEntregable(ent);
+    }
+    if (!confirm('Borrar "' + ent.nombre + '"? No está en ningún plan, así que se borra de verdad. No hay vuelta atrás.')) return;
+    const { error } = await SB.from('entregable').delete().eq('id', ent.id);
+    if (error) {
+      if (esFK(error)) { toast('Está en uso: se archiva en vez de borrar', 'warn'); return archivarEntregable(ent); }
+      toast('No se pudo borrar: ' + error.message, 'warn'); return;
+    }
+    ENTREGABLES = ENTREGABLES.filter(x => x.id !== ent.id);
+    toast('Entregable borrado'); pintarCostos(); render();
+  }
+  async function archivarEntregable(ent) {
+    const { error } = await SB.from('entregable').update({ activo: false }).eq('id', ent.id);
+    if (error) { toast('No se pudo archivar: ' + error.message, 'warn'); return; }
+    ent.activo = false; toast('Entregable archivado'); pintarCostos(); render();
+  }
+  async function reactivarEntregable(id) {
+    const ent = ENTREGABLES.find(x => x.id === id);
+    if (!ent) return;
+    const { error } = await SB.from('entregable').update({ activo: true }).eq('id', id);
+    if (error) { toast('No se pudo reactivar: ' + error.message, 'warn'); return; }
+    ent.activo = true; toast('Entregable reactivado'); pintarCostos(); render();
   }
 
   async function guardarCosto(entId, campo, valor) {
@@ -11666,21 +11721,20 @@
     guardarCosto(fila.dataset.ent, campo, e.target.value);
   });
   on('#csLista', 'click', async e => {
+    if (e.target.closest('#csVerArch')) { VER_ARCH_ENT = !VER_ARCH_ENT; pintarCostos(); return; }
+    const react = e.target.closest('[data-csreact]');
+    if (react) { reactivarEntregable(react.dataset.csreact).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
     const d = e.target.closest('[data-csdel]');
     if (!d) return;
     const ent = ENTREGABLES.find(x => x.id === d.dataset.csdel);
-    if (!ent) return;
-    // Los de fábrica NO se borran: se esconden. Borrarlos rompería los
-    // planes viejos que los nombran.
-    const { error } = await SB.from('entregable').update({ activo: false }).eq('id', ent.id);
-    if (error) { toast('No se pudo sacar: ' + error.message, 'warn'); return; }
-    ent.activo = false; pintarCostos(); render();
+    if (ent) borrarOArchivarEntregable(ent).catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
   });
   on('#csAgregar', 'click', async () => {
     const nombre = $('#csNuevo').value.trim();
     if (!nombre) { $('#csNuevo').focus(); return; }
+    // sistema: false — es NUESTRO, no un precargado.
     const { error } = await SB.from('entregable')
-      .insert({ nombre: nombre, unidad: 'pieza', orden: Date.now() / 1000 });
+      .insert({ nombre: nombre, unidad: 'pieza', sistema: false, activo: true, orden: Date.now() / 1000 });
     if (error) { toast('No se pudo agregar: ' + error.message, 'warn'); return; }
     $('#csNuevo').value = '';
     await cargarServicios(); pintarCostos();

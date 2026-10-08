@@ -35,13 +35,15 @@ var DATOS_ADMIN = {
     { id: 'sv-videos',  nombre: 'Videos',   categoria: 'Contenido', descripcion: null, precio: 70000,  periodo: 'mes',   archivado: false, orden: 4 }
   ],
 
-  // Entregables (con costo interno) y qué incluye cada plan. El costo del
-  // plan sale de cantidad × costo de cada entregable.
+  // Entregables. sistema:true = precargado (de fábrica): no se ofrece y lo
+  // limpia la migración 49. sistema:false = nuestro. e-hist está archivado
+  // (activo:false) pero sigue en un plan: el historial queda.
   entregable: [
-    { id: 'e-reel',    nombre: 'Reel',             unidad: 'pieza',    cuesta: 8000,  horas: 2,   sistema: true,  activo: true, orden: 1 },
-    { id: 'e-carr',    nombre: 'Carrusel',         unidad: 'pieza',    cuesta: 5000,  horas: 1.5, sistema: true,  activo: true, orden: 2 },
-    { id: 'e-hist',    nombre: 'Historias',        unidad: 'pieza',    cuesta: 2000,  horas: 0.5, sistema: true,  activo: true, orden: 3 },
-    { id: 'e-pauta',   nombre: 'Gestión de pauta', unidad: 'campaña',  cuesta: 15000, horas: 3,   sistema: true,  activo: true, orden: 4 }
+    { id: 'e-reel',    nombre: 'Reel',             unidad: 'pieza',    cuesta: 8000,  horas: 2,   sistema: false, activo: true,  orden: 1 },
+    { id: 'e-pauta',   nombre: 'Gestión de pauta', unidad: 'campaña',  cuesta: 15000, horas: 3,   sistema: false, activo: true,  orden: 2 },
+    { id: 'e-edicion', nombre: 'Edición extra',    unidad: 'pieza',    cuesta: 4000,  horas: 1,   sistema: false, activo: true,  orden: 3 },
+    { id: 'e-hist',    nombre: 'Historias',        unidad: 'pieza',    cuesta: 2000,  horas: 0.5, sistema: false, activo: false, orden: 4 },
+    { id: 'e-carr',    nombre: 'Carrusel',         unidad: 'pieza',    cuesta: 5000,  horas: 1.5, sistema: true,  activo: true,  orden: 5 }
   ],
   servicio_item: [
     { id: 'si-1', servicio_id: 'sv-cm',    entregable_id: 'e-reel', cantidad: 8,  orden: 100 },
