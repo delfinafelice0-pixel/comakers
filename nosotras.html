@@ -19,19 +19,6 @@
   ::selection{background:var(--lima);color:var(--ink);}
   a{color:inherit;text-decoration:none;}
 
-  nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:rgba(243,239,230,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
-  .logo{display:inline-flex;align-items:center;}
-  .logo-img{height:40px;width:auto;display:block;}
-  .logo span{display:block;}
-  .logo em{font-style:normal;color:var(--magenta);}
-  .navlinks{display:flex;align-items:center;gap:34px;}
-  .navlinks a.plain{font-weight:500;font-size:14.5px;color:var(--ink-soft);transition:color .2s;}
-  .navlinks a.plain:hover{color:var(--ink);}
-  .navlinks a.plain.active{color:var(--ink);font-weight:600;}
-  .navcta{background:var(--ink);color:var(--white);padding:10px 20px;border-radius:999px;font-weight:500;font-size:14px;transition:background .2s;}
-  .navcta:hover{background:var(--blue);}
-  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
-  .burger span{width:24px;height:2px;background:var(--ink);border-radius:2px;}
   .spk{display:inline-block;vertical-align:middle;}
 
   .btn{display:inline-flex;align-items:center;gap:8px;font-weight:500;font-size:15px;padding:13px 26px;border-radius:999px;transition:transform .18s,background .2s;cursor:pointer;}
@@ -125,14 +112,6 @@
   .sec-cta h2 em{font-style:italic;color:var(--magenta);}
   .sec-cta .lead{margin:0 auto 30px;max-width:520px;}
 
-  footer{background:var(--ink);color:var(--cream);}
-  .foot-grid{max-width:1120px;margin:0 auto;padding:56px 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
-  .foot-logo{font-family:var(--display);font-weight:500;font-size:30px;line-height:.88;}
-  .foot-logo span{display:block;}
-  .foot-logo em{font-style:normal;color:var(--magenta);}
-  .foot-links{display:flex;gap:22px;font-size:14px;color:rgba(243,239,230,.75);flex-wrap:wrap;}
-  .foot-links a:hover{color:var(--lima);}
-  .foot-meta{font-size:13px;color:rgba(243,239,230,.55);margin-top:8px;}
 
   .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease;}
   .reveal.in{opacity:1;transform:none;}
@@ -143,15 +122,49 @@
     .people{gap:48px;}
   }
   @media(max-width:760px){
-    nav{padding:16px 22px;}
-    .navlinks{position:fixed;inset:60px 0 auto 0;flex-direction:column;background:var(--cream);border-bottom:1px solid var(--line);padding:22px;gap:20px;transform:translateY(-130%);transition:transform .3s;}
-    .navlinks.open{transform:none;}
-    .burger{display:flex;}
     .pagehero{padding:52px 22px 16px;}
     .wrap{padding-left:22px;padding-right:22px;}
     .manifesto{padding:48px 0 56px;}
     .team .wrap,.values,.audience .wrap,.sec-cta .wrap{padding-top:60px;padding-bottom:60px;}
-    .foot-grid{flex-direction:column;align-items:flex-start;padding:48px 22px;}
+  }
+
+  /* ===== nav (pills) + footer — bloque compartido: igual en index, servicios, nosotras y privacidad ===== */
+  nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 40px;background:rgba(243,239,230,.80);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+  .logo{display:inline-flex;align-items:center;flex:0 0 auto;}
+  .logo-img{height:38px;width:auto;display:block;}
+  .navlinks{display:flex;align-items:center;gap:12px;}
+  .navpill{display:flex;align-items:center;gap:2px;padding:4px;background:rgba(255,255,255,.72);border:1.5px solid var(--ink);border-radius:999px;}
+  .navpill a{padding:8px 18px;border-radius:999px;font-weight:500;font-size:14.5px;line-height:1.2;color:var(--ink-soft);transition:background .2s,color .2s;}
+  .navpill a:hover{color:var(--ink);background:rgba(211,255,153,.5);}
+  .navpill a.active{background:var(--lima);color:var(--ink);font-weight:600;}
+  .navcta{background:var(--ink);color:var(--white);padding:11px 22px;border:1.5px solid var(--ink);border-radius:999px;font-weight:500;font-size:14.5px;line-height:1.2;transition:background .2s,border-color .2s;}
+  .navcta:hover{background:var(--blue);border-color:var(--blue);}
+  .burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;align-items:center;background:var(--white);border:1.5px solid var(--ink);border-radius:50%;cursor:pointer;}
+  .burger span{width:18px;height:2px;background:var(--ink);border-radius:2px;transition:transform .25s,opacity .2s;}
+  .navlinks.open ~ .burger span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .navlinks.open ~ .burger span:nth-child(2){opacity:0;}
+  .navlinks.open ~ .burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  footer{background:var(--ink);color:var(--cream);}
+  .foot-grid{max-width:1120px;margin:0 auto;padding:54px 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
+  .foot-logo{display:flex;flex-direction:column;align-items:flex-start;}
+  .foot-logo-img{width:170px;height:auto;max-width:100%;display:block;}
+  .foot-meta{font-size:13px;color:rgba(243,239,230,.55);margin-top:8px;}
+  .foot-legal{font-size:11px;color:rgba(243,239,230,.42);margin-top:14px;line-height:1.5;}
+  .foot-legal a{color:rgba(243,239,230,.7);text-decoration:underline;text-underline-offset:2px;}
+  .foot-legal a:hover{color:var(--lima);}
+  .foot-links{display:flex;gap:22px;font-size:14px;color:rgba(243,239,230,.75);flex-wrap:wrap;}
+  .foot-links a:hover{color:var(--lima);}
+
+  @media(max-width:760px){
+    nav{padding:10px 16px;}
+    .burger{display:flex;}
+    .navlinks{position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:12px;padding:16px;background:var(--cream);border-bottom:1px solid var(--line);box-shadow:0 14px 24px rgba(22,18,46,.10);opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .2s,transform .2s,visibility 0s .2s;}
+    .navlinks.open{opacity:1;visibility:visible;transform:none;transition:opacity .2s,transform .2s;}
+    .navpill{flex-direction:column;align-items:stretch;border-radius:22px;padding:6px;}
+    .navpill a{text-align:center;padding:12px 18px;font-size:16px;}
+    .navcta{text-align:center;padding:14px 22px;font-size:16px;}
+    .foot-grid{flex-direction:column;align-items:flex-start;padding:48px 16px;}
   }
 </style>
 </head>
@@ -163,13 +176,15 @@
 
 <nav>
   <a href="index.html" class="logo" aria-label="CoMakers inicio"><img class="logo-img" src="comakers-logo.png" alt="CoMakers"></a>
-  <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
   <div class="navlinks" id="navlinks">
-    <a href="index.html" class="plain">Inicio</a>
-    <a href="servicios.html" class="plain">Servicios</a>
-    <a href="nosotras.html" class="plain active">Nosotras</a>
-    <a href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener" class="navcta">Trabajemos juntas</a>
+    <div class="navpill">
+      <a href="index.html">Inicio</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="nosotras.html" class="active" aria-current="page">Nosotras</a>
+    </div>
+    <a class="navcta" href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Trabajemos juntas</a>
   </div>
+  <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
 </nav>
 
 <div class="pagehero">
@@ -255,17 +270,16 @@
 <footer>
   <div class="foot-grid">
     <div>
-      <div class="foot-logo"><span>Co</span><span><em>Makers.</em></span></div>
+      <div class="foot-logo"><img class="foot-logo-img" src="comakers-logo.png" alt="CoMakers"></div>
       <div class="foot-meta">Agencia de marketing digital · Tandil, Buenos Aires</div>
-    </div>
-    <div>
-      <div class="foot-links">
-        <a href="servicios.html">Servicios</a>
-        <a href="nosotras.html">Nosotras</a>
-        <a href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Contacto</a>
-        <a href="#">Instagram</a>
-      </div>
       <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
+      <div class="foot-legal">Delfina Felice · CUIT 27-39162785-7<br>Quirno Costa 649, B6550 Bolívar, Buenos Aires, Argentina · <a href="privacidad.html">Privacidad</a></div>
+    </div>
+    <div class="foot-links">
+      <a href="servicios.html">Servicios</a>
+      <a href="nosotras.html">Nosotras</a>
+      <a href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Contacto</a>
+      <a href="https://www.instagram.com/co.makers_/" target="_blank" rel="noopener">Instagram</a>
     </div>
   </div>
 </footer>
