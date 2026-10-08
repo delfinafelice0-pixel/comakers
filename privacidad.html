@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de privacidad · CoMakers</title>
+<meta name="description" content="Política de privacidad de CoMakers: qué datos personales tratamos, para qué, con quién los compartimos, cuánto los guardamos y cómo ejercer tus derechos.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://comakers.com.ar/privacidad">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CoMakers">
+<meta property="og:title" content="Política de privacidad · CoMakers">
+<meta property="og:description" content="Qué datos personales tratamos, para qué, con quién los compartimos y cómo ejercer tus derechos.">
+<meta property="og:url" content="https://comakers.com.ar/privacidad">
+<meta property="og:locale" content="es_AR">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&family=Caveat:wght@500;600;700&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --magenta:#FF82FF;--lima:#D3FF99;--white:#FFFFFF;--cream:#F3EFE6;
+    --ink:#16122E;--ink-soft:#4A4664;--blue:#1E14D6;--line:#E2DCCE;
+    --display:'Fraunces',Georgia,serif;--hand:'Caveat',cursive;--body:'Inter Tight',-apple-system,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--body);background:var(--cream) url("paper-bg.jpg") center top/cover fixed;color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;}
+  .paper-veil{position:fixed;inset:0;z-index:-1;background:rgba(243,239,230,.30);pointer-events:none;}
+  ::selection{background:var(--lima);color:var(--ink);}
+  a{color:inherit;text-decoration:none;}
+  img{max-width:100%;display:block;}
+
+  /* ---------- nav (igual que la home) ---------- */
+  nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(243,239,230,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+  .logo{display:inline-flex;align-items:center;}
+  .logo-img{height:38px;width:auto;display:block;}
+  .navlinks{display:flex;align-items:center;gap:32px;}
+  .navlinks a.plain{font-weight:500;font-size:14.5px;color:var(--ink-soft);transition:color .2s;}
+  .navlinks a.plain:hover{color:var(--ink);}
+  .navcta{background:var(--ink);color:var(--white);padding:10px 20px;border-radius:999px;font-weight:500;font-size:14px;transition:background .2s,transform .18s;}
+  .navcta:hover{background:var(--blue);}
+  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
+  .burger span{width:24px;height:2px;background:var(--ink);border-radius:2px;}
+
+  /* ---------- documento ---------- */
+  .doc{max-width:760px;margin:0 auto;padding:60px 40px 80px;}
+  .doc .eyebrow{font-family:var(--hand);font-size:26px;color:var(--blue);display:inline-block;transform:rotate(-2deg);margin-bottom:6px;}
+  .doc h1{font-family:var(--display);font-weight:500;font-size:clamp(36px,6.4vw,58px);line-height:1.02;letter-spacing:-.03em;margin-bottom:14px;}
+  .doc .updated{color:var(--ink-soft);font-size:15px;font-weight:500;margin-bottom:10px;}
+  .doc .intro{font-size:17px;color:var(--ink-soft);max-width:60ch;}
+  .doc h2{font-family:var(--display);font-weight:500;font-size:clamp(23px,3.4vw,30px);letter-spacing:-.02em;line-height:1.1;margin-top:40px;padding-top:34px;border-top:1px solid var(--line);}
+  .doc h3{font-family:var(--display);font-weight:600;font-style:italic;font-size:19px;color:var(--ink);margin-top:24px;margin-bottom:4px;}
+  .doc p{margin-top:12px;}
+  .doc ul{margin:12px 0 12px 2px;padding-left:22px;}
+  .doc li{margin-top:7px;}
+  .doc strong{font-weight:600;color:var(--ink);}
+  .doc a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;}
+  .doc a:hover{color:var(--magenta);}
+  .doc code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;background:var(--white);border:1px solid var(--line);border-radius:5px;padding:1px 5px;}
+  .doc .tabla-wrap{overflow-x:auto;margin-top:16px;}
+  .doc table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:460px;}
+  .doc th{font-family:var(--display);font-weight:600;text-align:left;padding:10px 14px;border-bottom:2px solid var(--line);}
+  .doc td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .doc tr:last-child td{border-bottom:none;}
+
+  /* ---------- footer (igual que la home) ---------- */
+  footer{background:var(--ink);color:var(--cream);}
+  .foot-grid{max-width:1120px;margin:0 auto;padding:54px 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
+  .foot-logo{display:flex;flex-direction:column;align-items:flex-start;}
+  .foot-logo-img{width:170px;height:auto;max-width:100%;display:block;}
+  .foot-meta{font-size:13px;color:rgba(243,239,230,.55);margin-top:8px;}
+  .foot-legal{font-size:11px;color:rgba(243,239,230,.42);margin-top:14px;line-height:1.5;}
+  .foot-legal a{color:rgba(243,239,230,.7);text-decoration:underline;text-underline-offset:2px;}
+  .foot-legal a:hover{color:var(--lima);}
+  .foot-links{display:flex;gap:22px;font-size:14px;color:rgba(243,239,230,.75);flex-wrap:wrap;}
+  .foot-links a:hover{color:var(--lima);}
+
+  @media(max-width:760px){
+    nav{padding:15px 22px;}
+    .navlinks{position:fixed;inset:58px 0 auto 0;flex-direction:column;background:var(--cream);border-bottom:1px solid var(--line);padding:22px;gap:20px;transform:translateY(-140%);transition:transform .3s;z-index:55;}
+    .navlinks.open{transform:none;}
+    .burger{display:flex;}
+    .doc{padding:44px 22px 64px;}
+    .foot-grid{padding:44px 22px;}
+  }
+</style>
+</head>
+<body>
+<div class="paper-veil"></div>
+
+<nav>
+  <a href="index.html" class="logo" aria-label="CoMakers inicio"><img class="logo-img" src="comakers-logo.png" alt="CoMakers"></a>
+  <div class="navlinks" id="navlinks">
+    <a class="plain" href="index.html">Inicio</a>
+    <a class="plain" href="servicios.html">Servicios</a>
+    <a class="plain" href="nosotras.html">Nosotras</a>
+    <a class="navcta" href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Trabajemos juntas</a>
+  </div>
+  <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
+</nav>
+
+<main class="doc">
+  <span class="eyebrow">la letra chica, clara</span>
+  <h1>Política de privacidad</h1>
+  <p class="updated"><strong>Última actualización: 7 de octubre de 2026</strong></p>
+  <p class="intro">Esta política explica qué datos personales tratamos, para qué, con quién los compartimos, cuánto tiempo los guardamos y cómo podés ejercer tus derechos.</p>
+
+  <h2>1. Quién es responsable</h2>
+  <p><strong>Delfina Felice</strong> (CoMakers)<br>
+  CUIT 27-39162785-7<br>
+  Quirno Costa 649, B6550 Bolívar, Provincia de Buenos Aires, Argentina<br>
+  <a href="mailto:comakers.tan@gmail.com">comakers.tan@gmail.com</a></p>
+  <p>CoMakers es una agencia de marketing digital. Prestamos servicios de estrategia de contenido, producción audiovisual, campañas publicitarias en plataformas de Meta y Google, y medición de resultados.</p>
+
+  <h2>2. Dos situaciones distintas</h2>
+  <p>Según de qué datos se trate, nuestro rol cambia. La diferencia importa porque define a quién le reclamás y quién decide sobre tus datos.</p>
+  <h3>a) Datos propios</h3>
+  <p>Cuando alguien nos contacta, contrata nuestros servicios o navega comakers.com.ar, tratamos esos datos <strong>como responsables</strong>: decidimos nosotras para qué se usan.</p>
+  <h3>b) Datos de los clientes de nuestros clientes</h3>
+  <p>Cuando una empresa nos contrata el módulo de gestión de consultas, las conversaciones que esa empresa recibe por WhatsApp pasan por nuestro panel.</p>
+  <p>En ese caso <strong>la empresa es la responsable de esos datos y nosotras actuamos como encargadas del tratamiento</strong>: los procesamos únicamente siguiendo sus instrucciones, no los usamos para fines propios, no los vendemos ni los cedemos a terceros, y no los mezclamos con los de otros clientes.</p>
+  <p>Si le escribiste por WhatsApp a un negocio que usa nuestro panel y querés ejercer tus derechos sobre esos mensajes, podés dirigirte a ese negocio o a nosotras: en el segundo caso trasladamos el pedido a quien corresponda y te respondemos.</p>
+
+  <h2>3. Qué datos tratamos</h2>
+  <h3>En el sitio web</h3>
+  <ul>
+    <li>Datos que nos dejás voluntariamente en formularios de contacto: nombre, correo, teléfono, lo que nos cuentes.</li>
+    <li>Datos técnicos de navegación que registran las plataformas que usamos (páginas visitadas, tipo de dispositivo, origen de la visita).</li>
+  </ul>
+  <h3>De nuestros clientes</h3>
+  <ul>
+    <li>Datos de contacto y facturación de la empresa y de las personas que trabajan en ella.</li>
+    <li>Accesos y material necesario para prestar el servicio contratado.</li>
+  </ul>
+  <h3>De las personas que escriben por WhatsApp a nuestros clientes</h3>
+  <p>Esto aplica solo a los clientes que contrataron el módulo de gestión de consultas:</p>
+  <ul>
+    <li>Número de teléfono y nombre de perfil de WhatsApp.</li>
+    <li>Contenido de los mensajes intercambiados con el negocio.</li>
+    <li>Un identificador técnico que genera Meta cuando la conversación se origina en un anuncio (<code>ctwa_clid</code>), que sirve para medir qué anuncios generan consultas efectivas.</li>
+    <li>La clasificación que el negocio le asigna a esa consulta.</li>
+  </ul>
+  <p><strong>Qué no hacemos con esos datos:</strong> no los usamos para contactar a esas personas por nuestra cuenta, no armamos listas, no los vendemos, no los cedemos a terceros ajenos a la prestación del servicio, y no los usamos para entrenar sistemas de inteligencia artificial.</p>
+
+  <h2>4. Para qué los usamos</h2>
+  <ul>
+    <li>Responder consultas y gestionar la relación comercial.</li>
+    <li>Prestar los servicios contratados.</li>
+    <li>Emitir facturas y cumplir obligaciones fiscales y contables.</li>
+    <li>Medir el rendimiento de las campañas publicitarias, incluyendo informarle a las plataformas publicitarias qué consultas derivaron en una venta, para que los anuncios lleguen a personas con mayor probabilidad de interés.</li>
+    <li>Cumplir obligaciones legales.</li>
+  </ul>
+
+  <h2>5. Con quién los compartimos</h2>
+  <p>No vendemos datos personales. Los compartimos únicamente con proveedores que necesitamos para prestar el servicio:</p>
+  <div class="tabla-wrap">
+    <table>
+      <thead>
+        <tr><th>Proveedor</th><th>Para qué</th><th>Dónde</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Supabase</td><td>Base de datos y alojamiento del panel</td><td>Brasil (São Paulo)</td></tr>
+        <tr><td>Meta Platforms</td><td>WhatsApp Business Platform, campañas y medición</td><td>Estados Unidos</td></tr>
+        <tr><td>Google</td><td>Herramientas de trabajo y campañas</td><td>Estados Unidos</td></tr>
+        <tr><td>GitHub</td><td>Alojamiento del sitio web</td><td>Estados Unidos</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Algunos de estos proveedores están fuera de Argentina, por lo que puede haber transferencia internacional de datos. En esos casos nos apoyamos en las cláusulas contractuales y compromisos de seguridad de cada proveedor.</p>
+  <p>También podemos compartir datos cuando una autoridad competente nos lo requiera conforme a la ley.</p>
+
+  <h2>6. Cuánto tiempo los guardamos</h2>
+  <ul>
+    <li><strong>Datos de contacto y comerciales:</strong> mientras dure la relación y después, por los plazos que exigen las normas fiscales y contables.</li>
+    <li><strong>Mensajes de WhatsApp e identificadores de origen de anuncios:</strong> 12 meses desde el último mensaje y después se eliminan automáticamente.</li>
+    <li>Si un cliente deja de trabajar con nosotras, eliminamos o le devolvemos los datos que tratábamos por su cuenta.</li>
+  </ul>
+
+  <h2>7. Tus derechos</h2>
+  <p>Conforme a la Ley 25.326 de Protección de los Datos Personales, tenés derecho a:</p>
+  <ul>
+    <li><strong>Acceder</strong> a los datos que tenemos sobre vos.</li>
+    <li><strong>Rectificarlos</strong> si están mal o incompletos.</li>
+    <li><strong>Suprimirlos</strong> cuando corresponda.</li>
+    <li><strong>Oponerte</strong> a determinados tratamientos.</li>
+  </ul>
+  <p>Para ejercerlos escribinos a <a href="mailto:comakers.tan@gmail.com">comakers.tan@gmail.com</a>. Te respondemos dentro de los plazos que fija la ley: diez días corridos para los pedidos de acceso y cinco días hábiles para los de rectificación o supresión.</p>
+  <p>El titular de los datos tiene derecho a ejercer el derecho de acceso en forma gratuita a intervalos no inferiores a seis meses, salvo que acredite un interés legítimo.</p>
+  <p>La <strong>Agencia de Acceso a la Información Pública</strong>, órgano de control de la Ley 25.326, atiende las denuncias y reclamos de quienes se vean afectados en sus derechos por incumplimiento de las normas vigentes en materia de protección de datos personales.</p>
+
+  <h2 id="eliminar">8. Cómo pedir la eliminación de tus datos</h2>
+  <p>Escribinos a <a href="mailto:comakers.tan@gmail.com?subject=Eliminaci%C3%B3n%20de%20datos">comakers.tan@gmail.com</a> con el asunto <strong>"Eliminación de datos"</strong>, indicando:</p>
+  <ul>
+    <li>Tu nombre o el número de teléfono desde el que escribiste.</li>
+    <li>Si corresponde, a qué negocio le escribiste.</li>
+  </ul>
+  <p>Eliminamos tus datos dentro de los treinta días, salvo que una norma nos obligue a conservarlos (por ejemplo, documentación fiscal de una operación realizada). En ese caso te explicamos qué se conserva y por qué.</p>
+  <p>Si tus datos los tratamos por cuenta de otra empresa, trasladamos tu pedido a esa empresa y te confirmamos cuando esté resuelto.</p>
+
+  <h2>9. Seguridad</h2>
+  <p>Adoptamos medidas técnicas y organizativas para proteger los datos:</p>
+  <ul>
+    <li>Acceso restringido por usuario: cada persona ve únicamente los datos que le corresponden, controlado a nivel de base de datos.</li>
+    <li>Las credenciales de las integraciones viven del lado del servidor y nunca se exponen en el navegador.</li>
+    <li>Las comunicaciones viajan cifradas.</li>
+    <li>Los identificadores de origen publicitario se guardan separados del resto y no son accesibles desde la aplicación web.</li>
+  </ul>
+  <p>Ningún sistema es completamente infalible. Si ocurriera un incidente de seguridad que afecte tus datos, lo comunicamos a quienes corresponda.</p>
+
+  <h2>10. Menores de edad</h2>
+  <p>Nuestros servicios están dirigidos a empresas y personas mayores de 18 años. No recolectamos datos de menores de forma intencional. Si detectamos que recibimos datos de un menor sin autorización de sus padres o tutores, los eliminamos.</p>
+
+  <h2>11. Cambios</h2>
+  <p>Podemos actualizar esta política. Cuando lo hagamos, cambiamos la fecha del encabezado. Si el cambio es significativo, avisamos a nuestros clientes por correo.</p>
+
+  <h2>12. Contacto</h2>
+  <p><strong>Delfina Felice (CoMakers)</strong><br>
+  <a href="mailto:comakers.tan@gmail.com">comakers.tan@gmail.com</a><br>
+  Quirno Costa 649, B6550 Bolívar, Buenos Aires, Argentina</p>
+</main>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <div class="foot-logo"><img class="foot-logo-img" src="comakers-logo.png" alt="CoMakers"></div>
+      <div class="foot-meta">Agencia de marketing digital · Tandil, Buenos Aires</div>
+      <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
+    </div>
+    <div class="foot-links">
+      <a href="servicios.html">Servicios</a>
+      <a href="nosotras.html">Nosotras</a>
+      <a href="https://wa.me/5492494209868?text=Hola%20CoMakers!%20Quiero%20potenciar%20mi%20marca%20%E2%9C%A8" target="_blank" rel="noopener">Contacto</a>
+      <a href="https://www.instagram.com/co.makers_/" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </div>
+  <div class="foot-legal">Delfina Felice · CUIT 27-39162785-7<br>Quirno Costa 649, B6550 Bolívar, Buenos Aires, Argentina · <a href="privacidad.html">Privacidad</a></div>
+</footer>
+
+<script>
+  // Mismo toggle de menú mobile que la home.
+  (function () {
+    var b = document.getElementById('burger');
+    var n = document.getElementById('navlinks');
+    if (b && n) b.addEventListener('click', function () { n.classList.toggle('open'); });
+  })();
+</script>
+</body>
+</html>
