@@ -380,25 +380,11 @@ propuesta del chat del 16/09. Dos cosas a no olvidar:
 
 **`analizar-reporte`:**
 - Que no use la nomenclatura interna de los anuncios ("Creativo nuevo | ").
-- **Botón "Regenerar análisis" en el panel. CONFIRMADO el 06/10/2026 que
-  es solo un cambio del panel: la función ya lo acepta.** El guardián de
-  `analizar-reporte` devuelve 409 únicamente si hay texto **y**
-  `analisis_generado_en` es null (o sea, si lo escribió una persona). Un
-  borrador generado se regenera sin problema. Lo que falta es del lado
-  del panel: hoy el botón se dibuja solo cuando el texto está **vacío**
-  (`conBoton` en `bloqueTexto`), así que para regenerar hay que entrar a
-  Editar, borrar el textarea y guardar — y eso además borra y reinserta
-  todas las filas de `reporte_metrica` y `reporte_destacado`, que no
-  tiene nada que ver. Mientras no exista el botón, el camino bueno es la
-  consola (ver "Cómo invoco las funciones para probar").
-  Al hacerlo, tres cosas:
-  - Mostrarlo cuando `analisis_generado_en` tiene fecha, no solo cuando
-    el texto está vacío. En el cartel de desactualizado es donde más se
-    necesita.
-  - **Solo para la agencia, y pedir confirmación**: cada generación es
-    una llamada paga a la API de Claude.
-  - Avisar que pisa `resumen`, `proximos_pasos`, `analisis_organico` y
-    `analisis_pauta`, no solo `analisis`.
+- ~~Botón "Regenerar análisis" en el panel.~~ **HECHO (08/10/2026,
+  `a6b6f51`).** `#btnRegenerar` en `bloqueTexto`: solo agencia, solo
+  cuando `analisis_generado_en` tiene fecha (borrador generado), bajo el
+  cartel de desactualizado. Confirmación que avisa que es paga y que pisa
+  los cinco textos. Invoca `analizar-reporte`.
 - **El cron nunca va a refrescar un borrador viejo, y es a propósito.**
   `sync_diario()` exige las tres condiciones (`publicado_en is null`,
   `analisis_generado_en is null`, `analisis` vacío) para no pisar texto
@@ -406,11 +392,44 @@ propuesta del chat del 16/09. Dos cosas a no olvidar:
   un lujo: es el único camino para un borrador con números que
   cambiaron. La definición quedó guardada en
   `supabase/migrations/20261006_cron_v3_analisis.sql`.
-- **Falta poder editar `analisis_organico` y `analisis_pauta`.** El
-  editor solo tiene campos para `resumen`, `analisis` y
-  `proximos_pasos`, pero `guardar()` pone `analisis_generado_en = null`
-  siempre: da por revisados dos textos que el panel no muestra
-  editables. Hoy solo se corrigen por SQL.
+- ~~Falta poder editar `analisis_organico` y `analisis_pauta`.~~ **HECHO
+  (08/10/2026, `a6b6f51`).** El editor tiene `#edOrganico` y `#edPauta`;
+  `guardar()` los persiste (vacío = null). Siguen quedando "revisados"
+  (`analisis_generado_en = null`) al guardar, igual que los otros tres.
+
+**Snapshot del reporte publicado (`reporte_publicado`) — en transición.**
+- Lo que ve el cliente se **congela** al publicar, en una tabla aparte
+  (`reporte_publicado`, PK `(cliente_id, mes)`, `snapshot jsonb`). El cron
+  y las ediciones siguen tocando solo lo vivo; el cliente no ve nada nuevo
+  hasta que la agencia publica o **republica**. "Volver a borrador" borra
+  el snapshot. La RLS es la garantía: el cliente lee SOLO su snapshot.
+- El `snapshot` guarda todo lo que ve el cliente: el objeto `reporte` ya
+  mezclado (cols + métricas + los cinco textos + notas), más los posts y
+  anuncios del mes. Lo arma `armarSnapshotMes()` en el panel; el cliente
+  reconstruye desde ahí y usa el **mismo** `renderReporte`.
+- **Transición en dos fases para que ningún cliente deje de ver su
+  reporte:** 50A crea la tabla + RLS y cierra un agujero (los `*_acceso`
+  de post_instagram/anuncio_meta eran ALL sin rol: el cliente escribía;
+  pasan a SELECT-only). El panel cae a lo vivo si no hay snapshot
+  (fallback). La agencia corre una vez "Generar snapshots de lo publicado"
+  (`#btnSnapsPublicados`). 50B recién después le saca al cliente la lectura
+  viva y se quita el fallback. **Pendiente de confirmar en 50A:**
+  `reporte_metrica.metrica_edita` / `reporte_destacado.destacado_edita`
+  son ALL con `puede_editar_reporte()`; si esa función da true para un
+  cliente, hay que cerrarles la escritura también.
+- Migraciones a mano: `claude_migracion-interno-50a-reporte-publicado.sql`
+  (50B va después). **El número 49 ya estaba tomado; hay 3 sesiones
+  creando migraciones — mirar el más alto antes de numerar.**
+
+**Dos fragilidades del panel, cerradas (08/10/2026, `a6b6f51`):**
+- `guardar()` ya no convierte vacíos en 0: una métrica sin dato va NULL
+  (un 0 se compara/dibuja distinto e inflaría los deltas del mes
+  siguiente).
+- Las columnas de métricas de cuenta (`visitas_perfil_org`,
+  `seguidores_total`, `demografia…`) salen del select principal de
+  `reporte` a una consulta aparte, como `notas_anuncios`: si la migración
+  de métricas de cuenta no corrió, la consulta falla sola y el reporte
+  carga igual.
 
 **Mejor horario para publicar.** Los datos ya están calculados en
 `v_timing`, pero con 14 posts de FOS y 3 de Visitando ningún horario llega

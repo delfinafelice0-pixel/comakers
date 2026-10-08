@@ -242,6 +242,13 @@
     vertical-align: middle;
   }
   .pill.pub { background: var(--lime-soft); color: var(--ink); }
+  .pill.cambios { background: #FBE6B0; color: #6b4e00; }
+  .aviso-pub {
+    margin: 14px 0 0; padding: 10px 14px; border-radius: 10px;
+    background: #FEF6E0; border: 1px solid #F2D98A; color: #6b4e00;
+    font-size: 13px; line-height: 1.5; display: flex; align-items: center;
+    gap: 10px; flex-wrap: wrap;
+  }
   .btn {
     border: 1px solid var(--line);
     background: var(--bg-elev);
@@ -672,6 +679,7 @@
   let BORRADOR = null;      // el reporte en edición (copia)
   let POSTS = [];           // posts de Instagram del cliente, todos los meses
   let ANUNCIOS = [];        // anuncios de Meta Ads, todos los meses
+  let SNAPSHOTS = {};       // mes → snapshot publicado (reporte_publicado)
   let CRITERIO = 'alcance'; // con qué se ordena el top de posts
   let SOLAPA = 'cuenta';    // la solapa abierta: sobrevive a guardar y a cambiar de mes
   let NEDIT = null;         // ad_id de la nota de anuncio que se está escribiendo
@@ -875,6 +883,25 @@
 
     await cargarPosts();
     await cargarAnuncios();
+    await cargarSnapshots();
+
+    // Cliente: donde hay snapshot, se usa el snapshot (congelado); donde
+    // no, cae a lo vivo publicado (fallback temporal hasta 50B). La
+    // agencia siempre ve lo vivo; los snapshots solo le sirven para
+    // comparar y para el aviso de "cambios sin publicar".
+    if (!AGENCIA && Object.keys(SNAPSHOTS).length) {
+      Object.keys(SNAPSHOTS).forEach(mes => {
+        const snap = SNAPSHOTS[mes];
+        if (!snap.reporte) return;
+        const i = REPORTES.findIndex(r => r.mes === mes);
+        if (i >= 0) REPORTES[i] = snap.reporte; else REPORTES.push(snap.reporte);
+        POSTS    = POSTS.filter(p => p.mes !== mes).concat((snap.posts || []).map(p => ({ ...p })));
+        ANUNCIOS = ANUNCIOS.filter(a => a.mes !== mes).concat((snap.anuncios || []).map(a => ({ ...a })));
+      });
+      REPORTES.sort((a, b) => (a.mes < b.mes ? 1 : -1));
+      await firmarThumbs(POSTS);
+      await firmarThumbs(ANUNCIOS);
+    }
 
     // Qué mes se abre. La agencia arranca en el mes en curso, que es
     // donde está la acción: el cron lo va llenando todos los días. El
@@ -906,14 +933,22 @@
     // Que falten los posts no puede romper el reporte: se sigue sin ellos.
     if (error || !data) return;
     POSTS = data.map(p => ({ ...p, mes: String(p.mes).slice(0, 7), thumb_url: null }));
+    await firmarThumbs(POSTS);
+  }
 
-    const rutas = POSTS.filter(p => p.thumb_path).map(p => p.thumb_path);
+  // Firma las miniaturas (thumb_path → thumb_url) de un array de posts o
+  // anuncios. Viven en un bucket PRIVADO y las URLs firmadas vencen a la
+  // hora. Se firman en lote para que el render siga sincrónico. Se usa
+  // para lo vivo y para lo que vuelve del snapshot (que guarda thumb_path,
+  // no la URL firmada, que no tendría sentido congelar).
+  async function firmarThumbs(arr) {
+    const rutas = (arr || []).filter(x => x.thumb_path).map(x => x.thumb_path);
     if (!rutas.length) return;
     try {
       const { data: firmadas } = await SB.storage.from('post-thumbs').createSignedUrls(rutas, 3600);
       const porRuta = {};
       (firmadas || []).forEach(f => { if (f && f.signedUrl && !f.error) porRuta[f.path] = f.signedUrl; });
-      POSTS.forEach(p => { p.thumb_url = porRuta[p.thumb_path] || null; });
+      arr.forEach(x => { x.thumb_url = porRuta[x.thumb_path] || null; });
     } catch (e) { /* sin miniaturas, con datos */ }
   }
 
@@ -931,15 +966,82 @@
 
     if (error || !data) return;
     ANUNCIOS = data.map(a => ({ ...a, mes: String(a.mes).slice(0, 7), thumb_url: null }));
+    await firmarThumbs(ANUNCIOS);
+  }
 
-    const rutas = ANUNCIOS.filter(a => a.thumb_path).map(a => a.thumb_path);
-    if (!rutas.length) return;
-    try {
-      const { data: firmadas } = await SB.storage.from('post-thumbs').createSignedUrls(rutas, 3600);
-      const porRuta = {};
-      (firmadas || []).forEach(f => { if (f && f.signedUrl && !f.error) porRuta[f.path] = f.signedUrl; });
-      ANUNCIOS.forEach(a => { a.thumb_url = porRuta[a.thumb_path] || null; });
-    } catch (e) { /* sin miniaturas, con datos */ }
+  // ── Snapshot del reporte publicado ──────────────────────────
+  // Lo que ve el cliente se CONGELA al publicar, en reporte_publicado. El
+  // cron y las ediciones siguen tocando lo vivo; el cliente no ve nada
+  // nuevo hasta que la agencia publica (o republica).
+  function esTablaFaltante(e) {
+    return !!e && (e.code === '42P01' || /does not exist|relation .* does not|no existe/i.test(e.message || ''));
+  }
+  async function cargarSnapshots() {
+    SNAPSHOTS = {};
+    // Si la tabla todavía no existe (50A sin correr), falla sola y
+    // seguimos sin snapshots: el panel cae a lo vivo (fallback temporal).
+    const { data, error } = await SB.from('reporte_publicado')
+      .select('mes, snapshot, publicado_en').eq('cliente_id', CLIENTE.id);
+    if (error || !data) return;
+    data.forEach(s => {
+      const mes = String(s.mes).slice(0, 7);
+      if (s.snapshot && typeof s.snapshot === 'object')
+        SNAPSHOTS[mes] = Object.assign({ publicado_en: s.publicado_en }, s.snapshot);
+    });
+  }
+
+  // Arma el snapshot de un mes con lo VIVO que hay en memoria: clon
+  // profundo del reporte + sus posts y anuncios del mes, sin la URL
+  // firmada (se vuelve a firmar al leer: congelarla no tendría sentido).
+  function armarSnapshotMes(mes) {
+    const r = reporteDe(mes); if (!r) return null;
+    const rSnap = JSON.parse(JSON.stringify(r));
+    rSnap.estado = 'publicado';
+    const limpiar = x => { const q = JSON.parse(JSON.stringify(x)); delete q.thumb_url; return q; };
+    const posts    = POSTS.filter(p => p.mes === mes).map(limpiar).sort((a, b) => (a.media_id > b.media_id ? 1 : -1));
+    const anuncios = ANUNCIOS.filter(a => a.mes === mes).map(limpiar).sort((a, b) => (a.ad_id > b.ad_id ? 1 : -1));
+    return { v: 1, mes, reporte: rSnap, posts, anuncios };
+  }
+
+  // JSON canónico para comparar vivo vs snapshot: ordena las claves (jsonb
+  // las reordena) y descarta lo volátil (firmas, fechas de sync y de
+  // publicación, marcas de borrador) que no cambia lo que el cliente ve.
+  function canonReporte(snap) {
+    const drop = { thumb_url: 1, publicado_en: 1, publicado_por: 1, sincronizado_en: 1,
+      ads_sincronizado_en: 1, analisis_generado_en: 1, actualizado_en: 1, estado: 1,
+      generado_por: 1, fuente: 1, v: 1, seguidores_total_en: 1, demografia_org_en: 1 };
+    const norm = v => {
+      if (Array.isArray(v)) return v.map(norm);
+      if (v && typeof v === 'object') {
+        const o = {};
+        Object.keys(v).filter(k => !drop[k]).sort().forEach(k => { o[k] = norm(v[k]); });
+        return o;
+      }
+      return v;
+    };
+    return JSON.stringify(norm(snap));
+  }
+
+  function tieneSnapshot(mes) { return !!SNAPSHOTS[mes]; }
+  function hayCambiosSinPublicar(mes) {
+    const snap = SNAPSHOTS[mes]; if (!snap) return false;
+    const vivo = armarSnapshotMes(mes); if (!vivo) return false;
+    return canonReporte(vivo) !== canonReporte(snap);
+  }
+
+  // Publica (o republica): congela el mes vivo en reporte_publicado.
+  async function publicarSnapshot(mes) {
+    const snap = armarSnapshotMes(mes);
+    if (!snap) return { error: { message: 'No hay reporte para publicar' } };
+    const { error } = await SB.from('reporte_publicado').upsert({
+      cliente_id: CLIENTE.id, mes: mes + '-01', snapshot: snap,
+      publicado_en: new Date().toISOString(), publicado_por: YO.nombre || 'Agencia'
+    }, { onConflict: 'cliente_id,mes' });
+    return { error };
+  }
+  async function borrarSnapshot(mes) {
+    return await SB.from('reporte_publicado').delete()
+      .eq('cliente_id', CLIENTE.id).eq('mes', mes + '-01');
   }
 
   // ── Render ──────────────────────────────────────────────────
@@ -1753,6 +1855,15 @@
       ? ' <span class="parcial">parcial · datos al ' + esc(fechaDia(sincro || new Date())) + '</span>'
       : '';
 
+    // Estado de publicación según el SNAPSHOT (lo que ve el cliente de
+    // verdad). Durante la transición, un reporte puede estar publicado en
+    // vivo sin snapshot: el cliente lo ve por el fallback, pero conviene
+    // avisarlo. `cambios` = lo vivo difiere del snapshot (solo agencia).
+    const pubSnap = tieneSnapshot(r.mes);
+    const clienteVe = pubSnap || r.estado === 'publicado';
+    const cambios = AGENCIA && pubSnap && hayCambiosSinPublicar(r.mes);
+    const sinSnapshot = AGENCIA && r.estado === 'publicado' && !pubSnap;
+
     const [y, mm] = MES.split('-');
     let html = '<div class="pdf-encabezado solo-pdf">' +
       '<div class="brand-name">Co<em>Makers.</em></div>' +
@@ -1760,7 +1871,9 @@
       '<div class="cabecera"><div>' +
       '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mm, 10) - 1]) + '</em> ' + esc(y) + '</h1>' +
       '<div class="sub">' + esc(CLIENTE.nombre) +
-      (AGENCIA ? ' <span class="pill' + (r.estado === 'publicado' ? ' pub' : '') + '">' + (r.estado === 'publicado' ? 'publicado' : 'borrador, el cliente no lo ve') + '</span>' : '') +
+      (AGENCIA ? ' <span class="pill' + (clienteVe ? ' pub' : '') + '">' +
+        (clienteVe ? (pubSnap ? 'publicado' : 'publicado · sin snapshot') : 'borrador, el cliente no lo ve') + '</span>'
+        + (cambios ? ' <span class="pill cambios">cambios sin publicar</span>' : '') : '') +
       marcaParcial +
       (prev ? '<span style="color:var(--ink-mute);white-space:nowrap"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +
       '</div></div>' +
@@ -1769,10 +1882,20 @@
         '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
         'Descargar PDF</button>' +
       (AGENCIA ? '<button type="button" class="btn" id="btnEditar">Editar</button>' +
-        (r.estado === 'publicado' ? '<button type="button" class="btn" id="btnDespublicar">Volver a borrador</button>'
-                                  : '<button type="button" class="btn lima" id="btnPublicar">Publicar</button>') : '') +
+        (pubSnap
+          ? (cambios ? '<button type="button" class="btn lima" id="btnRepublicar">Republicar</button>' : '') +
+            '<button type="button" class="btn" id="btnDespublicar">Volver a borrador</button>'
+          : '<button type="button" class="btn lima" id="btnPublicar">Publicar</button>') : '') +
       '</div>' +
-      '</div>';
+      '</div>' +
+      // Avisos de la agencia (no salen en el PDF ni los ve el cliente):
+      // cambios sin publicar, o un reporte publicado que todavía no tiene
+      // snapshot (transición).
+      (cambios ? '<div class="aviso-pub solo-pantalla">Hay <b>cambios sin publicar</b>: lo que ves acá ' +
+          'difiere de lo que ve el cliente. Tocá <b>Republicar</b> para reemplazar lo publicado.</div>' : '') +
+      (sinSnapshot ? '<div class="aviso-pub solo-pantalla">Este reporte está publicado pero todavía no tiene ' +
+          '<b>snapshot</b>: el cliente lo ve por el método viejo. ' +
+          '<button type="button" class="btn chico" id="btnSnapsPublicados">Generar snapshots de lo publicado</button></div>' : '');
 
     // ── Solapas ────────────────────────────────────────────────
     // El reporte se parte en tres vistas. Cuenta es la lectura que
@@ -2191,7 +2314,21 @@
           '\n\n¿Publicarlo igual? El cliente lo va a ver.')) return;
       cambiarEstado(r, 'publicado');
     });
-    const bd = $('#btnDespublicar'); if (bd) bd.addEventListener('click', () => cambiarEstado(r, 'borrador'));
+    const bd = $('#btnDespublicar'); if (bd) bd.addEventListener('click', () => {
+      if (!confirm('Volver a borrador saca el snapshot: el cliente deja de ver este reporte.\n\n¿Seguir?')) return;
+      cambiarEstado(r, 'borrador');
+    });
+    const brp = $('#btnRepublicar'); if (brp) brp.addEventListener('click', () => {
+      if (!confirm('Republicar reemplaza lo que ve el cliente por lo que ves ahora.\n\n¿Republicar?')) return;
+      republicar(r);
+    });
+    const bsp = $('#btnSnapsPublicados'); if (bsp) bsp.addEventListener('click', () => {
+      const n = REPORTES.filter(x => x.estado === 'publicado' && !tieneSnapshot(x.mes)).length;
+      if (!confirm('Esto arma el snapshot de los ' + n + ' reporte(s) publicado(s) que todavía no lo tienen. ' +
+          'No cambia lo que ve el cliente; solo congela lo que ya está publicado.\n\n¿Generar?')) return;
+      bsp.disabled = true; bsp.textContent = 'Generando…';
+      generarSnapshotsPublicados();
+    });
   }
 
   // ── PDF ─────────────────────────────────────────────────────
@@ -2243,7 +2380,41 @@
     else fila.publicado_en = null;
     const { error } = await SB.from('reporte').update(fila).eq('id', r.id);
     if (error) { toast('No se pudo cambiar: ' + error.message, true); return; }
+
+    // El snapshot es lo que ve el cliente: publicar lo congela, volver a
+    // borrador lo saca. Si la tabla todavía no existe (50A sin correr),
+    // se ignora y el panel sigue con el fallback a lo vivo.
+    if (estado === 'publicado') {
+      r.estado = 'publicado';
+      const { error: eSnap } = await publicarSnapshot(r.mes);
+      if (eSnap && !esTablaFaltante(eSnap)) { toast('Se marcó publicado pero el snapshot falló: ' + eSnap.message, true); }
+    } else {
+      const { error: eDel } = await borrarSnapshot(r.mes);
+      if (eDel && !esTablaFaltante(eDel)) { toast('Volvió a borrador pero no se pudo sacar el snapshot: ' + eDel.message, true); }
+    }
     toast(estado === 'publicado' ? 'Publicado. El cliente ya lo ve.' : 'Volvió a borrador.');
+    await cargarCliente();
+  }
+
+  // Republicar: reemplaza el snapshot por lo vivo de ahora.
+  async function republicar(r) {
+    const { error } = await publicarSnapshot(r.mes);
+    if (error) { toast('No se pudo republicar: ' + error.message, true); return; }
+    toast('Republicado. El cliente ya ve los cambios.');
+    await cargarCliente();
+  }
+
+  // Genera el snapshot de TODOS los reportes publicados que todavía no lo
+  // tienen (transición: corre una vez, mientras el fallback sigue activo).
+  async function generarSnapshotsPublicados() {
+    const pend = REPORTES.filter(r => r.estado === 'publicado' && !tieneSnapshot(r.mes));
+    if (!pend.length) { toast('No hay publicados sin snapshot.'); return; }
+    let ok = 0, falla = 0;
+    for (const r of pend) {
+      const { error } = await publicarSnapshot(r.mes);
+      if (error) { falla++; } else { ok++; }
+    }
+    toast('Snapshots generados: ' + ok + (falla ? ' · fallaron ' + falla : ''), falla > 0);
     await cargarCliente();
   }
 
@@ -2437,9 +2608,16 @@
       if (metricas.length)   { r = await SB.from('reporte_metrica').insert(metricas.map(m => ({ ...m, reporte_id: id })));     if (r.error) throw r.error; }
       if (destacados.length) { r = await SB.from('reporte_destacado').insert(destacados.map(d => ({ ...d, reporte_id: id }))); if (r.error) throw r.error; }
 
-      toast(estado === 'publicado' ? 'Publicado. El cliente ya lo ve.' : 'Guardado como borrador.');
       EDITANDO = false; MES = b.mes;
       await cargarCliente();
+      // El snapshot se arma DESPUÉS de recargar, con los datos frescos ya
+      // en memoria. Publicar = congelar lo que se acaba de guardar.
+      if (estado === 'publicado') {
+        const { error: eSnap } = await publicarSnapshot(b.mes);
+        if (eSnap && !esTablaFaltante(eSnap)) toast('Se guardó y marcó publicado, pero el snapshot falló: ' + eSnap.message, true);
+        else { await cargarSnapshots(); render(); }
+      }
+      toast(estado === 'publicado' ? 'Publicado. El cliente ya lo ve.' : 'Guardado como borrador.');
     } catch (e) {
       toast('No se pudo guardar: ' + (e.message || e), true);
       btns.forEach(x => x.disabled = false);

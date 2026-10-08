@@ -134,10 +134,14 @@ BOOT
 IR_A_SEP='esperar(String.fromCharCode(91)+"data-irmes=\"2026-09\""+String.fromCharCode(93), function (b) { b.click(); });'
 NADA='void 0;'
 PUBLICAR="$IR_A_SEP setTimeout(function () { esperar('#btnPublicar', function (b) { b.click(); }); }, 500);"
+# Agencia en agosto: tiene snapshot que DIFIERE de lo vivo → aviso
+# "cambios sin publicar" + botón Republicar. Se llega sep → ago.
+IR_A_AGO="$IR_A_SEP setTimeout(function () { esperar(String.fromCharCode(91)+'data-irmes=\"2026-08\"'+String.fromCharCode(93), function (b) { b.click(); }); }, 500);"
 
 armar _prueba-panel-agencia.html SESION_AGENCIA DATOS_AGENCIA "$IR_A_SEP" panel.html
 armar _prueba-panel-cliente.html SESION_CLIENTE DATOS_CLIENTE "$NADA"     panel.html
 armar _prueba-panel-confirm.html SESION_AGENCIA DATOS_AGENCIA "$PUBLICAR" panel.html
+armar _prueba-panel-agcambios.html SESION_AGENCIA DATOS_AGENCIA "$IR_A_AGO" panel.html
 
 capturar() {
   local nombre="$1" archivo="$2"
@@ -152,6 +156,7 @@ echo "Capturas:"
 capturar agencia _prueba-panel-agencia.html
 capturar cliente _prueba-panel-cliente.html
 capturar confirm _prueba-panel-confirm.html
+capturar agcambios _prueba-panel-agcambios.html
 
 # ── Sintaxis del <script> ──────────────────────────────────────
 # Reemplaza a `node --check` donde no hay node: new Function() parsea
