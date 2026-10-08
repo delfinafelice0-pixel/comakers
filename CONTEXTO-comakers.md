@@ -1,4 +1,4 @@
-# CoMakers · dónde quedó todo — 16/09/2026
+# CoMakers · dónde quedó todo — 08/10/2026
 
 Pegá este archivo (o subilo como adjunto) al abrir el chat nuevo.
 Reemplaza por completo al del 15/09.
@@ -197,6 +197,102 @@ toca. **El texto de `analizar-reporte` sigue usando el nombre completo.**
 **Secciones editables** (`reporte.bloques`, jsonb): título, pregunta y
 cuerpo, con Agregar / Editar / Borrar desde el propio reporte. Heredan la
 RLS de `reporte`: el cliente no las ve en borrador.
+
+### Panel del cliente: cinco solapas nuevas (08/10/2026, MVP)
+
+Calendario · Estrategia · Servicio · Objetivos · One Shot. Commits
+`a9bd335` → `abe62e4`. **Viven en `panel-modulos.js` + `panel-modulos.css`**,
+no en `panel.html` (ya pasaba las 2.700 líneas). `panel.html` solo:
+carga esos dos archivos, dibuja un ítem del menú por módulo prendido
+(`pintarNav()`, `SECCION`), delega `render()` a `PanelModulos.render()` y
+expone `window.PANEL` (SB, quién mira, cliente, reportes, alias). Regla de
+siempre: sidebar = módulos.
+
+**Migración `claude_migracion-interno-51-panel-modulos.sql`** (una sola,
+a mano, idempotente; el 50B sigue reservado). 11 tablas: `cal_categoria`,
+`cal_contenido`, `cal_evento`, `cal_config`, `panel_comentario`,
+`estrategia_bloque`, `contrato_ajuste`, `servicio_publicacion`,
+`objetivo`, `oneshot_doc`, `oneshot_seccion`. Dos RPC:
+`panel_aprobar_contenido` y `panel_servicio`. Trigger
+`contrato_registrar_ajuste_trg`: cada cambio de `contrato.monto` (el
+"Ajustar" de administración incluido) queda en `contrato_ajuste`. Seis
+categorías globales con ids fijos `md5('cal_categoria:<nombre>')`.
+
+**Reglas que NO hay que romper:**
+- Todo cuelga de `cliente_id`, nunca de proyecto.
+- **El cliente no ve nada que no esté publicado, y no hay herencia.**
+  Cada fila tiene su `publicado`. Publicar un documento del One Shot no
+  publica sus secciones; una sección publicada de un documento oculto
+  tampoco se ve (la RLS pide las dos). El bloque de Drive, las fechas
+  especiales de Argentina y cada parte del Servicio (qué incluye / monto
+  / historial / próximo ajuste) se publican cada uno por su lado.
+- RLS: agencia ALL vía `panel_es_agencia_de(cliente_id)`; cliente
+  SELECT de lo publicado vía `panel_es_cliente_de()` (acceso_cliente).
+  Excepciones explícitas: el cliente carga/edita/borra SUS actividades
+  comerciales (`cal_evento`, tipo comercial, `cargado_por_cliente`), y
+  aprueba contenidos solo por RPC (por UPDATE directo podría tocar
+  cualquier columna).
+- **El Servicio no abre `contrato` al cliente**: lo lee por
+  `panel_servicio`, que ni siquiera devuelve lo no publicado.
+- Comentarios (`panel_comentario`): canal `interno` (default) o
+  `cliente`. El cliente solo lee y escribe `cliente` (RLS). Hoy se usan
+  en la ficha de cada contenido del calendario.
+- Los cinco módulos nacen **apagados**: en el panel, sin fila en
+  `cliente_modulo` = apagado (al revés que organico/pauta). Están en
+  `CAT_MODULOS` de administración.
+
+**Qué hace cada una:**
+- **Calendario**: meses uno abajo del otro (lun–dom), tarjetas por
+  categoría con responsable y checks A✓ (agencia) / C✓ (cliente). Ficha
+  con formato, copy, referencias, link y comentarios. Al crear con fecha,
+  opción (marcada) de crear en `tarea` "Editar: …" y "Subir: …" ese día;
+  si el contenido se mueve, las tareas se mueven. Eventos: recurrentes
+  (días de la semana + hora), ausencias de varios días, comerciales
+  (★, las carga el cliente con "+ Actividad comercial") y especiales
+  propias. Fechas de Argentina **calculadas en el JS** (Madre, Padre,
+  Infancias, Carnaval, Semana Santa, Black Friday…), no en la base. Ideas
+  sin fecha a la derecha, arrastrables (y al revés). Bloque fijo de Drive
+  + instrucciones.
+- **Estrategia**: dos partes (orgánico / pauta), bloques de texto o
+  tabla, reordenables. "Empezar con la plantilla" arma la estructura del
+  PDF de Don Felipe (o la de pauta), todo oculto. `clave = objetivo_mes`
+  se dibuja como tarjeta oscura.
+- **Servicio**: qué incluye (texto a mano en
+  `servicio_publicacion.incluye_texto`, si no los entregables del plan),
+  monto, historial, próximo ajuste. Los montos se editan en
+  administración; los ajustes viejos se cargan con "Registrar un ajuste
+  anterior".
+- **Objetivos**: cualitativos (avance a mano 0–100 + nota) y medibles
+  (métrica del reporte + "mejorar %" / "sumar" / "llegar a", contra un
+  mes o valor de partida). **El avance no se guarda**: se calcula con los
+  números del reporte, y aparece solo en la solapa Cuenta de cada mes
+  (bloque "Objetivos · cómo vamos este mes"). Sin reportes del cliente,
+  dice "todavía no hay un reporte con ese dato".
+- **One Shot**: diagnóstico inicial + auditorías como versiones;
+  áreas con puntaje 1–5, qué encontramos, qué recomendamos. Una auditoría
+  nueva copia las áreas de la anterior. "Comparar versiones": tabla lado a
+  lado con el cambio por área ("Mejoró en 6 de 7 áreas").
+- **"Ver como cliente"** (solo agencia, en las cinco): filtra a lo
+  publicado y saca los botones. Es una vista, no reemplaza a la RLS.
+
+**Prueba**: `bash fuente/probar-modulos.sh [solapa]` → capturas
+`_prueba/cap-mod-*.png`, vista agencia y cliente. `fuente/datos-modulos.js`
+imita la RLS de la 51 para la vista cliente y las dos RPC
+(`window.__MOCK_RPC`, que ahora entiende `fuente/mock-supabase.js`).
+Los datos salen de `_datos-privados/demo_panel.py` (gitignored).
+
+**Datos de demo (Don Felipe y Dr. Maca Flos)**: `python
+_datos-privados/demo_panel.py` genera `demo-panel.sql` (para la base,
+después de la 51), `demo-panel-revertir.sql` y `demo-panel-mock.js`.
+Una sola fuente: lo que se prueba es lo que se presenta. ⚠️ Son
+clientes reales: el SQL **prende los cinco módulos** para los dos y
+publica casi todo. El historial de montos y los textos de Maca son de
+ejemplo.
+
+**Pendientes del MVP:** PDF del calendario; comentarios en Estrategia /
+One Shot (la tabla ya es genérica: `entidad`); en celular el calendario
+esconde eventos y fechas especiales (≤700px); las tareas creadas desde el
+calendario no se borran si se borra el contenido (a propósito, avisa).
 
 ### La administración (`administracion.html`)
 Chips "Orgánico" y "Pauta" en el modal de cliente, que escriben en
