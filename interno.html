@@ -2925,7 +2925,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 23:49</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v08/10 09:23</div>
     </div>
   </aside>
 
@@ -5943,7 +5943,7 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', fondo: 'Fondo + Gastos', wiki: 'Wiki', equipo: 'Equipo',
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
     servicios: 'Servicios', etiquetas: 'Etiquetas'
   };
   function pintarTituloMovil() {
@@ -5966,7 +5966,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'fondo' || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
+         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -6003,7 +6003,6 @@
     mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
-    mostrar('#modFondo',     MODULO === 'fondo');
     mostrar('#modWiki',      MODULO === 'wiki');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
@@ -6014,7 +6013,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navFondo', '#navEtiquetas']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
         .forEach(sel => mostrar(sel, true));
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
@@ -6032,7 +6031,6 @@
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
     activar('#navDist',     MODULO === 'dist');
-    activar('#navFondo',    MODULO === 'fondo');
     activar('#navEquipo',   MODULO === 'equipo');
 
     const t = $si('#tituloGlobal');
@@ -6050,8 +6048,7 @@
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
-      dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
-      fondo:    ['El <em>fondo</em> + gastos', 'El 10% que junta el fondo cada mes, y en qué se va.'],
+      dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca, y el fondo + gastos.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
       etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página

@@ -115,7 +115,8 @@ CRM='esperar('"$B1"'+"data-cabrir=\"c-fos\""+'"$B2"', function (b) { b.click(); 
 # es muy ancha (scroll horizontal): para la captura se destraba el overflow
 # así entra entera, incluida la columna Verif.
 DIST='esperar("#navDist", function (b) { b.click(); setTimeout(function () { var ts = document.querySelectorAll(".tabla-ancha"); for (var i = 0; i < ts.length; i++) ts[i].style.overflow = "visible"; }, 400); });'
-FONDO='esperar("#navFondo", function (b) { b.click(); });'
+# Fondo + Gastos ya no es un módulo del menú: es sub-solapa de Distribución.
+FONDO='esperar("#navDist", function (b) { b.click(); esperar('"$B1"'+"data-disttab=\"fondo\""+'"$B2"', function (t) { t.click(); setTimeout(function () { var ts = document.querySelectorAll(".tabla-ancha"); for (var i = 0; i < ts.length; i++) ts[i].style.overflow = "visible"; }, 300); }); });'
 # Servicios: la tabla de planes (con costo/margen).
 SERV='esperar("#navServicios", function (b) { b.click(); });'
 # Editor de un plan: abre el plan CM y despliega "Crear entregable nuevo".

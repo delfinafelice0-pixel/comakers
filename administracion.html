@@ -2911,10 +2911,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
           Distribución
         </button>
-        <button class="nav-item" id="navFondo" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg>
-          Fondo + Gastos
-        </button>
         <button class="nav-item" id="navWiki">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           Wiki
@@ -2947,7 +2943,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v07/10 23:49</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v08/10 09:23</div>
     </div>
   </aside>
 
@@ -2984,11 +2980,8 @@
     <!-- ═══════════ CONTABILIDAD ═══════════ -->
     <div id="modPlata" style="display:none"></div>
 
-    <!-- ═══════════ DISTRIBUCIÓN ═══════════ -->
+    <!-- ═══════════ DISTRIBUCIÓN (incluye Fondo + Gastos como sub-solapa) ═══════════ -->
     <div id="modDist" style="display:none"></div>
-
-    <!-- ═══════════ FONDO + GASTOS ═══════════ -->
-    <div id="modFondo" style="display:none"></div>
 
     <!-- ═══════════ WIKI ═══════════ -->
     <div id="modWiki" style="display:none"></div>
@@ -5975,7 +5968,7 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', fondo: 'Fondo + Gastos', wiki: 'Wiki', equipo: 'Equipo',
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
     servicios: 'Servicios', etiquetas: 'Etiquetas'
   };
   function pintarTituloMovil() {
@@ -5998,7 +5991,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'fondo' || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
+         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -6036,7 +6029,6 @@
     mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
-    mostrar('#modFondo',     MODULO === 'fondo');
     mostrar('#modWiki',      MODULO === 'wiki');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
@@ -6047,7 +6039,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navFondo', '#navEtiquetas']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
         .forEach(sel => mostrar(sel, true));
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
@@ -6065,7 +6057,6 @@
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
     activar('#navDist',     MODULO === 'dist');
-    activar('#navFondo',    MODULO === 'fondo');
     activar('#navEquipo',   MODULO === 'equipo');
 
     const t = $si('#tituloGlobal');
@@ -6083,8 +6074,7 @@
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
-      dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
-      fondo:    ['El <em>fondo</em> + gastos', 'El 10% que junta el fondo cada mes, y en qué se va.'],
+      dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca, y el fondo + gastos.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
       etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página
@@ -6687,6 +6677,24 @@
     { tipo: 'meta_ads', nombre: 'Meta Ads',  etiquetaId: 'Cuenta publicitaria (act_…)' },
   ];
 
+  // Qué cuenta como "resultado" en Pauta. El valor es el action_type de
+  // Meta que escribe pull-ads en `cliente_integracion.accion_principal`.
+  // Vacío = automático (pull-ads detecta según lo que optimice la
+  // campaña). Se fuerza acá cuando el panel muestra la métrica equivocada
+  // (p. ej. una cuenta de ventas que aparece como "conversaciones").
+  const ACCIONES_PAUTA = [
+    { v: '', label: 'Automático (según lo que optimice la campaña)' },
+    { v: 'onsite_conversion.total_messaging_connection', label: 'Mensajes / conversaciones' },
+    { v: 'lead',                label: 'Leads (formularios)' },
+    { v: 'purchase',            label: 'Ventas / compras' },
+    { v: 'link_click',          label: 'Tráfico (clics en el enlace)' },
+    { v: 'landing_page_view',   label: 'Visitas a la web' },
+    { v: 'post_engagement',     label: 'Interacciones' },
+    { v: 'video_view',          label: 'Reproducciones de video' },
+  ];
+  const ETIQUETA_PAUTA = {};
+  ACCIONES_PAUTA.forEach(a => { if (a.v) ETIQUETA_PAUTA[a.v] = a.label; });
+
   // Trae lo del cliente para la sección Panel y lo pinta. Es async, así
   // que al volver chequea que el modal siga en el mismo cliente (igual
   // que pintarPeligroCliente): si cerraste o cambiaste, no pisa nada.
@@ -6700,7 +6708,7 @@
 
     const [ri, rm] = await Promise.all([
       SB.from('cliente_integracion')
-        .select('id, tipo, cuenta_id, cuenta_nombre, activo, ultimo_sync, ultimo_error')
+        .select('id, tipo, cuenta_id, cuenta_nombre, activo, accion_principal, ultimo_sync, ultimo_error')
         .eq('cliente_id', c.id),
       SB.from('cliente_modulo').select('modulo, activo').eq('cliente_id', c.id),
     ]);
@@ -6737,6 +6745,15 @@
           '<input type="text" id="cxId" value="' + esc(it ? (it.cuenta_id || '') : '') + '" placeholder="' + esc(cx.etiquetaId) + '">' +
           '<label class="campo-label chico" style="margin-top:8px">Nombre (opcional)</label>' +
           '<input type="text" id="cxNom" value="' + esc(it ? (it.cuenta_nombre || '') : '') + '" placeholder="Para reconocerla">' +
+          (cx.tipo === 'meta_ads'
+            ? '<label class="campo-label chico" style="margin-top:8px">Métrica principal (qué cuenta como “resultado”)</label>' +
+              '<select class="sel" id="cxAccion">' +
+                ACCIONES_PAUTA.map(a => '<option value="' + esc(a.v) + '"' +
+                  ((it && (it.accion_principal || '')) === a.v ? ' selected' : '') + '>' + esc(a.label) + '</option>').join('') +
+              '</select>' +
+              '<div class="conex-sub" style="margin-top:4px">Dejalo en Automático salvo que el panel muestre la métrica ' +
+                'equivocada (p. ej. dice “conversaciones” pero la campaña es de ventas). Toma efecto en el próximo sync.</div>'
+            : '') +
           '<label class="chk-secreto" style="margin-top:8px"><input type="checkbox" id="cxActivo"' + (!it || it.activo !== false ? ' checked' : '') + '> conexión activa (apagada, no se trae nada)</label>' +
           '<div class="conex-acc">' +
             '<button class="btn-ghost chico" data-cxcancelar="1">Cancelar</button>' +
@@ -6760,6 +6777,10 @@
             (it.activo === false ? 'apagada' : 'conectada') + '</span></div>' +
         '<div class="conex-id"><span class="k">' + esc(cx.etiquetaId) + '</span><code>' + esc(it.cuenta_id || '—') + '</code></div>' +
         (it.cuenta_nombre ? '<div class="conex-sub">' + esc(it.cuenta_nombre) + '</div>' : '') +
+        (cx.tipo === 'meta_ads'
+          ? '<div class="conex-id"><span class="k">Métrica principal</span><code>' +
+            esc(it.accion_principal ? (ETIQUETA_PAUTA[it.accion_principal] || it.accion_principal) : 'Automática') + '</code></div>'
+          : '') +
         '<div class="conex-sub">' + sync + '</div>' + err +
         '<button class="btn-ghost chico" data-cxeditar="' + cx.tipo + '">Editar</button>' +
       '</div>';
@@ -6819,18 +6840,23 @@
     const id = ($('#cxId').value || '').trim();
     const nom = ($('#cxNom').value || '').trim() || null;
     const activo = $('#cxActivo').checked;
+    // Solo Meta Ads tiene el selector de métrica; null = automático.
+    const accion = tipo === 'meta_ads'
+      ? (($si('#cxAccion') ? $('#cxAccion').value : '') || null)
+      : undefined;
     if (!id) { toast('Falta el ID de la cuenta.', 'warn'); $('#cxId').focus(); return; }
     const cxNom = (CAT_CONEX.find(x => x.tipo === tipo) || {}).nombre || tipo;
     if (!confirm('Vas a guardar la conexión de ' + cxNom + ' con el ID:\n\n' + id +
         '\n\nSi el ID queda mal, los pulls de Meta fallan en silencio (lo vas a ver en “último error”). ¿Guardamos?')) return;
     const existe = CL_INTEG.find(x => x.tipo === tipo);
+    const campos = { cuenta_id: id, cuenta_nombre: nom, activo: activo };
+    if (accion !== undefined) campos.accion_principal = accion;
     let error;
     if (existe) {
-      ({ error } = await SB.from('cliente_integracion')
-        .update({ cuenta_id: id, cuenta_nombre: nom, activo: activo }).eq('id', existe.id));
+      ({ error } = await SB.from('cliente_integracion').update(campos).eq('id', existe.id));
     } else {
       ({ error } = await SB.from('cliente_integracion')
-        .insert({ cliente_id: CL_EDIT.id, tipo: tipo, cuenta_id: id, cuenta_nombre: nom, activo: activo }));
+        .insert({ cliente_id: CL_EDIT.id, tipo: tipo, ...campos }));
     }
     if (error) { toast('No se pudo guardar la conexión: ' + error.message, 'warn'); return; }
     CL_CX_EDIT = null;
@@ -8644,6 +8670,7 @@
           distTab('trabajos', 'Trabajos', trabajosDelMes().length) +
           distTab('pagos', 'Pagos', null) +
           distTab('auditoria', 'Cómo se calcula', null) +
+          distTab('fondo', 'Fondo + gastos', null) +
         '</div>' +
         '<div class="der">' +
           '<div class="mes-nav">' +
@@ -8655,7 +8682,12 @@
           (DIST_TAB === 'trabajos'
             ? '<button class="btn-primary" id="nuTrabajo">Nuevo trabajo</button>'
             : DIST_TAB === 'auditoria'
-            ? '<button class="btn-ghost" id="bajarAudit">Bajar a Excel</button>' : '') +
+            ? '<button class="btn-ghost" id="bajarAudit">Bajar a Excel</button>'
+            : DIST_TAB === 'fondo'
+            ? (FALTA_M48 ? '' :
+                (FONDO_INI ? '<button class="btn-ghost" id="fdSaldoIni">Editar saldo inicial</button>' : '') +
+                '<button class="btn-primary" id="fdNuevoGasto">Nuevo gasto</button>')
+            : '') +
         '</div>' +
       '</div>';
 
@@ -8663,6 +8695,7 @@
       (FALTA_M16 ? '<div style="margin-bottom:16px">' + avisoM16() + '</div>' : '') +
       (DIST_TAB === 'pagos' ? vistaPagos()
        : DIST_TAB === 'auditoria' ? vistaAuditoria()
+       : DIST_TAB === 'fondo' ? vistaFondo()
        : vistaTrabajos());
   }
 
@@ -8726,24 +8759,30 @@
     const ancho = ' style="min-width:' + (anchos.reduce((s, a) => s + px(a), 0) + (anchos.length + 1) * 10 + 28) + 'px"';
 
     const cab = '<div class="prow cab dist-row"' + gt + '>' +
-      '<div>Cliente · Servicio</div><div>Fecha</div><div class="num">Cobrado</div>' +
+      '<div>Cliente</div><div>Fecha</div><div class="num">Monto cobrado</div>' +
       colabs.map(c => '<div class="num" title="' + esc(c.nombre) + '">Pago ' +
         esc(primerNombre(c.nombre)) + '</div>').join('') +
-      '<div class="num">Neto</div><div>Ejecuta</div>' +
-      '<div class="num">' + pe + '% ejec.</div>' +
-      socias.map(p => '<div class="num">' + esc(primerNombre(p.nombre || p.email)) + ' (' + pctSocia(p) + '%)</div>').join('') +
-      '<div class="num">' + psoc + '% soc.</div><div class="num">' + pf + '% fondo</div>' +
+      '<div class="num">Monto neto</div><div>Ejecuta</div>' +
+      '<div class="num">' + pe + '% Ejecutora</div>' +
+      socias.map(p => '<div class="num">' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
+      '<div class="num">' + psoc + '% Socias</div><div class="num">' + pf + '% Fondo</div>' +
       socias.map(p => '<div class="num">Total ' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
-      '<div class="num">Total fondo</div><div class="num">Verif.</div></div>';
+      '<div class="num">Total Fondo</div><div class="num">Verif.</div></div>';
 
     const nd = '<span class="cel-nada">—</span>';
     const filas = cobros.map(cb => {
       const ct = contratoDe(cb.contrato_id);
       const r = repartoDe(cb);
       const nc = cb.estado === 'no_corresponde';
-      const ejec = (COBRO_EJ[cb.id] || []).map(u => primerNombre(nombrePersona(u) || '')).filter(Boolean);
+      const ejecIds = (COBRO_EJ[cb.id] || []);
+      const ejec = ejecIds.map(u => primerNombre(nombrePersona(u) || '')).filter(Boolean);
       const parteEjec = r.neto * pe / 100;
       const parteSoc  = r.neto * psoc / 100;
+      // La parte del 85% de cada socia según quién ejecutó: se reparte en
+      // partes iguales entre TODOS los ejecutores del cobro. Si ejecuta
+      // alguien que no es socia, su parte no cae en ninguna columna de
+      // socia y la Verif. da ERROR (igual que el control del Sheets).
+      const ejecShare = p => (ejecIds.length && ejecIds.indexOf(p.id) >= 0) ? parteEjec / ejecIds.length : 0;
       // Verif: los totales mostrados (socias + fondo) tienen que sumar el
       // neto. Si ejecuta alguien que NO es socia, su parte del 85% no cae
       // en ninguna columna de socia y esto da ERROR: es la señal de que
@@ -8770,7 +8809,7 @@
         '<div style="color:var(--ink-mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis">' +
           (ejec.length ? esc(ejec.join('/')) : '<span class="cel-nada">sin asignar</span>') + '</div>' +
         '<div class="num">' + (nc ? nd : plata(parteEjec)) + '</div>' +
-        socias.map(p => '<div class="num">' + (nc ? nd : plata(parteSoc * pctSocia(p) / 100)) + '</div>').join('') +
+        socias.map(p => { const e = ejecShare(p); return '<div class="num">' + (nc ? nd : (e ? plata(e) : nd)) + '</div>'; }).join('') +
         '<div class="num">' + (nc ? nd : plata(parteSoc)) + '</div>' +
         '<div class="num">' + (nc ? nd : plata(r.fondo)) + '</div>' +
         socias.map(p => '<div class="num">' + (r.personas[p.id] ? plata(r.personas[p.id]) : nd) + '</div>').join('') +
@@ -8781,12 +8820,15 @@
 
     // La fila de totales, igual que la de tu planilla.
     const cobrados = cobros.filter(c => c.estado === 'cobrado');
-    const totSoc = {};
+    const totSoc = {}, totEjecSoc = {};
     let totNeto = 0, totFondo = 0, totEjec = 0, totParteSoc = 0;
     cobrados.forEach(cb => {
       const r = repartoDe(cb);
       totNeto += r.neto; totFondo += r.fondo;
-      totEjec += r.neto * pe / 100; totParteSoc += r.neto * psoc / 100;
+      const pej = r.neto * pe / 100;
+      totEjec += pej; totParteSoc += r.neto * psoc / 100;
+      const eids = (COBRO_EJ[cb.id] || []);
+      socias.forEach(p => { if (eids.length && eids.indexOf(p.id) >= 0) totEjecSoc[p.id] = (totEjecSoc[p.id] || 0) + pej / eids.length; });
       Object.keys(r.personas).forEach(u => { totSoc[u] = (totSoc[u] || 0) + r.personas[u]; });
     });
     const totales = '<div class="prow dist-row totales"' + gt + '>' +
@@ -8796,7 +8838,7 @@
         plata(sumaTrabajos(trab.filter(m => claveColab(m) === c.key))) + '</div>').join('') +
       '<div class="num">' + plata(totNeto) + '</div><div></div>' +
       '<div class="num">' + plata(totEjec) + '</div>' +
-      socias.map(p => '<div class="num">' + plata(totParteSoc * pctSocia(p) / 100) + '</div>').join('') +
+      socias.map(p => '<div class="num">' + plata(totEjecSoc[p.id] || 0) + '</div>').join('') +
       '<div class="num">' + plata(totParteSoc) + '</div><div class="num">' + plata(totFondo) + '</div>' +
       socias.map(p => '<div class="num">' + plata(totSoc[p.id] || 0) + '</div>').join('') +
       '<div class="num">' + plata(totFondo) + '</div><div></div>' +
@@ -8804,8 +8846,11 @@
 
     return kpis + supuestos +
       '<div class="cel-ayuda">Tocá una celda de «Pago …» para ver o cargar lo que esa persona hizo ' +
-        'para ese cliente. El desglose (85/' + psoc + '/' + pf + ' y ' + socias.map(pctSocia).join('/') +
-        ') sale de los Supuestos. <b>Verif.</b> da ✓ cuando los totales por persona más el fondo suman el neto.</div>' +
+        'para ese cliente. Las columnas con el nombre de cada socia muestran su parte del ' + pe + '% de ' +
+        'la ejecutora (repartida en partes iguales entre quienes ejecutaron ese cobro). «' + psoc + '% Socias» ' +
+        'es el ' + psoc + '% del neto, que se reparte ' + socias.map(pctSocia).join('/') + ' recién en la fila ' +
+        'de TOTALES. El «Total» de cada socia suma sus dos partes. <b>Verif.</b> da ✓ cuando los totales por ' +
+        'persona más el fondo suman el neto.</div>' +
       avisoBajas() +
       '<div class="tabla-ancha"><div class="tabla"' + ancho + '>' + cab +
         (filas || '<div class="prow"><div class="res-vacio">No hay cobros cargados este mes.</div></div>') +
@@ -9839,30 +9884,13 @@
     return suma;
   }
 
-  MODULOS.fondo = renderFondo;
-  function renderFondo() {
-    if (!soySocia()) { $('#modFondo').innerHTML = ''; return; }
-    if (FALTA_M14) { $('#modFondo').innerHTML = avisoM14(); return; }
-
-    const barra = '<div class="plata-barra">' +
-      '<div class="mes-nav">' +
-        '<button data-fmes="-1" title="Mes anterior">‹</button>' +
-        '<span class="mes-txt">' + mesLargo(PERIODO) + '</span>' +
-        '<button data-fmes="1" title="Mes siguiente">›</button>' +
-        '<button data-fmes="0" title="Volver a este mes">Hoy</button>' +
-      '</div>' +
-      '<div class="der">' +
-        (FALTA_M48 ? '' :
-          (FONDO_INI ? '<button class="btn-ghost" id="fdSaldoIni">Editar saldo inicial</button>' : '') +
-          '<button class="btn-primary" id="fdNuevoGasto">Nuevo gasto</button>') +
-      '</div>' +
-    '</div>';
-
+  // El Fondo + Gastos vive como sub-solapa de Distribución: no tiene su
+  // propia barra (el mes y los botones los pone renderDist), solo devuelve
+  // el cuerpo —KPIs, saldo inicial, alta y la tabla de gastos—.
+  function vistaFondo() {
     if (FALTA_M48) {
-      $('#modFondo').innerHTML = barra +
-        '<div class="res-falta">Falta correr <code>migracion-interno-48-fondo-gastos.sql</code>. ' +
+      return '<div class="res-falta">Falta correr <code>migracion-interno-48-fondo-gastos.sql</code>. ' +
         'Hasta que la corras, los gastos y el saldo inicial no se guardan.</div>';
-      return;
     }
 
     const delMes = fondoDelMes(PERIODO);
@@ -9938,7 +9966,7 @@
       '<div class="num">' + plata(totalGastado) + '</div><div></div><div></div>' +
       '<div class="num">' + plata(saldoFinal) + '</div><div></div></div>';
 
-    $('#modFondo').innerHTML = barra + kpis + setup + saldoIniLinea + alta +
+    return kpis + setup + saldoIniLinea + alta +
       '<div class="tabla-ancha"><div class="tabla gasto-tabla">' + cab +
         (filas || '<div class="prow"><div class="res-vacio">No hay gastos cargados este mes.</div></div>') +
         (gastos.length ? pie : '') +
@@ -9968,7 +9996,7 @@
     if (error) { toast('No se pudo guardar el gasto: ' + error.message, 'warn'); return; }
     await recargarFondo();
     toast('Gasto agregado', 'ok');
-    renderFondo();
+    renderDist();
   }
 
   async function borrarGasto(id) {
@@ -9978,7 +10006,7 @@
     const { error } = await SB.from('gasto').delete().eq('id', id);
     if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
     GASTOS = GASTOS.filter(x => x.id !== id);
-    renderFondo();
+    renderDist();
   }
 
   async function guardarSaldoInicial() {
@@ -9994,7 +10022,7 @@
     FD_SALDO_EDIT = false;
     await recargarFondo();
     toast('Saldo inicial guardado', 'ok');
-    renderFondo();
+    renderDist();
   }
 
   MODULOS.servicios = renderServicios;
@@ -11522,27 +11550,6 @@
   // ── Clientes ─────────────────────────────────────────────────
   // ── Eventos de Distribución ──────────────────────────────────
   on('#navDist', 'click', () => cambiarModulo('dist'));
-  on('#navFondo', 'click', () => cambiarModulo('fondo'));
-  on('#modFondo', 'click', e => {
-    const fm = e.target.closest('[data-fmes]');
-    if (fm) {
-      const n = Number(fm.dataset.fmes);
-      PERIODO = n === 0 ? primerDelMes(new Date()) : sumarMeses(PERIODO, n);
-      renderFondo();
-      return;
-    }
-    if (e.target.closest('#fdNuevoGasto')) {
-      const a = $('#altaGasto'); if (a) a.classList.remove('plegada');
-      const d = $('#gaDesc'); if (d) d.focus();
-      return;
-    }
-    if (e.target.closest('#gaGuardar')) { guardarGasto().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
-    const gb = e.target.closest('[data-gborrar]');
-    if (gb) { borrarGasto(gb.dataset.gborrar).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
-    if (e.target.closest('#fdSaldoIni')) { FD_SALDO_EDIT = true; renderFondo(); return; }
-    if (e.target.closest('#fiCancelar')) { FD_SALDO_EDIT = false; renderFondo(); return; }
-    if (e.target.closest('#fiGuardar')) { guardarSaldoInicial().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
-  });
 
   on('#modDist', 'click', e => {
     const t = e.target.closest('[data-disttab]');
@@ -11553,6 +11560,19 @@
 
     if (e.target.closest('#verBajas')) { VER_BAJAS = true; renderDist(); return; }
     if (e.target.closest('#bajarAudit')) { exportarAuditoria(); return; }
+
+    // Fondo + gastos (sub-solapa): alta, borrado y saldo inicial.
+    if (e.target.closest('#fdNuevoGasto')) {
+      const a = $('#altaGasto'); if (a) a.classList.remove('plegada');
+      const d = $('#gaDesc'); if (d) d.focus();
+      return;
+    }
+    if (e.target.closest('#gaGuardar')) { guardarGasto().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+    const gb = e.target.closest('[data-gborrar]');
+    if (gb) { borrarGasto(gb.dataset.gborrar).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+    if (e.target.closest('#fdSaldoIni')) { FD_SALDO_EDIT = true; renderDist(); return; }
+    if (e.target.closest('#fiCancelar')) { FD_SALDO_EDIT = false; renderDist(); return; }
+    if (e.target.closest('#fiGuardar')) { guardarSaldoInicial().catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
 
     const mes = e.target.closest('[data-dmes]');
     if (mes) {

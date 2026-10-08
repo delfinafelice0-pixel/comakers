@@ -15,6 +15,10 @@ supabase/functions/**/*.bak
 _prueba/
 _prueba-*.html
 
+# Datos privados: CSV de cobros/pagos del Sheets y cualquier SQL de
+# importación con esos datos. El repo es público: NADA de esto se sube.
+_datos-privados/
+
 # Salida de fuente/build.py: se genera en fuente/ y se copia a la raíz,
 # que es lo servido. Los de fuente/ son build-artifact, no van al repo.
 fuente/administracion.html
