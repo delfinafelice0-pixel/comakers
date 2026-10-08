@@ -2333,11 +2333,11 @@
       republicar(r);
     });
     const bsp = $('#btnSnapsPublicados'); if (bsp) bsp.addEventListener('click', () => {
-      const n = REPORTES.filter(x => x.estado === 'publicado' && !tieneSnapshot(x.mes)).length;
-      if (!confirm('Esto arma el snapshot de los ' + n + ' reporte(s) publicado(s) que todavía no lo tienen. ' +
-          'No cambia lo que ve el cliente; solo congela lo que ya está publicado.\n\n¿Generar?')) return;
+      if (!confirm('Esto arma el snapshot de los reportes publicados que todavía no lo tienen, ' +
+          'en TODOS tus clientes (no solo el que estás viendo). No cambia lo que ve el cliente; ' +
+          'solo congela lo que ya está publicado.\n\n¿Generar?')) return;
       bsp.disabled = true; bsp.textContent = 'Generando…';
-      generarSnapshotsPublicados();
+      generarSnapshotsTodos();
     });
   }
 
@@ -2416,16 +2416,30 @@
 
   // Genera el snapshot de TODOS los reportes publicados que todavía no lo
   // tienen (transición: corre una vez, mientras el fallback sigue activo).
-  async function generarSnapshotsPublicados() {
-    const pend = REPORTES.filter(r => r.estado === 'publicado' && !tieneSnapshot(r.mes));
-    if (!pend.length) { toast('No hay publicados sin snapshot.'); return; }
-    let ok = 0, falla = 0;
-    for (const r of pend) {
-      const { error } = await publicarSnapshot(r.mes);
-      if (error) { falla++; } else { ok++; }
+  // Genera el snapshot de TODOS los reportes publicados de TODOS los
+  // clientes de la agencia (no solo el abierto): recorre el selector,
+  // carga cada cliente y congela sus publicados sin snapshot. Es la
+  // acción de transición: se corre una vez. Las fallas van a la consola
+  // con el cliente, el mes y el error, para poder arreglarlas.
+  async function generarSnapshotsTodos() {
+    const original = CLIENTE;
+    let ok = 0, falla = 0; const fallas = [];
+    for (const c of CLIENTES) {
+      CLIENTE = c;
+      try {
+        await cargarCliente();          // carga REPORTES/POSTS/ANUNCIOS/SNAPSHOTS de c
+      } catch (e) { fallas.push(c.nombre + ' (carga): ' + (e.message || e)); continue; }
+      const pend = REPORTES.filter(r => r.estado === 'publicado' && !tieneSnapshot(r.mes));
+      for (const r of pend) {
+        const { error } = await publicarSnapshot(r.mes);
+        if (error) { falla++; fallas.push(c.nombre + ' ' + r.mes + ': ' + (error.message || JSON.stringify(error))); }
+        else ok++;
+      }
     }
-    toast('Snapshots generados: ' + ok + (falla ? ' · fallaron ' + falla : ''), falla > 0);
+    CLIENTE = original;
     await cargarCliente();
+    if (fallas.length) console.error('Snapshots que fallaron:\n' + fallas.join('\n'));
+    toast('Snapshots generados: ' + ok + (falla ? ' · fallaron ' + falla + ' (ver consola)' : ''), falla > 0);
   }
 
   // ── Editor ──────────────────────────────────────────────────
