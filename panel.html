@@ -1081,6 +1081,7 @@
   const anteriorA = mes => REPORTES.filter(r => r.mes < mes).sort((a, b) => (a.mes < b.mes ? 1 : -1))[0] || null;
 
   function render() {
+    document.querySelectorAll('#navGrupo .nav-item').forEach(b => b.classList.toggle('active', b.dataset.seccion === SECCION));
     if (SECCION !== 'reportes' && window.PanelModulos) {
       PanelModulos.render(SECCION, $('#main'));
       return;

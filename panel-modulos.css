@@ -193,3 +193,19 @@
 .pm-mini { border: 0; background: none; color: var(--ink-mute); cursor: pointer; font-size: 12px; padding: 4px; }
 th > .pm-mini { position: absolute; top: 8px; right: 6px; }
 .pm-mini:hover { color: var(--coral); }
+
+/* ── Servicio ────────────────────────────────────────────────── */
+.srv-pub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -10px 0 22px; padding: 10px 14px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 12px; }
+.srv-pub .pm-et { margin: 0 6px 0 0; }
+.srv-card, .srv-ct { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 14px; }
+.srv-card h2 { font-family: var(--display); font-weight: 500; font-size: 24px; margin-bottom: 10px; }
+.srv-lista { list-style: none; columns: 2 260px; column-gap: 28px; }
+.srv-lista li { padding: 6px 0 6px 24px; position: relative; break-inside: avoid; }
+.srv-lista li::before { content: '✓'; position: absolute; left: 0; top: 6px; width: 17px; height: 17px; border-radius: 50%; background: var(--lime); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.srv-grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.srv-grilla .srv-ct { margin: 0; }
+.srv-monto { font-family: var(--display); font-size: 46px; font-weight: 500; line-height: 1.05; letter-spacing: -0.02em; margin: 4px 0 6px; }
+.srv-monto small { font-family: var(--body); font-size: 14px; color: var(--ink-mute); margin-left: 8px; letter-spacing: 0; }
+.srv-prox { display: inline-block; background: var(--cyan-soft); border-radius: 999px; padding: 5px 12px; font-size: 13px; margin-bottom: 14px; }
+.srv-hist { margin-top: 6px; }
+.srv-total { margin-top: 14px; font-size: 15px; }

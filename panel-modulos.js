@@ -906,17 +906,143 @@
   }
 
   // ═════════════════════════════════════════════════════════════
+  //  SERVICIO
+  //  Qué incluye, el monto pactado, el historial de ajustes y la
+  //  próxima fecha. Sale de contrato / servicio_item por la RPC
+  //  panel_servicio: el cliente nunca lee `contrato` directo, y lo que
+  //  no está publicado ni siquiera viaja a su navegador.
+  //  El monto se cambia en administración ("Ajustar"); el trigger de la
+  //  51 anota cada cambio en el historial solo.
+  // ═════════════════════════════════════════════════════════════
+  const SRV = { cargado: false, falta: false, datos: null };
+  const PARTES_SRV = [['incluye', 'Qué incluye'], ['monto', 'Monto'], ['historial', 'Historial'], ['proximo_ajuste', 'Próximo ajuste']];
+
+  async function cargarServicio() {
+    const { data, error } = await SB().rpc('panel_servicio', { p_cliente: P().CLIENTE.id });
+    SRV.falta = !!error && /panel_servicio|function|does not exist|no existe/i.test(error.message || '');
+    if (error && !SRV.falta) throw error;
+    SRV.datos = data || { contratos: [] };
+    SRV.cargado = true;
+  }
+
+  function renderServicio(main) {
+    if (SRV.falta) { main.innerHTML = cabecera('Servicio', '', '', '') + faltaMigracion(); conectarVista(main); return; }
+    const d = SRV.datos;
+    const pub = d.publicacion || {};
+    // Agencia normal: todo, con los interruptores. Agencia "como cliente"
+    // y cliente: solo las partes publicadas (al cliente ya le llegan solas).
+    const ve = parte => P().AGENCIA ? (edita() || !!pub[parte]) : true;
+    const cts = d.contratos || [];
+    const lineas = String(d.incluye_texto || '').split('\n').map(x => x.trim()).filter(Boolean);
+    const inter = edita() ? '<div class="srv-pub"><span class="pm-et">Qué ve el cliente</span>' + PARTES_SRV.map(([k, n]) =>
+        '<button type="button" class="pm-pub ' + (pub[k] ? 'on' : 'off') + '" data-srvpub="' + k + '">' + (pub[k] ? '● ' : '○ ') + esc(n) + '</button>').join('') +
+        '</div>' : '';
+    const totalMensual = cts.filter(k => k.monto != null && (k.tipo || 'mensual') === 'mensual').reduce((s, k) => s + Number(k.monto), 0);
+    const algo = cts.length && (ve('incluye') || ve('monto') || ve('historial') || ve('proximo_ajuste'));
+
+    let html = cabecera('Tu', 'servicio', '', edita() ? '<a class="btn" href="administracion.html" title="El monto y las fechas se editan en administración">Editar montos en administración ↗</a>' : '') + inter;
+    if (!algo) {
+      main.innerHTML = html + '<div class="vacio"><p>' + (edita()
+        ? (cts.length ? '' : 'Este cliente no tiene contratos activos. Cargalos en administración.')
+        : 'Cuando la agencia publique el detalle de tu servicio, lo vas a ver acá.') + '</p></div>';
+      conectar(); return;
+    }
+    // Lo que incluye: lo escrito a mano manda; si no, los entregables del plan.
+    if (ve('incluye')) {
+      const items = [].concat(...cts.map(k => (k.items || []).map(i => (i.cantidad && Number(i.cantidad) !== 1 ? i.cantidad + ' × ' : '') + i.nombre + (i.unidad ? ' (' + i.unidad + ')' : ''))));
+      const lista = lineas.length ? lineas : items;
+      const detalles = cts.filter(k => k.detalle).map(k => '<p class="pm-ayuda"><b>' + esc(k.nombre) + ':</b> ' + esc(k.detalle) + '</p>').join('');
+      html += '<section class="srv-card' + (P().AGENCIA && !pub.incluye ? ' oculta' : '') + '"><h2>Qué incluye</h2>' +
+        (lista.length ? '<ul class="srv-lista">' + lista.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '<p class="pm-vacio-chico">Sin detalle cargado.</p>') +
+        detalles + (edita() ? '<div class="pm-fila-acc"><button type="button" class="btn chico" data-srvinc="1">Escribir lo que incluye</button>' +
+          '<span class="pm-ayuda" style="margin:0">' + (lineas.length ? 'Escrito a mano (manda sobre el plan).' : 'Sale de los entregables del plan del contrato.') + '</span></div>' : '') +
+        '</section>';
+    }
+    html += '<div class="srv-grilla">' + cts.map(k => {
+      let s = '<section class="srv-ct">' + '<div class="pm-et">' + esc(k.nombre) + (k.plan ? ' · plan ' + esc(k.plan) : '') + '</div>';
+      if (ve('monto') && k.monto != null) s += '<div class="srv-monto' + (P().AGENCIA && !pub.monto ? ' oculta' : '') + '">' + esc(plata(k.monto)) +
+        '<small>' + esc(k.tipo === 'cuotas' ? 'por cuota' : k.tipo === 'unico' ? 'pago único' : 'por mes') + '</small></div>';
+      if (ve('proximo_ajuste')) s += '<div class="srv-prox' + (P().AGENCIA && !pub.proximo_ajuste ? ' oculta' : '') + '">Próxima actualización: <b>' +
+        esc(k.proximo_ajuste ? fechaLarga(k.proximo_ajuste) : 'sin fecha') + '</b>' +
+        (edita() && k.ajuste_pct ? ' <span class="pm-ayuda">(propuesta +' + esc(k.ajuste_pct) + '%)</span>' : '') + '</div>';
+      if (ve('historial')) {
+        const h = k.historial || [];
+        s += '<div class="srv-hist' + (P().AGENCIA && !pub.historial ? ' oculta' : '') + '"><div class="pm-et">Historial de actualizaciones</div>' +
+          (h.length ? '<table class="est-tabla"><thead><tr><th>Desde</th><th>Antes</th><th>Ahora</th><th>Cambio</th></tr></thead><tbody>' +
+            h.map(a => '<tr><td>' + esc(fechaLarga(a.fecha)) + '</td><td>' + esc(plata(a.anterior)) + '</td><td><b>' + esc(plata(a.nuevo)) + '</b></td><td>' +
+              (a.pct != null ? '+' + esc(String(a.pct).replace('.', ',')) + '%' : '—') + (a.nota ? ' <span class="pm-ayuda">' + esc(a.nota) + '</span>' : '') + '</td></tr>').join('') +
+            '</tbody></table>' : '<p class="pm-vacio-chico">Sin actualizaciones registradas.</p>') +
+          (edita() ? '<button type="button" class="btn chico" data-srvaj="' + esc(k.id) + '" style="margin-top:8px">+ Registrar un ajuste anterior</button>' : '') + '</div>';
+      }
+      return s + '</section>';
+    }).join('') + '</div>';
+    if (ve('monto') && cts.length > 1 && totalMensual) html += '<p class="srv-total">Total mensual: <b>' + esc(plata(totalMensual)) + '</b></p>';
+    main.innerHTML = html;
+    conectar();
+
+    function conectar() {
+      conectarVista(main);
+      main.addEventListener('click', async e => {
+        const t = e.target;
+        const sp = t.closest('[data-srvpub]'); if (sp) { await guardarPubServicio({ [sp.dataset.srvpub]: !pub[sp.dataset.srvpub] }); return; }
+        if (t.closest('[data-srvinc]')) { editarIncluye(); return; }
+        const aj = t.closest('[data-srvaj]'); if (aj) registrarAjuste(cts.find(k => k.id === aj.dataset.srvaj));
+      });
+    }
+  }
+
+  async function guardarPubServicio(patch) {
+    const cid = P().CLIENTE.id;
+    const actual = SRV.datos.publicacion || {};
+    const fila = Object.assign({ cliente_id: cid, incluye: !!actual.incluye, monto: !!actual.monto, historial: !!actual.historial,
+                                 proximo_ajuste: !!actual.proximo_ajuste, incluye_texto: SRV.datos.incluye_texto || null }, patch,
+                               { actualizado_en: new Date().toISOString() });
+    const { data: hay } = await SB().from('servicio_publicacion').select('cliente_id').eq('cliente_id', cid).maybeSingle();
+    const { error } = hay ? await SB().from('servicio_publicacion').update(fila).eq('cliente_id', cid)
+                          : await SB().from('servicio_publicacion').insert(fila);
+    if (error) { toast('No se pudo: ' + error.message, true); return; }
+    const k = Object.keys(patch)[0];
+    if (k !== 'incluye_texto') toast(patch[k] ? 'Publicado: el cliente ya lo ve.' : 'Oculto: el cliente ya no lo ve.');
+    SRV.cargado = false; P().rerender();
+  }
+
+  function editarIncluye() {
+    modal('<h3>Qué incluye</h3><p class="pm-ayuda">Una línea por entregable. Si lo dejás vacío, se muestran los entregables del plan del contrato.</p>' +
+      '<div class="pm-form"><label class="ancho"><textarea id="siTxt" rows="9" placeholder="12 publicaciones por mes&#10;Historias 3 veces por semana&#10;Reporte mensual">' +
+      esc(SRV.datos.incluye_texto || '') + '</textarea></label></div>' +
+      '<div class="pm-pie"><span class="pm-esp"></span><button type="button" class="btn" data-cerrar="1">Cancelar</button><button type="button" class="btn primario" id="siOk">Guardar</button></div>',
+      el => $('#siOk', el).addEventListener('click', async () => { cerrarModal(); await guardarPubServicio({ incluye_texto: $('#siTxt', el).value.trim() || null }); }));
+  }
+
+  function registrarAjuste(k) {
+    modal('<h3>Registrar un ajuste anterior</h3><p class="pm-ayuda">Para los ajustes de antes de que existiera el historial. Los nuevos se anotan solos cuando cambiás el monto en administración.</p>' +
+      '<div class="pm-form"><label>Desde<input type="date" id="raF"></label><label>Monto anterior<input type="number" id="raA"></label>' +
+      '<label>Monto nuevo<input type="number" id="raN"></label><label>Nota (opcional)<input id="raNota"></label></div>' +
+      '<div class="pm-pie"><span class="pm-esp"></span><button type="button" class="btn" data-cerrar="1">Cancelar</button><button type="button" class="btn primario" id="raOk">Guardar</button></div>',
+      el => $('#raOk', el).addEventListener('click', async () => {
+        const ant = Number(val('#raA', el)) || null, nue = Number(val('#raN', el));
+        if (!val('#raF', el) || !nue) { toast('Faltan la fecha y el monto nuevo', true); return; }
+        const { error } = await SB().from('contrato_ajuste').insert({ cliente_id: P().CLIENTE.id, contrato_id: k.id, fecha: val('#raF', el),
+          monto_anterior: ant, monto_nuevo: nue, pct: ant ? Math.round((nue - ant) / ant * 1000) / 10 : null, nota: val('#raNota', el) || null });
+        if (error) { toast('No se pudo: ' + error.message, true); return; }
+        cerrarModal(); toast('Registrado.'); SRV.cargado = false; P().rerender();
+      }));
+  }
+
+  // ═════════════════════════════════════════════════════════════
   //  Registro
   // ═════════════════════════════════════════════════════════════
   const ICO = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
   const NAV = [
     ['calendario', 'Calendario', ICO('<rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>')],
-    ['estrategia', 'Estrategia', ICO('<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>')]
+    ['estrategia', 'Estrategia', ICO('<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>')],
+    ['servicio', 'Servicio', ICO('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>')]
   ];
 
   const MODS = {
     calendario: { estado: CAL, cargar: cargarCalendario, render: renderCalendario },
-    estrategia: { estado: EST, cargar: cargarEstrategia, render: renderEstrategia }
+    estrategia: { estado: EST, cargar: cargarEstrategia, render: renderEstrategia },
+    servicio:   { estado: SRV, cargar: cargarServicio, render: renderServicio }
   };
 
   // Un solo listener para "Ver como cliente", en cualquier solapa.
