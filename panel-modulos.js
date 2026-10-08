@@ -1240,6 +1240,204 @@
   }
 
   // ═════════════════════════════════════════════════════════════
+  //  ONE SHOT
+  //  El diagnóstico inicial es un documento; cada auditoría (cada 6
+  //  meses) es una versión nueva con las mismas áreas, para comparar qué
+  //  mejoró. Documento y secciones se publican por separado: una
+  //  sección publicada de un documento oculto tampoco se ve (RLS).
+  // ═════════════════════════════════════════════════════════════
+  const OS = { cargado: false, falta: false, docs: [], secs: [], sel: null, comparar: false, a: null, b: null };
+  const AREAS_BASE = ['Perfil y bio', 'Identidad visual', 'Contenido', 'Frecuencia', 'Comunidad e interacción', 'Historias', 'Pauta'];
+
+  async function cargarOneShot() {
+    const cid = P().CLIENTE.id;
+    const [d, s] = await Promise.all([
+      SB().from('oneshot_doc').select('*').eq('cliente_id', cid).order('fecha'),
+      SB().from('oneshot_seccion').select('*').eq('cliente_id', cid).order('orden')
+    ]);
+    OS.falta = esTablaFaltante(d.error);
+    OS.docs = d.data || []; OS.secs = s.data || [];
+    OS.cargado = true;
+  }
+
+  const nombreDoc = d => (d.tipo === 'diagnostico' ? 'Diagnóstico inicial' : 'Auditoría') + ' · ' + fechaCorta(d.fecha) + ' ' + String(d.fecha).slice(0, 4);
+  const puntos = p => p ? '<span class="os-pts" title="' + p + ' de 5">' + [1, 2, 3, 4, 5].map(i => '<i class="' + (i <= p ? 'si' : '') + '"></i>').join('') + '</span>' : '<span class="os-pts nada">sin puntaje</span>';
+  const seccionesDe = id => OS.secs.filter(s => s.doc_id === id && veo(s)).sort((x, y) => x.orden - y.orden);
+
+  function renderOneShot(main) {
+    if (OS.falta) { main.innerHTML = cabecera('One Shot', '', '', '') + faltaMigracion(); conectarVista(main); return; }
+    const docs = OS.docs.filter(veo);
+    if (!docs.find(d => d.id === OS.sel)) OS.sel = docs.length ? docs[docs.length - 1].id : null;
+    const acc = (docs.length > 1 ? '<button type="button" class="btn' + (OS.comparar ? ' primario' : '') + '" data-comparar="1">' + (OS.comparar ? '✕ Cerrar comparación' : '⇄ Comparar versiones') + '</button>' : '') +
+      (edita() ? '<button type="button" class="btn primario" data-osnuevo="1">' + (OS.docs.length ? '+ Nueva auditoría' : '+ Diagnóstico inicial') + '</button>' : '');
+    let html = cabecera('One', 'Shot', 'diagnóstico y auditorías', acc);
+    if (!docs.length) {
+      main.innerHTML = html + '<div class="vacio"><p>' + (edita() ? 'Cargá el diagnóstico inicial. Cada 6 meses, una auditoría nueva con las mismas áreas para ver qué mejoró.'
+        : 'Cuando la agencia publique tu diagnóstico, lo vas a ver acá.') + '</p></div>';
+      conectar(); return;
+    }
+    html += '<div class="os-versiones">' + docs.map(d => '<button type="button" class="os-ver' + (d.id === OS.sel && !OS.comparar ? ' on' : '') + (P().AGENCIA && !d.publicado ? ' oculta' : '') + '" data-osver="' + esc(d.id) + '">' +
+      '<b>' + (d.tipo === 'diagnostico' ? 'Diagnóstico inicial' : 'Auditoría') + '</b><span>' + esc(fechaLarga(d.fecha)) + '</span></button>').join('<span class="os-flecha">→</span>') + '</div>';
+    html += OS.comparar ? comparacion(docs) : documento(docs.find(d => d.id === OS.sel));
+    main.innerHTML = html;
+    conectar();
+
+    function conectar() {
+      conectarVista(main);
+      main.addEventListener('change', e => {
+        if (e.target.id === 'osA') { OS.a = e.target.value; P().rerender(); }
+        if (e.target.id === 'osB') { OS.b = e.target.value; P().rerender(); }
+      });
+      main.addEventListener('click', async e => {
+        const t = e.target, re = () => P().rerender();
+        const v = t.closest('[data-osver]'); if (v) { OS.sel = v.dataset.osver; OS.comparar = false; re(); return; }
+        if (t.closest('[data-comparar]')) { OS.comparar = !OS.comparar; re(); return; }
+        if (t.closest('[data-osnuevo]')) { editarDoc(null); return; }
+        const ed = t.closest('[data-osed]'); if (ed) { editarDoc(OS.docs.find(d => d.id === ed.dataset.osed)); return; }
+        const se = t.closest('[data-secd]'); if (se) { editarSeccion(OS.secs.find(s => s.id === se.dataset.secd), null); return; }
+        const sn = t.closest('[data-secnueva]'); if (sn) { editarSeccion(null, sn.dataset.secnueva); return; }
+        const pb = t.closest('[data-pub]');
+        if (pb) {
+          const tabla = pb.dataset.pub;
+          const fila = (tabla === 'oneshot_doc' ? OS.docs : OS.secs).find(x => x.id === pb.dataset.id);
+          await alternarPub(tabla, fila, null, re);
+        }
+      });
+    }
+  }
+
+  function documento(d) {
+    if (!d) return '';
+    const secs = seccionesDe(d.id);
+    const conPts = secs.filter(s => s.puntaje);
+    const prom = conPts.length ? conPts.reduce((a, s) => a + s.puntaje, 0) / conPts.length : null;
+    return '<section class="os-doc' + (P().AGENCIA && !d.publicado ? ' oculta' : '') + '">' +
+      '<div class="os-doc-cab"><div><div class="pm-et">' + (d.tipo === 'diagnostico' ? 'Diagnóstico inicial' : 'Auditoría') + ' · ' + esc(fechaLarga(d.fecha)) + '</div>' +
+        '<h2>' + esc(d.titulo) + '</h2></div>' +
+        (prom != null ? '<div class="os-prom"><span>' + prom.toFixed(1).replace('.', ',') + '</span><small>promedio de 5</small></div>' : '') + '</div>' +
+      (d.resumen ? '<p class="pm-prosa">' + prosa(d.resumen) + '</p>' : '') +
+      (edita() ? '<div class="pm-fila-acc">' + pubBoton('oneshot_doc', d.id, d.publicado) + '<button type="button" class="btn chico" data-osed="' + esc(d.id) + '">Editar documento</button>' +
+        '<span class="pm-ayuda" style="margin:0">Publicar el documento no publica sus secciones: cada una tiene su botón.</span></div>' : '') +
+      '</section>' +
+      '<div class="os-secs">' + secs.map(s => '<section class="os-sec' + (P().AGENCIA && !s.publicado ? ' oculta' : '') + '">' +
+        '<div class="os-sec-cab"><h3>' + esc(s.area) + '</h3>' + puntos(s.puntaje) + '</div>' +
+        (s.texto ? '<p class="pm-prosa">' + prosa(s.texto) + '</p>' : '') +
+        (s.recomendacion ? '<div class="os-reco"><div class="pm-et">Qué recomendamos</div>' + prosa(s.recomendacion) + '</div>' : '') +
+        (edita() ? '<div class="pm-fila-acc">' + pubBoton('oneshot_seccion', s.id, s.publicado) + '<button type="button" class="btn chico" data-secd="' + esc(s.id) + '">Editar</button></div>' : '') +
+        '</section>').join('') +
+      (edita() ? '<button type="button" class="btn chico os-addsec" data-secnueva="' + esc(d.id) + '">+ Sección</button>' : '') + '</div>';
+  }
+
+  // Dos versiones lado a lado, área por área.
+  function comparacion(docs) {
+    if (!docs.find(d => d.id === OS.a)) OS.a = docs[0].id;
+    if (!docs.find(d => d.id === OS.b) || OS.b === OS.a) OS.b = docs[docs.length - 1].id === OS.a ? docs[0].id : docs[docs.length - 1].id;
+    const A = docs.find(d => d.id === OS.a), B = docs.find(d => d.id === OS.b);
+    const sa = seccionesDe(A.id), sb = seccionesDe(B.id);
+    const norm = x => String(x).trim().toLowerCase();
+    const areas = [];
+    sa.concat(sb).forEach(s => { if (!areas.some(a => norm(a) === norm(s.area))) areas.push(s.area); });
+    let mejoro = 0, empeoro = 0, comparables = 0;
+    const filas = areas.map(ar => {
+      const x = sa.find(s => norm(s.area) === norm(ar)), y = sb.find(s => norm(s.area) === norm(ar));
+      let cambio = '<span class="os-cambio nada">—</span>';
+      if (x && y && x.puntaje && y.puntaje) {
+        comparables++;
+        const d = y.puntaje - x.puntaje;
+        if (d > 0) mejoro++; if (d < 0) empeoro++;
+        cambio = d > 0 ? '<span class="os-cambio sube">▲ +' + d + ' mejoró</span>' : d < 0 ? '<span class="os-cambio baja">▼ ' + d + '</span>' : '<span class="os-cambio igual">igual</span>';
+      }
+      return '<tr><td class="primera">' + esc(ar) + '</td><td>' + (x ? puntos(x.puntaje) + (x.texto ? '<p>' + prosa(x.texto) + '</p>' : '') : '<span class="pm-ayuda">no estaba</span>') + '</td>' +
+        '<td>' + (y ? puntos(y.puntaje) + (y.texto ? '<p>' + prosa(y.texto) + '</p>' : '') : '<span class="pm-ayuda">no está</span>') + '</td><td>' + cambio + '</td></tr>';
+    }).join('');
+    const sel = (id, actual) => '<select id="' + id + '" class="os-sel">' + opciones(docs.map(d => [d.id, nombreDoc(d)]), actual) + '</select>';
+    return '<section class="os-comp"><div class="os-comp-cab">' + sel('osA', A.id) + '<span>→</span>' + sel('osB', B.id) + '</div>' +
+      (comparables ? '<p class="os-resumen"><b>Mejoró en ' + mejoro + ' de ' + comparables + ' áreas</b>' + (empeoro ? ' · bajó en ' + empeoro : '') + '.</p>' : '') +
+      '<div class="est-tabla-wrap"><table class="est-tabla os-tabla"><thead><tr><th>Área</th><th>' + esc(nombreDoc(A)) + '</th><th>' + esc(nombreDoc(B)) + '</th><th>Cambio</th></tr></thead><tbody>' +
+      filas + '</tbody></table></div></section>';
+  }
+
+  function editarDoc(d) {
+    const nuevo = !d;
+    const ultimo = OS.docs[OS.docs.length - 1];
+    d = d || { tipo: OS.docs.length ? 'auditoria' : 'diagnostico', titulo: OS.docs.length ? 'Auditoría de ' + MESES[new Date().getMonth()] : 'Diagnóstico inicial', fecha: hoyISO(), resumen: '', publicado: false };
+    modal('<h3>' + (nuevo ? (d.tipo === 'diagnostico' ? 'Diagnóstico inicial' : 'Nueva auditoría') : 'Documento') + '</h3>' +
+      '<div class="pm-form"><label>Tipo<select id="odTipo">' + opciones([['diagnostico', 'Diagnóstico inicial'], ['auditoria', 'Auditoría']], d.tipo) + '</select></label>' +
+      '<label>Fecha<input type="date" id="odFecha" value="' + esc(d.fecha) + '"></label>' +
+      '<label class="ancho">Título<input id="odTit" value="' + esc(d.titulo) + '"></label>' +
+      '<label class="ancho">Resumen<textarea id="odRes" rows="5" placeholder="La foto general: de dónde partimos, qué encontramos.">' + esc(d.resumen || '') + '</textarea></label>' +
+      (nuevo ? '<label class="pm-chk tareas ancho"><input type="checkbox" id="odAreas" checked> ' + (ultimo ? 'Crear las mismas áreas que "' + esc(ultimo.titulo) + '" (vacías), para poder comparar'
+        : 'Crear las áreas de siempre: ' + AREAS_BASE.join(', ')) + '</label>' : '') +
+      '<label class="pm-chk pub ancho"><input type="checkbox" id="odPub"' + (d.publicado ? ' checked' : '') + '> El documento es visible para el cliente (las secciones se publican aparte)</label></div>' +
+      '<div class="pm-pie">' + (!nuevo ? '<button type="button" class="btn quieto" id="odBorrar">Borrar</button>' : '') +
+      '<span class="pm-esp"></span><button type="button" class="btn" data-cerrar="1">Cancelar</button><button type="button" class="btn primario" id="odOk">Guardar</button></div>',
+      el => {
+        $('#odOk', el).addEventListener('click', async () => {
+          const fila = { cliente_id: P().CLIENTE.id, tipo: val('#odTipo', el), fecha: val('#odFecha', el) || hoyISO(), titulo: val('#odTit', el),
+                         resumen: val('#odRes', el) || null, publicado: chk('#odPub', el) };
+          if (!fila.titulo) { toast('Ponele un título', true); return; }
+          if (!nuevo) {
+            const { error } = await SB().from('oneshot_doc').update(fila).eq('id', d.id);
+            if (error) { toast('No se pudo: ' + error.message, true); return; }
+            Object.assign(d, fila);
+          } else {
+            const { data, error } = await SB().from('oneshot_doc').insert(fila).select('*').single();
+            if (error) { toast('No se pudo: ' + error.message, true); return; }
+            OS.docs.push(data); OS.docs.sort((x, y) => (x.fecha < y.fecha ? -1 : 1)); OS.sel = data.id; OS.comparar = false;
+            if (chk('#odAreas', el)) {
+              const areas = ultimo ? OS.secs.filter(s => s.doc_id === ultimo.id).sort((x, y) => x.orden - y.orden).map(s => s.area) : AREAS_BASE;
+              const { data: ss, error: e2 } = await SB().from('oneshot_seccion').insert(areas.map((a, i) => ({
+                cliente_id: data.cliente_id, doc_id: data.id, area: a, orden: i, publicado: false }))).select('*');
+              if (e2) toast('El documento se creó, pero no las áreas: ' + e2.message, true); else OS.secs = OS.secs.concat(ss || []);
+            }
+          }
+          cerrarModal(); toast('Guardado.'); P().rerender();
+        });
+        const b = $('#odBorrar', el);
+        if (b) b.addEventListener('click', async () => {
+          if (!confirm('¿Borrar "' + d.titulo + '" con todas sus secciones?')) return;
+          const { error } = await SB().from('oneshot_doc').delete().eq('id', d.id);
+          if (error) { toast('No se pudo: ' + error.message, true); return; }
+          OS.docs = OS.docs.filter(x => x.id !== d.id); OS.secs = OS.secs.filter(x => x.doc_id !== d.id); cerrarModal(); P().rerender();
+        });
+      }, true);
+  }
+
+  function editarSeccion(s, docId) {
+    const nuevo = !s;
+    s = s || { doc_id: docId, area: '', puntaje: null, texto: '', recomendacion: '', publicado: false };
+    modal('<h3>' + (nuevo ? 'Nueva sección' : esc(s.area)) + '</h3>' +
+      '<div class="pm-form"><label>Área<input id="osArea" value="' + esc(s.area) + '" placeholder="Ej: Perfil y bio"><small>Mismo nombre en cada versión = se comparan</small></label>' +
+      '<label>Puntaje<select id="osPts">' + opciones([[1, '1 · muy flojo'], [2, '2 · flojo'], [3, '3 · correcto'], [4, '4 · bien'], [5, '5 · excelente']], s.puntaje, 'Sin puntaje') + '</select></label>' +
+      '<label class="ancho">Qué encontramos<textarea id="osTxt" rows="5">' + esc(s.texto || '') + '</textarea></label>' +
+      '<label class="ancho">Qué recomendamos<textarea id="osReco" rows="3">' + esc(s.recomendacion || '') + '</textarea></label>' +
+      '<label class="pm-chk pub ancho"><input type="checkbox" id="osPub"' + (s.publicado ? ' checked' : '') + '> Visible para el cliente</label></div>' +
+      '<div class="pm-pie">' + (!nuevo ? '<button type="button" class="btn quieto" id="osBorrar">Borrar</button>' : '') +
+      '<span class="pm-esp"></span><button type="button" class="btn" data-cerrar="1">Cancelar</button><button type="button" class="btn primario" id="osOk">Guardar</button></div>',
+      el => {
+        $('#osOk', el).addEventListener('click', async () => {
+          const fila = { area: val('#osArea', el), puntaje: val('#osPts', el) ? Number(val('#osPts', el)) : null, texto: val('#osTxt', el) || null,
+                         recomendacion: val('#osReco', el) || null, publicado: chk('#osPub', el) };
+          if (!fila.area) { toast('Falta el área', true); return; }
+          let r;
+          if (nuevo) {
+            Object.assign(fila, { cliente_id: P().CLIENTE.id, doc_id: s.doc_id, orden: Date.now() / 1000 });
+            r = await SB().from('oneshot_seccion').insert(fila).select('*').single(); if (!r.error) OS.secs.push(r.data);
+          } else { r = await SB().from('oneshot_seccion').update(fila).eq('id', s.id); if (!r.error) Object.assign(s, fila); }
+          if (r.error) { toast('No se pudo: ' + r.error.message, true); return; }
+          cerrarModal(); toast('Guardado.'); P().rerender();
+        });
+        const b = $('#osBorrar', el);
+        if (b) b.addEventListener('click', async () => {
+          if (!confirm('¿Borrar la sección "' + s.area + '"?')) return;
+          const { error } = await SB().from('oneshot_seccion').delete().eq('id', s.id);
+          if (error) { toast('No se pudo: ' + error.message, true); return; }
+          OS.secs = OS.secs.filter(x => x.id !== s.id); cerrarModal(); P().rerender();
+        });
+      }, true);
+  }
+
+  // ═════════════════════════════════════════════════════════════
   //  Registro
   // ═════════════════════════════════════════════════════════════
   const ICO = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
@@ -1247,14 +1445,16 @@
     ['calendario', 'Calendario', ICO('<rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>')],
     ['estrategia', 'Estrategia', ICO('<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>')],
     ['servicio', 'Servicio', ICO('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>')],
-    ['objetivos', 'Objetivos', ICO('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>')]
+    ['objetivos', 'Objetivos', ICO('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>')],
+    ['one_shot', 'One Shot', ICO('<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>')]
   ];
 
   const MODS = {
     calendario: { estado: CAL, cargar: cargarCalendario, render: renderCalendario },
     estrategia: { estado: EST, cargar: cargarEstrategia, render: renderEstrategia },
     servicio:   { estado: SRV, cargar: cargarServicio, render: renderServicio },
-    objetivos:  { estado: OBJ, cargar: cargarObjetivos, render: renderObjetivos }
+    objetivos:  { estado: OBJ, cargar: cargarObjetivos, render: renderObjetivos },
+    one_shot:   { estado: OS, cargar: cargarOneShot, render: renderOneShot }
   };
 
   // Un solo listener para "Ver como cliente", en cualquier solapa.
@@ -1282,6 +1482,7 @@
   function reiniciar() {
     Object.keys(MODS).forEach(k => { MODS[k].estado.cargado = false; });
     CAL.desde = null; CAL.cuantos = 3; VISTA_CLIENTE = false;
+    EST.parte = 'organico'; OS.sel = null; OS.comparar = false; OS.a = OS.b = null;
     cerrarModal();
   }
 
