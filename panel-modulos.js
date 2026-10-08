@@ -731,15 +731,192 @@
   }
 
   // ═════════════════════════════════════════════════════════════
+  //  ESTRATEGIA
+  //  Dos partes separadas: contenido orgánico y pauta. Cada parte es
+  //  una lista de bloques de texto o de tabla, cada uno publicable por
+  //  separado. La plantilla orgánica sigue al PDF de Don Felipe.
+  // ═════════════════════════════════════════════════════════════
+  const EST = { cargado: false, falta: false, bloques: [], parte: 'organico' };
+  const PARTES = [['organico', 'Contenido orgánico', 'Mercado, posicionamiento y contenido'], ['pauta', 'Pauta', 'Campañas, presupuesto y públicos']];
+  const tablaVacia = cols => ({ columnas: cols, filas: [cols.map(() => '')] });
+  const PLANTILLA = {
+    organico: [
+      ['analisis_mercado', 'Análisis del mercado', 'texto'],
+      ['oportunidad', 'Oportunidad', 'texto'],
+      ['posicionamiento', 'Posicionamiento', 'texto'],
+      ['competencia', 'Competencia', tablaVacia(['Marca', '¿Qué hace bien?', 'Ventaja frente a nosotros', 'Desventaja / oportunidad', '¿Dónde entramos?'])],
+      ['para_que', '¿Para qué?', 'texto'],
+      ['como', '¿Cómo?', 'texto'],
+      ['objetivo_mes', 'Objetivo del mes', 'texto'],
+      ['pilares', 'Pilares de contenido', tablaVacia(['Pilar', 'Qué contamos', 'Ejemplos'])],
+      ['formatos', 'Formatos', tablaVacia(['Formato', 'Para qué lo usamos', 'Cuántos por mes'])],
+      ['frecuencia', 'Frecuencia', 'texto'],
+      ['tono', 'Tono de comunicación', 'texto']
+    ],
+    pauta: [
+      ['objetivos_pauta', 'Objetivos de la pauta', 'texto'],
+      ['presupuesto', 'Presupuesto', 'texto'],
+      ['campanas', 'Campañas', tablaVacia(['Campaña', 'Objetivo', 'Presupuesto', 'Público', 'Período', 'Estado'])],
+      ['publicos', 'Públicos', tablaVacia(['Público', 'Segmentación', 'Para qué campañas'])]
+    ]
+  };
+
+  async function cargarEstrategia() {
+    const { data, error } = await SB().from('estrategia_bloque').select('*').eq('cliente_id', P().CLIENTE.id).order('orden');
+    EST.falta = esTablaFaltante(error);
+    EST.bloques = data || [];
+    EST.cargado = true;
+  }
+
+  function tablaHtml(t) {
+    if (!t || !Array.isArray(t.columnas)) return '';
+    const filas = (t.filas || []).filter(f => f.some(x => String(x || '').trim()));
+    if (!filas.length) return '<p class="pm-vacio-chico">Tabla vacía.</p>';
+    return '<div class="est-tabla-wrap"><table class="est-tabla"><thead><tr>' + t.columnas.map(c => '<th>' + esc(c) + '</th>').join('') +
+      '</tr></thead><tbody>' + filas.map(f => '<tr>' + t.columnas.map((c, i) => '<td' + (i === 0 ? ' class="primera"' : '') + '>' + prosa(f[i] || '') + '</td>').join('') + '</tr>').join('') +
+      '</tbody></table></div>';
+  }
+
+  function bloqueEstrategia(b, i, lista) {
+    const vacio = b.tipo === 'texto' && !String(b.texto || '').trim();
+    const clases = 'est-bloque' + (b.tipo === 'tabla' ? ' ancho' : '') + (b.clave === 'objetivo_mes' ? ' hero' : '') + (P().AGENCIA && !b.publicado ? ' oculta' : '');
+    return '<section class="' + clases + '" data-bloque="' + esc(b.id) + '">' +
+      '<h3>' + esc(b.titulo) + '</h3>' +
+      (b.tipo === 'tabla' ? tablaHtml(b.tabla) : (vacio ? '<p class="pm-vacio-chico">Sin escribir todavía.</p>' : '<p class="pm-prosa">' + prosa(b.texto) + '</p>')) +
+      (edita() ? '<div class="pm-fila-acc">' + pubBoton('estrategia_bloque', b.id, b.publicado) +
+        '<button type="button" class="btn chico" data-bed="' + esc(b.id) + '">Editar</button>' +
+        (i > 0 ? '<button type="button" class="btn chico quieto" data-bmov="-1" data-id="' + esc(b.id) + '" title="Subir">↑</button>' : '') +
+        (i < lista.length - 1 ? '<button type="button" class="btn chico quieto" data-bmov="1" data-id="' + esc(b.id) + '" title="Bajar">↓</button>' : '') +
+        '</div>' : '') +
+      '</section>';
+  }
+
+  function renderEstrategia(main) {
+    if (EST.falta) { main.innerHTML = cabecera('Estrategia', '', '', '') + faltaMigracion(); conectarVista(main); return; }
+    const parte = EST.parte;
+    const lista = EST.bloques.filter(b => b.parte === parte && veo(b));
+    const todosParte = EST.bloques.filter(b => b.parte === parte);
+    const acc = edita() ? '<button type="button" class="btn primario" data-badd="texto">+ Bloque de texto</button>' +
+      '<button type="button" class="btn" data-badd="tabla">+ Tabla</button>' : '';
+    main.innerHTML = cabecera('Estrategia', '', '', acc) +
+      '<div class="solapas" role="tablist">' + PARTES.map(p =>
+        '<button type="button" class="solapa' + (p[0] === parte ? ' activa' : '') + '" data-parte="' + p[0] + '">' +
+        '<span class="t">' + esc(p[1]) + '</span><span class="s">' + esc(p[2]) + '</span></button>').join('') + '</div>' +
+      (lista.length
+        ? '<div class="est-grilla">' + lista.map(bloqueEstrategia).join('') + '</div>'
+        : '<div class="vacio"><p>' + (edita()
+            ? 'Todavía no hay estrategia de ' + (parte === 'pauta' ? 'pauta' : 'contenido orgánico') + ' para este cliente.'
+            : 'Cuando la agencia publique esta parte de la estrategia, la vas a ver acá.') + '</p>' +
+          (edita() && !todosParte.length ? '<button type="button" class="btn primario" data-plantilla="1">Empezar con la plantilla</button>' +
+            '<p class="pm-ayuda" style="margin-top:10px">' + (parte === 'pauta' ? 'Objetivos, presupuesto, campañas y públicos.'
+              : 'Análisis del mercado, oportunidad, posicionamiento, competencia, para qué, cómo, objetivo del mes, pilares, formatos, frecuencia y tono.') +
+            ' Todo arranca oculto para el cliente.</p>' : '') + '</div>');
+    conectarVista(main);
+    main.addEventListener('click', async e => {
+      const t = e.target, re = () => P().rerender();
+      const pa = t.closest('[data-parte]'); if (pa) { EST.parte = pa.dataset.parte; re(); return; }
+      if (t.closest('[data-plantilla]')) { await cargarPlantilla(parte); re(); return; }
+      const ad = t.closest('[data-badd]'); if (ad) { editarBloque(null, ad.dataset.badd); return; }
+      const ed = t.closest('[data-bed]'); if (ed) { editarBloque(EST.bloques.find(b => b.id === ed.dataset.bed)); return; }
+      const pb = t.closest('[data-pub]'); if (pb) { await alternarPub('estrategia_bloque', EST.bloques.find(b => b.id === pb.dataset.id), null, re); return; }
+      const mv = t.closest('[data-bmov]');
+      if (mv) {
+        const i = lista.findIndex(b => b.id === mv.dataset.id), j = i + Number(mv.dataset.bmov);
+        const a = lista[i], b = lista[j]; if (!a || !b) return;
+        const oa = a.orden, ob = b.orden === oa ? oa + (j > i ? 1 : -1) : b.orden;
+        await Promise.all([SB().from('estrategia_bloque').update({ orden: ob }).eq('id', a.id), SB().from('estrategia_bloque').update({ orden: oa }).eq('id', b.id)]);
+        a.orden = ob; b.orden = oa; EST.bloques.sort((x, y) => x.orden - y.orden); re();
+      }
+    });
+  }
+
+  async function cargarPlantilla(parte) {
+    const base = Date.now() / 1000;
+    const filas = PLANTILLA[parte].map(([clave, titulo, tipo], i) => ({
+      cliente_id: P().CLIENTE.id, parte, clave, titulo, orden: base + i, publicado: false,
+      tipo: tipo === 'texto' ? 'texto' : 'tabla', tabla: tipo === 'texto' ? null : tipo, texto: null
+    }));
+    const { data, error } = await SB().from('estrategia_bloque').insert(filas).select('*');
+    if (error) { toast('No se pudo: ' + error.message, true); return; }
+    EST.bloques = EST.bloques.concat(data || []).sort((x, y) => x.orden - y.orden);
+    toast('Plantilla cargada. Todo está oculto hasta que lo publiques.');
+  }
+
+  // Editor de un bloque. Las tablas se editan como grilla.
+  function editarBloque(b, tipoNuevo) {
+    const nuevo = !b;
+    b = b || { titulo: '', tipo: tipoNuevo, texto: '', tabla: tipoNuevo === 'tabla' ? tablaVacia(['Columna 1', 'Columna 2']) : null, publicado: false };
+    const T = b.tipo === 'tabla' ? JSON.parse(JSON.stringify(b.tabla || tablaVacia(['Columna 1']))) : null;
+    const grilla = () => '<div class="pm-tabla-ed"><table><thead><tr>' + T.columnas.map((c, i) =>
+        '<th><input data-col="' + i + '" value="' + esc(c) + '">' + (T.columnas.length > 1 ? '<button type="button" class="pm-mini" data-delcol="' + i + '" title="Sacar columna">✕</button>' : '') + '</th>').join('') +
+        '<th class="pm-th-acc"><button type="button" class="btn chico" data-addcol="1">+ Columna</button></th></tr></thead><tbody>' +
+      T.filas.map((f, r) => '<tr>' + T.columnas.map((c, i) => '<td><textarea rows="2" data-celda="' + r + ':' + i + '">' + esc(f[i] || '') + '</textarea></td>').join('') +
+        '<td class="pm-th-acc"><button type="button" class="pm-mini" data-delfila="' + r + '" title="Sacar fila">✕</button></td></tr>').join('') +
+      '</tbody></table><button type="button" class="btn chico" data-addfila="1">+ Fila</button></div>';
+    modal('<h3>' + (nuevo ? (b.tipo === 'tabla' ? 'Nueva tabla' : 'Nuevo bloque') : 'Editar bloque') + '</h3>' +
+      '<div class="pm-form"><label class="ancho">Título<input id="ebTit" value="' + esc(b.titulo) + '" placeholder="Ej: Posicionamiento"></label>' +
+      (b.tipo === 'texto' ? '<label class="ancho">Texto<textarea id="ebTxt" rows="10">' + esc(b.texto || '') + '</textarea></label>' : '<div class="ancho" id="ebGrilla">' + grilla() + '</div>') +
+      '<label class="pm-chk pub ancho"><input type="checkbox" id="ebPub"' + (b.publicado ? ' checked' : '') + '> Visible para el cliente</label></div>' +
+      '<div class="pm-pie">' + (!nuevo ? '<button type="button" class="btn quieto" id="ebBorrar">Borrar</button>' : '') +
+      '<span class="pm-esp"></span><button type="button" class="btn" data-cerrar="1">Cancelar</button>' +
+      '<button type="button" class="btn primario" id="ebGuardar">Guardar</button></div>',
+      el => {
+        const leer = () => {
+          if (!T) return;
+          $$('[data-col]', el).forEach(x => { T.columnas[Number(x.dataset.col)] = x.value; });
+          $$('[data-celda]', el).forEach(x => { const [r, i] = x.dataset.celda.split(':').map(Number); T.filas[r][i] = x.value; });
+        };
+        if (T) $('#ebGrilla', el).addEventListener('click', ev => {
+          const q = ev.target;
+          let hizo = true;
+          leer();
+          if (q.closest('[data-addcol]')) { T.columnas.push('Nueva'); T.filas.forEach(f => f.push('')); }
+          else if (q.closest('[data-addfila]')) T.filas.push(T.columnas.map(() => ''));
+          else if (q.closest('[data-delcol]')) { const i = Number(q.closest('[data-delcol]').dataset.delcol); T.columnas.splice(i, 1); T.filas.forEach(f => f.splice(i, 1)); }
+          else if (q.closest('[data-delfila]')) { T.filas.splice(Number(q.closest('[data-delfila]').dataset.delfila), 1); if (!T.filas.length) T.filas.push(T.columnas.map(() => '')); }
+          else hizo = false;
+          if (hizo) $('#ebGrilla', el).innerHTML = grilla();
+        });
+        $('#ebGuardar', el).addEventListener('click', async () => {
+          leer();
+          const fila = { titulo: val('#ebTit', el), publicado: chk('#ebPub', el), actualizado_en: new Date().toISOString() };
+          if (!fila.titulo) { toast('Ponele un título', true); return; }
+          if (b.tipo === 'texto') fila.texto = $('#ebTxt', el).value.trim() || null;
+          else fila.tabla = { columnas: T.columnas.map(c => c.trim()), filas: T.filas };
+          let r;
+          if (nuevo) {
+            Object.assign(fila, { cliente_id: P().CLIENTE.id, parte: EST.parte, tipo: b.tipo, orden: Date.now() / 1000 });
+            r = await SB().from('estrategia_bloque').insert(fila).select('*').single();
+            if (!r.error) EST.bloques.push(r.data);
+          } else {
+            r = await SB().from('estrategia_bloque').update(fila).eq('id', b.id);
+            if (!r.error) Object.assign(b, fila);
+          }
+          if (r.error) { toast('No se pudo guardar: ' + r.error.message, true); return; }
+          cerrarModal(); toast('Guardado.'); P().rerender();
+        });
+        const del = $('#ebBorrar', el);
+        if (del) del.addEventListener('click', async () => {
+          if (!confirm('¿Borrar el bloque "' + b.titulo + '"?')) return;
+          const { error } = await SB().from('estrategia_bloque').delete().eq('id', b.id);
+          if (error) { toast('No se pudo: ' + error.message, true); return; }
+          EST.bloques = EST.bloques.filter(x => x.id !== b.id); cerrarModal(); P().rerender();
+        });
+      }, b.tipo === 'tabla');
+  }
+
+  // ═════════════════════════════════════════════════════════════
   //  Registro
   // ═════════════════════════════════════════════════════════════
   const ICO = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
   const NAV = [
-    ['calendario', 'Calendario', ICO('<rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>')]
+    ['calendario', 'Calendario', ICO('<rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>')],
+    ['estrategia', 'Estrategia', ICO('<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>')]
   ];
 
   const MODS = {
-    calendario: { estado: CAL, cargar: cargarCalendario, render: renderCalendario }
+    calendario: { estado: CAL, cargar: cargarCalendario, render: renderCalendario },
+    estrategia: { estado: EST, cargar: cargarEstrategia, render: renderEstrategia }
   };
 
   // Un solo listener para "Ver como cliente", en cualquier solapa.

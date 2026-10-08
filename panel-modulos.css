@@ -169,3 +169,27 @@
   .pm-form { grid-template-columns: 1fr; }
   .pm-modal { padding: 20px 16px; }
 }
+
+/* ── Estrategia ──────────────────────────────────────────────── */
+.est-grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+.est-bloque { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px 22px; min-width: 0; }
+.est-bloque.ancho { grid-column: 1 / -1; }
+.est-bloque h3 { font-family: var(--display); font-weight: 500; font-size: 22px; margin-bottom: 10px; }
+.est-bloque .pm-prosa { margin-bottom: 0; }
+.est-bloque.hero { grid-column: 1 / -1; background: var(--ink); border-color: var(--ink); color: #fff; }
+.est-bloque.hero h3 { color: var(--lime); }
+.est-bloque.hero .pm-prosa { font-size: 17px; max-width: 80ch; }
+.est-bloque.hero .pm-pub, .est-bloque.hero .btn { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.25); }
+.est-tabla-wrap { overflow-x: auto; }
+.est-tabla { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.est-tabla th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; padding: 8px 10px; border-bottom: 1.5px solid var(--ink); background: var(--lime-soft); }
+.est-tabla td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; white-space: pre-wrap; line-height: 1.45; }
+.est-tabla td.primera { font-weight: 600; }
+.pm-tabla-ed { overflow-x: auto; }
+.pm-tabla-ed table { border-collapse: collapse; margin-bottom: 8px; }
+.pm-tabla-ed th, .pm-tabla-ed td { padding: 3px; vertical-align: top; min-width: 140px; position: relative; }
+.pm-tabla-ed th input { font-weight: 600; padding-right: 24px !important; }
+.pm-tabla-ed .pm-th-acc { min-width: 0; white-space: nowrap; vertical-align: middle; }
+.pm-mini { border: 0; background: none; color: var(--ink-mute); cursor: pointer; font-size: 12px; padding: 4px; }
+th > .pm-mini { position: absolute; top: 8px; right: 6px; }
+.pm-mini:hover { color: var(--coral); }
