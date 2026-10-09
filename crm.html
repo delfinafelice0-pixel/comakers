@@ -680,11 +680,12 @@
     return null;
   }
 
+  // Pesos completos, con punto de miles (es-AR): "$150.000", no "$150k".
+  // Aunque un total quede largo, el número entero se lee mejor que uno
+  // abreviado en un reporte.
   function plata(n) {
     n = Number(n) || 0;
-    if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.', ',') + 'M';
-    if (n >= 1000) return '$' + Math.round(n / 1000) + 'k';
-    return '$' + n;
+    return '$' + n.toLocaleString('es-AR', { maximumFractionDigits: 0 });
   }
 
   function iniciales(n) {
@@ -915,6 +916,12 @@
     var veces = to ? (tp / to) : 0;
     if (!total) {
       $('cierre').innerHTML = 'Todavía no hay consultas este mes. Cuando entren, acá aparece la comparación entre lo que trajo la pauta y lo que llegó solo.';
+    } else if (total < 15) {
+      // Con pocas consultas cualquier marca mueve el porcentaje
+      // muchísimo, y una comparación "3 veces más" sacada de 5 casos
+      // queda mal en un reporte. Debajo de 15, números crudos y nada
+      // de ratio.
+      $('cierre').innerHTML = '<b>' + g.pauta.reservo + '</b> reservas de pauta y <b>' + g.organico.reservo + '</b> de orgánico este mes. Con menos de 15 consultas la comparación pauta vs orgánico todavía no es confiable: cuantas más marques, más firme el número.';
     } else if (veces >= 1.05) {
       $('cierre').innerHTML = 'El que llega por un anuncio reserva <b>' + veces.toFixed(1).replace('.', ',') + ' veces más</b> que el que escribe por su cuenta. Cada reserva marcada acá vuelve a Meta y hace que el anuncio busque gente más parecida a la que ya reservó.';
     } else {
