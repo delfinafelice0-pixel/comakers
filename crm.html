@@ -58,10 +58,11 @@
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
-  /* Fail-closed: el panel no se dibuja hasta que el JS confirma que
-     quien entró es de la agencia. Sin JS, sin sesión o si es un
-     cliente, queda oculto y solo se ve el aviso de abajo. Mientras el
-     módulo tenga datos de ejemplo, un cliente no tiene que verlo. */
+  /* Fail-closed: el panel no se dibuja hasta que el JS confirma el
+     acceso (sesión + rol de agencia, o cliente con el módulo CRM
+     prendido). Sin JS o sin sesión queda oculto y solo se ve el aviso.
+     Los datos son reales: lo que protege de verdad es la RLS de la
+     migración 46; esto es solo para no mostrar un cascarón vacío. */
   .app { display: none; grid-template-columns: 240px 1fr; min-height: 100vh; }
   .app.listo { display: grid; }
 
@@ -101,6 +102,7 @@
   .client-switcher .label { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; }
   .client-switcher .name { font-weight: 600; font-size: 13px; margin-top: 1px; }
   .client-switcher svg { width: 14px; height: 14px; color: var(--ink-mute); flex-shrink: 0; }
+  .client-switcher select { font: inherit; font-weight: 600; font-size: 13px; color: var(--ink); background: none; border: none; width: 100%; cursor: pointer; margin-top: 1px; }
 
   .nav-group { display: flex; flex-direction: column; gap: 1px; }
   .nav-label { font-size: 10px; color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 10px 6px; margin-top: 8px; }
@@ -142,6 +144,10 @@
     border-radius: var(--radius); font-size: 13px; font-weight: 500; white-space: nowrap;
   }
   .period-selector svg { width: 14px; height: 14px; color: var(--ink-mute); }
+  .per-nav { font-size: 18px; line-height: 1; color: var(--ink-soft); padding: 0 4px; }
+  .per-nav:hover { color: var(--ink); }
+  .per-nav:disabled { opacity: 0.3; cursor: default; }
+  #mesLbl { min-width: 9ch; text-align: center; }
 
   /* ── KPIs ─────────────────────────────────────────────── */
   .kpi-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
@@ -255,10 +261,12 @@
   .hilo-tel { font-size: 12px; color: var(--ink-mute); }
   .mensajes { flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
   .dia { text-align: center; font-size: 11px; color: var(--ink-mute); margin: 6px 0; }
-  .msg { max-width: 74%; padding: 9px 13px; border-radius: 13px; font-size: 13px; line-height: 1.45; }
+  .msg { max-width: 74%; padding: 9px 13px; border-radius: 13px; font-size: 13px; line-height: 1.45; word-wrap: break-word; overflow-wrap: anywhere; }
+  .msg a { color: inherit; text-decoration: underline; }
   .msg-in { background: var(--bg-elev); border: 1px solid var(--line); border-bottom-left-radius: 4px; align-self: flex-start; }
   .msg-out { background: var(--lime); border-bottom-right-radius: 4px; align-self: flex-end; }
   .msg-hora { font-size: 10px; color: var(--ink-mute); margin-top: 4px; display: block; }
+  .hilo-vacio { margin: auto; text-align: center; color: var(--ink-mute); font-size: 13px; padding: 40px; }
 
   .responder {
     padding: 14px 18px; border-top: 1px solid var(--line);
@@ -302,10 +310,6 @@
   .senal-head svg { width: 14px; height: 14px; flex-shrink: 0; }
   .senal-evento { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; margin-top: 8px; font-weight: 600; }
   .senal-txt { font-size: 11px; color: var(--ink-soft); margin-top: 5px; line-height: 1.45; }
-  .senal-reintentar {
-    margin-top: 9px; font-size: 12px; font-weight: 600; padding: 6px 11px;
-    background: var(--ink); color: #fff; border-radius: 7px;
-  }
 
   .nota { width: 100%; min-height: 68px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 12px; resize: vertical; font-family: var(--body); }
 
@@ -366,10 +370,10 @@
       <div class="brand-sub">Panel de cliente</div>
     </div>
 
-    <button class="client-switcher">
+    <button class="client-switcher" id="switcher" type="button">
       <span>
         <span class="label">Cliente</span>
-        <span class="name">San Eusebio</span>
+        <span class="name" id="swNombre">—</span>
       </span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
     </button>
@@ -379,17 +383,17 @@
       <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>Resumen</button>
       <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>Contenido</button>
       <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Pauta</button>
-      <div class="nav-label">Clientes de San Eusebio</div>
-      <button class="nav-item active" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>Consultas<span class="badge" id="navBadge">8</span></button>
+      <div class="nav-label" id="navLabelCliente">—</div>
+      <button class="nav-item active" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>Consultas<span class="badge" id="navBadge">0</span></button>
       <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Reportes</button>
     </nav>
 
     <div class="sidebar-footer">
       <div class="user-card">
-        <div class="avatar">D</div>
+        <div class="avatar" id="userAvatar">·</div>
         <div>
-          <div class="user-name">Delfi Rodríguez</div>
-          <div class="user-role">Agencia · Admin</div>
+          <div class="user-name" id="userNombre">—</div>
+          <div class="user-role" id="userRol">—</div>
         </div>
       </div>
     </div>
@@ -400,11 +404,13 @@
     <div class="topbar">
       <div>
         <h1>Consultas de <em>WhatsApp</em></h1>
-        <p class="greeting">Todo lo que entró al número de San Eusebio, clasificado.</p>
+        <p class="greeting" id="greeting">—</p>
       </div>
       <div class="period-selector">
+        <button class="per-nav" id="mesPrev" type="button" aria-label="Mes anterior">‹</button>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        Septiembre 2026
+        <span id="mesLbl">—</span>
+        <button class="per-nav" id="mesNext" type="button" aria-label="Mes siguiente">›</button>
       </div>
     </div>
 
@@ -412,44 +418,39 @@
       <div class="kpi kpi-hero">
         <div class="kpi-label">Reservas cerradas</div>
         <div>
-          <div class="kpi-value" id="kReservas">23</div>
-          <div class="kpi-sub" id="kTasa">15,6% de las consultas del mes</div>
+          <div class="kpi-value" id="kReservas">0</div>
+          <div class="kpi-sub" id="kTasa">—</div>
         </div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Consultas</div>
         <div>
-          <div class="kpi-value" id="kTotal">147</div>
-          <div class="kpi-sub">+34 contra agosto</div>
+          <div class="kpi-value" id="kTotal">0</div>
+          <div class="kpi-sub">entraron este mes</div>
         </div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Interesados</div>
         <div>
-          <div class="kpi-value" id="kInteresados">41</div>
+          <div class="kpi-value" id="kInteresados">0</div>
           <div class="kpi-sub">Preguntaron y no cerraron</div>
         </div>
       </div>
       <div class="kpi kpi-alerta">
         <div class="kpi-label">Sin responder</div>
         <div>
-          <div class="kpi-value" id="kSin">8</div>
-          <div class="kpi-sub">La más vieja, hace 3 días</div>
+          <div class="kpi-value" id="kSin">0</div>
+          <div class="kpi-sub">esperan respuesta</div>
         </div>
       </div>
     </div>
 
     <section class="embudo">
       <div class="embudo-head">
-        <h2>Qué pasó con las 147 consultas</h2>
-        <p>Esto es lo que va al reporte de septiembre.</p>
+        <h2>Consultas del mes</h2>
+        <p id="embudoSub">—</p>
       </div>
-      <div class="embudo-barra" id="barra">
-        <div class="embudo-seg seg-reservo" style="flex-grow:23">23</div>
-        <div class="embudo-seg seg-interesado" style="flex-grow:41">41</div>
-        <div class="embudo-seg seg-no" style="flex-grow:75">75</div>
-        <div class="embudo-seg seg-sin" style="flex-grow:8">8</div>
-      </div>
+      <div class="embudo-barra" id="barra"></div>
       <div class="embudo-leyenda">
         <span><i class="punto" style="background:var(--lime)"></i>Reservó</span>
         <span><i class="punto" style="background:var(--cyan)"></i>Interesado, no cerró</span>
@@ -464,12 +465,12 @@
           <i class="punto" style="background:var(--accent)"></i>
           <h3>Vinieron de la pauta</h3>
         </div>
-        <div class="origen-tasa" id="pTasa">21,0%</div>
+        <div class="origen-tasa" id="pTasa">0%</div>
         <div class="origen-tasa-lbl">reservó</div>
         <div class="origen-detalle">
-          <div><b id="pConsultas">62</b>consultas</div>
-          <div><b id="pReservas">13</b>reservas</div>
-          <div><b id="pValor">$2,1M</b>facturado</div>
+          <div><b id="pConsultas">0</b>consultas</div>
+          <div><b id="pReservas">0</b>reservas</div>
+          <div><b id="pValor">$0</b>facturado</div>
         </div>
       </div>
       <div class="origen-card">
@@ -477,12 +478,12 @@
           <i class="punto" style="background:var(--ink-mute)"></i>
           <h3>Llegaron solos</h3>
         </div>
-        <div class="origen-tasa" id="oTasa">11,8%</div>
+        <div class="origen-tasa" id="oTasa">0%</div>
         <div class="origen-tasa-lbl">reservó</div>
         <div class="origen-detalle">
-          <div><b id="oConsultas">85</b>consultas</div>
-          <div><b id="oReservas">10</b>reservas</div>
-          <div><b id="oValor">$1,4M</b>facturado</div>
+          <div><b id="oConsultas">0</b>consultas</div>
+          <div><b id="oReservas">0</b>reservas</div>
+          <div><b id="oValor">$0</b>facturado</div>
         </div>
       </div>
     </section>
@@ -506,7 +507,7 @@
           <div class="lista" id="lista"></div>
           <div class="costo">
             <b>0 mensajes enviados por API este mes · USD 0.</b>
-            San Eusebio contesta desde su celular de siempre. El panel solo lee.
+            El negocio contesta desde su celular. El panel solo lee.
           </div>
         </div>
       </div>
@@ -518,7 +519,7 @@
             <button class="volver" id="volver" aria-label="Volver a la lista">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </button>
-            <div class="avatar" id="hAvatar">M</div>
+            <div class="avatar" id="hAvatar">·</div>
             <div>
               <div class="hilo-nom" id="hNom">—</div>
               <div class="hilo-tel" id="hTel">—</div>
@@ -526,7 +527,7 @@
           </div>
           <div class="mensajes" id="mensajes"></div>
           <div class="responder">
-            <p class="responder-txt">Las respuestas salen del celular de San Eusebio. Así no se paga por mensaje y el historial les queda en el teléfono.</p>
+            <p class="responder-txt">Las respuestas salen del celular del negocio. Así no se paga por mensaje y el historial le queda en el teléfono.</p>
             <a class="btn-wa" id="abrirWa" href="#" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
               Abrir en WhatsApp
@@ -573,7 +574,7 @@
             <div class="datos">
               <div class="dato"><span class="dato-k">Llegó por</span><span class="dato-v" id="dOrigen">—</span></div>
               <div class="dato"><span class="dato-k">Primera consulta</span><span class="dato-v" id="dPrimera">—</span></div>
-              <div class="dato"><span class="dato-k">Fecha que pidió</span><span class="dato-v" id="dFecha">—</span></div>
+              <div class="dato"><span class="dato-k">Último mensaje</span><span class="dato-v" id="dFecha">—</span></div>
               <div class="dato"><span class="dato-k">Veces que escribió</span><span class="dato-v" id="dVeces">—</span></div>
             </div>
           </div>
@@ -595,215 +596,43 @@
 (function () {
   'use strict';
 
-  // ── Conexión y control de acceso ────────────────────────────
-  // Igual que panel.html. Mientras este módulo muestre datos de
-  // ejemplo, solo la agencia puede verlo: un cliente que entre a
-  // comakers.com.ar/crm no tiene que ver conversaciones que no son
-  // suyas. El chequeo es contra profiles (RLS), no contra el DOM.
+  // ── Conexión ────────────────────────────────────────────────
   const LOGIN = 'login-comakers.html';
   const SB = supabase.createClient(
     'https://ggcstolnadkkqhsqpzql.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs'
   );
 
-  // ═══════════════════════════════════════════════════════════
-  //  DATOS MOCK
-  //  San Eusebio: cabañas y salón de eventos en las sierras de
-  //  Tandil. Las consultas son de temporada: fin de semana largo,
-  //  cumpleaños de 15, casamientos.
-  //
-  //  `origen` es el dato que después cierra el reporte: si la
-  //  conversación entró por un anuncio Click-to-WhatsApp, la
-  //  reserva se le puede atribuir a la pauta.
-  // ═══════════════════════════════════════════════════════════
-  var CONVS = [
-    {
-      id: 1, nom: 'Micaela Sosa', tel: '+54 9 249 415-8832', hora: '10:42',
-      estado: 'sin', origen: 'pauta', primera: '9 sep', fecha: 'Fin de semana largo de octubre',
-      veces: 2, nota: '',
-      msgs: [
-        { d: 'Hoy' },
-        { t: 'in', x: 'Hola! Vi el anuncio de las cabañas. Tienen para el finde largo de octubre?', h: '10:40' },
-        { t: 'in', x: 'Seríamos 4 adultos y 2 nenes', h: '10:42' }
-      ]
-    },
-    {
-      id: 2, nom: 'Familia Bertoldi', tel: '+54 9 249 468-1190', hora: '09:15',
-      estado: 'reservo', origen: 'pauta', primera: '4 sep', fecha: '17 al 19 de octubre',
-      veces: 9, nota: 'Seña transferida. Piden cabaña 3, la de la parrilla techada.',
-      msgs: [
-        { d: 'Lunes 8' },
-        { t: 'in', x: 'Buenas, queríamos la cabaña 3 del 17 al 19 de octubre', h: '18:22' },
-        { t: 'out', x: 'Hola Ana! Sí, está libre. Son $180.000 las dos noches, con seña del 30%.', h: '18:41' },
-        { t: 'in', x: 'Perfecto. A qué cuenta transfiero?', h: '19:03' },
-        { d: 'Hoy' },
-        { t: 'in', x: 'Listo, ya transferí la seña. Te paso el comprobante', h: '09:12' },
-        { t: 'out', x: 'Recibido, muchas gracias! Quedan confirmados. Nos vemos el 17 🌿', h: '09:15' }
-      ]
-    },
-    {
-      id: 3, nom: 'Lucía Ferrari', tel: '+54 9 11 5518-2276', hora: 'Ayer',
-      estado: 'interesado', origen: 'instagram', primera: '11 sep', fecha: 'Casamiento en marzo 2027',
-      veces: 5, nota: 'Le mandamos el PDF del salón. Dijo que lo habla con la mamá.',
-      msgs: [
-        { d: 'Ayer' },
-        { t: 'in', x: 'Hola! Hacen casamientos? Sería para marzo del año que viene, 120 personas', h: '16:08' },
-        { t: 'out', x: 'Hola Lucía! Sí, el salón entra hasta 150. Te paso la carpeta con las opciones.', h: '16:30' },
-        { t: 'in', x: 'Gracias! Lo veo con mi mamá y te confirmo la semana que viene', h: '17:45' }
-      ]
-    },
-    {
-      id: 4, nom: 'Rodrigo Paz', tel: '+54 9 249 403-7741', hora: 'Ayer',
-      estado: 'no', origen: 'directo', primera: '11 sep', fecha: 'Este sábado',
-      veces: 3, nota: 'Buscaba algo para esta semana, no había disponibilidad.',
-      msgs: [
-        { d: 'Ayer' },
-        { t: 'in', x: 'Tenés algo libre para este sábado? Somos 2', h: '12:20' },
-        { t: 'out', x: 'Hola Rodrigo, este finde estamos completos. Te aviso si se libera algo?', h: '12:55' },
-        { t: 'in', x: 'Dale, gracias igual', h: '13:02' }
-      ]
-    },
-    {
-      id: 5, nom: 'Verónica Iglesias', tel: '+54 9 2281 55-9034', hora: 'Ayer',
-      estado: 'sin', origen: 'pauta', primera: '11 sep', fecha: 'Cumpleaños de 15 en noviembre',
-      veces: 1, nota: '',
-      msgs: [
-        { d: 'Ayer' },
-        { t: 'in', x: 'Buenas tardes, quería saber precio del salón para un cumple de 15 en noviembre', h: '19:30' }
-      ]
-    },
-    {
-      id: 6, nom: 'Gastón Muñoz', tel: '+54 9 249 442-0158', hora: '10 sep',
-      estado: 'reservo', origen: 'directo', primera: '2 sep', fecha: '26 y 27 de septiembre',
-      veces: 7, nota: 'Ya vino en enero. Cliente repetido.',
-      msgs: [
-        { d: '10 de septiembre' },
-        { t: 'in', x: 'Hola! Soy Gastón, estuve en enero. Queremos volver el 26 y 27', h: '11:05' },
-        { t: 'out', x: 'Gastón! Claro que me acuerdo. Te reservo la misma cabaña?', h: '11:20' },
-        { t: 'in', x: 'Esa misma. Ya te paso la seña', h: '11:22' }
-      ]
-    },
-    {
-      id: 7, nom: 'Carla Zabaleta', tel: '+54 9 221 618-4409', hora: '10 sep',
-      estado: 'interesado', origen: 'pauta', primera: '10 sep', fecha: 'Diciembre, sin fecha cerrada',
-      veces: 4, nota: 'Quiere ver las cabañas antes. Vive en La Plata.',
-      msgs: [
-        { d: '10 de septiembre' },
-        { t: 'in', x: 'Hola, se pueden visitar las cabañas antes de reservar?', h: '14:12' },
-        { t: 'out', x: 'Hola Carla! Sí, con turno previo. Venís de Tandil o de afuera?', h: '14:40' },
-        { t: 'in', x: 'De La Plata, así que tendría que ser un finde', h: '15:01' }
-      ]
-    },
-    {
-      id: 8, nom: 'Empresa Acindar', tel: '+54 9 249 471-3320', hora: '9 sep',
-      estado: 'interesado', origen: 'directo', primera: '9 sep', fecha: 'Jornada de trabajo, noviembre',
-      veces: 6, nota: 'Necesitan factura A y proyector. Pidieron presupuesto formal.',
-      msgs: [
-        { d: '9 de septiembre' },
-        { t: 'in', x: 'Buen día, hacen eventos corporativos? Sería una jornada de 40 personas', h: '09:30' },
-        { t: 'out', x: 'Buen día! Sí, tenemos el salón con proyector y almuerzo. Les paso presupuesto.', h: '10:15' },
-        { t: 'in', x: 'Perfecto, necesitamos factura A', h: '10:20' }
-      ]
-    },
-    {
-      id: 9, nom: 'Julián Ríos', tel: '+54 9 249 456-7712', hora: '9 sep',
-      estado: 'sin', origen: 'instagram', primera: '9 sep', fecha: 'No dijo',
-      veces: 1, nota: '',
-      msgs: [
-        { d: '9 de septiembre' },
-        { t: 'in', x: 'hola, precios?', h: '22:48' }
-      ]
-    },
-    {
-      id: 10, nom: 'Natalia G.', tel: '+54 9 249 481-2264', hora: '8 sep',
-      estado: 'no', origen: 'pauta', primera: '8 sep', fecha: 'Pedía pet friendly',
-      veces: 2, nota: 'No aceptamos mascotas. Se perdió por eso.',
-      msgs: [
-        { d: '8 de septiembre' },
-        { t: 'in', x: 'Hola! Aceptan perros?', h: '17:10' },
-        { t: 'out', x: 'Hola Natalia, por ahora no aceptamos mascotas. Disculpá!', h: '17:35' }
-      ]
-    },
-    {
-      id: 11, nom: 'Marcos Duarte', tel: '+54 9 249 419-9083', hora: '7 sep',
-      estado: 'reservo', origen: 'pauta', primera: '5 sep', fecha: '3 al 5 de octubre',
-      veces: 8, nota: 'Aniversario. Pidieron decoración y desayuno en la cabaña.',
-      msgs: [
-        { d: '7 de septiembre' },
-        { t: 'in', x: 'Confirmamos el 3 al 5. Se puede pedir el desayuno en la cabaña?', h: '10:50' },
-        { t: 'out', x: 'Sí! Sin costo extra. Es por el aniversario, no? Les preparamos algo lindo 🌿', h: '11:12' },
-        { t: 'in', x: 'Sos un sol, gracias!!', h: '11:15' }
-      ]
-    },
-    {
-      id: 12, nom: 'Sofía Almada', tel: '+54 9 291 544-8871', hora: '7 sep',
-      estado: 'sin', origen: 'pauta', primera: '7 sep', fecha: 'Enero 2027',
-      veces: 1, nota: '',
-      msgs: [
-        { d: '7 de septiembre' },
-        { t: 'in', x: 'Hola, ya se puede reservar para enero? Venimos de Bahía Blanca', h: '20:15' }
-      ]
-    }
-  ];
+  // ── Estado ──────────────────────────────────────────────────
+  var YO = null, AGENCIA = false;
+  var CLIENTES = [], CLIENTE = null;
+  var MES = null;              // 'YYYY-MM'
+  var CONVS = [];              // conversaciones mapeadas del cliente+mes
+  var filtro = 'todas', busqueda = '', selId = null;
 
-  var ORIGENES = {
-    pauta: 'Anuncio de Instagram',
-    instagram: 'Perfil de Instagram',
-    directo: 'Escribió directo'
-  };
-  var NOMBRE_ESTADO = {
-    reservo: 'Reservó',
-    interesado: 'Está interesado',
-    no: 'No reservó',
-    sin: 'Sin responder'
-  };
-
-  // ── Datos de pauta ────────────────────────────────────────
-  // El `clid` es el ctwa_clid: el identificador que Meta genera cuando
-  // alguien toca un anuncio Click-to-WhatsApp. Llega en el objeto
-  // `referral` del webhook del primer mensaje y hay que guardarlo
-  // pegado a la conversación. Sin él, el evento de conversión se
-  // procesa igual pero Meta NO lo asocia al anuncio: falla en silencio.
-  var PAUTA = {
-    1:  { campana: 'Cabañas · Finde largo',    clid: 'ARBxk2Lm9QpTvN4eRj8sWc' },
-    2:  { campana: 'Cabañas · Finde largo',    clid: 'ARCp7YtEh3nKdM1oXz6bQa' },
-    5:  { campana: 'Salón · Cumple de 15',     clid: 'ARDm4WsUf8jHgP2vTq9cLe' },
-    7:  { campana: 'Cabañas · Escapada',       clid: 'AREj1RnDa5xCbV7uYk3mZo' },
-    10: { campana: 'Cabañas · Escapada',       clid: 'ARFq6MpBc2wGfL9iNe4tSh' },
-    11: { campana: 'Cabañas · Escapada',       clid: 'ARGz8KdXv4yJnQ3aHu7rTw' },
-    12: { campana: 'Cabañas · Finde largo',    clid: 'ARHc5TgZs7bNmR1pFj2wYx' }
-  };
-
-  // Monto de las reservas cerradas. Va en custom_data.value del evento
-  // Purchase. Sin monto, Meta optimiza por cantidad; con monto,
-  // optimiza por plata, que es lo que a San Eusebio le importa.
-  var VALOR = { 2: 180000, 6: 165000, 11: 240000 };
-
-  // Envíos que fallaron y siguen sin reintentarse. Este caso existe en
-  // el mock a propósito: cuando CAPI rechaza un evento no aparece un
-  // error en ningún lado, y si no se ve acá nadie se entera nunca.
-  var FALLADOS = { 11: true };
-
-  // Los números del mes que no están en la lista visible. La lista
-  // muestra 12 conversaciones, pero el mes tuvo 147: el resto vive acá
-  // para que los KPIs den bien sin cargar 147 hilos falsos.
-  // Separado por origen porque la comparación pauta / orgánico es
-  // justamente lo que justifica las dos cosas que le cobrás al cliente.
-  var RESTO = {
-    pauta:    { reservo: 11, interesado: 18, no: 26, sin: 0, valor: 1880000 },
-    organico: { reservo: 9,  interesado: 20, no: 47, sin: 4, valor: 1235000 }
-  };
-
-  var filtro = 'todas';
-  var busqueda = '';
-  var selId = 1;
+  var TZ = 'America/Argentina/Buenos_Aires';
+  var MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var ORIGENES = { pauta: 'Anuncio de Instagram', instagram: 'Perfil de Instagram', directo: 'Escribió directo' };
+  var NOMBRE_ESTADO = { reservo: 'Reservó', interesado: 'Está interesado', no: 'No reservó', sin: 'Sin responder' };
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   };
+
+  // El texto lo escriben desconocidos: SIEMPRE pasa por acá, nunca va
+  // crudo a innerHTML. Escapa todo, después reconoce links (con
+  // rel=noopener) y respeta los saltos de línea. Nada más: ni
+  // menciones ni formato, que acá no aplican.
+  function renderTexto(txt) {
+    var h = esc(txt == null ? '' : String(txt));
+    h = h.replace(/(https?:\/\/[^\s<]+)/g, function (u) {
+      return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + '</a>';
+    });
+    return h.replace(/\n/g, '<br>');
+  }
 
   function toast(msg) {
     var t = document.createElement('div');
@@ -816,29 +645,94 @@
     }, 2400);
   }
 
-  // ── Lógica de eventos CAPI ────────────────────────────────
-  // Dos eventos, no uno. `Lead` tiene mucho más volumen (41 por mes
-  // contra 23) y es lo que le da al algoritmo material para aprender;
-  // `Purchase` lleva el monto y es lo que se mide. Se optimiza la
-  // campaña por Lead y se reporta por Purchase.
+  // ── Eventos CAPI (derivado del estado) ───────────────────────
+  // Dos eventos: 'Lead' (interesado) y 'Purchase' (reservó). 'no' y
+  // 'sin' no le dicen nada a Meta. El evento NO se manda desde acá: el
+  // trigger de la base lo encola y la Edge Function capi-evento lo
+  // manda. Esto es solo para mostrar qué se va a informar.
   function eventoDe(c) {
     if (c.estado === 'reservo') return 'Purchase';
     if (c.estado === 'interesado') return 'Lead';
-    return null; // "no reservó" y "sin responder" no le dicen nada a Meta
+    return null;
   }
 
   function plata(n) {
+    n = Number(n) || 0;
     if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.', ',') + 'M';
     if (n >= 1000) return '$' + Math.round(n / 1000) + 'k';
     return '$' + n;
   }
 
   function iniciales(n) {
-    var p = n.trim().split(/\s+/);
+    var p = String(n || '').trim().split(/\s+/).filter(Boolean);
+    if (!p.length) return '·';
     return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
   }
 
-  // ── Bandeja ──────────────────────────────────────────────
+  // ── Fechas, todas en hora de Buenos Aires ────────────────────
+  function mesActualBA() {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+  }
+  function mesLabel(m) { var p = m.split('-'); return MESES_ES[parseInt(p[1], 10) - 1] + ' ' + p[0]; }
+  function mesMas(m, delta) {
+    var p = m.split('-');
+    var d = new Date(Date.UTC(parseInt(p[0], 10), parseInt(p[1], 10) - 1 + delta, 1));
+    return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
+  }
+  function rangoMes(m) { return [m + '-01', mesMas(m, 1) + '-01']; }
+  function diaBA(iso) {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+  }
+  function fmtHora(iso) {
+    if (!iso) return '';
+    return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso));
+  }
+  function fmtDiaSep(iso) {
+    if (!iso) return '';
+    var d = diaBA(iso), hoy = diaBA(new Date().toISOString());
+    if (d === hoy) return 'Hoy';
+    if (d === diaBA(new Date(Date.now() - 86400000).toISOString())) return 'Ayer';
+    return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, day: 'numeric', month: 'long' }).format(new Date(iso));
+  }
+  function fmtHoraLista(iso) {
+    if (!iso) return '';
+    var d = diaBA(iso), hoy = diaBA(new Date().toISOString());
+    if (d === hoy) return fmtHora(iso);
+    if (d === diaBA(new Date(Date.now() - 86400000).toISOString())) return 'Ayer';
+    return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, day: 'numeric', month: 'short' }).format(new Date(iso));
+  }
+  function fmtFechaCorta(iso) {
+    if (!iso) return '—';
+    return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, day: 'numeric', month: 'short' }).format(new Date(iso));
+  }
+
+  // ── Mapeo de la base al modelo del panel ─────────────────────
+  function mapConv(c, msgs) {
+    var hilo = [], dia = null;
+    msgs.forEach(function (m) {
+      var d = fmtDiaSep(m.enviado_en);
+      if (d && d !== dia) { hilo.push({ d: d }); dia = d; }
+      hilo.push({ t: m.entrante ? 'in' : 'out', x: m.texto || '', h: fmtHora(m.enviado_en) });
+    });
+    return {
+      id: c.id,
+      nom: c.nombre || ('+' + c.telefono),
+      tel: '+' + c.telefono,
+      telDigits: String(c.telefono || '').replace(/\D/g, ''),
+      estado: c.estado,
+      origen: c.origen,
+      campana: c.campana,
+      valor: c.valor == null ? null : Number(c.valor),
+      nota: c.nota || '',
+      creado_en: c.creado_en,
+      ultimo_en: c.ultimo_en || c.creado_en,
+      hora: fmtHoraLista(c.ultimo_en || c.creado_en),
+      veces: msgs.filter(function (m) { return m.entrante; }).length,
+      msgs: hilo
+    };
+  }
+
+  // ── Bandeja ──────────────────────────────────────────────────
   function visibles() {
     var q = busqueda.trim().toLowerCase();
     return CONVS.filter(function (c) {
@@ -848,15 +742,23 @@
     });
   }
 
+  function etiquetaOrigen(c) {
+    if (c.origen === 'pauta') return c.campana || 'Anuncio de Instagram';
+    return ORIGENES[c.origen] || c.origen;
+  }
+
   function renderLista() {
     var v = visibles();
     if (!v.length) {
-      $('lista').innerHTML = '<div class="lista-vacia">Nada con ese filtro.<br>Probá con "Todas".</div>';
+      $('lista').innerHTML = '<div class="lista-vacia">' +
+        (CONVS.length ? 'Nada con ese filtro.<br>Probá con "Todas".'
+                      : 'Todavía no hay consultas este mes.') + '</div>';
       return;
     }
     $('lista').innerHTML = v.map(function (c) {
-      var ultimo = c.msgs.filter(function (m) { return m.x; }).slice(-1)[0];
-      return '<button class="conv' + (c.id === selId ? ' sel' : '') + '" data-id="' + c.id + '">' +
+      var ultimo = null;
+      for (var i = c.msgs.length - 1; i >= 0; i--) { if (c.msgs[i].x !== undefined) { ultimo = c.msgs[i]; break; } }
+      return '<button class="conv' + (c.id === selId ? ' sel' : '') + '" data-id="' + esc(c.id) + '">' +
         '<span class="conv-top">' +
           '<span class="conv-nom">' + esc(c.nom) + '</span>' +
           '<span class="conv-hora">' + esc(c.hora) + '</span>' +
@@ -865,35 +767,47 @@
         '<div class="conv-meta">' +
           '<span class="chip chip-' + c.estado + '">' + NOMBRE_ESTADO[c.estado] + '</span>' +
           '<span class="chip chip-origen' + (c.origen === 'pauta' ? ' pauta' : '') + '">' +
-            esc(c.origen === 'pauta' ? PAUTA[c.id].campana : ORIGENES[c.origen]) + '</span>' +
+            esc(etiquetaOrigen(c)) + '</span>' +
         '</div>' +
       '</button>';
     }).join('');
   }
 
-  // ── Hilo + ficha ─────────────────────────────────────────
+  // ── Hilo + ficha ─────────────────────────────────────────────
   function actual() {
+    if (!CONVS.length) return null;
     return CONVS.filter(function (c) { return c.id === selId; })[0] || CONVS[0];
   }
 
   function renderHilo() {
     var c = actual();
+    if (!c) {
+      $('hNom').textContent = '—'; $('hTel').textContent = '—'; $('hAvatar').textContent = '·';
+      $('abrirWa').removeAttribute('href');
+      $('mensajes').innerHTML = '<div class="hilo-vacio">Elegí una conversación de la lista.</div>';
+      $('dOrigen').textContent = '—'; $('dPrimera').textContent = '—';
+      $('dFecha').textContent = '—'; $('dVeces').textContent = '—';
+      $('nota').value = '';
+      $('senal').innerHTML = '';
+      Array.prototype.forEach.call(document.querySelectorAll('.estado-btn'), function (b) { b.classList.remove('on'); });
+      return;
+    }
     $('hNom').textContent = c.nom;
     $('hTel').textContent = c.tel;
     $('hAvatar').textContent = iniciales(c.nom);
-    $('abrirWa').href = 'https://wa.me/' + c.tel.replace(/\D/g, '');
+    $('abrirWa').href = 'https://wa.me/' + c.telDigits;
 
     $('mensajes').innerHTML = c.msgs.map(function (m) {
       if (m.d) return '<div class="dia">' + esc(m.d) + '</div>';
-      return '<div class="msg msg-' + m.t + '">' + esc(m.x) +
+      return '<div class="msg msg-' + m.t + '">' + renderTexto(m.x) +
         '<span class="msg-hora">' + esc(m.h) + '</span></div>';
     }).join('');
     $('mensajes').scrollTop = $('mensajes').scrollHeight;
 
-    $('dOrigen').textContent = c.origen === 'pauta' ? PAUTA[c.id].campana : ORIGENES[c.origen];
+    $('dOrigen').textContent = etiquetaOrigen(c);
     renderSenal(c);
-    $('dPrimera').textContent = c.primera;
-    $('dFecha').textContent = c.fecha;
+    $('dPrimera').textContent = fmtFechaCorta(c.creado_en);
+    $('dFecha').textContent = fmtFechaCorta(c.ultimo_en);
     $('dVeces').textContent = c.veces;
     $('nota').value = c.nota;
 
@@ -903,56 +817,44 @@
   }
 
   var ICONO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-  var ICONO_ERR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
   var ICONO_NA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
 
+  // La tarjeta muestra QUÉ se le informa a Meta, derivado del estado y
+  // el origen. El estado de entrega real (ok/rechazado) vive en
+  // evento_capi, que el panel no puede leer a propósito (solo
+  // service_role): por eso acá no se promete "recibido", se dice que
+  // se encola.
   function renderSenal(c) {
     var box = $('senal');
     var ev = eventoDe(c);
 
-    // Sin clic de anuncio no hay ctwa_clid, y sin ctwa_clid Meta no
-    // puede atribuir nada. Estas conversaciones sirven para el reporte
-    // pero no alimentan la pauta.
     if (c.origen !== 'pauta') {
       box.className = 'senal';
-      box.innerHTML = '<div class="senal-head">' + ICONO_NA + 'No se envía</div>' +
+      box.innerHTML = '<div class="senal-head">' + ICONO_NA + 'No se informa</div>' +
         '<p class="senal-txt">Esta persona no llegó por un anuncio, así que no hay clic que Meta pueda reconocer. Cuenta para el reporte, no para la pauta.</p>';
       return;
     }
-
     if (!ev) {
       box.className = 'senal';
-      box.innerHTML = '<div class="senal-head">' + ICONO_NA + 'Sin enviar</div>' +
-        '<p class="senal-txt">Marcala como reservó o interesado y sale el evento. Un "no reservó" no se le informa a Meta.</p>';
+      box.innerHTML = '<div class="senal-head">' + ICONO_NA + 'Sin informar</div>' +
+        '<p class="senal-txt">Marcala como reservó o interesado y se encola el evento para Meta. Un "no reservó" no se informa.</p>';
       return;
     }
-
-    if (FALLADOS[c.id]) {
-      box.className = 'senal error';
-      box.innerHTML = '<div class="senal-head">' + ICONO_ERR + 'Meta rechazó el evento</div>' +
-        '<div class="senal-evento">' + ev + '</div>' +
-        '<p class="senal-txt">El token de la cuenta venció. Esta reserva no le llegó al algoritmo.</p>' +
-        '<button class="senal-reintentar" data-reintentar="' + c.id + '">Reintentar envío</button>';
-      return;
-    }
-
-    var monto = ev === 'Purchase' && VALOR[c.id] ? ' · ' + plata(VALOR[c.id]) : '';
+    var monto = ev === 'Purchase' && c.valor ? ' · ' + plata(c.valor) : '';
     box.className = 'senal ok';
-    box.innerHTML = '<div class="senal-head">' + ICONO_OK + 'Recibido por Meta</div>' +
+    box.innerHTML = '<div class="senal-head">' + ICONO_OK + 'Se informa a Meta</div>' +
       '<div class="senal-evento">' + ev + monto + '</div>' +
-      '<p class="senal-txt">Atribuido a “' + esc(PAUTA[c.id].campana) + '”. El algoritmo ahora busca gente parecida a esta.</p>';
+      '<p class="senal-txt">Atribuido a “' + esc(c.campana || 'la campaña') + '”. El panel marca el estado y un proceso del servidor le avisa a Meta para que el anuncio busque gente parecida.</p>';
   }
 
-  // ── KPIs y embudo ────────────────────────────────────────
+  // ── KPIs y embudo ────────────────────────────────────────────
+  function cero() { return { reservo: 0, interesado: 0, no: 0, sin: 0, valor: 0 }; }
   function contar() {
-    var g = {
-      pauta:    { reservo: RESTO.pauta.reservo, interesado: RESTO.pauta.interesado, no: RESTO.pauta.no, sin: RESTO.pauta.sin, valor: RESTO.pauta.valor },
-      organico: { reservo: RESTO.organico.reservo, interesado: RESTO.organico.interesado, no: RESTO.organico.no, sin: RESTO.organico.sin, valor: RESTO.organico.valor }
-    };
+    var g = { pauta: cero(), organico: cero() };
     CONVS.forEach(function (c) {
       var k = c.origen === 'pauta' ? 'pauta' : 'organico';
-      g[k][c.estado]++;
-      if (c.estado === 'reservo' && VALOR[c.id]) g[k].valor += VALOR[c.id];
+      if (g[k][c.estado] !== undefined) g[k][c.estado]++;
+      if (c.estado === 'reservo' && c.valor) g[k].valor += c.valor;
     });
     g.pauta.total = g.pauta.reservo + g.pauta.interesado + g.pauta.no + g.pauta.sin;
     g.organico.total = g.organico.reservo + g.organico.interesado + g.organico.no + g.organico.sin;
@@ -972,7 +874,6 @@
     var n = g.todo;
     var total = n.reservo + n.interesado + n.no + n.sin;
 
-    // Pauta vs orgánico
     $('pTasa').textContent = pct(g.pauta.reservo, g.pauta.total);
     $('pConsultas').textContent = g.pauta.total;
     $('pReservas').textContent = g.pauta.reservo;
@@ -985,11 +886,15 @@
     var tp = g.pauta.total ? g.pauta.reservo / g.pauta.total : 0;
     var to = g.organico.total ? g.organico.reservo / g.organico.total : 0;
     var veces = to ? (tp / to) : 0;
-    $('cierre').innerHTML = veces >= 1.05
-      ? 'El que llega por un anuncio reserva <b>' + veces.toFixed(1).replace('.', ',') + ' veces más</b> que el que escribe por su cuenta. Cada reserva marcada acá vuelve a Meta y hace que el anuncio busque gente más parecida a la que ya reservó.'
-      : 'Por ahora la pauta y lo orgánico convierten parecido. Cuantas más reservas marques, más material tiene Meta para encontrar a los que sí compran.';
-    var tasa = total ? (n.reservo / total * 100) : 0;
+    if (!total) {
+      $('cierre').innerHTML = 'Todavía no hay consultas este mes. Cuando entren, acá aparece la comparación entre lo que trajo la pauta y lo que llegó solo.';
+    } else if (veces >= 1.05) {
+      $('cierre').innerHTML = 'El que llega por un anuncio reserva <b>' + veces.toFixed(1).replace('.', ',') + ' veces más</b> que el que escribe por su cuenta. Cada reserva marcada acá vuelve a Meta y hace que el anuncio busque gente más parecida a la que ya reservó.';
+    } else {
+      $('cierre').innerHTML = 'Por ahora la pauta y lo orgánico convierten parecido. Cuantas más reservas marques, más material tiene Meta para encontrar a los que sí compran.';
+    }
 
+    var tasa = total ? (n.reservo / total * 100) : 0;
     $('kReservas').textContent = n.reservo;
     $('kTotal').textContent = total;
     $('kInteresados').textContent = n.interesado;
@@ -1004,14 +909,98 @@
         (s[1] ? s[1] : '') + '</div>';
     }).join('');
 
-    document.querySelector('.embudo-head h2').textContent = 'Qué pasó con las ' + total + ' consultas';
+    document.querySelector('.embudo-head h2').textContent =
+      total ? ('Qué pasó con las ' + total + ' consultas') : 'Consultas del mes';
+    $('embudoSub').textContent = 'Esto es lo que va al reporte de ' + mesLabel(MES) + '.';
   }
 
-  // ── Eventos ──────────────────────────────────────────────
+  function renderTodo() { renderLista(); renderHilo(); renderNumeros(); }
+
+  // ── Carga de datos ───────────────────────────────────────────
+  async function cargarCliente() {
+    $('lista').innerHTML = '<div class="lista-vacia">Cargando…</div>';
+    $('mesLbl').textContent = mesLabel(MES);
+    $('mesNext').disabled = MES >= mesActualBA();
+
+    var rango = rangoMes(MES);
+    var res = await SB.from('conversacion')
+      .select('id, telefono, nombre, estado, origen, ad_id, campana, valor, nota, ultimo_en, creado_en')
+      .eq('cliente_id', CLIENTE.id)
+      .gte('creado_en', rango[0]).lt('creado_en', rango[1])
+      .order('ultimo_en', { ascending: false, nullsFirst: false });
+
+    if (res.error) {
+      CONVS = [];
+      $('lista').innerHTML = '<div class="lista-vacia">No se pudieron cargar las consultas.</div>';
+      renderHilo(); renderNumeros();
+      return;
+    }
+
+    var convs = res.data || [];
+    var ids = convs.map(function (c) { return c.id; });
+    var porConv = {};
+    if (ids.length) {
+      var rm = await SB.from('mensaje')
+        .select('conversacion_id, entrante, texto, enviado_en')
+        .in('conversacion_id', ids)
+        .order('enviado_en', { ascending: true });
+      (rm.data || []).forEach(function (m) {
+        (porConv[m.conversacion_id] = porConv[m.conversacion_id] || []).push(m);
+      });
+    }
+
+    CONVS = convs.map(function (c) { return mapConv(c, porConv[c.id] || []); });
+    selId = (CONVS.filter(function (c) { return c.id === selId; })[0] || CONVS[0] || {}).id || null;
+    $('crm').classList.remove('viendo-hilo');
+    renderTodo();
+  }
+
+  function cambiarMes(delta) {
+    var nuevo = mesMas(MES, delta);
+    if (nuevo > mesActualBA()) return;   // no vamos al futuro
+    MES = nuevo;
+    cargarCliente();
+  }
+
+  // ── Sidebar ──────────────────────────────────────────────────
+  function construirSidebar() {
+    $('navLabelCliente').textContent = CLIENTE ? CLIENTE.nombre : '—';
+    $('greeting').textContent = 'Todo lo que entró al número de ' + (CLIENTE ? CLIENTE.nombre : '—') + ', clasificado.';
+    $('userNombre').textContent = YO.nombre || '—';
+    $('userRol').textContent = YO.super_admin ? 'Agencia · Admin' : (AGENCIA ? 'Agencia' : 'Cliente');
+    $('userAvatar').textContent = iniciales(YO.nombre || '·');
+
+    var sw = $('switcher');
+    if (AGENCIA && CLIENTES.length > 1) {
+      sw.innerHTML = '<span style="min-width:0"><span class="label" style="display:block">Cliente</span>' +
+        '<select id="selCliente" aria-label="Elegir cliente">' +
+        CLIENTES.map(function (c) {
+          return '<option value="' + esc(c.id) + '"' + (c.id === CLIENTE.id ? ' selected' : '') + '>' + esc(c.nombre) + '</option>';
+        }).join('') + '</select></span>' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+      $('selCliente').addEventListener('change', function (e) {
+        CLIENTE = CLIENTES.filter(function (c) { return c.id === e.target.value; })[0] || CLIENTE;
+        try { history.replaceState(null, '', '?c=' + encodeURIComponent(CLIENTE.slug || '')); } catch (x) {}
+        selId = null;
+        construirSidebar();
+        cargarCliente();
+      });
+    } else {
+      $('swNombre').textContent = CLIENTE ? CLIENTE.nombre : '—';
+    }
+  }
+
+  function mostrarAviso(titulo, sub) {
+    $('gateMsg').innerHTML = '<strong>' + esc(titulo) + '</strong>' +
+      (sub ? '<br>' + esc(sub) : '') +
+      '<br><br>Volvé al <a href="panel.html">panel</a>.';
+  }
+
+  // ── Listeners ────────────────────────────────────────────────
   $('lista').addEventListener('click', function (e) {
     var b = e.target.closest('.conv');
     if (!b) return;
-    selId = Number(b.dataset.id);
+    selId = b.dataset.id;
     renderLista();
     renderHilo();
     $('crm').classList.add('viendo-hilo');
@@ -1036,73 +1025,90 @@
     renderLista();
   });
 
-  $('estados').addEventListener('click', function (e) {
+  $('mesPrev').addEventListener('click', function () { if (CLIENTE) cambiarMes(-1); });
+  $('mesNext').addEventListener('click', function () { if (CLIENTE) cambiarMes(1); });
+
+  // Clasificar: update sobre conversacion.estado. Optimista, y si el
+  // update falla se revierte. El grant por columna (migración 46) solo
+  // deja tocar estado/nota/valor.
+  $('estados').addEventListener('click', async function (e) {
     var b = e.target.closest('.estado-btn');
     if (!b) return;
     var c = actual();
-    if (c.estado === b.dataset.e) return;
-    c.estado = b.dataset.e;
-    renderHilo();
-    renderLista();
-    renderNumeros();
+    if (!c || c.estado === b.dataset.e) return;
+    var antes = c.estado, nuevo = b.dataset.e;
+    c.estado = nuevo;
+    renderHilo(); renderLista(); renderNumeros();
 
-    var ev = eventoDe(c);
-    if (c.origen === 'pauta' && ev && !FALLADOS[c.id]) {
-      toast(NOMBRE_ESTADO[c.estado] + ' · evento ' + ev + ' enviado a Meta');
-    } else {
-      toast(c.nom + ' → ' + NOMBRE_ESTADO[c.estado]);
+    var res = await SB.from('conversacion').update({ estado: nuevo }).eq('id', c.id);
+    if (res.error) {
+      c.estado = antes;
+      renderHilo(); renderLista(); renderNumeros();
+      toast('No se pudo guardar el estado.');
+      return;
     }
+    toast(NOMBRE_ESTADO[nuevo] + ' · guardado');
   });
 
-  $('senal').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-reintentar]');
-    if (!b) return;
-    delete FALLADOS[Number(b.dataset.reintentar)];
-    renderSenal(actual());
-    toast('Evento reenviado. Meta lo recibió.');
+  $('nota').addEventListener('change', async function (e) {
+    var c = actual();
+    if (!c) return;
+    var val = e.target.value;
+    c.nota = val;
+    var res = await SB.from('conversacion').update({ nota: val }).eq('id', c.id);
+    toast(res.error ? 'No se pudo guardar la nota.' : 'Nota guardada');
   });
 
-  $('nota').addEventListener('change', function (e) {
-    actual().nota = e.target.value;
-    toast('Nota guardada');
-  });
-
-  // ── Gate de acceso ───────────────────────────────────────
-  // Nadie ve el panel hasta que esto confirme agencia. El .app
-  // arranca en display:none por CSS; recién acá se lo revela.
+  // ── Arranque y control de acceso ─────────────────────────────
   async function arrancar() {
-    let session = null;
-    try {
-      const r = await SB.auth.getSession();
-      session = r.data && r.data.session;
-    } catch (e) { session = null; }
-
+    var session = null;
+    try { var r = await SB.auth.getSession(); session = r.data && r.data.session; } catch (e) {}
     if (!session) { location.replace(LOGIN); return; }
 
-    let perfil = null;
     try {
-      const r = await SB.from('profiles')
-        .select('tipo, super_admin').eq('id', session.user.id).single();
-      perfil = r.data;
-    } catch (e) { perfil = null; }
+      var rp = await SB.from('profiles').select('nombre, tipo, super_admin').eq('id', session.user.id).single();
+      YO = rp.data || { nombre: '' };
+    } catch (e) { YO = { nombre: '' }; }
+    AGENCIA = !!(YO.tipo === 'agencia' || YO.super_admin);
 
-    const agencia = !!(perfil && (perfil.tipo === 'agencia' || perfil.super_admin));
+    // Clientes accesibles (RLS): la agencia ve los de su agencia, el
+    // cliente ve el/los suyos.
+    var cls = [];
+    try {
+      var rc = await SB.from('clientes').select('id, nombre, slug, activo').order('nombre');
+      cls = rc.data || [];
+    } catch (e) {}
+    CLIENTES = cls.filter(function (c) { return c.activo !== false; });
 
-    if (!agencia) {
-      // Cliente (o perfil que no se pudo leer): no se muestra nada.
-      $('gateMsg').innerHTML =
-        '<strong>Este módulo todavía no está disponible.</strong><br>' +
-        'Las consultas de WhatsApp se están preparando. ' +
-        'Volvé al <a href="panel.html">panel</a>.';
+    if (!CLIENTES.length) {
+      mostrarAviso('No tenés acceso a ningún cliente.',
+        AGENCIA ? '' : 'Pedile a la agencia que te habilite el módulo de consultas.');
       return;
     }
 
-    // Agencia: se monta el panel y se revela.
+    var q = new URLSearchParams(location.search).get('c');
+    CLIENTE = CLIENTES.filter(function (c) { return c.slug === q; })[0] || CLIENTES[0];
+
+    // El cliente solo entra si tiene el módulo CRM prendido. La agencia
+    // entra siempre (la RLS igual la limita a sus clientes).
+    if (!AGENCIA) {
+      var activo = false;
+      try {
+        var rmod = await SB.from('cliente_modulo').select('activo')
+          .eq('cliente_id', CLIENTE.id).eq('modulo', 'crm').maybeSingle();
+        activo = !!(rmod.data && rmod.data.activo);
+      } catch (e) {}
+      if (!activo) {
+        mostrarAviso('El módulo de consultas no está habilitado para este cliente.', '');
+        return;
+      }
+    }
+
+    MES = mesActualBA();
     $('gate').style.display = 'none';
     document.querySelector('.app').classList.add('listo');
-    renderLista();
-    renderHilo();
-    renderNumeros();
+    construirSidebar();
+    await cargarCliente();
   }
 
   arrancar();
