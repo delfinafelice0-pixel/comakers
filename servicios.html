@@ -99,6 +99,20 @@
   .svc2 .incl li{display:flex;gap:12px;font-size:15.5px;color:var(--ink-soft);align-items:flex-start;}
   .svc2-role{font-size:15px;color:var(--ink-soft);border-left:3px solid var(--lima);padding-left:14px;}
   .svc2-role b{color:var(--ink);font-weight:600;}
+  /* ===== selector Mensuales / Puntuales (estética de las pills del nav) ===== */
+  .seg-wrap{max-width:1120px;margin:0 auto;padding:56px 40px 0;}
+  .seg{display:inline-flex;gap:4px;padding:5px;background:rgba(255,255,255,.72);border:1.5px solid var(--ink);border-radius:999px;}
+  .seg-btn{font:600 16px/1.2 var(--body);color:var(--ink-soft);background:none;border:none;border-radius:999px;padding:12px 28px;cursor:pointer;transition:background .2s,color .2s;}
+  .seg-btn:hover{color:var(--ink);background:rgba(211,255,153,.5);}
+  .seg-btn[aria-selected="true"]{background:var(--lima);color:var(--ink);}
+  .seg-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .svc-group[hidden]{display:none;}
+  @media(max-width:760px){
+    .seg-wrap{padding:40px 16px 0;}
+    .seg{display:flex;}
+    .seg-btn{flex:1 1 0;padding:13px 10px;}
+    .svc2 .wrap{padding:44px 22px;}
+  }
   .svc2-video .vreel{max-width:300px;margin:0;}
   .svc2.flip .svc2-video .vreel{margin-left:auto;}
   .vreel-ph{aspect-ratio:9/16;border-radius:20px;border:1.5px dashed var(--ink);background:#0e0b1f;position:relative;max-width:300px;}
@@ -215,62 +229,21 @@
 
 <div class="band">
   <div class="band-track">
-    <span>One Shot, Co-Creación, Creación Completa, Pauta, Plan Despegue, Landing,&nbsp;</span>
-    <span>One Shot, Co-Creación, Creación Completa, Pauta, Plan Despegue, Landing,&nbsp;</span>
+    <span>Co-Creación, Creación Completa, Pauta, Plan Despegue, One Shot, Sitio / Landing, Tienda Nube, Edición de video,&nbsp;</span>
+    <span>Co-Creación, Creación Completa, Pauta, Plan Despegue, One Shot, Sitio / Landing, Tienda Nube, Edición de video,&nbsp;</span>
   </div>
 </div>
 
-<!-- 01 -->
-<!-- ===== GRUPO: DE UNA SOLA VEZ ===== -->
-<div class="svc-group-head">
-  <span class="eyebrow reveal">de una sola vez</span>
-  <h2 class="reveal">Servicios puntuales.</h2>
-  <p class="sub reveal">Un trabajo concreto, con principio y fin. Ideal para arrancar o para un objetivo específico.</p>
+<!-- ===== SELECTOR MENSUALES / PUNTUALES ===== -->
+<div class="seg-wrap">
+  <div class="seg" role="tablist" aria-label="Tipo de servicio">
+    <button class="seg-btn" role="tab" id="tab-mensuales" aria-controls="grupo-mensuales" aria-selected="true" data-group="mensuales">Mensuales</button>
+    <button class="seg-btn" role="tab" id="tab-puntuales" aria-controls="grupo-puntuales" aria-selected="false" data-group="puntuales">Puntuales</button>
+  </div>
 </div>
-<section class="svc2" id="one-shot">
-  <div class="wrap">
-    <div class="svc2-text">
-      <span class="svc2-name">Reunión One Shot</span>
-      <p class="svc2-tag">Tu Instagram, sin fricciones.</p>
-      <p class="svc2-desc">Una reunión intensiva donde analizamos tu perfil desde los ojos de tu cliente ideal y lo dejamos listo para convertir visitas en ventas.</p>
-      <ul class="incl">
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Análisis del perfil desde la mirada del usuario</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimización de nombre, biografía y foto de perfil</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Revisión de modos de contacto y links en bio</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Identificación de oportunidades de mejora</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Documento con todos los puntos trabajados</span></li>
-      </ul>
-      <p class="svc2-role"><b>Tu rol:</b> Participás de la reunión y luego implementás los cambios. Nosotras te guiamos en cada paso.</p>
-    </div>
-    <div class="svc2-video"><div class="vreel">
-          <video preload="none" playsinline poster="edicion.jpg">
-            <source src="edicion.mp4" type="video/mp4">
-            <div class="poster-fallback">Subí edicion.mp4</div>
-          </video>
-          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
-        </div></div>
-  </div>
-</section>
-<section class="svc2 flip" id="landing">
-  <div class="wrap">
-    <div class="svc2-text">
-      <span class="svc2-name">Creación de landing</span>
-      <p class="svc2-tag">Una página que convierte, no solo que se ve linda.</p>
-      <p class="svc2-desc">Diseñamos y programamos tu landing a medida — pensada para que quien entra entienda tu marca y haga lo que buscás: comprar, reservar o escribirte.</p>
-      <ul class="incl">
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Diseño a medida con tu identidad de marca</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Copy y estructura pensados para convertir</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimizada para celular y para que cargue rápido</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Botones directos a WhatsApp, Instagram o tienda</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Lista para publicar en tu propio dominio</span></li>
-      </ul>
-      <p class="svc2-role"><b>Tu rol:</b> Nos contás de tu marca y tus objetivos; nosotras diseñamos, escribimos y programamos. Vos aprobás y sale a la calle.</p>
-    </div>
-    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
-  </div>
-</section>
 
 <!-- ===== GRUPO: MES A MES ===== -->
+<div class="svc-group" id="grupo-mensuales" role="tabpanel" aria-labelledby="tab-mensuales" data-group="mensuales">
 <div class="svc-group-head">
   <span class="eyebrow reveal">mes a mes</span>
   <h2 class="reveal">Acompañamiento continuo.</h2>
@@ -347,6 +320,93 @@
     <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
   </div>
 </section>
+</div>
+
+<!-- ===== GRUPO: DE UNA SOLA VEZ ===== -->
+<div class="svc-group" id="grupo-puntuales" role="tabpanel" aria-labelledby="tab-puntuales" data-group="puntuales" hidden>
+<div class="svc-group-head">
+  <span class="eyebrow reveal">de una sola vez</span>
+  <h2 class="reveal">Servicios puntuales.</h2>
+  <p class="sub reveal">Un proyecto concreto, con principio y fin. Ideal para arrancar o para un objetivo específico.</p>
+</div>
+<section class="svc2" id="one-shot">
+  <div class="wrap">
+    <div class="svc2-text">
+      <span class="svc2-name">Reunión One Shot</span>
+      <p class="svc2-tag">Tu Instagram, sin fricciones.</p>
+      <p class="svc2-desc">Una reunión intensiva donde analizamos tu perfil desde los ojos de tu cliente ideal y lo dejamos listo para convertir visitas en ventas.</p>
+      <ul class="incl">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Análisis del perfil desde la mirada del usuario</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimización de nombre, biografía y foto de perfil</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Revisión de modos de contacto y links en bio</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Identificación de oportunidades de mejora</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Documento con todos los puntos trabajados</span></li>
+      </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Participás de la reunión y luego implementás los cambios. Nosotras te guiamos en cada paso.</p>
+    </div>
+    <div class="svc2-video"><div class="vreel">
+          <video preload="none" playsinline poster="edicion.jpg">
+            <source src="edicion.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí edicion.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir"><span class="circle"><svg viewBox="0 0 24 24"><path d="M6 4 L20 12 L6 20 Z"/></svg></span></button>
+        </div></div>
+  </div>
+</section>
+<section class="svc2 flip" id="landing">
+  <div class="wrap">
+    <div class="svc2-text">
+      <span class="svc2-name">Creación de sitio / landing</span>
+      <p class="svc2-tag">Una página que convierte, no solo que se ve linda.</p>
+      <p class="svc2-desc">Diseñamos y programamos tu landing a medida — pensada para que quien entra entienda tu marca y haga lo que buscás: comprar, reservar o escribirte.</p>
+      <ul class="incl">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Diseño a medida con tu identidad de marca</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Copy y estructura pensados para convertir</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimizada para celular y para que cargue rápido</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Botones directos a WhatsApp, Instagram o tienda</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Lista para publicar en tu propio dominio</span></li>
+      </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Nos contás de tu marca y tus objetivos; nosotras diseñamos, escribimos y programamos. Vos aprobás y sale a la calle.</p>
+    </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
+  </div>
+</section>
+<section class="svc2" id="tienda-nube">
+  <div class="wrap">
+    <div class="svc2-text">
+      <span class="svc2-name">Tienda Nube</span>
+      <p class="svc2-tag">Tu tienda online lista para vender.</p>
+      <p class="svc2-desc">Montamos tu Tienda Nube de punta a punta para que arranques a vender sin vueltas: diseño, productos y medios de pago, todo configurado.</p>
+      <ul class="incl">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Diseño de la tienda con tu identidad de marca</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Carga de productos, categorías y precios</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Medios de pago y envíos configurados</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimizada para el celular</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Te enseñamos a manejarla para que sigas sola</span></li>
+      </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Nos pasás productos, fotos y datos; nosotras armamos todo y te la entregamos lista para vender.</p>
+    </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
+  </div>
+</section>
+<section class="svc2 flip" id="edicion-video">
+  <div class="wrap">
+    <div class="svc2-text">
+      <span class="svc2-name">Edición de video</span>
+      <p class="svc2-tag">Nos mandás el crudo, te lo devolvemos listo.</p>
+      <p class="svc2-desc">Convertimos tu material en bruto en piezas listas para publicar, con el ritmo y la estética de tu marca.</p>
+      <ul class="incl">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Edición y montaje de tus reels o videos</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Subtítulos, música y cortes dinámicos pensados para redes</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Adaptado 100% a tu identidad de marca</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Entrega en los formatos que necesites</span></li>
+      </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Nos pasás el material grabado y la idea; nosotras editamos y te lo entregamos listo para subir.</p>
+    </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
+  </div>
+</section>
+</div>
 
 <section class="process">
   <div class="wrap">
@@ -395,6 +455,37 @@
   navlinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>navlinks.classList.remove('open')));
   const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
   document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%2*0.08)+'s';io.observe(el);});
+</script>
+<script>
+  /* ===== selector Mensuales / Puntuales ===== */
+  const segBtns=document.querySelectorAll('.seg-btn');
+  const groups=document.querySelectorAll('.svc-group');
+  function showGroup(g){
+    segBtns.forEach(b=>b.setAttribute('aria-selected', b.dataset.group===g ? 'true' : 'false'));
+    groups.forEach(el=>{
+      const on = el.dataset.group===g;
+      if(!on) el.querySelectorAll('video').forEach(v=>{ if(!v.paused) v.pause(); });
+      el.hidden=!on;
+    });
+  }
+  segBtns.forEach(b=>b.addEventListener('click',()=>showGroup(b.dataset.group)));
+  // flechas izquierda/derecha entre las dos opciones
+  document.querySelector('.seg').addEventListener('keydown',(e)=>{
+    if(e.key!=='ArrowLeft' && e.key!=='ArrowRight') return;
+    const cur=[...segBtns].findIndex(b=>b.getAttribute('aria-selected')==='true');
+    const nxt=segBtns[(cur+1)%segBtns.length]; showGroup(nxt.dataset.group); nxt.focus();
+  });
+  // #id de un servicio (desde la home o la barra): primero el grupo correcto, después el scroll
+  function openHash(){
+    const id=decodeURIComponent(location.hash.slice(1));
+    const el=id && document.getElementById(id);
+    const grp=el && el.closest('.svc-group');
+    if(!grp) return;
+    showGroup(grp.dataset.group);
+    requestAnimationFrame(()=>el.scrollIntoView({block:'start'}));
+  }
+  window.addEventListener('hashchange',openHash);
+  openHash();
 </script>
 <!-- WhatsApp flotante -->
 <style>
