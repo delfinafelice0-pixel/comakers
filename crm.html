@@ -816,14 +816,16 @@
     });
   }
 
-  var ICONO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  var ICONO_ENVIAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
   var ICONO_NA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
 
-  // La tarjeta muestra QUÉ se le informa a Meta, derivado del estado y
-  // el origen. El estado de entrega real (ok/rechazado) vive en
+  // La tarjeta muestra QUÉ se le informará a Meta, derivado del estado
+  // y el origen. El estado de entrega real (ok/rechazado) vive en
   // evento_capi, que el panel no puede leer a propósito (solo
-  // service_role): por eso acá no se promete "recibido", se dice que
-  // se encola.
+  // service_role), y encima capi-evento (el que manda) todavía no
+  // existe. Por eso NADA en pasado: todo en futuro, y se avisa que el
+  // envío no está conectado. El día que exista, migración aparte deja
+  // leer evento_capi y acá se muestra Recibido/Rechazó de verdad.
   function renderSenal(c) {
     var box = $('senal');
     var ev = eventoDe(c);
@@ -841,10 +843,10 @@
       return;
     }
     var monto = ev === 'Purchase' && c.valor ? ' · ' + plata(c.valor) : '';
-    box.className = 'senal ok';
-    box.innerHTML = '<div class="senal-head">' + ICONO_OK + 'Se informa a Meta</div>' +
+    box.className = 'senal';
+    box.innerHTML = '<div class="senal-head">' + ICONO_ENVIAR + 'Se informará a Meta</div>' +
       '<div class="senal-evento">' + ev + monto + '</div>' +
-      '<p class="senal-txt">Atribuido a “' + esc(c.campana || 'la campaña') + '”. El panel marca el estado y un proceso del servidor le avisa a Meta para que el anuncio busque gente parecida.</p>';
+      '<p class="senal-txt">Se encolará atribuido a “' + esc(c.campana || 'la campaña') + '”, para que el anuncio busque gente parecida. El envío a Meta todavía no está conectado: cuando lo esté, sale solo.</p>';
   }
 
   // ── KPIs y embudo ────────────────────────────────────────────
