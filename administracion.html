@@ -2459,6 +2459,71 @@
   }
   .prow.totales > div:first-child { background: var(--line-soft); }
 
+  /* Trabajos como planilla: líneas en todas las celdas, encabezado fijo
+     (la caja scrollea por dentro, así la barra de abajo siempre se ve),
+     columnas con ancho propio (--gt, se arrastra el borde) y orden al
+     tocar el encabezado. */
+  .tabla-ancha.excel-wrap { max-height: calc(100vh - 230px); min-height: 260px; overflow: auto; }
+  .tabla.excel { border-radius: 10px; overflow: visible; min-width: 0; }
+  .tabla.excel .prow {
+    grid-template-columns: var(--gt); gap: 0; padding: 0; align-items: stretch;
+    border-bottom: 0;
+  }
+  .tabla.excel .prow > div {
+    padding: 5px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    min-width: 0; overflow: hidden; display: flex; align-items: center;
+  }
+  .tabla.excel .prow > div:last-child { border-right: 0; }
+  .tabla.excel .prow > div.num { justify-content: flex-end; }
+  .tabla.excel .celda-serv { flex-direction: column; align-items: flex-start !important; justify-content: center; }
+  .tabla.excel .celda-serv .nom, .tabla.excel .celda-serv .sub {
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tabla.excel .dist-row > div:first-child { margin: 0; padding: 5px 8px; }
+  .tabla.excel .prow.cab { position: sticky; top: 0; z-index: 4; }
+  .tabla.excel .prow.cab > div {
+    position: relative; cursor: pointer; user-select: none; background: var(--line-soft);
+    border-bottom: 1px solid var(--line-strong, #d9d4cc); white-space: normal; line-height: 1.25;
+  }
+  .tabla.excel .prow.cab > div:first-child { z-index: 5; margin: 0; padding: 5px 8px; }
+  .tabla.excel .prow.cab > div:hover { color: var(--ink); }
+  .tabla.excel .prow.cab > div.ordenada { color: var(--ink); }
+  .tabla.excel .th-ord { margin-left: 3px; font-size: 9px; }
+  .tabla.excel .col-res {
+    position: absolute; top: 0; right: -4px; width: 8px; height: 100%; cursor: col-resize; z-index: 6;
+  }
+  .tabla.excel .col-res:hover, body.arrastrando-col .col-res:hover { background: var(--ink-soft); opacity: .35; }
+  body.arrastrando-col, body.arrastrando-col * { cursor: col-resize !important; user-select: none !important; }
+  .tabla.excel .prow:not(.cab):not(.totales):hover > div { background: var(--bg); }
+  .tabla.excel .prow:not(.cab):not(.totales):hover > div:first-child { background: var(--bg); }
+  .tabla.excel .tb-fecha, .tabla.excel .tb-ejec {
+    color: var(--ink-mute); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tabla.excel .prow.totales > div { border-bottom: 0; }
+  .sin-asignar { color: var(--warn); font-weight: 600; font-size: 11.5px; white-space: nowrap; }
+
+  /* Pagos · detalle por persona (desplegable por cada una). */
+  .pg-det { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+  .pg-det > summary {
+    display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; cursor: pointer; list-style: none;
+  }
+  .pg-det > summary::-webkit-details-marker { display: none; }
+  .pg-det > summary::before { content: '›'; color: var(--ink-mute); transition: transform .12s; display: inline-block; }
+  .pg-det[open] > summary::before { transform: rotate(90deg); }
+  .pg-det-nom { font-weight: 600; font-size: 13.5px; }
+  .pg-det-rol { font-size: 11.5px; color: var(--ink-mute); flex: 1; }
+  .pg-det-tot { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13.5px; }
+  .pg-det-tabla { border-top: 1px solid var(--line); }
+  .pg-det-fila {
+    display: grid; grid-template-columns: 84px minmax(140px, 1fr) 110px minmax(180px, 2fr);
+    gap: 0; font-size: 12.5px; border-bottom: 1px solid var(--line-soft);
+  }
+  .pg-det-fila > div { padding: 6px 14px; min-width: 0; overflow-wrap: anywhere; }
+  .pg-det-fila > div.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pg-det-fila.cab { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-mute); font-weight: 600; background: var(--line-soft); }
+  .pg-det-fila.aparte { color: var(--ink-soft); font-style: italic; }
+  .pg-det-fila:last-child { border-bottom: 0; }
+
   /* La celda «Pago Ludmi»: un botón que no parece un botón hasta que
      lo tocás. Vacía muestra un + al pasar por encima. */
   .pago-cel {
@@ -2970,7 +3035,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v08/10 18:52</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v09/10 18:07</div>
     </div>
   </aside>
 
@@ -5715,8 +5780,8 @@
           ? 'Cuando marques pagado se carga solo en Contabilidad como egreso de colaboradoras, ' +
             'colgado del cobro del cliente — así baja el neto <b>antes</b> del reparto. ' +
             'No lo cargues también a mano.'
-          : 'Acá se anota nomás. Se paga desde <b>Administración → Equipo → A pagar</b>, ' +
-            'que es donde está la plata.') +
+          : 'Acá se anota nomás. Se marca pagado desde esta misma tarea en <b>Administración</b>, ' +
+            'y ahí pasa a Distribución → Pagos.') +
         '</div>');
   }
 
@@ -6294,106 +6359,6 @@
       }).join('') + '</div>';
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  //  A PAGAR — la libretita de los trabajos sueltos
-  //
-  //  Lo que se le debe a cada colaboradora por fuera de su fijo. Se
-  //  anota desde la tarea y se salda acá: al marcar pagado se crea el
-  //  movimiento en Contabilidad y la fila queda apuntando a él.
-  //
-  //  Por qué el total dice aparte cuántos están "sin monto": si
-  //  contáramos los vacíos como cero, el total diría que le debés
-  //  menos de lo que le debés. Un número que miente para abajo en algo
-  //  que se paga es peor que no tener número.
-  // ═══════════════════════════════════════════════════════════════
-  function pendientesTrabEx() { return TRABAJOS_EX.filter(t => !trabExPagado(t)); }
-
-  function renderAPagar() {
-    if (FALTA_M36) {
-      return avisoFalta('migracion-interno-36-trabajos-aparte.sql',
-        'Hasta que la corras, no hay dónde anotar lo que se paga aparte.');
-    }
-    const pend = pendientesTrabEx();
-    const pagados = TRABAJOS_EX.filter(trabExPagado);
-
-    const cabeza = '<div class="mod-head"><p>Los trabajos que se pagan <b>por fuera</b> del fijo. ' +
-      'Se anotan desde la tarea, con el botón <b>“Se paga aparte”</b>. ' +
-      'Al marcarlos pagados se cargan solos en Contabilidad: no los cargues dos veces.</p></div>';
-
-    if (!pend.length && !pagados.length) {
-      return cabeza + '<div class="res-vacio">Todavía no hay nada anotado. ' +
-        'Abrí una tarea y usá “Se paga aparte”.</div>';
-    }
-
-    // Agrupadas por persona, la que más debe primero.
-    const por = {};
-    pend.forEach(t => {
-      const k = claveTrabEx(t);
-      const p = personaDe(t.colaboradora_id, t.persona_ext_id, t.persona);
-      (por[k] = por[k] || { nombre: (p && p.nombre) || t.persona || '?', trabajos: [] }).trabajos.push(t);
-    });
-    const grupos = Object.keys(por).map(k => por[k])
-      .sort((a, b) => sumaTrabEx(b.trabajos) - sumaTrabEx(a.trabajos));
-
-    const totalPend = sumaTrabEx(pend);
-    const faltan = sinMonto(pend);
-
-    const resumen = '<div class="kpis">' +
-      kpi('Se debe hoy', plata(totalPend),
-        faltan ? faltan + ' sin monto todavía' : 'todo con su número') +
-      kpi('Trabajos abiertos', String(pend.length),
-        grupos.length + ' persona' + (grupos.length === 1 ? '' : 's')) +
-      kpi('Ya pagado', plata(sumaTrabEx(pagados)),
-        pagados.length + ' cargado' + (pagados.length === 1 ? '' : 's') + ' en Contabilidad') +
-      '</div>';
-
-    const lista = grupos.map(g => {
-      const tot = sumaTrabEx(g.trabajos);
-      const nf = sinMonto(g.trabajos);
-      return '<div class="pagar-p">' +
-        '<div class="pagar-head">' +
-          '<div class="avatar-sm">' + esc(iniciales(g.nombre, '')) + '</div>' +
-          '<div class="carga-n"><b>' + esc(g.nombre) + '</b>' +
-            '<span class="res-sub">' + g.trabajos.length + ' trabajo' +
-              (g.trabajos.length === 1 ? '' : 's') +
-              (nf ? ' · ' + nf + ' sin monto' : '') + '</span></div>' +
-          '<div class="pagar-tot">' + plata(tot) + '</div>' +
-        '</div>' +
-        g.trabajos.map(t =>
-          '<div class="pagar-t" data-trabex="' + t.id + '">' +
-            '<div class="pagar-q"' + (t.tarea_id ? ' data-irtarea="' + t.tarea_id + '"' : '') + '>' +
-              esc(t.concepto || t.titulo_tarea || 'sin nombre') +
-              (t.tarea_id ? '' : '<span class="res-sub"> · la tarea ya no está</span>') +
-            '</div>' +
-            '<div class="pagar-cli">' + esc(t.cliente_id ? nombreCliente(t.cliente_id) : 'Interno') + '</div>' +
-            '<input type="number" step="0.01" min="0" class="td-inp num" ' +
-              'data-trabmonto="' + t.id + '" value="' + esc(t.monto == null ? '' : String(t.monto)) +
-              '" placeholder="sin monto">' +
-            '<button class="mini-btn" data-trabpagar="' + t.id + '"' +
-              (t.monto == null || Number(t.monto) <= 0 ? ' disabled title="Poné el monto primero"' : '') +
-              '>Pagado</button>' +
-          '</div>').join('') +
-        '</div>';
-    }).join('');
-
-    const yaEsta = pagados.length
-      ? '<div class="mod-head" style="margin:22px 0 10px"><p>Ya pagados. Cada uno tiene su movimiento ' +
-          'en Contabilidad — se sacan desde ahí, no desde acá.</p></div>' +
-        '<div class="tabla">' + pagados.slice(0, 30).map(t =>
-          '<div class="prow cols-pagado">' +
-            '<div>' + esc(t.persona) + '</div>' +
-            '<div>' + esc(t.concepto || '') + '</div>' +
-            '<div class="res-sub">' + esc(t.pagado_en ? fechaCortaDia(t.pagado_en) : '') + '</div>' +
-            '<div class="num">' + plata(t.monto) + '</div>' +
-          '</div>').join('') + '</div>'
-      : '';
-
-    return cabeza + resumen +
-      (pend.length ? '<div class="pagar-lista">' + lista + '</div>'
-                   : '<div class="res-vacio">No se le debe nada a nadie. </div>') +
-      yaEsta;
-  }
-
   MODULOS.equipo = renderEquipo;
   function renderEquipo() {
     if (!soySocia()) { $('#modEquipo').innerHTML = ''; return; }
@@ -6401,12 +6366,10 @@
     const bajas = EQUIPO.filter(p => p.activo === false);
     const socias = activas.filter(p => p.rol === 'socia').length;
 
+    if (EQ_TAB === 'pagar') EQ_TAB = 'carga';
     const tabs =
       '<div class="serv-tabs">' +
         '<button data-eqtab="carga" class="' + (EQ_TAB === 'carga' ? 'on' : '') + '">Quién hace qué</button>' +
-        '<button data-eqtab="pagar" class="' + (EQ_TAB === 'pagar' ? 'on' : '') + '">A pagar' +
-          (pendientesTrabEx().length ? '<span class="tab-n">' + pendientesTrabEx().length + '</span>' : '') +
-        '</button>' +
         '<button data-eqtab="gente" class="' + (EQ_TAB === 'gente' ? 'on' : '') + '">Permisos y altas</button>' +
       '</div>';
 
@@ -6414,10 +6377,9 @@
       $('#modEquipo').innerHTML = tabs + renderCargaEquipo();
       return;
     }
-    if (EQ_TAB === 'pagar') {
-      $('#modEquipo').innerHTML = tabs + renderAPagar();
-      return;
-    }
+    // "A pagar" se sacó (09/10/2026): los pagos se llevan en
+    // Distribución → Pagos. Un trabajo extra se marca pagado desde el
+    // detalle de su tarea, y ahí pasa a Distribución.
 
     $('#modEquipo').innerHTML = tabs +
       (FALTA_M10 ? '<div class="res-falta" style="margin-bottom:16px">Falta correr ' +
@@ -8761,6 +8723,21 @@
   }
 
   // ── Pestaña 1: la grilla Dist_Ago ────────────────────────────
+  // Se comporta como una planilla: líneas en todas las celdas,
+  // encabezado fijo al scrollear (la tabla scrollea adentro de su caja),
+  // columnas que se ensanchan arrastrando el borde del encabezado y que
+  // ordenan al tocarlo (asc → desc → como venía).
+  //
+  // Cada columna se describe UNA vez (TB_COLS): encabezado, ancho, valor
+  // para ordenar, celda y total. Así el ancho, el orden y los totales no
+  // se desalinean nunca.
+  let TB_ORDEN = null;            // { key, dir: 1 | -1 }
+  let TB_COLS = [];               // las columnas del último render
+  let TB_ANCHOS = (() => { try { return JSON.parse(localStorage.getItem('dist-trab-anchos') || '{}'); } catch (e) { return {}; } })();
+  const anchoCol = c => Math.max(50, Number(TB_ANCHOS[c.key]) || c.w);
+  const plantillaCols = () => TB_COLS.map(c => anchoCol(c) + 'px').join(' ');
+  const anchoTabla = () => TB_COLS.reduce((s, c) => s + anchoCol(c), 0) + 2;
+
   function vistaTrabajos() {
     const colabs = colabsDelMes();
     const socias = sociasOrdenadas();
@@ -8794,121 +8771,151 @@
       (Math.round(pe + psoc + pf) !== 100 ? '<span class="supuestos-warn">⚠️ ejec+socias+fondo no suman 100%</span>' : '') +
     '</div>';
 
-    // El ancho de la grilla depende de cuántas colaboradoras y socias
-    // haya, así que las columnas se arman acá. El desglose replica la hoja
-    // Dist: 85% ejecutora, el 5% repartido por socia, 10% fondo, y los
-    // totales por persona y del fondo, más una columna de verificación.
-    const px = a => { const m = String(a).match(/(\d+)px/); return m ? Number(m[1]) : 100; };
-    const anchos = ['minmax(180px,1.5fr)', '62px', '94px']
-      .concat(colabs.map(() => '88px'))              // Pago colaboradora
-      .concat(['92px', 'minmax(96px,1fr)', '96px'])  // Neto · Ejecuta · 85% ejec
-      .concat(socias.map(() => '94px'))              // socia (45/30/25%)
-      .concat(['84px', '84px'])                      // 5% socias · 10% fondo
-      .concat(socias.map(() => '98px'))              // Total socia
-      .concat(['94px', '64px']);                     // Total fondo · Verif
-    const gt = ' style="grid-template-columns:' + anchos.join(' ') + '"';
-    const ancho = ' style="min-width:' + (anchos.reduce((s, a) => s + px(a), 0) + (anchos.length + 1) * 10 + 28) + 'px"';
-
-    const cab = '<div class="prow cab dist-row"' + gt + '>' +
-      '<div>Cliente</div><div>Fecha</div><div class="num">Monto cobrado</div>' +
-      colabs.map(c => '<div class="num" title="' + esc(c.nombre) + '">Pago ' +
-        esc(primerNombre(c.nombre)) + '</div>').join('') +
-      '<div class="num">Monto neto</div><div>Ejecuta</div>' +
-      '<div class="num">' + pe + '% Ejecutora</div>' +
-      socias.map(p => '<div class="num">' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
-      '<div class="num">' + psoc + '% Socias</div><div class="num">' + pf + '% Fondo</div>' +
-      socias.map(p => '<div class="num">Total ' + esc(primerNombre(p.nombre || p.email)) + '</div>').join('') +
-      '<div class="num">Total Fondo</div><div class="num">Verif.</div></div>';
-
+    // Una fila por cobro, con todo lo que muestran las columnas ya calculado.
     const nd = '<span class="cel-nada">—</span>';
     const filas = cobros.map(cb => {
       const ct = contratoDe(cb.contrato_id);
       const r = repartoDe(cb);
-      const nc = cb.estado === 'no_corresponde';
       const ejecIds = (COBRO_EJ[cb.id] || []);
-      const ejec = ejecIds.map(u => primerNombre(nombrePersona(u) || '')).filter(Boolean);
       const parteEjec = r.neto * pe / 100;
-      const parteSoc  = r.neto * psoc / 100;
-      // La parte del 85% de cada socia según quién ejecutó: se reparte en
-      // partes iguales entre TODOS los ejecutores del cobro. Si ejecuta
-      // alguien que no es socia, su parte no cae en ninguna columna de
-      // socia y la Verif. da ERROR (igual que el control del Sheets).
-      const ejecShare = p => (ejecIds.length && ejecIds.indexOf(p.id) >= 0) ? parteEjec / ejecIds.length : 0;
-      // Verif: los totales mostrados (socias + fondo) tienen que sumar el
-      // neto. Si ejecuta alguien que NO es socia, su parte del 85% no cae
-      // en ninguna columna de socia y esto da ERROR: es la señal de que
-      // el desglose no cierra, igual que la columna de control del Sheets.
-      const sumaTot = socias.reduce((a, p) => a + (r.personas[p.id] || 0), 0) + r.fondo;
-      const verifOk = Math.abs(sumaTot - r.neto) < 1;
-
-      return '<div class="prow dist-row' + (nc ? ' apagada' : '') + '"' + gt + '>' +
-        '<div class="celda-serv"><span class="nom">' + esc(nombreCliente(cb.cliente_id)) + '</span>' +
-          '<span class="sub">' + esc(ct ? ct.nombre : '—') + '</span></div>' +
-        '<div style="color:var(--ink-mute);font-size:11.5px">' +
-          (cb.fecha_cobro ? fechaDia(cb.fecha_cobro) : nd) + '</div>' +
-        '<div class="num">' + (nc ? nd : plata(cb.monto)) + '</div>' +
-        colabs.map(c => {
-          const lista = trabajosDe(cb.id, c.key);
-          const suma = sumaTrabajos(lista);
-          return '<div class="num"><button class="pago-cel' + (suma ? ' con' : '') +
-            '" data-tdcel="' + cb.id + '|' + esc(c.key) + '" title="' +
-            (suma ? lista.length + ' trabajo(s) de ' + esc(c.nombre) : 'Cargar un trabajo de ' + esc(c.nombre)) +
-            '">' + (suma ? plata(suma) + (lista.length > 1 ? '<i>' + lista.length + '</i>' : '')
-                         : '<span class="mas">+</span>') + '</button></div>';
-        }).join('') +
-        '<div class="num">' + (nc ? nd : plata(r.neto)) + '</div>' +
-        '<div style="color:var(--ink-mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis">' +
-          (ejec.length ? esc(ejec.join('/')) : '<span class="cel-nada">sin asignar</span>') + '</div>' +
-        '<div class="num">' + (nc ? nd : plata(parteEjec)) + '</div>' +
-        socias.map(p => { const e = ejecShare(p); return '<div class="num">' + (nc ? nd : (e ? plata(e) : nd)) + '</div>'; }).join('') +
-        '<div class="num">' + (nc ? nd : plata(parteSoc)) + '</div>' +
-        '<div class="num">' + (nc ? nd : plata(r.fondo)) + '</div>' +
-        socias.map(p => '<div class="num">' + (r.personas[p.id] ? plata(r.personas[p.id]) : nd) + '</div>').join('') +
-        '<div class="num">' + (r.fondo ? plata(r.fondo) : nd) + '</div>' +
-        '<div class="num">' + (nc ? nd : '<span class="verif ' + (verifOk ? 'ok' : 'err') + '">' + (verifOk ? '✓' : 'ERROR') + '</span>') + '</div>' +
-      '</div>';
-    }).join('');
-
-    // La fila de totales, igual que la de tu planilla.
-    const cobrados = cobros.filter(c => c.estado === 'cobrado');
-    const totSoc = {}, totEjecSoc = {};
-    let totNeto = 0, totFondo = 0, totEjec = 0, totParteSoc = 0;
-    cobrados.forEach(cb => {
-      const r = repartoDe(cb);
-      totNeto += r.neto; totFondo += r.fondo;
-      const pej = r.neto * pe / 100;
-      totEjec += pej; totParteSoc += r.neto * psoc / 100;
-      const eids = (COBRO_EJ[cb.id] || []);
-      socias.forEach(p => { if (eids.length && eids.indexOf(p.id) >= 0) totEjecSoc[p.id] = (totEjecSoc[p.id] || 0) + pej / eids.length; });
-      Object.keys(r.personas).forEach(u => { totSoc[u] = (totSoc[u] || 0) + r.personas[u]; });
+      return {
+        cb: cb, ct: ct, r: r, nc: cb.estado === 'no_corresponde',
+        cliente: nombreCliente(cb.cliente_id), servicio: ct ? ct.nombre : '—',
+        ejecIds: ejecIds,
+        ejec: ejecIds.map(u => primerNombre(nombrePersona(u) || '')).filter(Boolean),
+        parteEjec: parteEjec, parteSoc: r.neto * psoc / 100,
+        // La parte del 85% de cada socia según quién ejecutó: en partes
+        // iguales entre TODOS los ejecutores del cobro.
+        ejecShare: p => (ejecIds.length && ejecIds.indexOf(p.id) >= 0) ? parteEjec / ejecIds.length : 0,
+        trab: c => trabajosDe(cb.id, c.key)
+      };
     });
-    const totales = '<div class="prow dist-row totales"' + gt + '>' +
-      '<div class="nom">TOTALES</div><div></div>' +
-      '<div class="num">' + plata(cobrados.reduce((a, c) => a + Number(c.monto || 0), 0)) + '</div>' +
-      colabs.map(c => '<div class="num">' +
-        plata(sumaTrabajos(trab.filter(m => claveColab(m) === c.key))) + '</div>').join('') +
-      '<div class="num">' + plata(totNeto) + '</div><div></div>' +
-      '<div class="num">' + plata(totEjec) + '</div>' +
-      socias.map(p => '<div class="num">' + plata(totEjecSoc[p.id] || 0) + '</div>').join('') +
-      '<div class="num">' + plata(totParteSoc) + '</div><div class="num">' + plata(totFondo) + '</div>' +
-      socias.map(p => '<div class="num">' + plata(totSoc[p.id] || 0) + '</div>').join('') +
-      '<div class="num">' + plata(totFondo) + '</div><div></div>' +
-    '</div>';
+
+    // Totales: solo lo cobrado, igual que la fila de la planilla.
+    const cobr = filas.filter(f => f.cb.estado === 'cobrado');
+    const sumar = fn => cobr.reduce((a, f) => a + fn(f), 0);
+    const plataN = (f, v) => f.nc ? nd : plata(v);
+
+    // ── Las columnas ────────────────────────────────────────────
+    const C = (key, h, w, o) => Object.assign({ key: key, h: h, w: w, num: true }, o);
+    TB_COLS = [
+      C('cliente', 'Cliente', 230, { num: false,
+        orden: f => (f.cliente + ' ' + f.servicio).toLowerCase(),
+        celda: f => '<span class="nom">' + esc(f.cliente) + '</span><span class="sub">' + esc(f.servicio) + '</span>',
+        clase: 'celda-serv', total: () => '<span class="nom">TOTALES</span>' }),
+      C('fecha', 'Fecha', 84, { num: false,
+        orden: f => f.cb.fecha_cobro || '',
+        celda: f => '<span class="tb-fecha">' + (f.cb.fecha_cobro ? fechaDia(f.cb.fecha_cobro) : nd) + '</span>' }),
+      C('monto', 'Monto cobrado', 116, {
+        orden: f => f.nc ? -1 : Number(f.cb.monto || 0),
+        celda: f => plataN(f, f.cb.monto), total: () => plata(sumar(f => Number(f.cb.monto || 0))) })
+    ].concat(colabs.map(c => C('colab:' + c.key, 'Pago ' + primerNombre(c.nombre), 100, { titulo: c.nombre,
+        orden: f => sumaTrabajos(f.trab(c)),
+        celda: f => {
+          const lista = f.trab(c), suma = sumaTrabajos(lista);
+          return '<button class="pago-cel' + (suma ? ' con' : '') + '" data-tdcel="' + f.cb.id + '|' + esc(c.key) + '" title="' +
+            (suma ? lista.length + ' trabajo(s) de ' + esc(c.nombre) : 'Cargar un trabajo de ' + esc(c.nombre)) + '">' +
+            (suma ? plata(suma) + (lista.length > 1 ? '<i>' + lista.length + '</i>' : '') : '<span class="mas">+</span>') + '</button>';
+        },
+        total: () => plata(sumaTrabajos(trab.filter(m => claveColab(m) === c.key))) })))
+    .concat([
+      C('neto', 'Monto neto', 108, { orden: f => f.nc ? -1 : f.r.neto, celda: f => plataN(f, f.r.neto), total: () => plata(sumar(f => f.r.neto)) }),
+      // Sin ejecutora = el reparto no sabe a quién darle el 85%: en rojo.
+      C('ejec', 'Ejecuta', 120, { num: false,
+        orden: f => f.ejec.join('/').toLowerCase() || '~',
+        celda: f => f.ejec.length ? '<span class="tb-ejec">' + esc(f.ejec.join('/')) + '</span>'
+          : (f.nc ? nd : '<span class="sin-asignar">sin asignar</span>') }),
+      C('pe', pe + '% Ejecutora', 108, { orden: f => f.nc ? -1 : f.parteEjec, celda: f => plataN(f, f.parteEjec), total: () => plata(sumar(f => f.parteEjec)) })
+    ])
+    .concat(socias.map(p => C('soc:' + p.id, primerNombre(p.nombre || p.email), 100, { titulo: 'Parte del ' + pe + '% de ' + (p.nombre || p.email),
+        orden: f => f.ejecShare(p), celda: f => f.nc ? nd : (f.ejecShare(p) ? plata(f.ejecShare(p)) : nd),
+        total: () => plata(sumar(f => f.ejecShare(p))) })))
+    .concat([
+      C('psoc', psoc + '% Socias', 96, { orden: f => f.nc ? -1 : f.parteSoc, celda: f => plataN(f, f.parteSoc), total: () => plata(sumar(f => f.parteSoc)) }),
+      C('pf', pf + '% Fondo', 96, { orden: f => f.nc ? -1 : f.r.fondo, celda: f => plataN(f, f.r.fondo), total: () => plata(sumar(f => f.r.fondo)) })
+    ])
+    .concat(socias.map(p => C('tot:' + p.id, 'Total ' + primerNombre(p.nombre || p.email), 108, {
+        orden: f => f.r.personas[p.id] || 0, celda: f => f.r.personas[p.id] ? plata(f.r.personas[p.id]) : nd,
+        total: () => plata(sumar(f => f.r.personas[p.id] || 0)) })))
+    .concat([
+      C('totfondo', 'Total Fondo', 104, { orden: f => f.r.fondo, celda: f => f.r.fondo ? plata(f.r.fondo) : nd, total: () => plata(sumar(f => f.r.fondo)) })
+    ]);
+
+    // Orden elegido tocando el encabezado. Sin orden: como venía.
+    if (TB_ORDEN) {
+      const col = TB_COLS.find(c => c.key === TB_ORDEN.key);
+      if (col) filas.sort((a, b) => {
+        const x = col.orden(a), y = col.orden(b);
+        return (x < y ? -1 : x > y ? 1 : 0) * TB_ORDEN.dir;
+      });
+      else TB_ORDEN = null;
+    }
+
+    const celdaCls = (c, extra) => (c.num ? 'num ' : '') + (c.clase || '') + (extra || '');
+    const cab = '<div class="prow cab dist-row">' + TB_COLS.map(c => {
+      const ord = TB_ORDEN && TB_ORDEN.key === c.key ? (TB_ORDEN.dir > 0 ? ' ▲' : ' ▼') : '';
+      return '<div class="th ' + (c.num ? 'num' : '') + (ord ? ' ordenada' : '') + '" data-tbsort="' + esc(c.key) + '" title="' +
+        esc((c.titulo || c.h) + ' · tocá para ordenar, arrastrá el borde para ensanchar') + '">' +
+        '<span class="th-txt">' + esc(c.h) + '</span><span class="th-ord">' + ord + '</span>' +
+        '<span class="col-res" data-tbres="' + esc(c.key) + '"></span></div>';
+    }).join('') + '</div>';
+
+    const cuerpo = filas.map(f => '<div class="prow dist-row' + (f.nc ? ' apagada' : '') + '">' +
+      TB_COLS.map(c => '<div class="' + celdaCls(c) + '">' + c.celda(f) + '</div>').join('') + '</div>').join('');
+
+    const totales = '<div class="prow dist-row totales">' +
+      TB_COLS.map(c => '<div class="' + celdaCls(c) + '">' + (c.total ? c.total() : '') + '</div>').join('') + '</div>';
 
     return kpis + supuestos +
-      '<div class="cel-ayuda">Tocá una celda de «Pago …» para ver o cargar lo que esa persona hizo ' +
+      '<div class="cel-ayuda"><span>Tocá una celda de «Pago …» para ver o cargar lo que esa persona hizo ' +
         'para ese cliente. Las columnas con el nombre de cada socia muestran su parte del ' + pe + '% de ' +
         'la ejecutora (repartida en partes iguales entre quienes ejecutaron ese cobro). «' + psoc + '% Socias» ' +
         'es el ' + psoc + '% del neto, que se reparte ' + socias.map(pctSocia).join('/') + ' recién en la fila ' +
-        'de TOTALES. El «Total» de cada socia suma sus dos partes. <b>Verif.</b> da ✓ cuando los totales por ' +
-        'persona más el fondo suman el neto. <span style="color:var(--ink-mute)">La columna Cliente ' +
-        'queda fija: deslizá la tabla al costado (o girá la rueda sobre ella) para ver el resto.</span></div>' +
+        'de TOTALES. El «Total» de cada socia suma sus dos partes. <b>Sin asignar</b> en rojo: el cobro no tiene ' +
+        'ejecutora (el contrato no tiene a nadie en Clientes). <span style="color:var(--ink-mute)">Como en una ' +
+        'planilla: tocá un encabezado para ordenar y arrastrá su borde derecho para ensanchar la columna.</span></span></div>' +
       avisoBajas() +
-      '<div class="tabla-ancha"><div class="tabla"' + ancho + '>' + cab +
-        (filas || '<div class="prow"><div class="res-vacio">No hay cobros cargados este mes.</div></div>') +
+      '<div class="tabla-ancha excel-wrap"><div class="tabla excel" id="tbTrab" style="--gt:' + plantillaCols() +
+        ';width:' + anchoTabla() + 'px">' + cab +
+        (cuerpo || '<div class="prow"><div class="res-vacio">No hay cobros cargados este mes.</div></div>') +
         (cobros.length ? totales : '') +
       '</div></div>';
   }
+
+  // Ordenar: asc → desc → sin orden.
+  function ordenarTrabajos(key) {
+    if (!TB_ORDEN || TB_ORDEN.key !== key) TB_ORDEN = { key: key, dir: 1 };
+    else if (TB_ORDEN.dir === 1) TB_ORDEN.dir = -1;
+    else TB_ORDEN = null;
+    renderDist();
+  }
+
+  // Ensanchar: se arrastra el borde derecho del encabezado. Mientras se
+  // arrastra solo cambia la variable --gt de la tabla (nada se repinta);
+  // al soltar, el ancho queda guardado en este navegador.
+  let TB_ARRASTRE = null;
+  function empezarAnchoCol(e, key) {
+    const col = TB_COLS.find(c => c.key === key); if (!col) return;
+    e.preventDefault(); e.stopPropagation();
+    TB_ARRASTRE = { key: key, x: e.clientX, w: anchoCol(col), movio: false };
+    document.body.classList.add('arrastrando-col');
+  }
+  document.addEventListener('pointermove', e => {
+    if (!TB_ARRASTRE) return;
+    const dx = e.clientX - TB_ARRASTRE.x;
+    if (Math.abs(dx) > 2) TB_ARRASTRE.movio = true;
+    TB_ANCHOS[TB_ARRASTRE.key] = Math.max(50, Math.round(TB_ARRASTRE.w + dx));
+    const t = document.getElementById('tbTrab');
+    if (t) { t.style.setProperty('--gt', plantillaCols()); t.style.width = anchoTabla() + 'px'; }
+  });
+  document.addEventListener('pointerup', () => {
+    if (!TB_ARRASTRE) return;
+    try { localStorage.setItem('dist-trab-anchos', JSON.stringify(TB_ANCHOS)); } catch (e) { /* modo privado */ }
+    document.body.classList.remove('arrastrando-col');
+    // El click que sigue al soltar no tiene que ordenar.
+    TB_ARRASTRE.fin = Date.now(); TB_SOLTADO = TB_ARRASTRE; TB_ARRASTRE = null;
+  });
+  let TB_SOLTADO = null;
 
   function primerNombre(n) { return String(n || '').trim().split(/\s+/)[0] || ''; }
 
@@ -9033,7 +9040,66 @@
       '<div class="tabla-ancha"><div class="tabla" style="min-width:1240px">' + cab +
         (cuerpo || '<div class="prow"><div class="res-vacio">No hay nadie cargado en Equipo.</div></div>') +
         (filas.length ? totales : '') +
-      '</div></div>';
+      '</div></div>' +
+      detallePagos(filas, corr);
+  }
+
+  // ── Detalle por persona: de dónde sale «Le corresponde» ──────
+  // Colaboradoras: sus trabajos del mes (lo mismo que la grilla de
+  // Trabajos, renglón por renglón). Socias: una fila por cobro donde
+  // ejecutaron, con lo que les toca de ese cobro; lo que les llega del
+  // pozo de socias en los cobros donde NO ejecutaron va en una fila
+  // aparte, así el total cierra con «Le corresponde».
+  function fechaCortaPg(d) {
+    const s = String(d || '').slice(0, 10);
+    return s.length === 10 ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(2, 4) : '—';
+  }
+  function detallePagos(filas, corr) {
+    if (!filas.length) return '';
+    const psoc = Number(REPARTO ? REPARTO.pct_socias : 5);
+    const bloques = filas.map(f => {
+      const items = [];
+      // Con cuenta: lo que le toca de cada cobro (ejecutó y/o pozo de socias),
+      // igual que correspondeA().
+      if (f.user_id) {
+        let pozo = 0, nPozo = 0;
+        cobradosDelMes().forEach(cb => {
+          const r = repartoDe(cb), suyo = r.personas[f.user_id] || 0;
+          const ej = COBRO_EJ[cb.id] || [];
+          if (ej.indexOf(f.user_id) >= 0) {
+            const ct = contratoDe(cb.contrato_id);
+            items.push({ fecha: cb.fecha_cobro || cb.periodo, cliente: nombreCliente(cb.cliente_id), monto: suyo,
+              tarea: (ct ? ct.nombre : 'Servicio') + ' · ejecutó' + (ej.length > 1 ? ' con ' + (ej.length - 1) + ' más (÷' + ej.length + ')' : '') });
+          } else if (suyo) { pozo += suyo; nPozo++; }
+        });
+        if (pozo) items.push({ fecha: null, cliente: '—', monto: pozo, aparte: true,
+          tarea: 'Su parte del ' + psoc + '% de socias en ' + nPozo + ' cobro' + (nPozo === 1 ? '' : 's') + ' donde no ejecutó' });
+      }
+      trabajosDelMes().filter(m => claveColab(m) === f.key).forEach(m => {
+        const cb = cobroDeMov(m);
+        items.push({ fecha: m.fecha, cliente: nombreCliente(m.cliente_id || (cb && cb.cliente_id)) || '—',
+                     monto: Number(m.monto || 0), tarea: m.concepto || '—' });
+      });
+      items.sort((a, b) => (a.aparte ? 1 : 0) - (b.aparte ? 1 : 0) || String(a.fecha || '').localeCompare(String(b.fecha || '')));
+      const total = items.reduce((a, x) => a + x.monto, 0);
+      const cierra = Math.abs(total - (corr[f.key] || 0)) < 1;
+      return '<details class="pg-det">' +
+        '<summary><span class="pg-det-nom">' + esc(f.nombre) + '</span>' +
+          '<span class="pg-det-rol">' + esc(f.rol) + ' · ' + items.length + ' renglón' + (items.length === 1 ? '' : 'es') + '</span>' +
+          '<span class="pg-det-tot">' + plata(total) + (cierra ? '' : ' <span class="neg" title="No coincide con «Le corresponde»">≠ ' + plata(corr[f.key] || 0) + '</span>') + '</span></summary>' +
+        (items.length
+          ? '<div class="pg-det-tabla"><div class="pg-det-fila cab"><div>Fecha</div><div>Cliente</div><div class="num">Monto</div><div>Tarea</div></div>' +
+            items.map(x => '<div class="pg-det-fila' + (x.aparte ? ' aparte' : '') + '">' +
+              '<div>' + (x.fecha ? fechaCortaPg(x.fecha) : '') + '</div>' +
+              '<div>' + esc(x.cliente) + '</div>' +
+              '<div class="num">' + plata(x.monto) + '</div>' +
+              '<div>' + esc(x.tarea) + '</div></div>').join('') + '</div>'
+          : '<div class="res-vacio">Nada este mes.</div>') +
+        '</details>';
+    }).join('');
+    return '<div class="pg-detalle"><div class="mod-head" style="margin:26px 0 10px"><h2>Detalle por persona</h2>' +
+      '<p>Lo que hizo cada una en ' + esc(mesLargo(PERIODO)) + ', sacado de Trabajos. Tocá un nombre para abrirlo.</p></div>' +
+      bloques + '</div>';
   }
 
   function estadoPago(corr, pag) {
@@ -11611,6 +11677,10 @@
   on('#modDist', 'wheel', e => {
     const cont = e.target.closest('.tabla-ancha');
     if (!cont || cont.scrollWidth <= cont.clientWidth) return;
+    // La grilla de Trabajos scrollea por dentro (encabezado fijo, como una
+    // planilla): ahí la rueda es vertical y la barra de abajo siempre está
+    // a la vista. Shift + rueda la corre al costado.
+    if (cont.scrollHeight > cont.clientHeight + 1) return;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;  // ya es gesto lateral
     const d = e.deltaY;
     const enIni = cont.scrollLeft <= 0;
@@ -11620,9 +11690,23 @@
     e.preventDefault();
   }, { passive: false });
 
+  // Trabajos, como planilla: arrastrar el borde del encabezado ensancha.
+  on('#modDist', 'pointerdown', e => {
+    const r = e.target.closest('[data-tbres]');
+    if (r) empezarAnchoCol(e, r.dataset.tbres);
+  });
+
   on('#modDist', 'click', e => {
     const t = e.target.closest('[data-disttab]');
     if (t) { DIST_TAB = t.dataset.disttab; renderDist(); return; }
+
+    // Tocar un encabezado de Trabajos ordena (salvo que se haya soltado
+    // recién un arrastre de ancho).
+    const so = e.target.closest('[data-tbsort]');
+    if (so) {
+      if (e.target.closest('[data-tbres]') || (TB_SOLTADO && TB_SOLTADO.movio && Date.now() - TB_SOLTADO.fin < 300)) return;
+      ordenarTrabajos(so.dataset.tbsort); return;
+    }
 
     const pf = e.target.closest('[data-pgfiltro]');
     if (pf) { PG_FILTRO = pf.dataset.pgfiltro; renderDist(); return; }

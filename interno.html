@@ -2459,6 +2459,71 @@
   }
   .prow.totales > div:first-child { background: var(--line-soft); }
 
+  /* Trabajos como planilla: líneas en todas las celdas, encabezado fijo
+     (la caja scrollea por dentro, así la barra de abajo siempre se ve),
+     columnas con ancho propio (--gt, se arrastra el borde) y orden al
+     tocar el encabezado. */
+  .tabla-ancha.excel-wrap { max-height: calc(100vh - 230px); min-height: 260px; overflow: auto; }
+  .tabla.excel { border-radius: 10px; overflow: visible; min-width: 0; }
+  .tabla.excel .prow {
+    grid-template-columns: var(--gt); gap: 0; padding: 0; align-items: stretch;
+    border-bottom: 0;
+  }
+  .tabla.excel .prow > div {
+    padding: 5px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    min-width: 0; overflow: hidden; display: flex; align-items: center;
+  }
+  .tabla.excel .prow > div:last-child { border-right: 0; }
+  .tabla.excel .prow > div.num { justify-content: flex-end; }
+  .tabla.excel .celda-serv { flex-direction: column; align-items: flex-start !important; justify-content: center; }
+  .tabla.excel .celda-serv .nom, .tabla.excel .celda-serv .sub {
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tabla.excel .dist-row > div:first-child { margin: 0; padding: 5px 8px; }
+  .tabla.excel .prow.cab { position: sticky; top: 0; z-index: 4; }
+  .tabla.excel .prow.cab > div {
+    position: relative; cursor: pointer; user-select: none; background: var(--line-soft);
+    border-bottom: 1px solid var(--line-strong, #d9d4cc); white-space: normal; line-height: 1.25;
+  }
+  .tabla.excel .prow.cab > div:first-child { z-index: 5; margin: 0; padding: 5px 8px; }
+  .tabla.excel .prow.cab > div:hover { color: var(--ink); }
+  .tabla.excel .prow.cab > div.ordenada { color: var(--ink); }
+  .tabla.excel .th-ord { margin-left: 3px; font-size: 9px; }
+  .tabla.excel .col-res {
+    position: absolute; top: 0; right: -4px; width: 8px; height: 100%; cursor: col-resize; z-index: 6;
+  }
+  .tabla.excel .col-res:hover, body.arrastrando-col .col-res:hover { background: var(--ink-soft); opacity: .35; }
+  body.arrastrando-col, body.arrastrando-col * { cursor: col-resize !important; user-select: none !important; }
+  .tabla.excel .prow:not(.cab):not(.totales):hover > div { background: var(--bg); }
+  .tabla.excel .prow:not(.cab):not(.totales):hover > div:first-child { background: var(--bg); }
+  .tabla.excel .tb-fecha, .tabla.excel .tb-ejec {
+    color: var(--ink-mute); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tabla.excel .prow.totales > div { border-bottom: 0; }
+  .sin-asignar { color: var(--warn); font-weight: 600; font-size: 11.5px; white-space: nowrap; }
+
+  /* Pagos · detalle por persona (desplegable por cada una). */
+  .pg-det { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+  .pg-det > summary {
+    display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; cursor: pointer; list-style: none;
+  }
+  .pg-det > summary::-webkit-details-marker { display: none; }
+  .pg-det > summary::before { content: '›'; color: var(--ink-mute); transition: transform .12s; display: inline-block; }
+  .pg-det[open] > summary::before { transform: rotate(90deg); }
+  .pg-det-nom { font-weight: 600; font-size: 13.5px; }
+  .pg-det-rol { font-size: 11.5px; color: var(--ink-mute); flex: 1; }
+  .pg-det-tot { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13.5px; }
+  .pg-det-tabla { border-top: 1px solid var(--line); }
+  .pg-det-fila {
+    display: grid; grid-template-columns: 84px minmax(140px, 1fr) 110px minmax(180px, 2fr);
+    gap: 0; font-size: 12.5px; border-bottom: 1px solid var(--line-soft);
+  }
+  .pg-det-fila > div { padding: 6px 14px; min-width: 0; overflow-wrap: anywhere; }
+  .pg-det-fila > div.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pg-det-fila.cab { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-mute); font-weight: 600; background: var(--line-soft); }
+  .pg-det-fila.aparte { color: var(--ink-soft); font-style: italic; }
+  .pg-det-fila:last-child { border-bottom: 0; }
+
   /* La celda «Pago Ludmi»: un botón que no parece un botón hasta que
      lo tocás. Vacía muestra un + al pasar por encima. */
   .pago-cel {
@@ -2952,7 +3017,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v08/10 18:52</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v09/10 18:07</div>
     </div>
   </aside>
 
@@ -5734,8 +5799,8 @@
           ? 'Cuando marques pagado se carga solo en Contabilidad como egreso de colaboradoras, ' +
             'colgado del cobro del cliente — así baja el neto <b>antes</b> del reparto. ' +
             'No lo cargues también a mano.'
-          : 'Acá se anota nomás. Se paga desde <b>Administración → Equipo → A pagar</b>, ' +
-            'que es donde está la plata.') +
+          : 'Acá se anota nomás. Se marca pagado desde esta misma tarea en <b>Administración</b>, ' +
+            'y ahí pasa a Distribución → Pagos.') +
         '</div>');
   }
 

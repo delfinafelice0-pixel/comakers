@@ -56,13 +56,28 @@ var DATOS_ADMIN = {
   contrato: [
     { id: 'ct-fos1', cliente_id: 'c-fos',   servicio_id: 'sv-cm',    nombre: 'CM + Pauta', activo: true, tipo: 'mensual', dia_desde: 10, dia_hasta: null, monto: 180000, proximo_ajuste: null },
     { id: 'ct-fos2', cliente_id: 'c-fos',   servicio_id: 'sv-videos', nombre: 'Videos',    activo: true, tipo: 'mensual', dia_desde: 10, dia_hasta: null, monto: 70000,  proximo_ajuste: null },
-    { id: 'ct-vis1', cliente_id: 'c-visit', servicio_id: 'sv-cm',    nombre: 'CM',         activo: true, tipo: 'mensual', dia_desde: 5,  dia_hasta: null, monto: 120000, proximo_ajuste: null }
+    { id: 'ct-vis1', cliente_id: 'c-visit', servicio_id: 'sv-cm',    nombre: 'CM',         activo: true, tipo: 'mensual', dia_desde: 5,  dia_hasta: null, monto: 120000, proximo_ajuste: null },
+    // Sin nadie en contrato_ejecutora: su cobro sale «sin asignar» en rojo.
+    { id: 'ct-vis2', cliente_id: 'c-visit', servicio_id: 'sv-pauta', nombre: 'Pauta',      activo: true, tipo: 'mensual', dia_desde: 5,  dia_hasta: null, monto: 60000,  proximo_ajuste: null }
   ],
 
   cobro: [
     { id: 'cb-fos1', contrato_id: 'ct-fos1', cliente_id: 'c-fos',   periodo: '2026-10-01', estado: 'cobrado',   monto: 180000, fecha_cobro: '2026-10-03', cuota_n: null },
     { id: 'cb-fos2', contrato_id: 'ct-fos2', cliente_id: 'c-fos',   periodo: '2026-10-01', estado: 'cobrado',   monto: 70000,  fecha_cobro: '2026-10-03', cuota_n: null },
-    { id: 'cb-vis1', contrato_id: 'ct-vis1', cliente_id: 'c-visit', periodo: '2026-10-01', estado: 'pendiente', monto: 120000, fecha_cobro: null,         cuota_n: null }
+    { id: 'cb-vis1', contrato_id: 'ct-vis1', cliente_id: 'c-visit', periodo: '2026-10-01', estado: 'pendiente', monto: 120000, fecha_cobro: null,         cuota_n: null },
+    { id: 'cb-vis2', contrato_id: 'ct-vis2', cliente_id: 'c-visit', periodo: '2026-10-01', estado: 'cobrado',   monto: 60000,  fecha_cobro: '2026-10-08', cuota_n: null }
+  ],
+
+  // Trabajos de colaboradoras (Distribución → Trabajos y el detalle de Pagos).
+  // Pauli tiene cuenta; Karin no (persona_externa).
+  persona_externa: [{ id: 'pe-karin', nombre: 'Karin', activo: true }],
+  movimiento: [
+    { id: 'mv-1', fecha: '2026-10-04', tipo: 'egreso', categoria: 'Colaboradoras', colaboradora: 'Pauli', colaboradora_id: 'u-pau', persona_ext_id: null,
+      concepto: 'calendario y CM', monto: 80000, cliente_id: 'c-fos', cobro_id: 'cb-fos1' },
+    { id: 'mv-2', fecha: '2026-10-06', tipo: 'egreso', categoria: 'Colaboradoras', colaboradora: 'Pauli', colaboradora_id: 'u-pau', persona_ext_id: null,
+      concepto: '4 reels', monto: 30000, cliente_id: 'c-fos', cobro_id: 'cb-fos2' },
+    { id: 'mv-3', fecha: '2026-10-07', tipo: 'egreso', categoria: 'Colaboradoras', colaboradora: 'Karin', colaboradora_id: null, persona_ext_id: 'pe-karin',
+      concepto: 'edición de video', monto: 25000, cliente_id: 'c-fos', cobro_id: 'cb-fos1' }
   ],
 
   // Quién ejecutó cada cobro (el 85% se reparte entre estas personas).
