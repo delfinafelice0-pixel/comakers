@@ -210,6 +210,62 @@
     .svc-dark-cta .btn{flex:1 1 auto;justify-content:center;}
   }
 
+  /* ---------- 03 · canal (estilo canal de YouTube, cards tipo Shorts) ---------- */
+  .canal{padding:110px 0 100px;scroll-margin-top:68px;}
+  .ch{background:var(--white);border:1.5px solid var(--ink);border-radius:26px;overflow:hidden;box-shadow:6px 8px 0 rgba(22,18,46,.10);}
+  .ch-banner{position:relative;height:150px;background:var(--lima);border-bottom:1.5px solid var(--ink);overflow:hidden;display:flex;align-items:center;justify-content:flex-end;padding:0 44px;}
+  .ch-banner .bt{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(26px,4vw,48px);letter-spacing:-.02em;color:var(--ink);}
+  .ch-banner .bt em{color:var(--blue);}
+  .ch-banner .spark{position:absolute;}
+  .ch-info{display:flex;align-items:center;gap:22px;padding:0 32px 24px;flex-wrap:wrap;}
+  .ch-avatar{flex:0 0 auto;width:118px;height:118px;border-radius:50%;background:var(--cream);border:1.5px solid var(--ink);margin-top:-46px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;box-shadow:0 0 0 5px var(--white);}
+  .ch-avatar img{width:78%;height:auto;}
+  .ch-meta{flex:1 1 260px;padding-top:16px;}
+  .ch-name{font-family:var(--display);font-weight:600;font-size:30px;letter-spacing:-.02em;line-height:1.1;display:flex;align-items:center;gap:8px;}
+  .ch-name svg{width:20px;height:20px;fill:var(--magenta);stroke:var(--ink);stroke-width:5;}
+  .ch-handle{font-size:14.5px;color:var(--ink-soft);margin-top:4px;}
+  .ch-handle b{color:var(--ink);font-weight:600;}
+  .ch-desc{font-size:15px;color:var(--ink-soft);margin-top:6px;max-width:56ch;}
+  .ch-follow{display:inline-flex;align-items:center;gap:9px;background:var(--ink);color:var(--white);border-radius:999px;padding:12px 22px;font-weight:600;font-size:15px;margin-top:16px;transition:background .2s;}
+  .ch-follow svg{width:18px;height:18px;}
+  .ch-follow:hover{background:var(--blue);}
+  .ch-tabs{display:flex;gap:6px;padding:0 24px;border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none;}
+  .ch-tabs::-webkit-scrollbar{display:none;}
+  .ch-tab{position:relative;background:none;border:none;cursor:pointer;font:600 15px/1 var(--body);color:var(--ink-soft);padding:18px 14px 17px;white-space:nowrap;transition:color .2s;}
+  .ch-tab .cnt{font-weight:500;font-size:12px;color:var(--ink-soft);background:var(--cream);border-radius:999px;padding:2px 7px;margin-left:6px;}
+  .ch-tab::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px;background:transparent;transition:background .2s;}
+  .ch-tab:hover{color:var(--ink);}
+  .ch-tab[aria-selected="true"]{color:var(--ink);}
+  .ch-tab[aria-selected="true"]::after{background:var(--magenta);}
+  .ch-tab[aria-selected="true"] .cnt{background:var(--lima);color:var(--ink);}
+  .ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;padding:26px 28px 32px;border-top:1px solid var(--line);background:var(--cream);}
+  .short[hidden]{display:none;}
+  .short .vreel{border-radius:16px;box-shadow:4px 6px 0 rgba(22,18,46,.12);transition:transform .25s;}
+  .short:hover .vreel{transform:translateY(-3px);}
+  .short .vreel .vplay .circle{width:56px;height:56px;}
+  .short .dur{position:absolute;right:10px;bottom:10px;z-index:2;pointer-events:none;background:rgba(22,18,46,.86);color:var(--white);font:600 12px/1 var(--body);letter-spacing:.02em;padding:5px 7px;border-radius:6px;transition:opacity .2s;}
+  .short .vreel.playing .dur{opacity:0;}
+  .short h3{font-family:var(--body);font-weight:600;font-size:15.5px;line-height:1.3;margin:12px 2px 3px;color:var(--ink);}
+  .short p{font-size:13px;color:var(--ink-soft);margin:0 2px;}
+  .short p a:hover{color:var(--blue);text-decoration:underline;}
+  .ch-empty{grid-column:1/-1;text-align:center;color:var(--ink-soft);}
+  @media(max-width:980px){.ch-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:760px){
+    .canal{padding:72px 0 64px;}
+    .ch{border-radius:20px;}
+    .ch-banner{height:96px;padding:0 18px;}
+    .ch-info{padding:0 18px 18px;gap:14px;}
+    .ch-avatar{width:84px;height:84px;margin-top:-34px;}
+    .ch-meta{padding-top:0;flex-basis:100%;}
+    .ch-name{font-size:25px;}
+    .ch-follow{width:100%;justify-content:center;}
+    .ch-tabs{padding:0 6px;gap:0;justify-content:space-between;}
+    .ch-tab{font-size:14.5px;padding:16px 10px 15px;}
+    .ch-tab .cnt{display:none;}
+    .ch-grid{grid-template-columns:1fr;gap:28px;padding:20px 18px 26px;}
+    .short{max-width:290px;width:100%;margin:0 auto;}
+  }
+
   /* ---------- work / reels ---------- */
   .work{padding:96px 0;}
   .work .head{max-width:640px;margin-bottom:48px;}
@@ -441,6 +497,84 @@
   </div>
 </section>
 
+<!-- ===== 03 · CANAL (estilo canal de YouTube) ===== -->
+<section class="canal" id="canal">
+  <div class="wrap">
+    <div class="sec-num reveal"><span class="n">03</span><span class="lbl">nuestro canal</span></div>
+    <div class="ch reveal d1">
+      <div class="ch-banner">
+        <div class="spark" style="top:22%;left:8%;width:30px;"><svg viewBox="0 0 100 100"><path d="M50 0C55 36 64 45 100 50C64 55 55 64 50 100C45 64 36 55 0 50C36 45 45 36 50 0Z"/></svg></div>
+        <div class="spark" style="bottom:20%;left:22%;width:16px;color:var(--blue);animation-delay:.8s;"><svg viewBox="0 0 100 100"><path d="M50 0C55 36 64 45 100 50C64 55 55 64 50 100C45 64 36 55 0 50C36 45 45 36 50 0Z"/></svg></div>
+        <span class="bt">cabeza, cámara <em>y data.</em></span>
+      </div>
+      <div class="ch-info">
+        <div class="ch-avatar"><img src="comakers-logo.png" alt="CoMakers"></div>
+        <div class="ch-meta">
+          <div class="ch-name">CoMakers <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4C55 38 62 45 96 50C62 55 55 62 50 96C45 62 38 55 4 50C38 45 45 38 50 4Z"/></svg></div>
+          <div class="ch-handle"><b>@co.makers_</b> · 4 videos · Tandil</div>
+          <p class="ch-desc">Detrás de escena de cómo trabajamos y lo que cuentan las marcas que confían en nosotras.</p>
+        </div>
+        <a class="ch-follow mag" href="https://www.instagram.com/co.makers_/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg> Seguinos</a>
+      </div>
+      <div class="ch-tabs" role="tablist" aria-label="Filtrar videos">
+        <button class="ch-tab" role="tab" aria-selected="true" data-filter="todos">Todos<span class="cnt">4</span></button>
+        <button class="ch-tab" role="tab" aria-selected="false" data-filter="detras">Detrás de escena<span class="cnt">2</span></button>
+        <button class="ch-tab" role="tab" aria-selected="false" data-filter="resenas">Reseñas<span class="cnt">2</span></button>
+      </div>
+      <div class="ch-grid" id="chGrid">
+      <article class="short reveal" data-cat="detras">
+        <div class="vreel">
+          <video preload="none" playsinline poster="edicion.jpg">
+            <source src="edicion.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí edicion.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir: Así editamos el contenido de tu marca"><span class="circle">__PLAY__</span></button>
+          <span class="dur">0:36</span>
+        </div>
+        <h3>Así editamos el contenido de tu marca</h3>
+        <p>CoMakers · Detrás de escena</p>
+      </article>
+      <article class="short reveal d1" data-cat="detras">
+        <div class="vreel">
+          <video preload="none" playsinline poster="estrategia.jpg">
+            <source src="estrategia.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí estrategia.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir: Por qué tu marca necesita una estrategia"><span class="circle">__PLAY__</span></button>
+          <span class="dur">0:45</span>
+        </div>
+        <h3>Por qué tu marca necesita una estrategia</h3>
+        <p>CoMakers · Detrás de escena</p>
+      </article>
+      <article class="short reveal d2" data-cat="resenas">
+        <div class="vreel">
+          <video preload="none" playsinline poster="resena-1.jpg">
+            <source src="resena-1.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí resena-1.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir: Lo que cuentan las marcas · Reseña 1"><span class="circle">__PLAY__</span></button>
+          <span class="dur">0:29</span>
+        </div>
+        <h3>Lo que cuentan las marcas · Reseña 1</h3>
+        <p>CoMakers · Reseña</p>
+      </article>
+      <article class="short reveal d3" data-cat="resenas">
+        <div class="vreel">
+          <video preload="none" playsinline poster="resena-2.jpg">
+            <source src="resena-2.mp4" type="video/mp4">
+            <div class="poster-fallback">Subí resena-2.mp4</div>
+          </video>
+          <button class="vplay" aria-label="Reproducir: Lo que cuentan las marcas · Reseña 2"><span class="circle">__PLAY__</span></button>
+          <span class="dur">1:13</span>
+        </div>
+        <h3>Lo que cuentan las marcas · Reseña 2</h3>
+        <p>CoMakers · Reseña</p>
+      </article>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== LOGOS ===== -->
 <section class="logos">
   <div class="wrap">
@@ -623,6 +757,24 @@ document.querySelectorAll('.vreel,.yt').forEach(card=>{
   // if it ends, bring back the big play button
   v.addEventListener('ended',()=>{ card.classList.remove('playing'); v.removeAttribute('controls'); });
 });
+
+/* ============ un solo video a la vez (en toda la página) ============ */
+document.addEventListener('play',(ev)=>{
+  document.querySelectorAll('video').forEach(v=>{ if(v!==ev.target && !v.paused) v.pause(); });
+},true);
+
+/* ============ canal: pestañas que filtran ============ */
+const chTabs=document.querySelectorAll('.ch-tab');
+chTabs.forEach(tab=>tab.addEventListener('click',()=>{
+  const f=tab.dataset.filter;
+  chTabs.forEach(t=>t.setAttribute('aria-selected',t===tab?'true':'false'));
+  document.querySelectorAll('#chGrid .short').forEach(card=>{
+    const show = f==='todos' || card.dataset.cat===f;
+    if(!show){ const v=card.querySelector('video'); if(v && !v.paused) v.pause(); }
+    card.hidden=!show;
+    if(show) card.classList.add('in');
+  });
+}));
 
 /* ============ burger ============ */
 const burger=document.getElementById('burger'), navlinks=document.getElementById('navlinks');
