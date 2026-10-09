@@ -86,6 +86,16 @@
   .svc-group-head .eyebrow{display:inline-block;transform:rotate(-2deg);}
   .svc-group-head h2{font-family:var(--display);font-weight:500;font-size:clamp(28px,4vw,44px);letter-spacing:-.025em;margin-top:6px;line-height:1.03;}
   .svc-group-head .sub{color:var(--ink-soft);font-size:16.5px;margin-top:10px;max-width:60ch;}
+  /* sub-grupos dentro de Mensuales (Orgánico / Pauta) */
+  .svc-subhead{padding-top:56px;}
+  .svc-subhead h3{font-family:var(--display);font-weight:500;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;line-height:1.05;}
+  .svc-subhead h3::after{content:"";display:block;width:44px;height:3px;border-radius:3px;background:var(--magenta);margin-top:12px;}
+  .svc-subhead .sub{margin-top:12px;}
+  /* Pauta queda sola: encabezado con acento lima para que no pase desapercibida */
+  .svc-subhead-pauta{padding-top:72px;}
+  .pauta-head{background:var(--white);border:1.5px solid var(--ink);border-left:10px solid var(--lima);border-radius:18px;padding:26px 30px;box-shadow:5px 7px 0 rgba(22,18,46,.08);}
+  .pauta-head h3::after{background:var(--lima);}
+  .pauta-head .sub{color:var(--ink);font-size:18px;font-weight:500;max-width:none;}
   .svc2{border-bottom:1px solid var(--line);scroll-margin-top:68px;}
   .svc2 .wrap{padding:52px 40px;display:grid;grid-template-columns:1.5fr 0.85fr;gap:52px;align-items:start;}
   .svc2.flip .svc2-text{order:2;}
@@ -122,6 +132,10 @@
     .svc2.flip .svc2-text{order:1;}.svc2.flip .svc2-video{order:2;}
     .svc2-video .vreel,.svc2.flip .svc2-video .vreel{margin:0 auto;max-width:260px;}
     .svc-group-head{padding:48px 22px 4px;}
+    .svc-subhead{padding-top:44px;}
+    .svc-subhead-pauta{padding-top:52px;}
+    .pauta-head{padding:20px 20px;border-left-width:8px;}
+    .pauta-head .sub{font-size:16.5px;}
   }
 
 
@@ -249,6 +263,10 @@
   <h2 class="reveal">Acompañamiento continuo.</h2>
   <p class="sub reveal">Trabajamos tu marca todos los meses. Elegís cuánto delegás y cuánto hacés vos.</p>
 </div>
+<div class="svc-group-head svc-subhead">
+  <h3 class="reveal">Orgánico</h3>
+  <p class="sub reveal">Pensamos, creamos y gestionamos tu contenido, mes a mes.</p>
+</div>
 <section class="svc2" id="co-creacion">
   <div class="wrap">
     <div class="svc2-text">
@@ -284,24 +302,7 @@
     <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
   </div>
 </section>
-<section class="svc2" id="pauta">
-  <div class="wrap">
-    <div class="svc2-text">
-      <span class="svc2-name">Pauta en Meta &amp; Google</span>
-      <p class="svc2-tag">Cada peso, con un objetivo claro.</p>
-      <p class="svc2-desc">Invertir en pauta sin estrategia no rinde. Armamos campañas con un objetivo claro y las seguimos de cerca, semana a semana.</p>
-      <ul class="incl">
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Estrategia de campaña según tu objetivo: ventas, mensajes o reconocimiento</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Configuración y segmentación de públicos en Meta y Google</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimización semanal de presupuesto, creatividades y públicos</span></li>
-        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Control de inversión: sabés en qué se fue cada peso y qué trajo</span></li>
-      </ul>
-      <p class="svc2-role"><b>Tu rol:</b> Nos definís objetivo y presupuesto; nosotras armamos, optimizamos y te reportamos mes a mes.</p>
-    </div>
-    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
-  </div>
-</section>
-<section class="svc2 flip" id="plan-despegue">
+<section class="svc2" id="plan-despegue">
   <div class="wrap">
     <div class="svc2-text">
       <span class="svc2-name">Plan Despegue 🚀<span class="svc2-badge">3 meses</span></span>
@@ -316,6 +317,29 @@
         <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Hoja de ruta al finalizar para seguir creciendo o dar el salto a Co-Creación</span></li>
       </ul>
       <p class="svc2-role"><b>Tu rol:</b> Implementás vos mismo con nuestro acompañamiento. Este plan es para quienes quieren aprender a gestionar su marca con criterio.</p>
+    </div>
+    <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
+  </div>
+</section>
+<div class="svc-group-head svc-subhead svc-subhead-pauta">
+  <div class="pauta-head reveal">
+    <h3>Pauta</h3>
+    <p class="sub">Tus campañas en Meta y Google, con cada peso invertido a la vista.</p>
+  </div>
+</div>
+<section class="svc2 flip svc2-pauta" id="pauta">
+  <div class="wrap">
+    <div class="svc2-text">
+      <span class="svc2-name">Pauta en Meta &amp; Google</span>
+      <p class="svc2-tag">Cada peso, con un objetivo claro.</p>
+      <p class="svc2-desc">Invertir en pauta sin estrategia no rinde. Armamos campañas con un objetivo claro y las seguimos de cerca, semana a semana.</p>
+      <ul class="incl">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Estrategia de campaña según tu objetivo: ventas, mensajes o reconocimiento</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Configuración y segmentación de públicos en Meta y Google</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Optimización semanal de presupuesto, creatividades y públicos</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#16122E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg></span><span>Control de inversión: sabés en qué se fue cada peso y qué trajo</span></li>
+      </ul>
+      <p class="svc2-role"><b>Tu rol:</b> Nos definís objetivo y presupuesto; nosotras armamos, optimizamos y te reportamos mes a mes.</p>
     </div>
     <div class="svc2-video"><div class="vreel vreel-ph"><div class="poster-fallback">Video próximamente 🎬</div></div></div>
   </div>
