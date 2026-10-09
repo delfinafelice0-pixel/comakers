@@ -117,11 +117,18 @@ async function asegurarConversacion(
   return data.id;
 }
 
-// Referral con ctwa_clid: llega en el PRIMER mensaje de un clic de
-// anuncio Click-to-WhatsApp. Marca la conversación como pauta y guarda
-// el clid (sin él, el evento de conversión se procesa pero Meta no lo
-// atribuye al anuncio).
-async function marcarPauta(conversacionId: string, referral: any): Promise<void> {
+// Referral con ctwa_clid: llega en el mensaje de un clic de anuncio
+// Click-to-WhatsApp. Marca la conversación como pauta y guarda el clid
+// (sin él, el evento de conversión se procesa pero Meta no lo atribuye
+// al anuncio).
+//
+// recibido_en define la ventana gratis de 72 h (migración 53), y se
+// cuenta DESDE EL REFERRAL, no desde el último entrante. Por eso un
+// clic nuevo tiene que REABRIR la ventana: do-update de recibido_en y
+// clid, no do-nothing. Se usa el timestamp del mensaje (no now()) para
+// que reprocesar el mismo webhook sea idempotente y solo un clic real
+// nuevo mueva la fecha.
+async function marcarPauta(conversacionId: string, referral: any, recibidoEn: string): Promise<void> {
   // ad_id = source_id del referral. `campana`: Meta NO manda el nombre
   // de la campaña en el referral; lo más cercano legible es el headline
   // del anuncio. El nombre real de campaña, si se quiere, se enriquece
@@ -132,10 +139,12 @@ async function marcarPauta(conversacionId: string, referral: any): Promise<void>
     campana: referral.headline ?? referral.body ?? null,
   }).eq('id', conversacionId);
 
-  // Primer clic gana: do-nothing si ya hay un clid guardado.
+  // Último clic gana: un referral nuevo reabre la ventana (do-update
+  // de clid + recibido_en). Sin ignoreDuplicates, el upsert hace
+  // ON CONFLICT DO UPDATE sobre las columnas que le paso.
   await admin.from('conversacion_pauta').upsert(
-    { conversacion_id: conversacionId, ctwa_clid: referral.ctwa_clid, recibido_en: new Date().toISOString() },
-    { onConflict: 'conversacion_id', ignoreDuplicates: true },
+    { conversacion_id: conversacionId, ctwa_clid: referral.ctwa_clid, recibido_en: recibidoEn },
+    { onConflict: 'conversacion_id' },
   );
 }
 
@@ -172,7 +181,7 @@ async function guardarMensaje(
   );
 
   if (entrante && m.referral?.ctwa_clid) {
-    await marcarPauta(conversacionId, m.referral);
+    await marcarPauta(conversacionId, m.referral, enviadoEn);
   }
 
   // La conversación sube al tope de la bandeja. El filtro evita que un
