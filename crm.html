@@ -297,6 +297,20 @@
   .estado-btn.on { border-color: var(--ink); background: var(--line-soft); font-weight: 600; }
   .estado-btn.on .tick { opacity: 1; }
 
+  /* Monto de la reserva: aparece al marcar "reservó". estado y valor
+     se guardan en el MISMO update (si no, el trigger ya encoló el
+     Purchase sin value). */
+  .monto-box { margin-top: 10px; padding: 12px; border: 1px solid var(--accent); border-radius: 9px; background: var(--accent-soft); }
+  .monto-box[hidden] { display: none; }
+  .monto-lbl { font-size: 12px; font-weight: 600; display: block; margin-bottom: 7px; }
+  .monto-lbl span { color: var(--ink-mute); font-weight: 500; }
+  .monto-row { display: flex; gap: 7px; }
+  .monto-row input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg-elev); font-size: 13px; }
+  .monto-ok { background: var(--ink); color: #fff; border-radius: 7px; padding: 8px 14px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .monto-ok:hover { opacity: 0.88; }
+  .monto-cancel { margin-top: 8px; font-size: 12px; color: var(--ink-soft); text-decoration: underline; }
+  .monto-hint { font-size: 11px; color: var(--ink-soft); margin-top: 8px; line-height: 1.4; }
+
   .datos { display: flex; flex-direction: column; gap: 9px; }
   .dato { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--line-soft); }
   .dato:last-child { border-bottom: none; padding-bottom: 0; }
@@ -560,6 +574,16 @@
                 <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
             </div>
+
+            <div class="monto-box" id="montoBox" hidden>
+              <label class="monto-lbl" for="montoInput">Monto de la reserva <span>(opcional)</span></label>
+              <div class="monto-row">
+                <input type="text" id="montoInput" inputmode="numeric" placeholder="Ej: 180000" aria-label="Monto de la reserva">
+                <button class="monto-ok" id="montoGuardar" type="button">Confirmar</button>
+              </div>
+              <button class="monto-cancel" id="montoCancelar" type="button">Cancelar</button>
+              <p class="monto-hint">El monto le dice a Meta cuánto valió esta reserva. Sin monto igual se guarda, pero el algoritmo optimiza por cantidad de reservas, no por facturación.</p>
+            </div>
           </div>
 
           <div>
@@ -780,6 +804,7 @@
   }
 
   function renderHilo() {
+    cerrarMonto();
     var c = actual();
     if (!c) {
       $('hNom').textContent = '—'; $('hTel').textContent = '—'; $('hAvatar').textContent = '·';
@@ -1030,18 +1055,38 @@
   $('mesPrev').addEventListener('click', function () { if (CLIENTE) cambiarMes(-1); });
   $('mesNext').addEventListener('click', function () { if (CLIENTE) cambiarMes(1); });
 
-  // Clasificar: update sobre conversacion.estado. Optimista, y si el
-  // update falla se revierte. El grant por columna (migración 46) solo
-  // deja tocar estado/nota/valor.
+  function abrirMonto(c) {
+    $('montoInput').value = c.valor != null ? String(c.valor) : '';
+    $('montoBox').hidden = false;
+    $('montoInput').focus();
+  }
+  function cerrarMonto() { $('montoBox').hidden = true; }
+
+  // Clasificar. Optimista, y si el update falla se revierte. El grant
+  // por columna (migración 46) solo deja tocar estado/nota/valor.
+  //
+  // "Reservó" no se guarda al toque: primero pide el monto. El trigger
+  // encola el Purchase en el UPDATE de estado leyendo new.valor, así
+  // que estado y valor TIENEN que ir en el mismo update — si no, el
+  // evento ya salió sin value. Los otros tres estados guardan directo.
   $('estados').addEventListener('click', async function (e) {
     var b = e.target.closest('.estado-btn');
     if (!b) return;
     var c = actual();
-    if (!c || c.estado === b.dataset.e) return;
-    var antes = c.estado, nuevo = b.dataset.e;
+    if (!c) return;
+    var nuevo = b.dataset.e;
+
+    if (nuevo === 'reservo') {
+      Array.prototype.forEach.call(document.querySelectorAll('.estado-btn'), function (x) { x.classList.toggle('on', x === b); });
+      abrirMonto(c);
+      return;
+    }
+
+    cerrarMonto();
+    if (c.estado === nuevo) return;
+    var antes = c.estado;
     c.estado = nuevo;
     renderHilo(); renderLista(); renderNumeros();
-
     var res = await SB.from('conversacion').update({ estado: nuevo }).eq('id', c.id);
     if (res.error) {
       c.estado = antes;
@@ -1050,6 +1095,34 @@
       return;
     }
     toast(NOMBRE_ESTADO[nuevo] + ' · guardado');
+  });
+
+  // Confirmar reserva: estado y valor en UN solo update. Sirve para
+  // marcarla por primera vez (el trigger encola el Purchase con el
+  // monto) y para corregir el monto de una ya marcada (ahí el trigger
+  // no reencola, pero queda en conversacion.valor y en el reporte).
+  $('montoGuardar').addEventListener('click', async function () {
+    var c = actual();
+    if (!c) return;
+    var raw = $('montoInput').value.replace(/[^\d]/g, '');
+    var val = raw ? Number(raw) : null;
+    var antesE = c.estado, antesV = c.valor;
+    c.estado = 'reservo'; c.valor = val;
+    cerrarMonto();
+    renderHilo(); renderLista(); renderNumeros();
+    var res = await SB.from('conversacion').update({ estado: 'reservo', valor: val }).eq('id', c.id);
+    if (res.error) {
+      c.estado = antesE; c.valor = antesV;
+      renderHilo(); renderLista(); renderNumeros();
+      toast('No se pudo guardar la reserva.');
+      return;
+    }
+    toast('Reservó' + (val ? ' · ' + plata(val) : '') + ' · guardado');
+  });
+
+  $('montoCancelar').addEventListener('click', function () {
+    cerrarMonto();
+    renderHilo();   // restaura el resaltado al estado real
   });
 
   $('nota').addEventListener('change', async function (e) {
