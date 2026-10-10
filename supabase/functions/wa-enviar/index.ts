@@ -9,9 +9,12 @@
 //  panel muestra la caja como pista, pero esta función revalida en
 //  cada envío y rechaza si no corresponde.
 //
-//  Deploy (con verificación de JWT: lo llama el panel con su sesión,
-//  no Meta):
-//    supabase functions deploy wa-enviar
+//  Deploy (con --no-verify-jwt, como el resto de las funciones del
+//  panel): la auth la hace ESTA función, no el gateway. Lee el
+//  Authorization del usuario y valida con un cliente anon (RLS), igual
+//  que pull-ads / analizar-reporte. Con verificación del gateway, la
+//  migración a JWT asimétricas lo rechaza ("Authentication Error").
+//    supabase functions deploy wa-enviar --no-verify-jwt
 //
 //  Secrets:
 //    WHATSAPP_TEST_TOKEN      token del número de PRUEBA de Meta
