@@ -61,7 +61,7 @@ limpiar() {
   fi
   local code
   code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
-    "$SUPABASE_URL/rest/v1/conversacion?telefono=like.${PREFIJO_TEL}*" \
+    "${SUPABASE_URL%/}/rest/v1/conversacion?telefono=like.${PREFIJO_TEL}*" \
     -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
     -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
     -H "Prefer: return=minimal" || echo "ERR")
