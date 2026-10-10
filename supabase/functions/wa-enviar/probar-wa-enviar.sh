@@ -29,6 +29,12 @@
 #    CLIENTE_ID="<uuid de un cliente que ese usuario ve>" \
 #    [ ENVIAR_REAL=si DESTINO="<wa_id de prueba, solo dígitos>" ] \
 #    bash supabase/functions/wa-enviar/probar-wa-enviar.sh
+#
+#  ⚠️ Formato del DESTINO: el wa_id que Meta reconoce, solo dígitos, sin
+#  el +. Ojo con los celulares argentinos: Meta los tiene SIN el 9 que
+#  va después del código de país. Es 54 + área + número, no 54 + 9 + …
+#  Ej: 542284631868, NO 5492284631868. Un 9 de más da 502 (Meta no lo
+#  encuentra). Es el mismo wa_id que llega en los webhooks entrantes.
 # ═══════════════════════════════════════════════════════════════
 set -euo pipefail
 
