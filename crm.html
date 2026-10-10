@@ -532,8 +532,8 @@
           </div>
           <div class="lista" id="lista"></div>
           <div class="costo">
-            <b>0 mensajes enviados por API este mes · USD 0.</b>
-            El negocio contesta desde su celular. El panel solo lee.
+            <b>Respondés gratis dentro de la ventana de 72 h.</b>
+            Fuera de ella, contestá desde el celular.
           </div>
         </div>
       </div>
@@ -973,6 +973,20 @@
     });
   }
 
+  // Saca el error REAL de la respuesta de wa-enviar. supabase-js, cuando
+  // la función responde non-2xx, deja un error genérico ("Authentication
+  // Error", "non-2xx status code") que no dice nada. El error de verdad
+  // está en el body { error: { code, message } } que devuelve la función.
+  async function leerError(resultado) {
+    var data = resultado && resultado.data;
+    var error = resultado && resultado.error;
+    if (data && data.error) return data.error;                 // body ya parseado
+    if (error && error.context && typeof error.context.clone === 'function') {
+      try { var b = await error.context.clone().json(); if (b && b.error) return b.error; } catch (e) {}
+    }
+    return {};   // nada legible: NO devolvemos el mensaje crudo de supabase-js
+  }
+
   // Envío: burbuja optimista "enviando", idem_key por intento, botón
   // deshabilitado en vuelo. wa-enviar revalida la ventana y deduplica.
   async function enviar(c) {
@@ -1007,13 +1021,20 @@
     } else {
       var i = c.msgs.indexOf(burbuja); if (i >= 0) c.msgs.splice(i, 1);
       if (actual() === c) pintarMensajes(c);
-      var msg = 'No se pudo enviar.';
-      if (error && error.context && typeof error.context.json === 'function') {
-        try { var b = await error.context.json(); if (b && b.error && b.error.message) msg = b.error.message; } catch (e2) {}
+
+      var info = await leerError(resultado);
+      console.error('wa-enviar falló:', info, resultado && resultado.error);
+
+      if (info.code === 'ventana_vencida' || info.code === 'sin_ventana') {
+        // Motivo claro y accionable: lo mostramos tal cual y redibujamos
+        // la caja (pasa a cerrada).
+        toast(info.message || 'La ventana gratis se cerró.');
+        actualizarResponder(c);
+        return;
       }
-      toast(msg);
-      // Si fue por la ventana, redibujar la caja (pasa a cerrada).
-      if (/ventana/i.test(msg)) { actualizarResponder(c); return; }
+      // Cualquier otro fallo (incluido un 502 de Meta): mensaje simple.
+      // El detalle queda en consola, no en la cara del cliente.
+      toast('No se pudo enviar. Probá desde el celular.');
     }
     if ($('respEnviar')) { $('respEnviar').disabled = false; $('respEnviar').textContent = 'Enviar'; }
   }
