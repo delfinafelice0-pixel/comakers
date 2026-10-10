@@ -2653,6 +2653,7 @@
     color: var(--ink-mute); font-weight: 600; margin-bottom: 8px;
   }
   .ejec-pop .miembros { gap: 5px; }
+  .ejec-pop .miembro-chip.no-socia { text-decoration: line-through; color: var(--warn); }
   .ejec-pop .nota { font-size: 11px; color: var(--ink-mute); margin-top: 9px; line-height: 1.45; }
 
 
@@ -3035,7 +3036,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v09/10 18:07</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v10/10 20:02</div>
     </div>
   </aside>
 
@@ -10750,7 +10751,9 @@
     if (FALTA_M14) { toast('Primero corré migracion-interno-14-plata.sql', 'warn'); return; }
     CT_EDIT = ct;
     CT_SERVICIO = ct ? (ct.servicio_id || null) : (servPre ? servPre.id : null);
-    CT_EJECUTAN = ct ? (CONTRATO_EJ[ct.id] || []).slice() : (ME ? [ME.id] : []);
+    // Si el contrato tenía cargada a alguien que no es socia, no se muestra
+    // y al guardar se saca.
+    CT_EJECUTAN = (ct ? (CONTRATO_EJ[ct.id] || []).slice() : (ME ? [ME.id] : [])).filter(esSociaId);
     $('#ctTitulo').textContent = ct ? 'Editar servicio' : 'Nuevo servicio';
     $('#ctCliente').innerHTML = CLIENTES.filter(c => c.activo !== false)
       .map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
@@ -10796,8 +10799,13 @@
               (x.precio != null ? ' · ' + plata(x.precio) : '') + '</option>').join('');
     el.value = CT_SERVICIO || '';
   }
+  // Ejecutoras = solo socias (10/10/2026). Las colaboradoras cobran por
+  // Trabajos, nunca como ejecutoras. La base también lo impide (migración 54).
+  function sociasEjecutoras() { return PERSONAS.filter(p => p.rol === 'socia'); }
+  function esSociaId(u) { return PERSONAS.some(p => p.id === u && p.rol === 'socia'); }
+
   function pintarEjecutan() {
-    $('#ctEjecutan').innerHTML = PERSONAS.map(p => {
+    $('#ctEjecutan').innerHTML = sociasEjecutoras().map(p => {
       const on = CT_EJECUTAN.indexOf(p.id) !== -1;
       const n = p.nombre || p.email;
       return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-ctej="' + p.id + '">' +
@@ -10938,7 +10946,7 @@
   // ── Cobro ────────────────────────────────────────────────────
   function abrirCobro(cb) {
     CB_EDIT = cb;
-    CB_EJECUTAN = (COBRO_EJ[cb.id] || []).slice();
+    CB_EJECUTAN = (COBRO_EJ[cb.id] || []).filter(esSociaId);
     const ct = contratoDe(cb.contrato_id);
     $('#cbTitulo').textContent = nombreCliente(cb.cliente_id) + ' · ' + (ct ? ct.nombre : '') + ' · ' + mesLargo(cb.periodo);
     $('#cbEstado').value = cb.estado;
@@ -10952,7 +10960,7 @@
     abrir('ovCobro');
   }
   function pintarCbEjecutan() {
-    $('#cbEjecutan').innerHTML = PERSONAS.map(p => {
+    $('#cbEjecutan').innerHTML = sociasEjecutoras().map(p => {
       const on = CB_EJECUTAN.indexOf(p.id) !== -1;
       const n = p.nombre || p.email;
       return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-cbej="' + p.id + '">' +
@@ -11382,14 +11390,19 @@
     const pop = document.createElement('div');
     pop.className = 'ejec-pop';
     pop.dataset.ejecpop = contratoId;
+    // Solo socias. Si quedó cargada alguien que no lo es (de antes de la
+    // regla), aparece tachada para poder sacarla con un toque.
+    const intrusas = puestas.filter(u => !esSociaId(u)).map(u => PERSONAS.find(p => p.id === u) || { id: u, nombre: nombrePersona(u) || '?' });
     pop.innerHTML = '<div class="t">Quién ejecuta</div><div class="miembros">' +
-      PERSONAS.map(p => {
+      sociasEjecutoras().concat(intrusas).map(p => {
         const on = puestas.indexOf(p.id) !== -1;
         const n = p.nombre || p.email;
-        return '<button class="miembro-chip' + (on ? ' on' : '') + '" data-ejec="' + p.id + '">' +
+        const intrusa = !esSociaId(p.id);
+        return '<button class="miembro-chip' + (on ? ' on' : '') + (intrusa ? ' no-socia' : '') + '" data-ejec="' + p.id + '"' +
+          (intrusa ? ' title="No es socia: cobra por Trabajos. Tocá para sacarla."' : '') + '>' +
           '<span class="avatar-sm">' + esc(iniciales(n, '')) + '</span>' + esc(n) + '</button>';
       }).join('') + '</div>' +
-      '<div class="nota">El 85% se divide en partes iguales entre quienes elijas. ' +
+      '<div class="nota">Solo socias: las colaboradoras cobran por Trabajos. El 85% se divide en partes iguales entre quienes elijas. ' +
       'Cambia el servicio de acá en más; los cobros ya hechos no se tocan.</div>';
 
     document.body.appendChild(pop);
@@ -11407,6 +11420,7 @@
     const puestas = (CONTRATO_EJ[contratoId] || []).slice();
     const i = puestas.indexOf(userId);
     if (i === -1) {
+      if (!esSociaId(userId)) { toast('Solo las socias pueden ser ejecutoras', 'warn'); return; }
       const { error } = await SB.from('contrato_ejecutora')
         .insert({ contrato_id: contratoId, user_id: userId });
       if (error) { toast('No se pudo: ' + error.message, 'warn'); return; }
