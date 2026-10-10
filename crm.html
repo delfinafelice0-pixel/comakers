@@ -1000,10 +1000,25 @@
     c.msgs.push(burbuja);
     pintarMensajes(c);
 
+    // functions.invoke NO siempre hereda el access token de la sesión
+    // (es un sub-cliente aparte del de PostgREST). Sin él, el gateway de
+    // Supabase rechaza con "Authentication Error" antes de llegar a la
+    // función. Lo adjuntamos a mano desde getSession() (que además lo
+    // refresca si está por vencer).
     var resultado;
     try {
+      var rs = await SB.auth.getSession();
+      var sess = rs.data && rs.data.session;
+      if (!sess) {
+        var k = c.msgs.indexOf(burbuja); if (k >= 0) c.msgs.splice(k, 1);
+        if (actual() === c) pintarMensajes(c);
+        toast('Tu sesión expiró. Volvé a entrar.');
+        if ($('respEnviar')) { $('respEnviar').disabled = false; $('respEnviar').textContent = 'Enviar'; }
+        return;
+      }
       resultado = await SB.functions.invoke('wa-enviar', {
         body: { conversacion_id: c.id, texto: texto, idem_key: uuidv4() },
+        headers: { Authorization: 'Bearer ' + sess.access_token },
       });
     } catch (e) { resultado = { error: e }; }
 
