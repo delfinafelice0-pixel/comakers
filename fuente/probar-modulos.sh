@@ -119,10 +119,10 @@ if quiero servicio; then
   caso servicio-agencia     agencia "irA('servicio');" don-felipe 1800
   caso servicio-cliente     cliente "irA('servicio');" don-felipe 1800
 fi
-if quiero objetivos; then
-  caso objetivos-agencia    agencia "irA('objetivos');" don-felipe 2000
-  caso objetivos-cliente    cliente "irA('objetivos');" don-felipe 2000
-  caso objetivos-reporte    agencia "esperar('[data-irmes=\"2026-09\"]', function (b) { b.click(); });" don-felipe 2600
+# El reporte con los módulos prendidos: la solapa Cuenta ya no muestra
+# el bloque de Objetivos (se sacó el 11/10/2026).
+if quiero reporte; then
+  caso reporte-agencia      agencia "esperar('[data-irmes=\"2026-09\"]', function (b) { b.click(); });" don-felipe 2000
 fi
 if quiero one_shot; then
   caso oneshot-agencia      agencia "irA('one_shot');" don-felipe 2600

@@ -679,7 +679,9 @@
   let MODULOS = { organico: true, pauta: true };   // qué servicios tiene el cliente
   // Los módulos del panel nuevo nacen APAGADOS: sin fila = apagado
   // (al revés que organico/pauta, que son de antes).
-  const MODULOS_PANEL = ['calendario', 'estrategia', 'objetivos', 'one_shot', 'servicio'];
+  // 'objetivos' se sacó el 11/10/2026 (los objetivos viven en Estrategia).
+  // La tabla `objetivo` y su código en panel-modulos.js quedan, ocultos.
+  const MODULOS_PANEL = ['calendario', 'estrategia', 'one_shot', 'servicio'];
   let SECCION = 'reportes'; // ítem del menú abierto: 'reportes' o un módulo de MODULOS_PANEL
   // Indice del bloque que se esta editando, o {nuevo: modulo}.
   let BEDIT = null;
@@ -828,7 +830,7 @@
       else if (m.modulo in MODULOS) MODULOS[m.modulo] = m.activo !== false;
     });
     if (SECCION !== 'reportes' && !MODULOS[SECCION]) SECCION = 'reportes';
-    if (window.PanelModulos) { PanelModulos.reiniciar(); if (MODULOS.objetivos) await PanelModulos.cargarObjetivos(); }
+    if (window.PanelModulos) PanelModulos.reiniciar();
     pintarNav();
 
     // Las columnas de métricas de CUENTA (visitas_perfil_org, seguidores_total,
@@ -2249,8 +2251,6 @@
     // Con un solo servicio, un solo "+ Agregar sección": el del servicio.
     // Las secciones que ya estaban en "cuenta" se siguen mostrando.
     bloques.cuenta   += bloquesExtra('cuenta', !soloServicio);
-    // Avance de los objetivos medibles con los números de ESTE mes.
-    if (MODULOS.objetivos && window.PanelModulos) bloques.cuenta += PanelModulos.objetivosEnReporte(r, buscar);
     bloques.organico += bloquesExtra('organico');
     bloques.pauta    += bloquesExtra('pauta');
 

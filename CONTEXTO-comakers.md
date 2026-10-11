@@ -241,6 +241,13 @@ categorías globales con ids fijos `md5('cal_categoria:<nombre>')`.
   `cliente_modulo` = apagado (al revés que organico/pauta). Están en
   `CAT_MODULOS` de administración.
 
+**11/10/2026: Objetivos se sacó.** Los objetivos viven ahora en
+Estrategia. Se ocultó del menú del panel (`MODULOS_PANEL`), de
+`CAT_MODULOS` en administración y del bloque "Objetivos · cómo vamos
+este mes" de la solapa Cuenta. **La tabla `objetivo`, sus datos y su
+código en `panel-modulos.js` quedan**: para volver, alcanza con
+devolver la clave a esas tres listas.
+
 **Qué hace cada una:**
 - **Calendario**: meses uno abajo del otro (lun–dom), tarjetas por
   categoría con responsable y checks A✓ (agencia) / C✓ (cliente). Ficha
