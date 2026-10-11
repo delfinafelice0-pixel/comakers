@@ -233,7 +233,17 @@
   }
 
   const catDe = id => CAL.cats.find(c => c.id === id) || null;
-  const colorDe = c => { const k = catDe(c.categoria_id); return k ? k.color : '#e4e1e8'; };
+  // El color de la tarjeta: el propio (migración 57) o el de su categoría.
+  // Solo se aceptan hex: el valor termina adentro de un style.
+  const esHex = v => /^#[0-9A-Fa-f]{6}$/.test(String(v || ''));
+  const colorDe = c => { if (esHex(c.color)) return c.color; const k = catDe(c.categoria_id); return k && esHex(k.color) ? k.color : '#e4e1e8'; };
+  // La paleta de la marca para las tarjetas (texto oscuro encima: todos
+  // claros o medios).
+  const PALETA = [
+    ['#FF82FF', 'Rosa CoMakers'], ['#FFC9FF', 'Rosa suave'], ['#D3FF99', 'Lima'], ['#ECFBD4', 'Lima suave'],
+    ['#A8E6C3', 'Menta'], ['#CBEEF3', 'Celeste'], ['#9CC3F2', 'Azul'], ['#C9B8F5', 'Lavanda'],
+    ['#F26A8D', 'Coral'], ['#FFC1A6', 'Durazno'], ['#FFE58A', 'Amarillo'], ['#E3DED6', 'Arena']
+  ];
 
   // ── Fechas especiales de Argentina, calculadas ───────────────────
   // Las móviles (Madre, Padre, Infancias, Carnaval, Semana Santa,
@@ -475,7 +485,8 @@
 
   // Lista blanca de lo que puede tener el HTML que se muestra. Es una red
   // de seguridad: renderTexto ya escapa todo, pero el cliente lo ve.
-  const TAGS_OK = { STRONG: 1, EM: 1, U: 1, S: 1, MARK: 1, A: 1, UL: 1, OL: 1, LI: 1, BR: 1, HR: 1, H3: 1, H4: 1, SPAN: 1 };
+  const TAGS_OK = { STRONG: 1, EM: 1, U: 1, S: 1, MARK: 1, A: 1, UL: 1, OL: 1, LI: 1, BR: 1, HR: 1, H3: 1, H4: 1, SPAN: 1,
+                    TABLE: 1, THEAD: 1, TBODY: 1, TR: 1, TH: 1, TD: 1 };
   function limpiarHtml(html) {
     const t = document.createElement('template');
     t.innerHTML = html;
@@ -491,7 +502,8 @@
           const nom = a.name.toLowerCase();
           const ok = (tag === 'A' && nom === 'href' && /^https?:\/\//i.test(a.value)) ||
                      (tag === 'A' && (nom === 'target' || nom === 'rel')) ||
-                     ((tag === 'SPAN' || tag === 'LI') && nom === 'class' && /^(chk-box|chk|hecho|on|\s)+$/.test(a.value));
+                     ((tag === 'SPAN' || tag === 'LI') && nom === 'class' && /^(chk-box|chk|hecho|on|\s)+$/.test(a.value)) ||
+                     (tag === 'TABLE' && nom === 'class' && a.value === 'tabla-txt');
           if (!ok) n.removeAttribute(a.name);
         });
         if (tag === 'A') { n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener noreferrer'); }
@@ -533,6 +545,7 @@
       if (b.dataset.fmt != null) { if (b.dataset.fmt === '==') E.resaltar(ed); else E.envolver(ed, b.dataset.fmt); }
       else if (b.dataset.lista != null) E.listar(ed, !!b.dataset.lista);
       else if (b.dataset.chk) E.checklist(ed);
+      else if (b.dataset.tabla) E.insertarTabla(ed);
       else if (b.dataset.titulo) {
         E.volverAlCursor(ed);
         const s = window.getSelection();
@@ -590,6 +603,12 @@
         '<label>Categoría<select id="fcCat">' + opciones(cats, c.categoria_id, 'Sin categoría') + '</select></label>' +
         '<label>Formato<select id="fcFormato">' + opciones(FORMATOS, c.formato, '—') + '</select></label>' +
         '<label>Responsable<select id="fcResp">' + opciones(gente, c.responsable_id, 'Sin asignar') + '</select></label>' +
+        '<div class="ancho pm-colores"><span class="pm-ed-et">Color de la tarjeta</span><div class="pm-swatches">' +
+          '<button type="button" class="pm-sw pm-sw-cat' + (esHex(c.color) ? '' : ' on') + '" data-color="" title="El de la categoría">' +
+            '<i style="background:' + esc(catDe(c.categoria_id) && esHex(catDe(c.categoria_id).color) ? catDe(c.categoria_id).color : '#e4e1e8') + '"></i>Categoría</button>' +
+          PALETA.map(([hex, nom]) => '<button type="button" class="pm-sw' + (String(c.color || '').toUpperCase() === hex ? ' on' : '') +
+            '" data-color="' + hex + '" title="' + esc(nom) + '"><i style="background:' + hex + '"></i></button>').join('') +
+        '</div></div>' +
         '<div class="ancho pm-ed-caja"><span class="pm-ed-et">Contenido</span>' + barraEditor() +
           '<div class="txt-fmt pm-editor" id="fcCuerpo" contenteditable="true" data-ph="Copy, referencias, links, guion… todo acá. Usá la barra para darle formato."></div></div>' +
         // Solo agencia: este formulario lo abre únicamente quien edita
@@ -620,6 +639,16 @@
         const ed = $('#fcCuerpo', el);
         const E = ED();
         if (E) { E.ponerTexto(ed, cuerpoDe(c)); montarBarra(el, ed); }
+        // Color de la tarjeta: uno de la paleta o el de la categoría.
+        const sws = $('.pm-swatches', el);
+        sws.addEventListener('click', ev => {
+          const b = ev.target.closest('[data-color]'); if (!b) return;
+          $$('.pm-sw', sws).forEach(x => x.classList.toggle('on', x === b));
+        });
+        $('#fcCat', el).addEventListener('change', () => {
+          const k = catDe(val('#fcCat', el));
+          $('.pm-sw-cat i', el).style.background = k && esHex(k.color) ? k.color : '#e4e1e8';
+        });
         // Responsables por tarea: con tareas creadas, los que tienen hoy.
         const caja = $('.pm-tareas-resp', el), tt = $('#fcTareas', el);
         if (tt) tt.addEventListener('change', () => { caja.hidden = !tt.checked; });
@@ -660,6 +689,7 @@
       categoria_id: val('#fcCat', el) || null, formato: val('#fcFormato', el) || null,
       responsable_id: respId, responsable: persona ? persona.nombre : (respId ? c.responsable : null),
       cuerpo: cuerpo || null, publicado: chk('#fcPub', el),
+      color: (() => { const b = $('.pm-sw.on', el); const v = b ? b.dataset.color : ''; return esHex(v) ? v : null; })(),
       actualizado_en: new Date().toISOString()
     };
     const quiereTareas = chk('#fcTareas', el);
@@ -694,8 +724,10 @@
   }
   // Sin la migración 55 la columna `cuerpo` no existe: que se entienda.
   function errorCuerpo(e) {
-    return /cuerpo/.test(e.message || '') ? 'Falta correr la migración 55 (cal_contenido.cuerpo): no se guardó.'
-      : 'No se pudo guardar: ' + e.message;
+    const m = e.message || '';
+    return /cuerpo/.test(m) ? 'Falta correr la migración 55 (cal_contenido.cuerpo): no se guardó.'
+      : /color/.test(m) ? 'Falta correr la migración 57 (color de la tarjeta): no se guardó.'
+      : 'No se pudo guardar: ' + m;
   }
 
   // Las dos tareas internas (edición y subida) para ese mismo día, en la

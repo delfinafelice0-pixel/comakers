@@ -2104,6 +2104,20 @@
   }
   hr { border: none; border-top: 1px solid var(--linea-fuerte); margin: 10px 0; height: 0; }
   li.chk { list-style: none; }
+  /* Tablas del texto con formato (descripciones, comentarios, wiki). */
+  table.tabla-txt { border-collapse: collapse; margin: 8px 0; max-width: 100%; font-size: inherit; }
+  table.tabla-txt th, table.tabla-txt td {
+    border: 1px solid var(--line); padding: 5px 9px; text-align: left; vertical-align: top; min-width: 60px;
+  }
+  table.tabla-txt th { background: var(--line-soft); font-weight: 600; }
+  .tabla-barra {
+    position: absolute; z-index: 1200; display: flex; gap: 2px; padding: 3px; border-radius: 8px;
+    background: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  }
+  .tabla-barra button {
+    border: 0; background: none; color: #fff; font: inherit; font-size: 11.5px; padding: 3px 7px; border-radius: 6px; cursor: pointer;
+  }
+  .tabla-barra button:hover { background: rgba(255,255,255,.16); }
   /* La casilla ocupa el lugar de la viñeta: el texto queda alineado con
      el de los renglones comunes de la misma lista. */
   .chk-box {
@@ -3018,7 +3032,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v11/10 16:42</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v11/10 19:12</div>
     </div>
   </aside>
 
@@ -6354,7 +6368,19 @@
       pend = []; nivAnt = -1;
     };
 
+    // Tablas: renglones seguidos que empiezan y terminan con "|". El
+    // segundo, si es "| --- | --- |", dice que el primero es encabezado.
+    // Un "|" dentro de una celda se guarda escapado: "\|".
+    let filasTabla = [];
+    const volcarTabla = () => {
+      if (!filasTabla.length) return;
+      salida += tablaHTML(filasTabla);
+      filasTabla = [];
+    };
+
     lineas.forEach((l, i) => {
+      if (RE_FILA_TABLA.test(l)) { cerrar(); filasTabla.push(l); return; }
+      volcarTabla();
       const m = l.match(/^([ \t]*)([-•]|\d+[.)])[ \t]+(.*)$/);
       if (m) {
         const ancho = m[1].replace(/\t/g, '  ').length;
@@ -6385,9 +6411,35 @@
         salida += l + (i < lineas.length - 1 ? '<br>' : '');
       }
     });
+    volcarTabla();
     cerrar();
 
     return salida.replace(/\u0000(\d+)\u0000/g, (m, i) => piezas[+i]);
+  }
+
+  // ── Tablas ───────────────────────────────────────────────────
+  //  Se guardan como en markdown, en texto:
+  //    | Columna 1 | Columna 2 |
+  //    | --- | --- |
+  //    | celda | celda |
+  //  El HTML lo arma tablaHTML (las celdas ya vienen escapadas y con su
+  //  formato, igual que cualquier renglón). Las celdas vacías llevan un
+  //  <br> para que en el editor se puedan clickear.
+  const RE_FILA_TABLA = /^[ \t]*\|.*\|[ \t]*$/;
+  const RE_SEP_TABLA = /^[ \t]*\|([ \t]*:?-{3,}:?[ \t]*\|)+[ \t]*$/;
+  function celdasDe(l) {
+    return l.trim().replace(/^\|/, '').replace(/\|$/, '')
+      .split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, '|'));
+  }
+  function tablaHTML(filas) {
+    let cab = null, cuerpo = filas;
+    if (filas.length > 1 && RE_SEP_TABLA.test(filas[1])) { cab = celdasDe(filas[0]); cuerpo = filas.slice(2); }
+    cuerpo = cuerpo.filter(f => !RE_SEP_TABLA.test(f)).map(celdasDe);
+    const n = Math.max(cab ? cab.length : 0, ...cuerpo.map(f => f.length), 1);
+    const celda = (tag, c) => '<' + tag + '>' + (c || '<br>') + '</' + tag + '>';
+    const fila = (tag, f) => '<tr>' + Array.from({ length: n }, (_, k) => celda(tag, f[k])).join('') + '</tr>';
+    return '<table class="tabla-txt">' + (cab ? '<thead>' + fila('th', cab) + '</thead>' : '') +
+      '<tbody>' + cuerpo.map(f => fila('td', f)).join('') + '</tbody></table>';
   }
 
   // Para previews de una línea: se ve la palabra, no el markdown.
@@ -6596,6 +6648,20 @@
         s += serieLista(n, 0);
         continue;
       }
+      // Una tabla vuelve a ser sus renglones "| … |". La primera fila es
+      // el encabezado (lleva su "| --- |" abajo). El texto de cada celda
+      // va en un solo renglón y con sus "|" escapados.
+      if (tag === 'TABLE') {
+        if (s && !/\n$/.test(s)) s += '\n';
+        const trs = Array.from(n.querySelectorAll('tr'));
+        trs.forEach((tr, i) => {
+          const cs = Array.from(tr.children).filter(c => c.tagName === 'TD' || c.tagName === 'TH');
+          if (!cs.length) return;
+          s += '| ' + cs.map(c => serieNodos(c.childNodes).replace(/\s*\n+\s*/g, ' ').trim().replace(/\|/g, '\\|')).join(' | ') + ' |\n';
+          if (i === 0) s += '|' + cs.map(() => ' --- ').join('|') + '|\n';
+        });
+        continue;
+      }
       if (tag === 'DIV' || tag === 'P' || /^H[1-6]$/.test(tag)) {
         if (s && !/\n$/.test(s)) s += '\n';
         // Un título vuelve a ser "# …" (h1–h3) o "## …" (h4–h6).
@@ -6642,7 +6708,7 @@
     // Una viñeta recién creada todavía no tiene texto, pero no está
     // vacía: si se la tratara como vacía se borraba en el acto, y por eso
     // el botón de lista no hacía nada en un detalle en blanco.
-    const vacio = !el.textContent.trim() && !el.querySelector('img, .mencion, a, hr, .chk-box, li');
+    const vacio = !el.textContent.trim() && !el.querySelector('img, .mencion, a, hr, .chk-box, li, table');
     el.classList.toggle('vacio', vacio);
     if (vacio && el.innerHTML && el.innerHTML !== '<br>') el.innerHTML = '';
   }
@@ -6687,6 +6753,14 @@
         return;
       }
 
+      // Tab en una tabla pasa a la celda siguiente; en la última, agrega
+      // una fila. Shift+Tab vuelve.
+      if (e.key === 'Tab' && celdaDelCursor(el)) {
+        e.preventDefault();
+        moverEnTabla(el, e.shiftKey ? -1 : 1);
+        return;
+      }
+
       // La checklist tiene su propio Enter, su Backspace y su ⌘↵.
       if (tecladoChecklist(e, el)) return;
 
@@ -6716,6 +6790,124 @@
     if (n && n.nodeType === 3) n = n.parentNode;
     return !!(n && n.closest && n.closest('li'));
   }
+
+  // ── Tablas: insertar, filas y columnas ───────────────────────
+  //  Con el cursor adentro de una tabla aparece una barrita arriba de
+  //  ella: + fila, − fila, + columna, − columna, borrar. Es una sola para
+  //  toda la página y sirve en /interno y en el panel.
+  function insertarTabla(el) {
+    if (!el) return;
+    if (!esEditor(el)) { insertarEn(el, '\n| Columna 1 | Columna 2 |\n| --- | --- |\n|  |  |\n'); return; }
+    el = raizEditor(el);
+    alCursor(el);
+    mandar('insertHTML', '<table class="tabla-txt"><thead><tr><th>Columna 1</th><th>Columna 2</th></tr></thead>' +
+      '<tbody><tr><td><br></td><td><br></td></tr></tbody></table><div><br></div>');
+    marcarVacio(el);
+    guardarCampoDe(el);
+  }
+
+  function celdaDelCursor(el) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    let n = sel.getRangeAt(0).startContainer;
+    if (n && n.nodeType === 3) n = n.parentNode;
+    const c = n && n.closest ? n.closest('td, th') : null;
+    return (c && el.contains(c)) ? c : null;
+  }
+
+  function ponerCursorEn(celda) {
+    const r = document.createRange();
+    r.selectNodeContents(celda); r.collapse(false);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  }
+
+  function celdaNueva(tag) { const c = document.createElement(tag); c.appendChild(document.createElement('br')); return c; }
+
+  function opTabla(el, op) {
+    el = raizEditor(el);
+    const c = celdaDelCursor(el);
+    if (!c) return;
+    const tr = c.parentNode, tabla = c.closest('table');
+    const col = Array.from(tr.children).indexOf(c);
+    const filas = Array.from(tabla.querySelectorAll('tr'));
+    if (op === 'fila+') {
+      const nueva = document.createElement('tr');
+      const ancho = tr.children.length;
+      for (let k = 0; k < ancho; k++) nueva.appendChild(celdaNueva('td'));
+      // Abajo del encabezado, la fila nueva va primera en el cuerpo.
+      if (tr.parentNode.tagName === 'THEAD') {
+        let tb = tabla.querySelector('tbody');
+        if (!tb) { tb = document.createElement('tbody'); tabla.appendChild(tb); }
+        tb.insertBefore(nueva, tb.firstChild);
+      } else tr.after(nueva);
+      ponerCursorEn(nueva.children[Math.min(col, ancho - 1)]);
+    } else if (op === 'fila-') {
+      const sig = tr.nextElementSibling || tr.previousElementSibling;
+      tr.remove();
+      if (!tabla.querySelector('tr')) { tabla.remove(); ocultarBarraTabla(); }
+      else if (sig && sig.children[col]) ponerCursorEn(sig.children[col]);
+    } else if (op === 'col+') {
+      filas.forEach(f => {
+        const ref = f.children[col];
+        const nueva = celdaNueva(f.parentNode.tagName === 'THEAD' ? 'th' : 'td');
+        if (ref) ref.after(nueva); else f.appendChild(nueva);
+      });
+      ponerCursorEn(tr.children[col + 1]);
+    } else if (op === 'col-') {
+      filas.forEach(f => { if (f.children[col]) f.children[col].remove(); });
+      if (!tabla.querySelector('td, th')) { tabla.remove(); ocultarBarraTabla(); }
+      else ponerCursorEn(tr.children[Math.max(0, col - 1)]);
+    } else if (op === 'borrar') {
+      tabla.remove(); ocultarBarraTabla();
+    }
+    marcarVacio(el);
+    guardarCampoDe(el);
+    pintarBarraTabla();
+  }
+
+  function moverEnTabla(el, paso) {
+    const c = celdaDelCursor(el); if (!c) return;
+    const todas = Array.from(c.closest('table').querySelectorAll('td, th'));
+    const i = todas.indexOf(c) + paso;
+    if (i >= todas.length) { opTabla(el, 'fila+'); ponerCursorEn(c.closest('table').querySelector('tr:last-child').firstElementChild); return; }
+    if (i >= 0) ponerCursorEn(todas[i]);
+  }
+
+  // La barrita de la tabla, una sola para toda la página.
+  let BARRA_TABLA = null;
+  function barraTabla() {
+    if (BARRA_TABLA) return BARRA_TABLA;
+    const b = document.createElement('div');
+    b.className = 'tabla-barra';
+    b.innerHTML = [['fila+', '+ fila'], ['fila-', '− fila'], ['col+', '+ columna'], ['col-', '− columna'], ['borrar', 'Borrar tabla']]
+      .map(([op, t]) => '<button type="button" data-tablaop="' + op + '">' + t + '</button>').join('');
+    // mousedown y no click: así el editor no pierde el foco ni el cursor.
+    b.addEventListener('mousedown', e => {
+      const btn = e.target.closest('[data-tablaop]'); if (!btn) return;
+      e.preventDefault();
+      const sel = window.getSelection();
+      const n = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+      const ed = n && (n.nodeType === 3 ? n.parentNode : n).closest('[contenteditable="true"]');
+      if (ed) opTabla(ed, btn.dataset.tablaop);
+    });
+    b.style.display = 'none';
+    document.body.appendChild(b);
+    return (BARRA_TABLA = b);
+  }
+  function ocultarBarraTabla() { if (BARRA_TABLA) BARRA_TABLA.style.display = 'none'; }
+  function pintarBarraTabla() {
+    const sel = window.getSelection();
+    const n = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+    const nodo = n && (n.nodeType === 3 ? n.parentNode : n);
+    const ed = nodo && nodo.closest ? nodo.closest('[contenteditable="true"]') : null;
+    const c = ed ? celdaDelCursor(ed) : null;
+    if (!c) { ocultarBarraTabla(); return; }
+    const b = barraTabla(), r = c.closest('table').getBoundingClientRect();
+    b.style.display = 'flex';
+    b.style.left = (r.left + window.scrollX) + 'px';
+    b.style.top = Math.max(0, r.top + window.scrollY - b.offsetHeight - 4) + 'px';
+  }
+  document.addEventListener('selectionchange', pintarBarraTabla);
 
   function mandar(cmd, valor) {
     try { document.execCommand('styleWithCSS', false, false); } catch (_) {}
@@ -7203,7 +7395,8 @@
     '<button class="mini-btn fmt" data-fmt="~~" title="Tachado"><s>S</s></button>' +
     '<button class="mini-btn fmt" data-fmt="==" title="Resaltar (⌘⇧H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"></path><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></svg></button>' +
     '<button class="mini-btn fmt" data-lista="" title="Lista">•—</button>' +
-    '<button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>';
+    '<button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>' +
+    '<button class="mini-btn fmt" data-tabla="1" title="Tabla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="10" y1="4" x2="10" y2="20"></line></svg></button>';
 
   // ── Modal para poner un link ─────────────────────────────────
   let LK_DESTINO = null, LK_INI = 0, LK_FIN = 0;
@@ -10557,6 +10750,7 @@
     const el = campoDeLaBarra(b);
     if (!el) return;
     if (b.hasAttribute('data-lista')) listar(el, b.dataset.lista === '1');
+    else if (b.hasAttribute('data-tabla')) insertarTabla(el);
     else if (b.hasAttribute('data-chk')) checklist(el);
     else if (b.hasAttribute('data-hr')) divisor(el);
     else if (b.dataset.fmt === '==') resaltar(el);

@@ -81,7 +81,7 @@ EDITOR_FINAL = r"""
   window.EditorTexto = {
     renderTexto: renderTexto, textoPlano: textoPlano, leerTexto: leerTexto, ponerTexto: ponerTexto,
     montarEditor: montarEditor, envolver: envolver, listar: listar, resaltar: resaltar, checklist: checklist,
-    divisor: divisor, mandar: mandar, volverAlCursor: volverAlCursor, raizEditor: raizEditor,
+    divisor: divisor, mandar: mandar, insertarTabla: insertarTabla, volverAlCursor: volverAlCursor, raizEditor: raizEditor,
     marcarVacio: marcarVacio, insertarEn: insertarEn, BARRA_FORMATO: BARRA_FORMATO,
     rangoGuardado: function () { return RANGO_EDITOR; }
   };
