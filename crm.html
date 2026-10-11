@@ -121,7 +121,7 @@
   }
   .nav-item.active .badge { background: var(--bg-elev); }
 
-  .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); }
+  .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
   .user-card { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
   .avatar {
     width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
@@ -130,6 +130,12 @@
   }
   .user-name { font-weight: 600; font-size: 13px; line-height: 1.2; }
   .user-role { font-size: 11px; color: var(--ink-mute); }
+  .logout {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-mute); padding: 8px 10px; text-align: left; border-radius: 8px;
+    border: 0; background: none; cursor: pointer;
+  }
+  .logout:hover { background: var(--line-soft); color: var(--ink); }
 
   /* ── MAIN ─────────────────────────────────────────────── */
   .main { padding: 32px 40px 48px; max-width: 1500px; min-width: 0; }
@@ -422,6 +428,7 @@
           <div class="user-role" id="userRol">—</div>
         </div>
       </div>
+      <button type="button" class="logout" id="btnSalir">Cerrar sesión</button>
     </div>
   </aside>
 
@@ -1307,6 +1314,12 @@
     c.nota = val;
     var res = await SB.from('conversacion').update({ nota: val }).eq('id', c.id);
     toast(res.error ? 'No se pudo guardar la nota.' : 'Nota guardada');
+  });
+
+  // Cerrar sesión: igual que panel.html. signOut y al login pelado (sin
+  // next: es un logout, no corresponde volver a ninguna página).
+  $('btnSalir').addEventListener('click', async function () {
+    try { await SB.auth.signOut(); } finally { location.replace(LOGIN); }
   });
 
   // ── Arranque y control de acceso ─────────────────────────────
