@@ -233,7 +233,24 @@
   // Agencia (o super admin) → panel interno.
   // Cliente → su panel de reportes.
   // Si el perfil no se puede leer, cae al panel de cliente (lo más restrictivo).
+  // Solo rutas relativas del mismo sitio (evita open redirect): empieza
+  // con '/', no con '//', sin ':' ni '\'.
+  function destinoValido(n) {
+    return typeof n === 'string'
+      && n.charAt(0) === '/'
+      && n.charAt(1) !== '/'
+      && n.indexOf(':') === -1
+      && n.indexOf('\\') === -1;
+  }
+
   async function irAlPanel(session) {
+    // ¿Veníamos de un guard que guardó a dónde iba? Si el next es válido,
+    // vamos ahí. Y lo sacamos de la URL del login para que un refresh o
+    // el botón atrás no lo vuelvan a disparar.
+    var next = new URLSearchParams(location.search).get('next');
+    if (location.search) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    if (destinoValido(next)) { window.location.href = next; return; }
+
     let destino = 'panel.html';
     try {
       const { data: perfil } = await sb
