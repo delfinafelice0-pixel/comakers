@@ -263,19 +263,13 @@
   function tarjetaContenido(c) {
     const k = catDe(c.categoria_id);
     const oculto = P().AGENCIA && !c.publicado;
-    const puedeA = edita(), puedeC = edita() || (!P().AGENCIA && c.publicado);
     return '<div class="cal-card' + (oculto ? ' oculta' : '') + '" style="--c:' + esc(colorDe(c)) + '" data-cont="' + esc(c.id) + '"' +
       (edita() ? ' draggable="true"' : '') + ' title="' + esc((k ? k.nombre + ' · ' : '') + c.titulo) + '">' +
       (oculto ? '<span class="cal-oculta" title="El cliente no la ve">oculta</span>' : '') +
       '<div class="cal-card-t">' + esc(c.titulo) + '</div>' +
       '<div class="cal-card-pie">' +
         '<span class="cal-resp">' + esc(c.responsable || '') + (c.formato ? (c.responsable ? ' · ' : '') + esc(c.formato) : '') + '</span>' +
-        '<span class="cal-checks">' +
-          '<button type="button" class="cal-ok' + (c.aprob_agencia ? ' si' : '') + '" data-aprob="agencia" data-id="' + esc(c.id) + '"' + (puedeA ? '' : ' disabled') +
-            ' title="Aprobado por la agencia' + (c.aprob_agencia ? '' : ': todavía no') + '">A' + (c.aprob_agencia ? '✓' : '') + '</button>' +
-          '<button type="button" class="cal-ok' + (c.aprob_cliente ? ' si' : '') + '" data-aprob="cliente" data-id="' + esc(c.id) + '"' + (puedeC ? '' : ' disabled') +
-            ' title="Aprobado por el cliente' + (c.aprob_cliente ? '' : ': todavía no') + '">C' + (c.aprob_cliente ? '✓' : '') + '</button>' +
-        '</span></div></div>';
+      '</div></div>';
   }
 
   function chipEvento(e, f) {
@@ -352,8 +346,7 @@
     const usadas = CAL.cats;
     return '<div class="cal-leyenda">' + usadas.map(k => '<span class="cal-ley"><i style="background:' + esc(k.color) + '"></i>' + esc(k.nombre) + '</span>').join('') +
       '<span class="cal-ley ev"><i class="r"></i>Recurrente</span><span class="cal-ley ev"><i class="a"></i>Ausencia</span>' +
-      '<span class="cal-ley ev"><i class="c"></i>Comercial</span>' +
-      '<span class="cal-ley ev">A✓ C✓ = aprobado por agencia / cliente</span></div>';
+      '<span class="cal-ley ev"><i class="c"></i>Comercial</span></div>';
   }
 
   function renderCalendario(main) {
@@ -382,8 +375,6 @@
     const re = () => P().rerender();
     main.addEventListener('click', async e => {
       const t = e.target;
-      const ap = t.closest('[data-aprob]');
-      if (ap) { e.stopPropagation(); if (!ap.disabled) await aprobar(ap.dataset.id, ap.dataset.aprob, re); return; }
       const nu = t.closest('[data-nuevo]');
       if (nu) { fichaContenido(null, nu.dataset.nuevo || null, re); return; }
       const card = t.closest('[data-cont]');
@@ -439,33 +430,135 @@
     toast(fecha ? 'Agendado para el ' + fechaLarga(fecha) + '.' : 'Pasó a ideas sin fecha.');
   }
 
-  async function aprobar(id, quien, re) {
-    const c = CAL.conts.find(x => x.id === id); if (!c) return;
-    const campo = quien === 'agencia' ? 'aprob_agencia' : 'aprob_cliente';
-    const nuevo = !c[campo];
-    let error;
-    if (P().AGENCIA) {
-      const patch = {}; patch[campo] = nuevo;
-      if (campo === 'aprob_cliente') patch.aprob_cliente_en = nuevo ? new Date().toISOString() : null;
-      ({ error } = await SB().from('cal_contenido').update(patch).eq('id', id));
-    } else {
-      // El cliente aprueba por RPC: no puede tocar ninguna otra columna.
-      const r = await SB().rpc('panel_aprobar_contenido', { p_id: id, p_ok: nuevo });
-      error = r.error || (r.data === false ? { message: 'no autorizado' } : null);
-    }
-    if (error) { toast('No se pudo: ' + error.message, true); return; }
-    c[campo] = nuevo;
-    toast(nuevo ? (quien === 'agencia' ? 'Aprobado por la agencia.' : 'Aprobado. ¡Gracias!') : 'Aprobación quitada.');
-    re();
-  }
+  // Los checks de aprobación (A✓ / C✓) se sacaron el 11/10/2026. Las
+  // columnas aprob_agencia / aprob_cliente y la RPC panel_aprobar_contenido
+  // quedan en la base, sin uso.
 
   // ── Ficha de un contenido ────────────────────────────────────────
+  //  Un solo campo de texto con formato (`cuerpo`), con el MISMO editor de
+  //  /interno (editor-texto.js, que genera el build desde interno.src.html).
+  //  En la base se guarda texto con marcas, nunca HTML; al mostrarlo,
+  //  renderTexto escapa todo y además pasa por limpiarHtml (lista blanca).
+  //  Lo que se había cargado en copy / referencias / link, mientras no haya
+  //  cuerpo, se muestra junto abajo de su título (igual que la migración 55).
+  const ED = () => window.EditorTexto || null;
+
+  function cuerpoDe(c) {
+    if (c.cuerpo != null && String(c.cuerpo).trim()) return c.cuerpo;
+    return [['Copy', c.copy], ['Referencias', c.referencias], ['Link', c.link]]
+      .filter(([, v]) => v && String(v).trim())
+      .map(([t, v]) => '# ' + t + '\n' + String(v).trim()).join('\n');
+  }
+
+  // Lista blanca de lo que puede tener el HTML que se muestra. Es una red
+  // de seguridad: renderTexto ya escapa todo, pero el cliente lo ve.
+  const TAGS_OK = { STRONG: 1, EM: 1, U: 1, S: 1, MARK: 1, A: 1, UL: 1, OL: 1, LI: 1, BR: 1, HR: 1, H3: 1, H4: 1, SPAN: 1 };
+  function limpiarHtml(html) {
+    const t = document.createElement('template');
+    t.innerHTML = html;
+    (function limpiar(nodo) {
+      Array.from(nodo.childNodes).forEach(n => {
+        if (n.nodeType === 3) return;
+        if (n.nodeType !== 1) { n.remove(); return; }
+        const tag = n.tagName;
+        if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|TEMPLATE|SVG|MATH|FORM|INPUT|BUTTON|TEXTAREA|SELECT|LINK|META)$/.test(tag)) { n.remove(); return; }
+        limpiar(n);
+        if (!TAGS_OK[tag]) { n.replaceWith.apply(n, Array.from(n.childNodes)); return; }
+        Array.from(n.attributes).forEach(a => {
+          const nom = a.name.toLowerCase();
+          const ok = (tag === 'A' && nom === 'href' && /^https?:\/\//i.test(a.value)) ||
+                     (tag === 'A' && (nom === 'target' || nom === 'rel')) ||
+                     ((tag === 'SPAN' || tag === 'LI') && nom === 'class' && /^(chk-box|chk|hecho|on|\s)+$/.test(a.value));
+          if (!ok) n.removeAttribute(a.name);
+        });
+        if (tag === 'A') { n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener noreferrer'); }
+      });
+    })(t.content);
+    return t.innerHTML;
+  }
+
+  function htmlCuerpo(txt) {
+    if (!txt) return '';
+    const E = ED();
+    return limpiarHtml(E ? E.renderTexto(txt) : prosa(txt).replace(/\n/g, '<br>'));
+  }
+
+  // La barra: la de /interno (negrita, cursiva, subrayado, tachado,
+  // resaltar, listas) + títulos, checklist y link.
+  function barraEditor() {
+    const E = ED();
+    return '<div class="pm-ed-barra" role="toolbar" aria-label="Formato">' +
+      (E ? E.BARRA_FORMATO : '') +
+      '<button type="button" class="mini-btn fmt" data-titulo="1" title="Título">T</button>' +
+      '<button type="button" class="mini-btn fmt" data-titulo="2" title="Subtítulo"><small>T</small></button>' +
+      '<button type="button" class="mini-btn fmt" data-chk="1" title="Checklist">☑</button>' +
+      '<button type="button" class="mini-btn fmt" data-link="1" title="Link">🔗</button>' +
+      '</div>' +
+      '<div class="pm-ed-link" hidden><input id="fcLkTexto" placeholder="Texto del link"><input id="fcLkUrl" placeholder="https://">' +
+      '<button type="button" class="btn chico primario" id="fcLkOk">Poner link</button>' +
+      '<button type="button" class="btn chico" id="fcLkNo">Cancelar</button></div>';
+  }
+
+  function montarBarra(el, ed) {
+    const E = ED(); if (!E) return;
+    E.montarEditor(ed);
+    const barra = $('.pm-ed-barra', el), lk = $('.pm-ed-link', el);
+    // Que tocar un botón no le saque el foco (ni la selección) al texto.
+    barra.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+    barra.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.fmt != null) { if (b.dataset.fmt === '==') E.resaltar(ed); else E.envolver(ed, b.dataset.fmt); }
+      else if (b.dataset.lista != null) E.listar(ed, !!b.dataset.lista);
+      else if (b.dataset.chk) E.checklist(ed);
+      else if (b.dataset.titulo) {
+        E.volverAlCursor(ed);
+        const s = window.getSelection();
+        const n = s && s.rangeCount ? s.getRangeAt(0).startContainer : null;
+        const blq = n && (n.nodeType === 3 ? n.parentNode : n).closest('h3, h4');
+        const quiero = b.dataset.titulo === '1' ? 'H3' : 'H4';
+        E.mandar('formatBlock', blq && blq.tagName === quiero ? '<div>' : '<' + quiero.toLowerCase() + '>');
+      } else if (b.dataset.link) {
+        const r = E.rangoGuardado();
+        $('#fcLkTexto', el).value = (r && r.el === ed && !r.rango.collapsed) ? r.rango.toString() : '';
+        $('#fcLkUrl', el).value = '';
+        lk.hidden = false;
+        $($('#fcLkTexto', el).value ? '#fcLkUrl' : '#fcLkTexto', el).focus();
+      }
+      E.marcarVacio(ed);
+    });
+    $('#fcLkNo', el).addEventListener('click', () => { lk.hidden = true; E.volverAlCursor(ed); });
+    $('#fcLkOk', el).addEventListener('click', () => {
+      const texto = val('#fcLkTexto', el);
+      let url = val('#fcLkUrl', el);
+      if (!texto || !url) { toast('Falta el texto o el link', true); return; }
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      if (/\s/.test(url)) { toast('Ese link tiene espacios: revisalo', true); return; }
+      lk.hidden = true;
+      E.volverAlCursor(ed);
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !ed.contains(sel.anchorNode)) {
+        document.execCommand('insertText', false, texto);
+        const s2 = window.getSelection(), nodo = s2 && s2.anchorNode;
+        if (nodo && nodo.nodeType === 3) {
+          const r = document.createRange();
+          r.setStart(nodo, Math.max(0, s2.anchorOffset - texto.length)); r.setEnd(nodo, s2.anchorOffset);
+          s2.removeAllRanges(); s2.addRange(r);
+        }
+      }
+      E.mandar('createLink', url);
+      const s3 = window.getSelection();
+      if (s3 && s3.rangeCount) { const r = s3.getRangeAt(0); r.collapse(false); s3.removeAllRanges(); s3.addRange(r); }
+      E.marcarVacio(ed);
+    });
+  }
+
   function fichaContenido(c, fechaNueva, re) {
     const nuevo = !c;
     if (!edita()) { if (c) verContenido(c, re); return; }
-    c = c || { fecha: fechaNueva, titulo: '', categoria_id: '', formato: '', responsable_id: P().YO.id, copy: '', referencias: '', link: '', publicado: false };
+    c = c || { fecha: fechaNueva, titulo: '', categoria_id: '', formato: '', responsable_id: P().YO.id, publicado: false };
     const cats = CAL.cats.map(k => [k.id, k.nombre]);
     const gente = CAL.gente.map(g => [g.id, g.nombre]);
+    const tieneTareas = !!(c.tarea_edicion_id || c.tarea_subida_id);
     modal(
       '<h3>' + (nuevo ? (c.fecha ? 'Nuevo contenido' : 'Nueva idea') : 'Contenido') + '</h3>' +
       '<div class="pm-form">' +
@@ -474,15 +567,16 @@
         '<label>Categoría<select id="fcCat">' + opciones(cats, c.categoria_id, 'Sin categoría') + '</select></label>' +
         '<label>Formato<select id="fcFormato">' + opciones(FORMATOS, c.formato, '—') + '</select></label>' +
         '<label>Responsable<select id="fcResp">' + opciones(gente, c.responsable_id, 'Sin asignar') + '</select></label>' +
-        '<label class="ancho">Copy<textarea id="fcCopy" rows="5" placeholder="El texto de la publicación">' + esc(c.copy || '') + '</textarea></label>' +
-        '<label class="ancho">Referencias<textarea id="fcRefs" rows="2" placeholder="Links, ideas, ejemplos">' + esc(c.referencias || '') + '</textarea></label>' +
-        '<label class="ancho">Link (el archivo o la publicación)<input id="fcLink" value="' + esc(c.link || '') + '" placeholder="https://"></label>' +
+        '<div class="ancho pm-ed-caja"><span class="pm-ed-et">Contenido</span>' + barraEditor() +
+          '<div class="txt-fmt pm-editor" id="fcCuerpo" contenteditable="true" data-ph="Copy, referencias, links, guion… todo acá. Usá la barra para darle formato."></div></div>' +
+        // Solo agencia: este formulario lo abre únicamente quien edita
+        // (el cliente ve verContenido, que no tiene ninguno de los dos).
         '<div class="ancho pm-checks">' +
-          '<label class="pm-chk"><input type="checkbox" id="fcAprA"' + (c.aprob_agencia ? ' checked' : '') + '> Aprobado por la agencia</label>' +
-          '<label class="pm-chk"><input type="checkbox" id="fcAprC"' + (c.aprob_cliente ? ' checked' : '') + '> Aprobado por el cliente</label>' +
           '<label class="pm-chk pub"><input type="checkbox" id="fcPub"' + (c.publicado ? ' checked' : '') + '> Visible para el cliente</label>' +
-          (nuevo ? '<label class="pm-chk tareas"><input type="checkbox" id="fcTareas" checked> Crear en /interno las tareas de <b>edición</b> y de <b>subida</b> para ese día</label>' : '') +
-          (!nuevo && (c.tarea_edicion_id || c.tarea_subida_id) ? '<p class="pm-ayuda">Tiene tareas en /interno: se mueven con el contenido.</p>' : '') +
+          (!tieneTareas ? '<label class="pm-chk tareas"><input type="checkbox" id="fcTareas"' + (nuevo ? ' checked' : '') + '> Crear en /interno las tareas de <b>edición</b> y de <b>subida</b> para ese día</label>' : '') +
+          (tieneTareas ? '<p class="pm-ayuda">Tareas en /interno (se mueven con la fecha): ' +
+            [['tarea_edicion_id', 'edición'], ['tarea_subida_id', 'subida']].filter(([k]) => c[k])
+              .map(([k, n]) => '<a href="interno.html#t/' + esc(c[k]) + '" target="_blank" rel="noopener">' + n + ' ↗</a>').join(' · ') + '</p>' : '') +
         '</div>' +
       '</div>' +
       '<div class="pm-pie">' +
@@ -491,6 +585,10 @@
         '<button type="button" class="btn primario" id="fcGuardar">Guardar</button></div>' +
       (!nuevo ? '<div id="fcComent" class="pm-coment-caja"></div>' : ''),
       el => {
+        const ed = $('#fcCuerpo', el);
+        const E = ED();
+        if (E) { E.ponerTexto(ed, cuerpoDe(c)); montarBarra(el, ed); }
+        else ed.textContent = cuerpoDe(c);
         if (!nuevo) montarComentarios($('#fcComent', el), 'cal_contenido', c.id);
         $('#fcGuardar', el).addEventListener('click', () => guardarContenido(c, nuevo, el, re));
         const b = $('#fcBorrar', el);
@@ -509,83 +607,97 @@
     if (!titulo) { toast('Ponele un título', true); return; }
     const respId = val('#fcResp', el) || null;
     const persona = CAL.gente.find(g => g.id === respId);
+    const E = ED(), ed = $('#fcCuerpo', el);
+    // Se guarda TEXTO con marcas (lo que lee el editor recorriendo los
+    // nodos que conoce), nunca el innerHTML. Sin caracteres de control.
+    const cuerpo = (E ? E.leerTexto(ed) : ed.textContent).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim();
     const fila = {
       cliente_id: P().CLIENTE.id, titulo, fecha: val('#fcFecha', el) || null,
       categoria_id: val('#fcCat', el) || null, formato: val('#fcFormato', el) || null,
       responsable_id: respId, responsable: persona ? persona.nombre : (respId ? c.responsable : null),
-      copy: val('#fcCopy', el) || null, referencias: val('#fcRefs', el) || null, link: val('#fcLink', el) || null,
-      aprob_agencia: chk('#fcAprA', el), aprob_cliente: chk('#fcAprC', el), publicado: chk('#fcPub', el),
+      cuerpo: cuerpo || null, publicado: chk('#fcPub', el),
       actualizado_en: new Date().toISOString()
     };
-    if (fila.aprob_cliente !== !!c.aprob_cliente) fila.aprob_cliente_en = fila.aprob_cliente ? new Date().toISOString() : null;
+    const quiereTareas = chk('#fcTareas', el);
     const btn = $('#fcGuardar', el); btn.disabled = true;
     try {
+      let guardado;
       if (nuevo) {
         fila.orden = Date.now() / 1000;
         const { data, error } = await SB().from('cal_contenido').insert(fila).select('*').single();
-        if (error) { toast('No se pudo guardar: ' + error.message, true); return; }
-        CAL.conts.push(data);
-        if (chk('#fcTareas', el) && data.fecha) await crearTareas(data);
+        if (error) { toast(errorCuerpo(error), true); return; }
+        CAL.conts.push(data); guardado = data;
       } else {
         const { error } = await SB().from('cal_contenido').update(fila).eq('id', c.id);
-        if (error) { toast('No se pudo guardar: ' + error.message, true); return; }
+        if (error) { toast(errorCuerpo(error), true); return; }
         const fechaAntes = c.fecha;
-        Object.assign(c, fila);
+        Object.assign(c, fila); guardado = c;
         const tareas = [c.tarea_edicion_id, c.tarea_subida_id].filter(Boolean);
         if (tareas.length && c.fecha && c.fecha !== fechaAntes) await SB().from('tarea').update({ empieza: c.fecha, vence: c.fecha }).in('id', tareas);
       }
-      cerrarModal(); toast('Guardado.'); re();
+      if (quiereTareas) {
+        if (!guardado.fecha) toast('Guardado. Las tareas no se crearon: el contenido no tiene fecha.', true);
+        else await crearTareas(guardado);
+      } else toast('Guardado.');
+      cerrarModal(); re();
     } finally { btn.disabled = false; }
+  }
+  // Sin la migración 55 la columna `cuerpo` no existe: que se entienda.
+  function errorCuerpo(e) {
+    return /cuerpo/.test(e.message || '') ? 'Falta correr la migración 55 (cal_contenido.cuerpo): no se guardó.'
+      : 'No se pudo guardar: ' + e.message;
   }
 
   // Las dos tareas internas (edición y subida) para ese mismo día, en la
-  // tabla que usa /interno. Nunca visibles para el cliente.
+  // tabla `tarea` que usa /interno, con los mismos campos que pone el
+  // "Nueva tarea" de /interno: cliente (fijado a mano, no por proyecto),
+  // responsable (id + nombre), fechas de inicio y vencimiento, urgencia.
+  // Sin proyecto: en /interno aparecen sueltas, en la vista general.
+  // Nunca visibles para el cliente. Después de crearlas se RELEEN de la
+  // base: si algo no quedó como se pidió, se avisa en vez de dar por hecho.
   async function crearTareas(c) {
     const base = {
-      cliente_id: c.cliente_id, cliente_manual: true,
+      cliente_id: c.cliente_id, cliente_manual: true, proyecto_id: null, proyecto: null,
       responsable_id: c.responsable_id || null, responsable: c.responsable || null, responsable_tipo: 'agencia',
       urgencia: 'normal', empieza: c.fecha, vence: c.fecha, visible_cliente: false,
-      descripcion: 'Del calendario del panel (' + (c.formato || 'contenido') + '): ' + c.titulo
+      descripcion: 'Del calendario del panel de ' + P().CLIENTE.nombre + ' (' + (c.formato || 'contenido') + '): ' + c.titulo
     };
     const ids = {};
     for (const [clave, pre] of [['tarea_edicion_id', 'Editar'], ['tarea_subida_id', 'Subir']]) {
-      let fila = Object.assign({}, base, { titulo: pre + ': ' + c.titulo, orden: Date.now() / 1000 });
+      const fila = Object.assign({}, base, { titulo: pre + ': ' + c.titulo, orden: Date.now() / 1000 });
       let r = await SB().from('tarea').insert(fila).select('id').single();
       // Bases sin la columna cliente_manual (migración 26): sin ella.
       if (r.error && /cliente_manual/.test(r.error.message || '')) { delete fila.cliente_manual; r = await SB().from('tarea').insert(fila).select('id').single(); }
       if (r.error) { toast('El contenido se guardó, pero no las tareas: ' + r.error.message, true); return; }
       ids[clave] = r.data.id;
     }
-    await SB().from('cal_contenido').update(ids).eq('id', c.id);
+    const { error: eUp } = await SB().from('cal_contenido').update(ids).eq('id', c.id);
     Object.assign(c, ids);
-    toast('Contenido y tareas de edición y subida creados.');
+    // Releer: ¿quedaron con el cliente, la fecha y el responsable pedidos?
+    const { data: leidas } = await SB().from('tarea').select('id, titulo, cliente_id, responsable_id, vence')
+      .in('id', [ids.tarea_edicion_id, ids.tarea_subida_id]);
+    const mal = (leidas || []).filter(t => t.cliente_id !== c.cliente_id || String(t.vence || '').slice(0, 10) !== c.fecha ||
+      (c.responsable_id || null) !== (t.responsable_id || null));
+    if (eUp) toast('Tareas creadas, pero no se pudieron enganchar al contenido: ' + eUp.message, true);
+    else if (!leidas || leidas.length !== 2) toast('Se crearon las tareas pero no se pueden leer de vuelta: revisalas en /interno.', true);
+    else if (mal.length) toast('Tareas creadas, pero ' + mal.length + ' quedó con otro cliente, fecha o responsable: revisala en /interno.', true);
+    else toast('Guardado. Tareas de edición y subida creadas en /interno para el ' + fechaLarga(c.fecha) + '.');
   }
 
-  // Lo que ve el cliente (o la agencia en vista cliente).
+  // Lo que ve el cliente (o la agencia en vista cliente). Sin "Visible
+  // para el cliente", sin tareas y sin aprobaciones.
   function verContenido(c, re) {
     const k = catDe(c.categoria_id);
-    const puedeAprobar = !P().AGENCIA;
+    const cuerpo = cuerpoDe(c);
     modal(
       '<div class="pm-ficha-cab" style="--c:' + esc(colorDe(c)) + '">' +
         (k ? '<span class="pm-cat">' + esc(k.nombre) + '</span>' : '') +
         '<h3>' + esc(c.titulo) + '</h3>' +
         '<div class="pm-sub">' + esc(c.fecha ? fechaLarga(c.fecha) : 'Idea sin fecha') +
           (c.formato ? ' · ' + esc(c.formato) : '') + (c.responsable ? ' · ' + esc(c.responsable) : '') + '</div></div>' +
-      (c.copy ? '<div class="pm-et">Copy</div><p class="pm-prosa">' + prosa(c.copy) + '</p>' : '') +
-      (c.referencias ? '<div class="pm-et">Referencias</div><p class="pm-prosa">' + prosa(c.referencias) + '</p>' : '') +
-      (c.link ? '<div class="pm-et">Link</div><p><a href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(c.link) + ' ↗</a></p>' : '') +
-      '<div class="pm-aprobs">' +
-        '<span class="pm-aprob' + (c.aprob_agencia ? ' si' : '') + '">' + (c.aprob_agencia ? '✓ Aprobado por la agencia' : 'Pendiente de la agencia') + '</span>' +
-        (puedeAprobar
-          ? '<button type="button" class="btn ' + (c.aprob_cliente ? '' : 'lima') + '" id="vcAprobar">' + (c.aprob_cliente ? '✓ Lo aprobaste · deshacer' : 'Aprobar este contenido') + '</button>'
-          : '<span class="pm-aprob' + (c.aprob_cliente ? ' si' : '') + '">' + (c.aprob_cliente ? '✓ Aprobado por el cliente' : 'Pendiente del cliente') + '</span>') +
-      '</div>' +
+      (cuerpo ? '<div class="txt-fmt pm-cuerpo">' + htmlCuerpo(cuerpo) + '</div>' : '<p class="pm-vacio-chico">Todavía sin texto.</p>') +
       '<div id="vcComent" class="pm-coment-caja"></div>',
-      el => {
-        montarComentarios($('#vcComent', el), 'cal_contenido', c.id);
-        const b = $('#vcAprobar', el);
-        if (b) b.addEventListener('click', async () => { await aprobar(c.id, 'cliente', re); verContenido(c, re); });
-      }, true);
+      el => { montarComentarios($('#vcComent', el), 'cal_contenido', c.id); }, true);
   }
 
   // ── Eventos (recurrentes, ausencias, comerciales, especiales) ────

@@ -248,6 +248,17 @@ este mes" de la solapa Cuenta. **La tabla `objetivo`, sus datos y su
 código en `panel-modulos.js` quedan**: para volver, alcanza con
 devolver la clave a esas tres listas.
 
+**11/10/2026: ficha de contenido del Calendario.** Un solo campo de texto
+con formato (`cal_contenido.cuerpo`, migración 55, que pasa copy /
+referencias / link a ese campo con su título; las columnas viejas quedan).
+El editor es **el mismo de /interno**: `fuente/build.py` copia el bloque
+`/*@@EDITOR*/ … /*@@FINEDITOR*/` de `interno.src.html` a `editor-texto.js`
+(raíz, generado: no se edita a mano) y el panel lo carga. Se guarda texto
+con marcas, nunca HTML; al mostrar, `renderTexto` escapa todo y además pasa
+por una lista blanca (`limpiarHtml`). Se sumaron títulos (`# `, `## `) al
+editor compartido. Los checks A✓/C✓ se ocultaron (columnas y RPC quedan).
+En el panel el campo se llama `.txt-fmt`: `.editor` ya lo usa panel.html.
+
 **Qué hace cada una:**
 - **Calendario**: meses uno abajo del otro (lun–dom), tarjetas por
   categoría con responsable y checks A✓ (agencia) / C✓ (cliente). Ficha
