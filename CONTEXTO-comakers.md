@@ -259,6 +259,17 @@ por una lista blanca (`limpiarHtml`). Se sumaron títulos (`# `, `## `) al
 editor compartido. Los checks A✓/C✓ se ocultaron (columnas y RPC quedan).
 En el panel el campo se llama `.txt-fmt`: `.editor` ya lo usa panel.html.
 
+**11/10/2026: tareas del Calendario.** Al crear las tareas, un responsable
+por tarea (Edita / Sube, equipo activo de la agencia); cambiarlos después
+en la ficha actualiza la tarea que corresponde. Caen en el proyecto que el
+cliente tenga en Administración → ⚙ → "Proyecto para las tareas del
+calendario" (`clientes.proyecto_calendario_id`, migración 56, que deja por
+defecto el único proyecto activo del cliente si tiene uno solo), en la
+sección de tipo `pendiente` (o la primera), con su fila en
+`tarea_proyecto`. Sin proyecto, sueltas como antes. Ojo: el editor
+compartido pone la clase `.vacio`, que en panel.html es el cartel vacío:
+se neutraliza con `.txt-fmt.vacio`.
+
 **Qué hace cada una:**
 - **Calendario**: meses uno abajo del otro (lun–dom), tarjetas por
   categoría con responsable y checks A✓ (agencia) / C✓ (cliente). Ficha

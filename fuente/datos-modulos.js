@@ -21,7 +21,7 @@
   var CL_USER = '99999999-9999-9999-9999-999999999999';
 
   var CLIENTES = [
-    { id: DF, nombre: 'Don Felipe', slug: 'don-felipe', activo: true },
+    { id: DF, nombre: 'Don Felipe', slug: 'don-felipe', activo: true, proyecto_calendario_id: 'proy-df' },
     { id: MF, nombre: 'Dr. Maca Flos', slug: 'dr-maca-flos', activo: true }
   ];
   var GENTE = Object.keys(D.gente).map(function (n, i) {
@@ -35,7 +35,13 @@
     profiles: GENTE.concat([{ id: CL_USER, nombre: 'Ani (Don Felipe)', tipo: 'cliente', super_admin: false }]),
     clientes: CLIENTES,
     reporte: t('reporte'), reporte_metrica: [], reporte_destacado: [],
-    post_instagram: [], anuncio_meta: [], reporte_publicado: [], tarea: [],
+    post_instagram: [], anuncio_meta: [], reporte_publicado: [], tarea: [], tarea_proyecto: [],
+    // El proyecto de /interno donde caen las tareas del Calendario (migración 56).
+    proyecto: [{ id: 'proy-df', nombre: 'Don Felipe · contenido', cliente_id: DF }],
+    seccion: [
+      { id: 'sec-df-1', proyecto_id: 'proy-df', nombre: 'Por hacer', tipo: 'pendiente', orden: 1000 },
+      { id: 'sec-df-2', proyecto_id: 'proy-df', nombre: 'En curso', tipo: 'curso', orden: 2000 }
+    ],
     panel_comentario: t('panel_comentario')
   };
   ['cliente_modulo', 'cal_categoria', 'cal_contenido', 'cal_evento', 'cal_config', 'estrategia_bloque',
@@ -59,7 +65,7 @@
     x.oneshot_seccion = x.oneshot_seccion.filter(function (s) { return suyo(s) && s.publicado && docsPub.indexOf(s.doc_id) !== -1; });
     x.panel_comentario = x.panel_comentario.filter(function (c) { return suyo(c) && c.canal === 'cliente'; });
     // Servicio: el cliente NO lee estas tablas; va por RPC.
-    ['contrato', 'contrato_ajuste', 'servicio_publicacion', 'servicio', 'servicio_item', 'entregable', 'tarea']
+    ['contrato', 'contrato_ajuste', 'servicio_publicacion', 'servicio', 'servicio_item', 'entregable', 'tarea', 'tarea_proyecto', 'proyecto', 'seccion']
       .forEach(function (k) { x[k] = []; });
     return x;
   }

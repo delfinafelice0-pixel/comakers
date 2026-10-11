@@ -3656,6 +3656,12 @@
       <div class="panel-mods" id="clModulos"></div>
       <div class="res-sub" style="margin:8px 0 0">Los módulos encienden las solapas del panel. Un módulo nuevo
         arranca apagado y no se ve hasta que lo prendas.</div>
+
+      <!-- Dónde caen las tareas de edición y subida que crea el Calendario
+           del panel (migración 56). Vacío = sueltas, en el tablero general. -->
+      <div class="panel-tit" style="margin-top:16px">Proyecto para las tareas del calendario</div>
+      <select class="sel" id="clProyCal" style="width:100%"></select>
+      <div class="res-sub" id="clProyCalSub" style="margin:4px 0 0"></div>
     </div>
 
     <!-- Eliminar: solo cuando estás EDITANDO uno que ya existe, y solo
@@ -7397,13 +7403,17 @@
       ? 'Tiene acceso: <b>' + acc + '</b> ' + (acc === 1 ? 'persona de la agencia lo atiende' : 'personas de la agencia lo atienden') + '. Se gestiona arriba, en “Personas que lo atienden”.'
       : '<b>Sin acceso todavía.</b> Marcá arriba quién lo atiende para que aparezca en el panel.';
 
-    const [ri, rm] = await Promise.all([
+    $('#clProyCal').innerHTML = ''; $('#clProyCalSub').textContent = '';
+    const [ri, rm, rp, rc] = await Promise.all([
       SB.from('cliente_integracion')
         .select('id, tipo, cuenta_id, cuenta_nombre, activo, accion_principal, ultimo_sync, ultimo_error')
         .eq('cliente_id', c.id),
       SB.from('cliente_modulo').select('modulo, activo').eq('cliente_id', c.id),
+      SB.from('proyecto').select('id, nombre, archivado, finalizado_en').eq('cliente_id', c.id).order('nombre'),
+      SB.from('clientes').select('proyecto_calendario_id').eq('id', c.id).maybeSingle(),
     ]);
     if (!CL_EDIT || CL_EDIT.id !== c.id) return;      // cerraste o cambiaste
+    pintarProyCal(rp, rc);
 
     if (ri.error) {
       $('#clConexiones').innerHTML = '<div class="vacio-mini">No se pudieron leer las conexiones: ' + esc(ri.error.message) + '</div>';
@@ -7477,6 +7487,34 @@
       '</div>';
     }).join('');
   }
+
+  // Proyecto para las tareas del Calendario (migración 56). Se listan los
+  // proyectos de /interno de ESTE cliente; los archivados o finalizados
+  // solo si ya estaban elegidos.
+  function pintarProyCal(rp, rc) {
+    const sel = $('#clProyCal'), sub = $('#clProyCalSub');
+    if (rc.error) {
+      sel.style.display = 'none';
+      sub.innerHTML = 'Falta correr <code>migracion-interno-56-proyecto-calendario.sql</code>. Hasta entonces, las tareas del calendario quedan sueltas.';
+      return;
+    }
+    sel.style.display = '';
+    const actual = (rc.data && rc.data.proyecto_calendario_id) || '';
+    const proys = (rp.data || []).filter(p => p.id === actual || (!p.archivado && !p.finalizado_en));
+    sel.innerHTML = '<option value="">Ninguno: sueltas, en el tablero general</option>' +
+      proys.map(p => '<option value="' + p.id + '"' + (p.id === actual ? ' selected' : '') + '>' + esc(p.nombre) +
+        (p.archivado || p.finalizado_en ? ' (archivado)' : '') + '</option>').join('');
+    sub.textContent = proys.length
+      ? 'Las tareas de edición y subida que crea el Calendario del panel entran en este proyecto, en «Por hacer».'
+      : 'Este cliente no tiene proyectos en /interno: las tareas quedan sueltas, en el tablero general.';
+  }
+  on('#clProyCal', 'change', async () => {
+    if (!CL_EDIT) return;
+    const v = $('#clProyCal').value || null;
+    const { error } = await SB.from('clientes').update({ proyecto_calendario_id: v }).eq('id', CL_EDIT.id);
+    if (error) { toast('No se pudo guardar el proyecto: ' + error.message, 'warn'); return; }
+    toast(v ? 'Listo: las tareas del calendario van a ese proyecto.' : 'Listo: las tareas del calendario quedan sueltas.', 'ok');
+  });
 
   function pintarModulosCliente(err) {
     if (err) { $('#clModulos').innerHTML = '<div class="vacio-mini">No se pudieron leer los módulos: ' + esc(err.message) + '</div>'; return; }

@@ -202,11 +202,34 @@
     CAL.evs = evs.data || [];
     CAL.cfg = cfg.data || null;
     if (P().AGENCIA && !CAL.gente.length) {
-      const { data } = await SB().from('profiles').select('id, nombre, tipo').eq('tipo', 'agencia').order('nombre');
-      CAL.gente = (data || []).filter(p => p.nombre);
+      // El equipo: socias y colaboradoras con cuenta (perfiles de la
+      // agencia), sin las dadas de baja.
+      let r = await SB().from('profiles').select('id, nombre, tipo, activo').eq('tipo', 'agencia').order('nombre');
+      if (r.error) r = await SB().from('profiles').select('id, nombre, tipo').eq('tipo', 'agencia').order('nombre');
+      CAL.gente = (r.data || []).filter(p => p.nombre && p.activo !== false);
     }
+    if (P().AGENCIA) await cargarProyectoCalendario(cid);
     if (!CAL.desde) CAL.desde = hoyISO().slice(0, 7);
     CAL.cargado = true;
+  }
+
+  // Dónde caen las tareas de edición y subida: el proyecto que el cliente
+  // tenga elegido en Administración → ⚙ (clientes.proyecto_calendario_id,
+  // migración 56), en su sección «Por hacer» (o la primera). Sin proyecto
+  // (o sin la 56), sueltas en el tablero general, como antes.
+  async function cargarProyectoCalendario(cid) {
+    CAL.proy = null;
+    const rc = await SB().from('clientes').select('proyecto_calendario_id').eq('id', cid).maybeSingle();
+    const pid = !rc.error && rc.data && rc.data.proyecto_calendario_id;
+    if (!pid) return;
+    const [rp, rs] = await Promise.all([
+      SB().from('proyecto').select('id, nombre').eq('id', pid).maybeSingle(),
+      SB().from('seccion').select('id, nombre, tipo, orden').eq('proyecto_id', pid).order('orden')
+    ]);
+    if (rp.error || !rp.data) return;
+    const secs = rs.data || [];
+    const sec = secs.find(x => x.tipo === 'pendiente') || secs[0] || null;
+    CAL.proy = { id: rp.data.id, nombre: rp.data.nombre, seccion_id: sec ? sec.id : null, seccion: sec ? sec.nombre : null };
   }
 
   const catDe = id => CAL.cats.find(c => c.id === id) || null;
@@ -574,9 +597,18 @@
         '<div class="ancho pm-checks">' +
           '<label class="pm-chk pub"><input type="checkbox" id="fcPub"' + (c.publicado ? ' checked' : '') + '> Visible para el cliente</label>' +
           (!tieneTareas ? '<label class="pm-chk tareas"><input type="checkbox" id="fcTareas"' + (nuevo ? ' checked' : '') + '> Crear en /interno las tareas de <b>edición</b> y de <b>subida</b> para ese día</label>' : '') +
-          (tieneTareas ? '<p class="pm-ayuda">Tareas en /interno (se mueven con la fecha): ' +
-            [['tarea_edicion_id', 'edición'], ['tarea_subida_id', 'subida']].filter(([k]) => c[k])
-              .map(([k, n]) => '<a href="interno.html#t/' + esc(c[k]) + '" target="_blank" rel="noopener">' + n + ' ↗</a>').join(' · ') + '</p>' : '') +
+          // Quién edita y quién sube: un responsable por tarea. Con tareas
+          // ya creadas, cambiarlo acá actualiza la tarea que corresponde.
+          '<div class="pm-tareas-resp"' + (tieneTareas || nuevo ? '' : ' hidden') + '>' +
+            '<label>Edita<select id="fcRespEd">' + opciones(gente, c.responsable_id, 'Sin asignar') + '</select>' +
+              (c.tarea_edicion_id ? '<a href="interno.html#t/' + esc(c.tarea_edicion_id) + '" target="_blank" rel="noopener">ver la tarea ↗</a>' : '') + '</label>' +
+            '<label>Sube<select id="fcRespSub">' + opciones(gente, c.responsable_id, 'Sin asignar') + '</select>' +
+              (c.tarea_subida_id ? '<a href="interno.html#t/' + esc(c.tarea_subida_id) + '" target="_blank" rel="noopener">ver la tarea ↗</a>' : '') + '</label>' +
+            '<p class="pm-ayuda">' + (CAL.proy
+              ? 'Van al proyecto <b>' + esc(CAL.proy.nombre) + '</b>' + (CAL.proy.seccion ? ', en «' + esc(CAL.proy.seccion) + '»' : '') + '.'
+              : 'Quedan sueltas, en el tablero general de /interno (el cliente no tiene proyecto elegido en Administración).') +
+              (tieneTareas ? ' Se mueven con la fecha del contenido.' : '') + '</p>' +
+          '</div>' +
         '</div>' +
       '</div>' +
       '<div class="pm-pie">' +
@@ -588,6 +620,18 @@
         const ed = $('#fcCuerpo', el);
         const E = ED();
         if (E) { E.ponerTexto(ed, cuerpoDe(c)); montarBarra(el, ed); }
+        // Responsables por tarea: con tareas creadas, los que tienen hoy.
+        const caja = $('.pm-tareas-resp', el), tt = $('#fcTareas', el);
+        if (tt) tt.addEventListener('change', () => { caja.hidden = !tt.checked; });
+        if (tieneTareas) leerRespTareas(c).then(rs => {
+          if (rs.ed !== undefined) $('#fcRespEd', el).value = rs.ed || '';
+          if (rs.sub !== undefined) $('#fcRespSub', el).value = rs.sub || '';
+        });
+        // Cambiar el responsable del contenido arrastra a los de tareas
+        // que todavía no existen (los de las tareas ya creadas, no).
+        if (!tieneTareas) $('#fcResp', el).addEventListener('change', () => {
+          $('#fcRespEd', el).value = val('#fcResp', el); $('#fcRespSub', el).value = val('#fcResp', el);
+        });
         else ed.textContent = cuerpoDe(c);
         if (!nuevo) montarComentarios($('#fcComent', el), 'cal_contenido', c.id);
         $('#fcGuardar', el).addEventListener('click', () => guardarContenido(c, nuevo, el, re));
@@ -619,6 +663,7 @@
       actualizado_en: new Date().toISOString()
     };
     const quiereTareas = chk('#fcTareas', el);
+    const resp = { ed: val('#fcRespEd', el) || null, sub: val('#fcRespSub', el) || null };
     const btn = $('#fcGuardar', el); btn.disabled = true;
     try {
       let guardado;
@@ -635,10 +680,15 @@
         const tareas = [c.tarea_edicion_id, c.tarea_subida_id].filter(Boolean);
         if (tareas.length && c.fecha && c.fecha !== fechaAntes) await SB().from('tarea').update({ empieza: c.fecha, vence: c.fecha }).in('id', tareas);
       }
+      let aviso = 'Guardado.';
       if (quiereTareas) {
-        if (!guardado.fecha) toast('Guardado. Las tareas no se crearon: el contenido no tiene fecha.', true);
-        else await crearTareas(guardado);
-      } else toast('Guardado.');
+        if (!guardado.fecha) { toast('Guardado. Las tareas no se crearon: el contenido no tiene fecha.', true); aviso = null; }
+        else { await crearTareas(guardado, resp); aviso = null; }
+      } else if (guardado.tarea_edicion_id || guardado.tarea_subida_id) {
+        const n = await actualizarRespTareas(guardado, resp);
+        if (n) aviso = 'Guardado. ' + (n === 1 ? 'Se actualizó el responsable de 1 tarea' : 'Se actualizaron los responsables de ' + n + ' tareas') + ' en /interno.';
+      }
+      if (aviso) toast(aviso);
       cerrarModal(); re();
     } finally { btn.disabled = false; }
   }
@@ -655,33 +705,71 @@
   // Sin proyecto: en /interno aparecen sueltas, en la vista general.
   // Nunca visibles para el cliente. Después de crearlas se RELEEN de la
   // base: si algo no quedó como se pidió, se avisa en vez de dar por hecho.
-  async function crearTareas(c) {
+  const nombreDe = id => { const g = CAL.gente.find(x => x.id === id); return g ? g.nombre : null; };
+
+  // Los responsables que tienen HOY las tareas de un contenido.
+  async function leerRespTareas(c) {
+    const ids = [c.tarea_edicion_id, c.tarea_subida_id].filter(Boolean);
+    if (!ids.length) return {};
+    const { data, error } = await SB().from('tarea').select('id, responsable_id').in('id', ids);
+    if (error) return {};
+    const de = id => { const t = (data || []).find(x => x.id === id); return t ? (t.responsable_id || null) : undefined; };
+    return { ed: c.tarea_edicion_id ? de(c.tarea_edicion_id) : undefined, sub: c.tarea_subida_id ? de(c.tarea_subida_id) : undefined };
+  }
+
+  // Cambiar Edita / Sube en la ficha actualiza la tarea que corresponde.
+  async function actualizarRespTareas(c, resp) {
+    const ahora = await leerRespTareas(c);
+    let n = 0;
+    for (const [k, idT] of [['ed', c.tarea_edicion_id], ['sub', c.tarea_subida_id]]) {
+      if (!idT || ahora[k] === undefined || (ahora[k] || null) === (resp[k] || null)) continue;
+      const { error } = await SB().from('tarea').update({ responsable_id: resp[k], responsable: nombreDe(resp[k]) }).eq('id', idT);
+      if (error) { toast('No se pudo cambiar el responsable de la tarea: ' + error.message, true); continue; }
+      n++;
+    }
+    return n;
+  }
+
+  async function crearTareas(c, resp) {
+    resp = resp || { ed: c.responsable_id || null, sub: c.responsable_id || null };
+    const proy = CAL.proy;
     const base = {
-      cliente_id: c.cliente_id, cliente_manual: true, proyecto_id: null, proyecto: null,
-      responsable_id: c.responsable_id || null, responsable: c.responsable || null, responsable_tipo: 'agencia',
+      cliente_id: c.cliente_id, cliente_manual: true,
+      proyecto_id: proy ? proy.id : null, proyecto: proy ? proy.nombre : null,
+      responsable_tipo: 'agencia',
       urgencia: 'normal', empieza: c.fecha, vence: c.fecha, visible_cliente: false,
       descripcion: 'Del calendario del panel de ' + P().CLIENTE.nombre + ' (' + (c.formato || 'contenido') + '): ' + c.titulo
     };
     const ids = {};
-    for (const [clave, pre] of [['tarea_edicion_id', 'Editar'], ['tarea_subida_id', 'Subir']]) {
-      const fila = Object.assign({}, base, { titulo: pre + ': ' + c.titulo, orden: Date.now() / 1000 });
+    for (const [clave, pre, quien] of [['tarea_edicion_id', 'Editar', resp.ed], ['tarea_subida_id', 'Subir', resp.sub]]) {
+      const fila = Object.assign({}, base, { titulo: pre + ': ' + c.titulo, orden: Date.now() / 1000,
+                                             responsable_id: quien || null, responsable: nombreDe(quien) });
       let r = await SB().from('tarea').insert(fila).select('id').single();
       // Bases sin la columna cliente_manual (migración 26): sin ella.
       if (r.error && /cliente_manual/.test(r.error.message || '')) { delete fila.cliente_manual; r = await SB().from('tarea').insert(fila).select('id').single(); }
       if (r.error) { toast('El contenido se guardó, pero no las tareas: ' + r.error.message, true); return; }
       ids[clave] = r.data.id;
+      // Adentro del proyecto: igual que "Nueva tarea" en /interno, una fila
+      // en tarea_proyecto con la sección y como proyecto principal.
+      if (proy) {
+        const { error: eP } = await SB().from('tarea_proyecto').insert({
+          tarea_id: r.data.id, proyecto_id: proy.id, seccion_id: proy.seccion_id, orden: Date.now() / 1000, principal: true });
+        if (eP) toast('La tarea se creó, pero no entró al proyecto ' + proy.nombre + ': ' + eP.message, true);
+      }
     }
     const { error: eUp } = await SB().from('cal_contenido').update(ids).eq('id', c.id);
     Object.assign(c, ids);
     // Releer: ¿quedaron con el cliente, la fecha y el responsable pedidos?
-    const { data: leidas } = await SB().from('tarea').select('id, titulo, cliente_id, responsable_id, vence')
+    const { data: leidas } = await SB().from('tarea').select('id, titulo, cliente_id, responsable_id, vence, proyecto_id')
       .in('id', [ids.tarea_edicion_id, ids.tarea_subida_id]);
+    const pedido = { [ids.tarea_edicion_id]: resp.ed || null, [ids.tarea_subida_id]: resp.sub || null };
     const mal = (leidas || []).filter(t => t.cliente_id !== c.cliente_id || String(t.vence || '').slice(0, 10) !== c.fecha ||
-      (c.responsable_id || null) !== (t.responsable_id || null));
+      pedido[t.id] !== (t.responsable_id || null) || (proy ? t.proyecto_id !== proy.id : false));
     if (eUp) toast('Tareas creadas, pero no se pudieron enganchar al contenido: ' + eUp.message, true);
     else if (!leidas || leidas.length !== 2) toast('Se crearon las tareas pero no se pueden leer de vuelta: revisalas en /interno.', true);
-    else if (mal.length) toast('Tareas creadas, pero ' + mal.length + ' quedó con otro cliente, fecha o responsable: revisala en /interno.', true);
-    else toast('Guardado. Tareas de edición y subida creadas en /interno para el ' + fechaLarga(c.fecha) + '.');
+    else if (mal.length) toast('Tareas creadas, pero ' + mal.length + ' quedó con otro cliente, fecha, responsable o proyecto: revisala en /interno.', true);
+    else toast('Guardado. Tareas de edición y subida creadas para el ' + fechaLarga(c.fecha) +
+      (proy ? ', en el proyecto ' + proy.nombre : ', sueltas en /interno') + '.');
   }
 
   // Lo que ve el cliente (o la agencia en vista cliente). Sin "Visible
