@@ -634,10 +634,17 @@
   'use strict';
 
   // ── Conexión ────────────────────────────────────────────────
+  // Publishable key nueva (sb_publishable_...), NO la anon legacy. El
+  // proyecto migró a claves asimétricas: las sesiones nuevas son ES256,
+  // y el gateway de Edge Functions solo acepta ese token si el apikey es
+  // la publishable. Con la anon legacy, el gateway valida con el secreto
+  // viejo y rechaza ES256 → "Authentication Error" en wa-enviar. Es
+  // pública, como la anon. Las otras páginas siguen en anon legacy (que
+  // quedó Active): la sesión se comparte por project ref, así conviven.
   const LOGIN = 'login-comakers.html';
   const SB = supabase.createClient(
     'https://ggcstolnadkkqhsqpzql.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs'
+    'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO'
   );
 
   // ── Estado ──────────────────────────────────────────────────
