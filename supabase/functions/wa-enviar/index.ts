@@ -34,13 +34,37 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const VENTANA_MS = 72 * 60 * 60 * 1000;
 const MAX_TEXTO = 4096;   // tope del body de texto de WhatsApp
 
+// El token de sesión del usuario viaja en x-user-token, NO en
+// Authorization: el edge-runtime verifica el Authorization con el
+// secreto legacy HS256 y rechaza los tokens ES256 nuevos ANTES de
+// llegar acá. Sumamos x-user-token al CORS para que el preflight pase.
+const CORS_WA = {
+  ...CORS,
+  'Access-Control-Allow-Headers': CORS['Access-Control-Allow-Headers'] + ', x-user-token',
+};
+
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_WA });
   if (req.method !== 'POST') return json({ error: { message: 'Method Not Allowed' } }, 405);
 
   try {
-    const auth = req.headers.get('Authorization') ?? '';
-    if (!auth.startsWith('Bearer ')) return json({ error: { message: 'Sin sesión' } }, 401);
+    // El token del usuario va en x-user-token (navegador). Fallback al
+    // Authorization para que probar-wa-enviar.sh siga andando. El anon
+    // legacy que el navegador manda en Authorization (solo para pasar el
+    // edge-runtime) NUNCA se usa para autorizar.
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const token = (req.headers.get('x-user-token') ?? '').trim()
+      || (authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '');
+    if (!token) return json({ error: { message: 'Sin sesión' } }, 401);
+
+    const SB_URL = Deno.env.get('SUPABASE_URL')!;
+    const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+    // Auth REAL: validamos el token del usuario (ES256) contra el server
+    // de auth, que sí lo entiende. Nunca se confía en el anon.
+    const authClient = createClient(SB_URL, ANON);
+    const { data: { user }, error: errUser } = await authClient.auth.getUser(token);
+    if (errUser || !user) return json({ error: { message: 'Sesión inválida' } }, 401);
 
     let body: any = {};
     try { body = await req.json(); } catch { /* vacío */ }
@@ -55,12 +79,11 @@ Deno.serve(async (req) => {
     if (texto.length > MAX_TEXTO) return json({ error: { message: 'El mensaje es demasiado largo' } }, 400);
 
     // ── 1. Quién llama: la RLS decide si puede ver la conversación ──
-    // Con la anon key + el Authorization del usuario, el select pasa por
-    // las policies de la 46. Si no la puede ver, no la puede responder.
+    // El llamador usa el TOKEN DEL USUARIO (ES256), no el anon: el select
+    // pasa por las policies de la 46. Si no la puede ver, no responde.
     const llamador = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: auth } } },
+      SB_URL, ANON,
+      { global: { headers: { Authorization: 'Bearer ' + token } } },
     );
     const { data: conv, error: errConv } = await llamador
       .from('conversacion').select('id, telefono').eq('id', conversacionId).maybeSingle();
@@ -111,9 +134,9 @@ Deno.serve(async (req) => {
     }
 
     // ── 5. Enviar a Meta ───────────────────────────────────────────
-    const token = Deno.env.get('WHATSAPP_TEST_TOKEN');
+    const metaToken = Deno.env.get('WHATSAPP_TEST_TOKEN');
     const phoneId = Deno.env.get('WHATSAPP_TEST_PHONE_ID');
-    if (!token || !phoneId) {
+    if (!metaToken || !phoneId) {
       await admin.from('outbox_envio').update({ estado: 'error', detalle: 'Faltan los secrets del número de prueba.', actualizado_en: new Date().toISOString() }).eq('idem_key', idemKey);
       return json({ error: { message: 'Falta configurar el número de envío en el servidor.' } }, 500);
     }
@@ -122,7 +145,7 @@ Deno.serve(async (req) => {
     try {
       resp = await fetch(`${GRAPH}/${phoneId}/messages`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${metaToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ messaging_product: 'whatsapp', to: destino, type: 'text', text: { body: texto } }),
       });
       data = await resp.json().catch(() => ({}));

@@ -642,10 +642,16 @@
   // pública, como la anon. Las otras páginas siguen en anon legacy (que
   // quedó Active): la sesión se comparte por project ref, así conviven.
   const LOGIN = 'login-comakers.html';
-  const SB = supabase.createClient(
-    'https://ggcstolnadkkqhsqpzql.supabase.co',
-    'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO'
-  );
+  const PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
+  const SB = supabase.createClient('https://ggcstolnadkkqhsqpzql.supabase.co', PUBLISHABLE);
+
+  // Para llamar a wa-enviar: el token ES256 del usuario NO puede ir en
+  // Authorization (el edge-runtime lo verifica con el secreto legacy
+  // HS256 y lo rechaza). Va en x-user-token; en Authorization mandamos
+  // el anon legacy (HS256), que el runtime sí acepta. La función valida
+  // al usuario con x-user-token. Las dos keys son públicas.
+  const ANON_LEGACY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
+  const WA_ENVIAR_URL = 'https://ggcstolnadkkqhsqpzql.supabase.co/functions/v1/wa-enviar';
 
   // ── Estado ──────────────────────────────────────────────────
   var YO = null, AGENCIA = false;
@@ -1014,15 +1020,33 @@
     c.msgs.push(burbuja);
     pintarMensajes(c);
 
-    // Invoke pelado, igual que analizar-reporte en panel.html (que anda):
-    // el SDK ya manda el apikey y el token de la sesión. wa-enviar está
-    // deployada con --no-verify-jwt y valida ella misma con ese token
-    // (createClient anon + Authorization del usuario), como pull-ads.
+    // fetch directo (no functions.invoke): el ES256 del usuario NO puede
+    // ir en Authorization (el edge-runtime lo rechaza). Va en
+    // x-user-token; en Authorization mandamos el anon legacy, que el
+    // runtime acepta. wa-enviar valida al usuario con x-user-token.
     var resultado;
     try {
-      resultado = await SB.functions.invoke('wa-enviar', {
-        body: { conversacion_id: c.id, texto: texto, idem_key: uuidv4() },
+      var rs = await SB.auth.getSession();
+      var sess = rs.data && rs.data.session;
+      if (!sess) {
+        var k = c.msgs.indexOf(burbuja); if (k >= 0) c.msgs.splice(k, 1);
+        if (actual() === c) pintarMensajes(c);
+        toast('Tu sesión expiró. Volvé a entrar.');
+        if ($('respEnviar')) { $('respEnviar').disabled = false; $('respEnviar').textContent = 'Enviar'; }
+        return;
+      }
+      var resp = await fetch(WA_ENVIAR_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': PUBLISHABLE,
+          'Authorization': 'Bearer ' + ANON_LEGACY,
+          'x-user-token': sess.access_token,
+        },
+        body: JSON.stringify({ conversacion_id: c.id, texto: texto, idem_key: uuidv4() }),
       });
+      var cuerpo = await resp.json().catch(function () { return null; });
+      resultado = resp.ok ? { data: cuerpo } : { data: cuerpo, error: { status: resp.status } };
     } catch (e) { resultado = { error: e }; }
 
     var data = resultado && resultado.data;
