@@ -34,6 +34,14 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const VENTANA_MS = 72 * 60 * 60 * 1000;
 const MAX_TEXTO = 4096;   // tope del body de texto de WhatsApp
 
+// Publishable key nueva (pública). Los clientes que validan el token
+// ES256 del usuario (authClient, llamador) la usan como apikey: con la
+// anon legacy, Auth/PostgREST verifican con el secreto viejo y rechazan
+// ES256 ("Authentication Error"). El admin sigue con service_role.
+const PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
+
+console.log('[wa-enviar] módulo cargado');
+
 // El token de sesión del usuario viaja en x-user-token, NO en
 // Authorization: el edge-runtime verifica el Authorization con el
 // secreto legacy HS256 y rechaza los tokens ES256 nuevos ANTES de
@@ -48,6 +56,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: { message: 'Method Not Allowed' } }, 405);
 
   try {
+    console.log('[wa-enviar] handler entró:', req.method);
     // El token del usuario va en x-user-token (navegador). Fallback al
     // Authorization para que probar-wa-enviar.sh siga andando. El anon
     // legacy que el navegador manda en Authorization (solo para pasar el
@@ -58,12 +67,13 @@ Deno.serve(async (req) => {
     if (!token) return json({ error: { message: 'Sin sesión' } }, 401);
 
     const SB_URL = Deno.env.get('SUPABASE_URL')!;
-    const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    // Auth REAL: validamos el token del usuario (ES256) contra el server
-    // de auth, que sí lo entiende. Nunca se confía en el anon.
-    const authClient = createClient(SB_URL, ANON);
+    // Auth REAL: validamos el token del usuario (ES256) con la PUBLISHABLE
+    // (la anon legacy haría verificar con el secreto viejo y rechazaría
+    // ES256). Nunca se confía en el anon.
+    const authClient = createClient(SB_URL, PUBLISHABLE);
     const { data: { user }, error: errUser } = await authClient.auth.getUser(token);
+    console.log('[wa-enviar] getUser:', JSON.stringify({ hayUser: !!user, errUser }));
     if (errUser || !user) return json({ error: { message: 'Sesión inválida' } }, 401);
 
     let body: any = {};
@@ -82,11 +92,12 @@ Deno.serve(async (req) => {
     // El llamador usa el TOKEN DEL USUARIO (ES256), no el anon: el select
     // pasa por las policies de la 46. Si no la puede ver, no responde.
     const llamador = createClient(
-      SB_URL, ANON,
+      SB_URL, PUBLISHABLE,
       { global: { headers: { Authorization: 'Bearer ' + token } } },
     );
     const { data: conv, error: errConv } = await llamador
       .from('conversacion').select('id, telefono').eq('id', conversacionId).maybeSingle();
+    console.log('[wa-enviar] conversacion:', JSON.stringify({ hayConv: !!conv, errConv }));
     if (errConv) return json({ error: { message: 'No se pudo verificar la conversación' } }, 500);
     if (!conv) return json({ error: { message: 'No tenés acceso a esta conversación' } }, 403);
 
@@ -103,8 +114,9 @@ Deno.serve(async (req) => {
     // ── 3. La ventana, revalidada en el servidor ───────────────────
     // 72 h desde conversacion_pauta.recibido_en (el referral), NO desde
     // el último entrante. Sin fila, no vino por un anuncio.
-    const { data: pauta } = await admin
+    const { data: pauta, error: errPauta } = await admin
       .from('conversacion_pauta').select('recibido_en').eq('conversacion_id', conversacionId).maybeSingle();
+    console.log('[wa-enviar] pauta:', JSON.stringify({ hayPauta: !!pauta, errPauta }));
 
     if (!pauta) {
       return json({ error: { code: 'sin_ventana', message: 'Esta conversación no entró por un anuncio: no hay ventana gratis.' } }, 409);
@@ -118,10 +130,11 @@ Deno.serve(async (req) => {
     // Meta no deduplica; el wa_id recién existe cuando responde. El
     // outbox es la clave de dedupe: si ya existe esta idem_key, es un
     // reintento y devolvemos el resultado anterior sin reenviar.
-    const { data: reclamo } = await admin
+    const { data: reclamo, error: errReclamo } = await admin
       .from('outbox_envio')
       .upsert({ idem_key: idemKey, conversacion_id: conversacionId, texto }, { onConflict: 'idem_key', ignoreDuplicates: true })
       .select('idem_key');
+    console.log('[wa-enviar] outbox:', JSON.stringify({ reclamo, errReclamo }));
 
     const reclamada = reclamo && reclamo.length > 0;
     if (!reclamada) {
@@ -149,6 +162,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ messaging_product: 'whatsapp', to: destino, type: 'text', text: { body: texto } }),
       });
       data = await resp.json().catch(() => ({}));
+      console.log('[wa-enviar] meta:', resp.status, JSON.stringify(data));
     } catch (e) {
       await admin.from('outbox_envio').update({ estado: 'error', detalle: 'No se pudo contactar a Meta.', intentos: 1, actualizado_en: new Date().toISOString() }).eq('idem_key', idemKey);
       return json({ error: { message: 'No se pudo contactar a Meta.' } }, 502);
