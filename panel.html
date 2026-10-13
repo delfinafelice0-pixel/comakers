@@ -2070,28 +2070,17 @@
     // un reporte publicado con el borrador todavía marcado se los
     // mostraba en pantalla. En el PDF ya estaban fuera por el
     // @media print; faltaba el gate en pantalla.
-    const marcaBorrador = AGENCIA && esBorradorAn;
-    const bloqueTexto = (titulo, texto, conBoton) => {
+    // Los análisis los escribe el equipo a mano (ya no hay generación
+    // paga). Se muestra el texto si lo hay; sin maquinaria de "borrador"
+    // ni botones. Un reporte viejo con análisis generado lo sigue
+    // mostrando igual: lo único que se sacó es el cartel, no el texto.
+    const bloqueTexto = (titulo, texto) => {
       if (!texto && !AGENCIA) return '';
-      let s = '<section class="bloque analisis' + (marcaBorrador && texto ? ' es-borrador' : '') + (texto ? '' : ' solo-pantalla') + '">' +
-        '<h2>' + titulo + (marcaBorrador && texto ? '<span class="borrador-tag">borrador sin revisar</span>' : '') + '</h2>';
-      if (texto) {
-        if (marcaBorrador) s += '<p class="aviso">Lo escribió Claude con los números del mes. Editalo y guardalo para darlo por revisado.</p>';
-        if (AGENCIA && analisisViejo) s += '<p class="aviso viejo">Ojo: este borrador se escribió el ' +
-          esc(fechaHora(r.analisis_generado_en)) + ' y los números se actualizaron después (' + esc(fechaHora(sincro)) +
-          '). Puede citar cifras que ya no coinciden con las tarjetas. Corregilas en Editar, o borrá el texto y generalo de nuevo.</p>';
-        s += '<p class="prosa">' + esc(texto) + '</p>';
-        // Regenerar: solo agencia, solo cuando el análisis es un borrador
-        // GENERADO (analisis_generado_en con fecha). Donde más sirve es
-        // justo acá, bajo el cartel de desactualizado. conBoton es true
-        // solo en la solapa Cuenta, así que aparece una sola vez.
-        if (conBoton && AGENCIA && esBorradorAn)
-          s += '<button type="button" class="btn chico" id="btnRegenerar">Regenerar análisis</button>';
-      } else {
-        s += '<p class="prosa mute">Todavía no hay análisis de este mes.</p>' +
-          (conBoton ? '<button type="button" class="btn chico" id="btnAnalisis">Generar borrador</button>' : '');
-      }
-      return s + '</section>';
+      return '<section class="bloque analisis' + (texto ? '' : ' solo-pantalla') + '">' +
+        '<h2>' + titulo + '</h2>' +
+        (texto ? '<p class="prosa">' + esc(texto) + '</p>'
+               : '<p class="prosa mute">Todavía no hay análisis de este mes.</p>') +
+        '</section>';
     };
 
     const bloques = { cuenta: '', organico: '', pauta: '' };
@@ -2400,42 +2389,9 @@
     }));
     const be = $('#btnEditar'); if (be) be.addEventListener('click', abrirEditor);
     const bpdf = $('#btnPdf'); if (bpdf) bpdf.addEventListener('click', () => descargarPdf(r));
-    const ba = $('#btnAnalisis');
-    if (ba) ba.addEventListener('click', async () => {
-      ba.disabled = true; ba.textContent = 'Generando…';
-      try {
-        const { error } = await invocarFuncion('analizar-reporte', { cliente_id: CLIENTE.id, mes: MES });
-        if (error) {
-          toast(error.message || 'No se pudo generar el análisis', true);
-          ba.disabled = false; ba.textContent = 'Generar borrador';
-          return;
-        }
-        toast('Borrador generado. Revisalo antes de publicar.');
-        await cargarCliente();
-      } catch (e) {
-        toast('No se pudo generar el análisis', true);
-        ba.disabled = false; ba.textContent = 'Generar borrador';
-      }
-    });
-    const brg = $('#btnRegenerar');
-    if (brg) brg.addEventListener('click', async () => {
-      if (!confirm('Regenerar es una llamada PAGA a la API de Claude.\n\n' +
-          'PISA los cinco textos de este mes: el resumen, el análisis, el análisis del contenido, ' +
-          'el análisis de la pauta y los próximos pasos — lo que haya, generado o escrito a mano.\n\n' +
-          '¿Regenerar el análisis?')) return;
-      brg.disabled = true; brg.textContent = 'Regenerando…';
-      try {
-        const { error } = await invocarFuncion('analizar-reporte', { cliente_id: CLIENTE.id, mes: MES });
-        if (error) {
-          toast(error.message || 'No se pudo regenerar el análisis', true);
-          brg.disabled = false; brg.textContent = 'Regenerar análisis'; return;
-        }
-        toast('Análisis regenerado. Revisalo antes de publicar.');
-        await cargarCliente();
-      } catch (e) {
-        toast('No se pudo regenerar el análisis', true); brg.disabled = false; brg.textContent = 'Regenerar análisis';
-      }
-    });
+    // Los botones de generar/regenerar análisis se sacaron: el equipo
+    // escribe el análisis a mano con su propia suscripción. La función
+    // analizar-reporte queda deployada, pero ya nadie la llama.
     // Publicar es lo único que el cliente ve de verdad. Descargar el
     // PDF ya preguntaba antes de llevarse un borrador sin revisar;
     // publicárselo al cliente no preguntaba nada.
@@ -2615,12 +2571,15 @@
     const html = '<div class="cabecera"><div><h1>' + (b.id ? 'Editar' : 'Cargar') + ' <em>' + esc(mesLabel(b.mes)) + '</em></h1>' +
       '<div class="sub">' + esc(CLIENTE.nombre) + '</div></div></div>' +
       '<div class="editor">' +
+      '<div class="copiar-claude" style="margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+        '<button type="button" class="btn chico" id="btnCopiarClaude">Copiar datos para Claude</button>' +
+        '<span style="font-size:12px;color:var(--ink-mute);max-width:54ch">Copia los números del mes y del anterior, los posteos y los destacados, en texto plano, para pegarlos en tu proyecto de Claude y escribir el análisis ahí.</span>' +
+      '</div>' +
       '<div class="campo"><label for="edResumen">Qué pasó este mes</label>' +
       '<textarea id="edResumen" placeholder="Dos o tres párrafos. Qué se movió, por qué, y qué significa para el negocio. Los números ya están abajo: acá va la interpretación.">' + esc(b.resumen) + '</textarea></div>' +
 
-      '<div class="campo"><label for="edAnalisis">Análisis' +
-        (b.analisis_generado_en ? ' <span class="borrador-tag">borrador sin revisar</span>' : '') + '</label>' +
-      '<textarea id="edAnalisis" placeholder="La lectura de los números: qué cambió y cuánto. Si lo generaste con el botón, revisalo acá.">' + esc(b.analisis) + '</textarea></div>' +
+      '<div class="campo"><label for="edAnalisis">Análisis</label>' +
+      '<textarea id="edAnalisis" placeholder="La lectura de los números: qué cambió y cuánto, y qué significa para el negocio.">' + esc(b.analisis) + '</textarea></div>' +
 
       ['organico', 'pauta'].map(mod =>
         '<div class="ed-modulo' + (b.incluye[mod] ? '' : ' apagado') + '" id="edMod-' + mod + '">' +
@@ -2632,9 +2591,9 @@
         '</div>').join('') +
 
       '<div class="campo"><label for="edOrganico">Análisis del contenido (orgánico)</label>' +
-      '<textarea id="edOrganico" placeholder="La lectura de lo orgánico de este mes. Si lo generaste con el botón, revisalo acá.">' + esc(b.analisis_organico) + '</textarea></div>' +
+      '<textarea id="edOrganico" placeholder="La lectura de lo orgánico de este mes.">' + esc(b.analisis_organico) + '</textarea></div>' +
       '<div class="campo"><label for="edPauta">Análisis de la pauta</label>' +
-      '<textarea id="edPauta" placeholder="La lectura de la pauta de este mes. Si lo generaste con el botón, revisalo acá.">' + esc(b.analisis_pauta) + '</textarea></div>' +
+      '<textarea id="edPauta" placeholder="La lectura de la pauta de este mes.">' + esc(b.analisis_pauta) + '</textarea></div>' +
 
       '<div class="ed-modulo"><header><h3>Lo que vale la pena mirar</h3></header>' +
         '<div class="grilla" id="edDest">' +
@@ -2689,6 +2648,7 @@
     $('#edCancelar').addEventListener('click', () => { if (confirm('¿Salir sin guardar?')) { EDITANDO = false; render(); } });
     $('#edGuardar').addEventListener('click', () => guardar('borrador'));
     $('#edPublicar').addEventListener('click', () => guardar('publicado'));
+    $('#btnCopiarClaude').addEventListener('click', copiarDatos);
 
     function leerTextos() {
       b.resumen = $('#edResumen').value;
@@ -2698,6 +2658,85 @@
       const ep = $('#edPauta');    if (ep) b.analisis_pauta = ep.value;
     }
     b._leer = leerTextos;
+
+    // ── Copiar datos para Claude ───────────────────────────────
+    // Texto plano con los números del mes y del anterior (con la
+    // variación ya calculada), los posteos publicados y los destacados,
+    // para pegar en un proyecto de Claude y escribir el análisis a mano.
+    function copiarDatos() {
+      leerTextos();   // sincroniza lo tipeado en BORRADOR
+      const rep = reporteDe(MES);
+      MONEDA_ACTUAL = (rep && rep.cols && rep.cols.moneda_ads) || 'ARS';
+      const prev = anteriorA(MES);
+      const L = [];
+      L.push('Cliente: ' + CLIENTE.nombre);
+      L.push('Mes: ' + mesLabel(b.mes) + (prev ? ' (comparado con ' + mesLabel(prev.mes) + ')' : ''));
+
+      const variacion = (cur, pv, unidad) => {
+        const c = Number(cur), p = Number(pv);
+        if (!isFinite(c) || !isFinite(p) || p === 0) return '';
+        if (unidad === 'pct') { const d = Math.round(c - p); return ' (' + (d >= 0 ? '+' : '') + d + ' pts)'; }
+        const d = Math.round((c - p) / p * 100);
+        return ' (' + (d >= 0 ? '+' : '') + d + '%)';
+      };
+      const prevDe = (mod, clave) => {
+        if (!prev) return null;
+        for (const k of clavesEquivalentes(mod, clave)) {
+          const pm = prev.metricas.find(x => x.modulo === mod && x.clave === k);
+          if (pm && pm.valor != null && pm.valor !== '') return pm.valor;
+        }
+        return null;
+      };
+
+      ['organico', 'pauta'].forEach(mod => {
+        if (!b.incluye[mod]) return;
+        const mets = b.metricas[mod].filter(m => (m.etiqueta || '').trim() && String(m.valor ?? '').trim() !== '');
+        if (!mets.length) return;
+        L.push('');
+        L.push(mod === 'organico' ? 'ORGÁNICO' : 'PAUTA');
+        mets.forEach(m => {
+          const pv = prevDe(mod, m.clave);
+          let linea = m.etiqueta + ': ' + fmt(m.valor, m.unidad);
+          if (pv != null) linea += ' — mes anterior: ' + fmt(pv, m.unidad) + variacion(m.valor, pv, m.unidad);
+          L.push(linea);
+        });
+      });
+
+      const posts = POSTS.filter(p => p.mes === MES);
+      if (posts.length) {
+        L.push('');
+        L.push('CONTENIDO PUBLICADO (' + posts.length + ')');
+        posts.forEach(p => {
+          const cap = String(p.caption || '').replace(/\s+/g, ' ').trim();
+          L.push('- ' + (p.tipo ? '[' + p.tipo + '] ' : '') + (cap.length > 140 ? cap.slice(0, 140) + '…' : (cap || '(sin texto)')));
+        });
+      }
+
+      const dest = (b.destacados || []).filter(d => (d.texto || '').trim());
+      if (dest.length) {
+        L.push('');
+        L.push('DESTACADOS');
+        dest.forEach(d => {
+          L.push('- ' + (d.tipo ? '[' + d.tipo + '] ' : '') + d.texto.trim() + (d.valor ? ' (' + d.valor + ')' : ''));
+        });
+      }
+
+      const txt = L.join('\n');
+      const ok = () => toast('Datos copiados. Pegalos en tu proyecto de Claude.');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(ok).catch(() => copiarFallback(txt, ok));
+      } else {
+        copiarFallback(txt, ok);
+      }
+    }
+
+    function copiarFallback(txt, ok) {
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { toast('No se pudo copiar.', true); }
+      ta.remove();
+    }
   }
 
   async function guardar(estado) {
