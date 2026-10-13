@@ -361,3 +361,10 @@ th > .pm-mini { position: absolute; top: 8px; right: 6px; }
 }
 .tabla-barra button { border: 0; background: none; color: #fff; font: inherit; font-size: 11.5px; padding: 3px 7px; border-radius: 6px; cursor: pointer; }
 .tabla-barra button:hover { background: rgba(255,255,255,.16); }
+
+/* Bloques de código del texto con formato (editor compartido). */
+.txt-fmt pre.bloque-codigo {
+  white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px; line-height: 1.5; background: var(--line-soft); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; margin: 8px 0;
+}

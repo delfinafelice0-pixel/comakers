@@ -486,7 +486,7 @@
   // Lista blanca de lo que puede tener el HTML que se muestra. Es una red
   // de seguridad: renderTexto ya escapa todo, pero el cliente lo ve.
   const TAGS_OK = { STRONG: 1, EM: 1, U: 1, S: 1, MARK: 1, A: 1, UL: 1, OL: 1, LI: 1, BR: 1, HR: 1, H3: 1, H4: 1, SPAN: 1,
-                    TABLE: 1, THEAD: 1, TBODY: 1, TR: 1, TH: 1, TD: 1 };
+                    TABLE: 1, THEAD: 1, TBODY: 1, TR: 1, TH: 1, TD: 1, PRE: 1 };
   function limpiarHtml(html) {
     const t = document.createElement('template');
     t.innerHTML = html;
@@ -503,7 +503,8 @@
           const ok = (tag === 'A' && nom === 'href' && /^https?:\/\//i.test(a.value)) ||
                      (tag === 'A' && (nom === 'target' || nom === 'rel')) ||
                      ((tag === 'SPAN' || tag === 'LI') && nom === 'class' && /^(chk-box|chk|hecho|on|\s)+$/.test(a.value)) ||
-                     (tag === 'TABLE' && nom === 'class' && a.value === 'tabla-txt');
+                     (tag === 'TABLE' && nom === 'class' && a.value === 'tabla-txt') ||
+                     (tag === 'PRE' && nom === 'class' && a.value === 'bloque-codigo');
           if (!ok) n.removeAttribute(a.name);
         });
         if (tag === 'A') { n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener noreferrer'); }

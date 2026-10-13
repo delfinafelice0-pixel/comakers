@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  editor-texto.js · GENERADO (v11/10 19:12) por fuente/build.py desde
+//  editor-texto.js · GENERADO (v13/10 15:25) por fuente/build.py desde
 //  fuente/interno.src.html (bloque @@EDITOR). NO editar a mano: los
 //  cambios van allá y se regenera con el build.
 //
@@ -185,6 +185,13 @@
     const piezas = [];
     const guardar = html => '\u0000' + (piezas.push(html) - 1) + '\u0000';
 
+    // Bloques de código: entre dos renglones ``` . Adentro NO hay formato
+    // (ni negritas, ni links, ni listas): se ve exactamente como se
+    // escribió, para copiarlo tal cual (un prompt, por ejemplo). Va
+    // primero, antes que cualquier otra marca. El texto ya viene escapado.
+    h = h.replace(/(^|\n)[ \t]*```[^\n]*\n([\s\S]*?)\n[ \t]*```[ \t]*(?=\n|$)/g,
+      (m, pre, dentro) => pre + guardar('<pre class="bloque-codigo">' + dentro + '</pre>'));
+
     // El `data-mid` no es decorativo: es lo que le permite al editor
     // volver de la pastilla al texto `@[Nombre](id)` cuando guarda.
     h = h.replace(RE_MENCION, (m, nombre, id) =>
@@ -267,7 +274,8 @@
         salida += '<hr>';
       } else {
         cerrar();
-        salida += l + (i < lineas.length - 1 ? '<br>' : '');
+        const soloBloque = /^\u0000\d+\u0000$/.test(l) && /^<pre /.test(piezas[+l.slice(1, -1)] || '');
+        salida += l + (i < lineas.length - 1 && !soloBloque ? '<br>' : '');
       }
     });
     volcarTabla();
@@ -313,6 +321,7 @@
       .replace(/(^|[^*])\*([^\n*]+)\*(?!\*)/g, '$1$2')
       .replace(/^[ \t]*-{3,}[ \t]*$/gm, '')
       .replace(/^#{1,2}[ \t]+/gm, '')
+      .replace(/^[ \t]*```[^\n]*$/gm, '')
       .replace(/^\s*[-•]\s+\[[ xX]\](?:[ \t]+|$)/gm, '')
       .replace(/^\s*[-•]\s+/gm, '')
       .replace(/^\s*\d+[.)]\s+/gm, '');
@@ -505,6 +514,12 @@
       if (tag === 'UL' || tag === 'OL') {
         if (s && !/\n$/.test(s)) s += '\n';
         s += serieLista(n, 0);
+        continue;
+      }
+      // Un bloque de código vuelve a ser ``` … ```, con su texto tal cual.
+      if (tag === 'PRE') {
+        if (s && !/\n$/.test(s)) s += '\n';
+        s += '```\n' + n.textContent.replace(/\n+$/, '') + '\n```\n';
         continue;
       }
       // Una tabla vuelve a ser sus renglones "| … |". La primera fila es
