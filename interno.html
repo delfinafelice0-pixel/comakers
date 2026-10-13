@@ -1322,6 +1322,39 @@
     background: transparent; resize: none; outline: none; min-height: 220px;
   }
 
+  /* ── INSTRUCTIVO INTERNO (Cómo hacer los reportes) ─── */
+  .instructivo { max-width: 760px; }
+  .instructivo h1 {
+    font-family: var(--display); font-size: 28px; font-weight: 500;
+    letter-spacing: -0.02em; color: var(--ink); margin: 0 0 4px;
+  }
+  .instructivo .meta { font-size: 12px; color: var(--ink-mute); margin: 0 0 20px; }
+  .instructivo h2 {
+    font-family: var(--display); font-size: 19px; font-weight: 500;
+    letter-spacing: -0.01em; color: var(--ink); margin: 26px 0 8px;
+  }
+  .instructivo p { font-size: 14px; line-height: 1.75; color: var(--ink); margin: 8px 0; }
+  .instructivo ul, .instructivo ol { margin: 8px 0 8px 20px; padding: 0; }
+  .instructivo li { font-size: 14px; line-height: 1.7; color: var(--ink); margin: 6px 0; }
+  .instructivo strong { font-weight: 600; }
+  .instructivo code { font-size: 12px; background: var(--codigo); padding: 1px 5px; border-radius: 4px; }
+  .instructivo hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+  .prompt-box {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); margin: 14px 0; overflow: hidden;
+  }
+  .prompt-box-cab {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); background: var(--bg);
+  }
+  .prompt-box-cab span { font-size: 12px; color: var(--ink-mute); }
+  .prompt-box pre {
+    margin: 0; padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; line-height: 1.6; color: var(--ink);
+    white-space: pre-wrap; word-wrap: break-word; max-height: 440px; overflow: auto;
+  }
+
   /* ── TEXTO CON FORMATO, EMOJIS Y ARRASTRE ─── */
   .d-tools { display: flex; gap: 2px; margin-left: auto; align-items: center; }
   .mini-btn.fmt { min-width: 22px; font-size: 12px; font-family: var(--body); }
@@ -2992,6 +3025,10 @@
         Todo el tablero
         <span class="badge" id="navBadge" style="display:none">0</span>
       </button>
+      <button class="nav-item" id="navReportes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Cómo hacer los reportes
+      </button>
     </nav>
 
     <div class="nav-scroll">
@@ -3032,7 +3069,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v11/10 19:12</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v13/10 13:34</div>
     </div>
   </aside>
 
@@ -3112,6 +3149,130 @@
     </div>
     <div class="kanban" id="kanban"></div>
     <div class="lista lista-cols" id="lista"></div>
+
+    <!-- ═══════════ CÓMO HACER LOS REPORTES ═══════════ -->
+    <!-- Instructivo estático para el equipo. Vive solo en interno.html,
+         que ya es solo-agencia (el guard de arranque manda a panel.html a
+         cualquier tipo != 'agencia'), así que no necesita su propio
+         candado: un cliente nunca llega a ver este menú. -->
+    <div id="modReportes" style="display:none">
+      <div class="instructivo">
+        <h1>Cómo escribir el análisis del reporte mensual</h1>
+        <div class="meta">Para el equipo de CoMakers · Actualizado el 13 de octubre de 2026</div>
+
+        <h2>Qué cambió</h2>
+        <p>Hasta ahora el panel tenía un botón que escribía el análisis solo. Lo sacamos.</p>
+        <p>De acá en adelante el análisis lo escribe la persona que lleva la marca, con su
+           propio Claude, usando el proyecto de esa marca.</p>
+        <p>El motivo no es ahorrar: es que el proyecto de la marca ya sabe qué estrategia
+           tiene ese cliente, qué se probó los meses anteriores y qué funcionó. El botón del
+           panel mandaba los números pelados y nada más. El análisis que escribís vos, con
+           ese contexto, es mejor.</p>
+
+        <hr>
+
+        <h2>El paso a paso</h2>
+        <ol>
+          <li>Entrá al panel, elegí el cliente y el mes.</li>
+          <li>Cargá los datos del mes como siempre: métricas de orgánico, datos de pauta,
+              el contenido que se publicó y los destacados. <strong>Guardá.</strong></li>
+          <li>Tocá el botón <strong>“Copiar datos para Claude”</strong>, arriba de los campos de
+              análisis. Copia al portapapeles un texto con todos los números del mes, los del
+              mes anterior y la variación entre los dos.</li>
+          <li>Abrí el <strong>proyecto de Claude de esa marca</strong>. No un chat suelto: el proyecto,
+              porque ahí está el contexto del cliente.</li>
+          <li>Pegá el prompt de abajo, y debajo pegá los datos que copiaste.</li>
+          <li>Leé lo que devuelve con ojo crítico. Casi nunca sale perfecto de una: pedile
+              que ajuste el tono, que corte, que sea más concreto en algo. Es una conversación,
+              no un trámite.</li>
+          <li>Pegá el texto final en los campos del panel.</li>
+          <li>Guardá y publicá.</li>
+        </ol>
+
+        <hr>
+
+        <h2>El prompt</h2>
+        <p>Copiá esto tal cual y pegá los datos abajo.</p>
+        <div class="prompt-box">
+          <div class="prompt-box-cab">
+            <span>Prompt para el análisis del mes</span>
+            <button class="btn-ghost chico" id="btnCopiarPrompt" type="button">Copiar</button>
+          </div>
+<pre id="promptTexto">Sos quien lleva la comunicación de esta marca y estás escribiendo el reporte
+mensual que el cliente va a leer.
+
+Abajo te paso los datos del mes, comparados con el mes anterior.
+
+Escribime cuatro textos, cada uno con su título:
+
+QUÉ PASÓ ESTE MES
+Dos o tres párrafos. Qué se movió, por qué, y qué significa para el negocio
+del cliente. Esto es lo primero que lee: tiene que entender el mes sin mirar
+un solo número.
+
+ANÁLISIS
+La lectura de los números de la cuenta: qué cambió y cuánto. Acá sí van las
+cifras, pero interpretadas, no listadas.
+
+ANÁLISIS DEL CONTENIDO
+Qué funcionó y qué no de lo que publicamos, y qué dice eso sobre qué hacer
+el mes que viene.
+
+ANÁLISIS DE LA PAUTA
+Cómo rindió la inversión. Si el costo por resultado mejoró o empeoró, por qué
+puede ser.
+
+Cómo quiero que escribas:
+- Para el cliente, no para nosotras. Nada de jerga ni de siglas sin explicar.
+- Honesto. Si un mes fue flojo, se dice. Un reporte que siempre dice que todo
+  salió bien no sirve para decidir nada.
+- Concreto. "El alcance subió" no dice nada; "el alcance subió 6% y lo
+  empujaron los dos reels de la ruta a la sierra" sí.
+- Sin inventar. Si algo no está en los datos que te paso, no lo afirmes.
+- Sin promesas sobre el mes que viene.
+
+DATOS DEL MES:
+[acá pegás lo que copiaste del panel]</pre>
+        </div>
+
+        <hr>
+
+        <h2>Qué revisar antes de guardar</h2>
+        <p>Esto es lo que lee el cliente, así que la última mirada es tuya. Antes de
+           publicar, chequeá:</p>
+        <ul>
+          <li><strong>Que no haya inventado ningún número.</strong> Comparalo contra el panel. Es el error
+              más grave y el más difícil de ver, porque un número falso se lee igual de bien
+              que uno verdadero.</li>
+          <li><strong>Que no prometa resultados</strong> del mes que viene.</li>
+          <li><strong>Que no diga que todo salió bien si no salió bien.</strong> Un mes malo explicado con
+              honestidad construye más confianza que uno bueno inflado.</li>
+          <li><strong>Que suene a nosotras.</strong> Si leés algo que vos nunca dirías, cambialo.</li>
+        </ul>
+
+        <hr>
+
+        <h2>Errores comunes</h2>
+        <p><strong>Pegar los datos sin el prompt.</strong> Sin las instrucciones te devuelve un listado de
+           métricas, no un análisis.</p>
+        <p><strong>Usar un chat suelto en vez del proyecto de la marca.</strong> Funciona, pero pierde todo
+           el contexto: no sabe qué se intentó en agosto ni por qué.</p>
+        <p><strong>Copiar los datos antes de guardar.</strong> El botón copia lo que está guardado. Si
+           cargaste métricas y no guardaste, copia los datos viejos.</p>
+        <p><strong>Aceptar el primer borrador.</strong> Es un punto de partida. Dos o tres idas y vueltas
+           pidiendo ajustes hacen la diferencia entre un reporte que el cliente hojea y uno
+           que lee.</p>
+
+        <hr>
+
+        <h2>Si algo no funciona</h2>
+        <p>El botón “Copiar datos para Claude” no copia nada → fijate que hayas guardado el
+           reporte primero.</p>
+        <p>Faltan métricas en el texto copiado → están sin cargar en el panel, o el módulo
+           de ese cliente está apagado.</p>
+        <p>Cualquier otra cosa, avisale a Delfi.</p>
+      </div>
+    </div>
 
     <div class="calendario" id="calendario">
       <div class="cal-panel">
@@ -6051,7 +6212,7 @@
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
     dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
-    servicios: 'Servicios', etiquetas: 'Etiquetas'
+    servicios: 'Servicios', etiquetas: 'Etiquetas', reportes: 'Cómo hacer los reportes'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -6111,6 +6272,7 @@
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
     mostrar('#modWiki',      MODULO === 'wiki');
+    mostrar('#modReportes',  MODULO === 'reportes');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
 
@@ -6134,6 +6296,7 @@
     activar('#navTablero',  MODULO === 'tareas' && !FILTRO.proyecto);
     activar('#navClientes', MODULO === 'clientes');
     activar('#navWiki',     MODULO === 'wiki');
+    activar('#navReportes', MODULO === 'reportes');
     activar('#navServicios', MODULO === 'servicios');
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
@@ -6151,6 +6314,7 @@
     const ph = $si('#proyHeader'); if (ph) ph.classList.remove('on');
     const H = {
       bandeja:  ['Tu <em>bandeja</em>', 'Lo que te asignaron, lo que comentaron donde colaborás y dónde te mencionaron.'],
+      reportes: ['Cómo hacer los <em>reportes</em>', 'La guía para escribir a mano el análisis del reporte mensual del cliente.'],
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
@@ -10588,6 +10752,30 @@
     render();
   });
   on('#navBandeja', 'click', () => cambiarModulo('bandeja'));
+  on('#navReportes', 'click', () => cambiarModulo('reportes'));
+  // Copia el prompt tal cual se ve en el bloque. Mismo patrón que
+  // copiarDato / copiarLinkTarea: portapapeles con fallback a execCommand
+  // para los navegadores que no dan permiso.
+  function copiarPrompt() {
+    const pre = $si('#promptTexto'); if (!pre) return;
+    const txt = pre.textContent;
+    const ok = () => {
+      const b = $si('#btnCopiarPrompt');
+      toast('Prompt copiado', 'ok');
+      if (b) { b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = 'Copiar'; }, 1600); }
+    };
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject())
+      .then(ok)
+      .catch(() => {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); document.body.removeChild(ta); ok();
+        } catch (_) { toast('Tu navegador no dejó copiar. Seleccionalo y copialo a mano.', 'warn'); }
+      });
+  }
+  on('#btnCopiarPrompt', 'click', copiarPrompt);
   on('#navClientes', 'click', () => cambiarModulo('clientes'));
   on('#navWiki', 'click', () => cambiarModulo('wiki'));
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));

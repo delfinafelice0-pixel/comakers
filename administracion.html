@@ -1322,6 +1322,39 @@
     background: transparent; resize: none; outline: none; min-height: 220px;
   }
 
+  /* ── INSTRUCTIVO INTERNO (Cómo hacer los reportes) ─── */
+  .instructivo { max-width: 760px; }
+  .instructivo h1 {
+    font-family: var(--display); font-size: 28px; font-weight: 500;
+    letter-spacing: -0.02em; color: var(--ink); margin: 0 0 4px;
+  }
+  .instructivo .meta { font-size: 12px; color: var(--ink-mute); margin: 0 0 20px; }
+  .instructivo h2 {
+    font-family: var(--display); font-size: 19px; font-weight: 500;
+    letter-spacing: -0.01em; color: var(--ink); margin: 26px 0 8px;
+  }
+  .instructivo p { font-size: 14px; line-height: 1.75; color: var(--ink); margin: 8px 0; }
+  .instructivo ul, .instructivo ol { margin: 8px 0 8px 20px; padding: 0; }
+  .instructivo li { font-size: 14px; line-height: 1.7; color: var(--ink); margin: 6px 0; }
+  .instructivo strong { font-weight: 600; }
+  .instructivo code { font-size: 12px; background: var(--codigo); padding: 1px 5px; border-radius: 4px; }
+  .instructivo hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+  .prompt-box {
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); margin: 14px 0; overflow: hidden;
+  }
+  .prompt-box-cab {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); background: var(--bg);
+  }
+  .prompt-box-cab span { font-size: 12px; color: var(--ink-mute); }
+  .prompt-box pre {
+    margin: 0; padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; line-height: 1.6; color: var(--ink);
+    white-space: pre-wrap; word-wrap: break-word; max-height: 440px; overflow: auto;
+  }
+
   /* ── TEXTO CON FORMATO, EMOJIS Y ARRASTRE ─── */
   .d-tools { display: flex; gap: 2px; margin-left: auto; align-items: center; }
   .mini-btn.fmt { min-width: 22px; font-size: 12px; font-family: var(--body); }
@@ -3050,7 +3083,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v11/10 19:12</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v13/10 13:34</div>
     </div>
   </aside>
 
@@ -3069,6 +3102,7 @@
         </button>
       </div>
     </div>
+
 
 
 
@@ -6091,7 +6125,7 @@
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
     dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
-    servicios: 'Servicios', etiquetas: 'Etiquetas'
+    servicios: 'Servicios', etiquetas: 'Etiquetas', reportes: 'Cómo hacer los reportes'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -6152,6 +6186,7 @@
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
     mostrar('#modWiki',      MODULO === 'wiki');
+    mostrar('#modReportes',  MODULO === 'reportes');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
 
@@ -6175,6 +6210,7 @@
     activar('#navTablero',  MODULO === 'tareas' && !FILTRO.proyecto);
     activar('#navClientes', MODULO === 'clientes');
     activar('#navWiki',     MODULO === 'wiki');
+    activar('#navReportes', MODULO === 'reportes');
     activar('#navServicios', MODULO === 'servicios');
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
@@ -6192,6 +6228,7 @@
     const ph = $si('#proyHeader'); if (ph) ph.classList.remove('on');
     const H = {
       bandeja:  ['Tu <em>bandeja</em>', 'Lo que te asignaron, lo que comentaron donde colaborás y dónde te mencionaron.'],
+      reportes: ['Cómo hacer los <em>reportes</em>', 'La guía para escribir a mano el análisis del reporte mensual del cliente.'],
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
