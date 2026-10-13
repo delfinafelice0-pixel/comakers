@@ -544,6 +544,25 @@ propuesta del chat del 16/09. Dos cosas a no olvidar:
   `guardar()` los persiste (vacío = null). Siguen quedando "revisados"
   (`analisis_generado_en = null`) al guardar, igual que los otros tres.
 
+**Circuito de reportes al 13/10/2026.**
+- El análisis lo escribe el equipo a mano con el proyecto de Claude de
+  cada marca: botón "Copiar datos para Claude" en el editor del reporte
+  (copia lo orgánico de Instagram + lo cargado a mano, con la variación
+  contra el mes anterior). Instructivo en la Wiki de administración.
+  `sync_diario` v5 (migración 55) ya no llama a `analizar-reporte`;
+  verificación: `claude_consulta-sync-diario.sql` (mira el código sin
+  comentarios: los comentarios nombran cliente_modulo y analizar-reporte).
+- **50B lista** (`claude_migracion-interno-50b-cierre-lectura-viva.sql`):
+  policies RESTRICTIVAS de lectura solo-agencia; trae un freno que no la
+  aplica si queda algún publicado sin snapshot. Correrla cuando el botón
+  "Generar snapshots de lo publicado" deje 0 pendientes.
+- **Claves:** panel.html y el CRM usan la publishable key. interno.html y
+  administracion.html siguen con la anon legacy, que al 13/10 Supabase
+  todavía acepta (REST y Auth dan 200). Lo único roto ahí es
+  `invitar-equipo` (Edge Function, el gateway rechaza el token ES256):
+  pendiente. Cuando se desactiven las legacy, migrar las dos páginas
+  (cambiar la key del createClient).
+
 **Snapshot del reporte publicado (`reporte_publicado`) — en transición.**
 - Lo que ve el cliente se **congela** al publicar, en una tabla aparte
   (`reporte_publicado`, PK `(cliente_id, mes)`, `snapshot jsonb`). El cron
