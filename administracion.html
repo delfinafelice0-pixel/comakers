@@ -2403,6 +2403,8 @@
   .est.vencido   { background: var(--warn-soft); color: var(--warn); border-color: #F6C7D4; }
   .est.nocorr    { background: var(--line-soft); color: var(--ink-mute); border-color: var(--line); }
   .est.aviso     { background: var(--warn-soft); color: var(--warn); border-color: #F6C7D4; }
+  .est.amarillo  { background: #FFF4CC; color: #8A6100; border-color: #F2DC8C; }
+  html[data-tema="oscuro"] .est.amarillo { background: #3A3214; color: #F2CF5B; border-color: #5C4E1E; }
 
   .det-contrato {
     padding: 16px 18px 18px; background: var(--line-soft);
@@ -3056,7 +3058,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v13/10 15:25</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v13/10 19:34</div>
     </div>
   </aside>
 
@@ -8792,9 +8794,27 @@
   function netoDeCobro(cb) {
     return Number(cb.monto || 0) - egresosDeCobro(cb.id).reduce((a, m) => a + Number(m.monto || 0), 0);
   }
-  function tocaAjustar(ct, periodo) {
-    if (!ct.proximo_ajuste) return false;
-    return mesDe(ct.proximo_ajuste) <= mesDe(periodo || PERIODO);
+  // Próximo ajuste: se mide en días desde HOY (no desde el mes que se
+  // está mirando). Rojo: ya pasó o faltan 15 días o menos. Amarillo:
+  // faltan 16 a 60 (momento de avisarle al cliente). Más de 60: normal.
+  function diasAjuste(ct) {
+    if (!ct.proximo_ajuste) return null;
+    const [a, m, d] = ct.proximo_ajuste.slice(0, 10).split('-').map(Number);
+    const h = new Date();
+    return Math.round((Date.UTC(a, m - 1, d) - Date.UTC(h.getFullYear(), h.getMonth(), h.getDate())) / 86400000);
+  }
+  function nivelAjuste(ct) {
+    const n = diasAjuste(ct);
+    if (n === null) return '';
+    return n <= 15 ? 'rojo' : n <= 60 ? 'amarillo' : '';
+  }
+  function tocaAjustar(ct) { return nivelAjuste(ct) !== ''; }
+  function textoDiasAjuste(ct) {
+    const n = diasAjuste(ct);
+    if (n === null) return '';
+    if (n === 0) return 'El ajuste es hoy';
+    if (n < 0) return 'El ajuste venció hace ' + (-n) + (n === -1 ? ' día' : ' días');
+    return 'Faltan ' + n + (n === 1 ? ' día' : ' días') + ' para el ajuste';
   }
   function cobroVencido(cb, ct) {
     if (!cb || cb.estado !== 'pendiente') return false;
@@ -9806,6 +9826,7 @@
     const cobrado = delMes.filter(c => c.estado === 'cobrado')
                           .reduce((a, c) => a + Number(c.monto || 0), 0);
     const ajustes = CONTRATOS.filter(c => c.activo !== false && tocaAjustar(c)).length;
+    const ajRojos = CONTRATOS.filter(c => c.activo !== false && nivelAjuste(c) === 'rojo').length;
 
     const barra =
       '<div class="plata-barra">' +
@@ -9841,7 +9862,7 @@
         kpi('A cobrar este mes', plata(aCobrar), delMes.length + ' servicio' + (delMes.length === 1 ? '' : 's'), '') +
         kpi('Cobrado', plata(cobrado), pct(cobrado, aCobrar) + ' de lo del mes', 'verde') +
         kpi('Falta cobrar', plata(aCobrar - cobrado), (delMes.filter(c => c.estado === 'pendiente').length) + ' pendiente(s)', aCobrar - cobrado > 0 ? 'rojo' : '') +
-        kpi('Ajustes que tocan', String(ajustes), ajustes ? 'Miralos abajo, en rojo' : 'Ninguno este mes', ajustes ? 'rojo' : '') +
+        kpi('Ajustes que tocan', String(ajustes), ajustes ? (ajRojos ? ajRojos + ' en rojo' : '') + (ajRojos && ajustes - ajRojos ? ' · ' : '') + (ajustes - ajRojos ? (ajustes - ajRojos) + ' en amarillo' : '') : 'Ninguno en los próximos 60 días', ajRojos ? 'rojo' : '') +
       '</div>';
 
     const cab =
@@ -9954,7 +9975,7 @@
     const dias = ct.dia_desde
       ? (ct.dia_hasta && ct.dia_hasta !== ct.dia_desde ? ct.dia_desde + ' al ' + ct.dia_hasta : 'el ' + ct.dia_desde)
       : '—';
-    const aj = tocaAjustar(ct);
+    const aj = nivelAjuste(ct);
 
     let estado;
     if (FALTA_M14) estado = '<span class="est nocorr">—</span>';
@@ -10006,8 +10027,8 @@
         '</div>' +
         '<div class="oculta-mob">' +
           (aj
-            ? '<button class="est aviso" data-ctajustar="' + ct.id + '" title="Ajustar el monto">🔴 ' + fechaDia(ct.proximo_ajuste) + '</button>'
-            : cel(ct.proximo_ajuste ? fechaDia(ct.proximo_ajuste) : '<span class="cel-nada">sin fecha</span>',
+            ? '<button class="est ' + (aj === 'rojo' ? 'aviso' : 'amarillo') + '" data-ctajustar="' + ct.id + '" title="' + textoDiasAjuste(ct) + ' · clic para ajustar el monto">' + (aj === 'rojo' ? '🔴 ' : '🟡 ') + fechaDia(ct.proximo_ajuste) + '</button>'
+            : cel(ct.proximo_ajuste ? '<span title="' + textoDiasAjuste(ct) + '">' + fechaDia(ct.proximo_ajuste) + '</span>' : '<span class="cel-nada">sin fecha</span>',
                   'ct', ct.id, 'proximo_ajuste', ct.proximo_ajuste || '', 'fecha')) +
         '</div>' +
         '<div>' + estado + '</div>' +
@@ -11446,7 +11467,7 @@
         ? ct.dia_desde + ' al ' + ct.dia_hasta : 'el ' + ct.dia_desde;
     }
     if (campo === 'proximo_ajuste') {
-      return ct.proximo_ajuste ? fechaDia(ct.proximo_ajuste) : '<span class="cel-nada">sin fecha</span>';
+      return ct.proximo_ajuste ? '<span title="' + textoDiasAjuste(ct) + '">' + fechaDia(ct.proximo_ajuste) + '</span>' : '<span class="cel-nada">sin fecha</span>';
     }
     return esc(ct[campo] || '');
   }
@@ -11551,11 +11572,12 @@
     const aCobrar = delMes.filter(c => c.estado !== 'no_corresponde').reduce((a, c) => a + Number(c.monto || 0), 0);
     const cobrado = delMes.filter(c => c.estado === 'cobrado').reduce((a, c) => a + Number(c.monto || 0), 0);
     const ajustes = CONTRATOS.filter(c => c.activo !== false && tocaAjustar(c)).length;
+    const ajRojos = CONTRATOS.filter(c => c.activo !== false && nivelAjuste(c) === 'rojo').length;
     cont.innerHTML =
       kpi('A cobrar este mes', plata(aCobrar), delMes.length + ' servicio' + (delMes.length === 1 ? '' : 's'), '') +
       kpi('Cobrado', plata(cobrado), pct(cobrado, aCobrar) + ' de lo del mes', 'verde') +
       kpi('Falta cobrar', plata(aCobrar - cobrado), delMes.filter(c => c.estado === 'pendiente').length + ' pendiente(s)', aCobrar - cobrado > 0 ? 'rojo' : '') +
-      kpi('Ajustes que tocan', String(ajustes), ajustes ? 'Miralos abajo, en rojo' : 'Ninguno este mes', ajustes ? 'rojo' : '');
+      kpi('Ajustes que tocan', String(ajustes), ajustes ? (ajRojos ? ajRojos + ' en rojo' : '') + (ajRojos && ajustes - ajRojos ? ' · ' : '') + (ajustes - ajRojos ? (ajustes - ajRojos) + ' en amarillo' : '') : 'Ninguno en los próximos 60 días', ajRojos ? 'rojo' : '');
   }
 
   async function guardarCelda(el, valor) {
@@ -11619,7 +11641,7 @@
 
       const { error } = await SB.from('contrato').update(patch).eq('id', id);
       if (error) { toast('No se pudo guardar: ' + error.message, 'warn'); pintarCelda(el); return; }
-      const antesTocaba = tocaAjustar(ct);
+      const antesTocaba = nivelAjuste(ct);
       Object.assign(ct, patch);
 
       // Si cambiaste el monto, el cobro del mes se actualiza SOLO si
@@ -11637,7 +11659,7 @@
 
       // Poner una fecha de ajuste ya vencida convierte la celda en un
       // botón rojo: eso sí necesita repintar la tabla.
-      if (campo === 'proximo_ajuste' && tocaAjustar(ct) !== antesTocaba && CELDA === null) {
+      if (campo === 'proximo_ajuste' && nivelAjuste(ct) !== antesTocaba && CELDA === null) {
         renderClientes();
       }
     } catch (e) {
