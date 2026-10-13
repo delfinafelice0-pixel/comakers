@@ -2675,7 +2675,8 @@
       const variacion = (cur, pv, unidad) => {
         const c = Number(cur), p = Number(pv);
         if (!isFinite(c) || !isFinite(p) || p === 0) return '';
-        if (unidad === 'pct') { const d = Math.round(c - p); return ' (' + (d >= 0 ? '+' : '') + d + ' pts)'; }
+        // En puntos, con un decimal: 1,8% → 2,1% es "+0,3 pts", no "+0 pts".
+        if (unidad === 'pct') { const d = Math.round((c - p) * 10) / 10; return ' (' + (d >= 0 ? '+' : '') + String(d).replace('.', ',') + ' pts)'; }
         const d = Math.round((c - p) / p * 100);
         return ' (' + (d >= 0 ? '+' : '') + d + '%)';
       };
@@ -2689,8 +2690,14 @@
       };
 
       ['organico', 'pauta'].forEach(mod => {
-        if (!b.incluye[mod]) return;
-        const mets = b.metricas[mod].filter(m => (m.etiqueta || '').trim() && String(m.valor ?? '').trim() !== '');
+        if (!b.incluye[mod] && !(rep && rep.metricas.some(m => m.modulo === mod && m.origen === 'instagram'))) return;
+        // El editor NO trae las métricas de Instagram (se muestran pero no
+        // se editan: las reescribe el pull). Sin sumarlas acá, lo orgánico
+        // traído de Meta nunca se copiaba. Van primero las de Instagram y
+        // después lo cargado a mano en el editor (con lo que se esté tipeando).
+        const deMeta = rep ? rep.metricas.filter(m => m.modulo === mod && m.origen === 'instagram') : [];
+        const aMano = b.incluye[mod] ? b.metricas[mod] : [];
+        const mets = deMeta.concat(aMano).filter(m => (m.etiqueta || '').trim() && String(m.valor ?? '').trim() !== '');
         if (!mets.length) return;
         L.push('');
         L.push(mod === 'organico' ? 'ORGÁNICO' : 'PAUTA');
