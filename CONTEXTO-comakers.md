@@ -322,15 +322,14 @@ se neutraliza con `.txt-fmt.vacio`.
 `_prueba/cap-mod-*.png`, vista agencia y cliente. `fuente/datos-modulos.js`
 imita la RLS de la 51 para la vista cliente y las dos RPC
 (`window.__MOCK_RPC`, que ahora entiende `fuente/mock-supabase.js`).
-Los datos salen de `_datos-privados/demo_panel.py` (gitignored).
+Los datos del mock salen de `_datos-privados/demo-panel-mock.js`
+(gitignored); ya no se regenera: si hace falta otro dato de prueba, se
+edita a mano.
 
-**Datos de demo (Don Felipe y Dr. Maca Flos)**: `python
-_datos-privados/demo_panel.py` genera `demo-panel.sql` (para la base,
-después de la 51), `demo-panel-revertir.sql` y `demo-panel-mock.js`.
-Una sola fuente: lo que se prueba es lo que se presenta. ⚠️ Son
-clientes reales: el SQL **prende los cinco módulos** para los dos y
-publica casi todo. El historial de montos y los textos de Maca son de
-ejemplo.
+**Datos de demo: descartados (13/10/2026).** `demo-panel.sql` nunca se
+corrió y no se va a usar: el panel se carga con contenido real. Está en
+`_datos-privados/_cerrados/` junto con su generador y su reversión, con
+nota de "no correr" (además tocaba configuración de clientes).
 
 **Pendientes del MVP:** PDF del calendario; comentarios en Estrategia /
 One Shot (la tabla ya es genérica: `entidad`); en celular el calendario

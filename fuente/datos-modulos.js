@@ -2,7 +2,8 @@
 //  Datos de prueba para las solapas nuevas del panel (panel-modulos.js)
 //
 //  Los datos en sí NO están acá: salen de DEMO_PANEL, que genera
-//  _datos-privados/demo_panel.py (gitignored, son clientes reales).
+//  _datos-privados/demo-panel-mock.js (gitignored, son clientes reales; se
+//  edita a mano, su generador quedó en _datos-privados/_cerrados/).
 //  Este archivo solo arma los dos escenarios:
 //
 //    DATOS_MOD_AGENCIA  → la agencia ve todo

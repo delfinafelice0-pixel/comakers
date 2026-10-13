@@ -9,8 +9,9 @@
 #      bash fuente/probar-modulos.sh                 # todas
 #      bash fuente/probar-modulos.sh calendario      # una
 #
-#  Necesita _datos-privados/demo-panel-mock.js, que genera
-#  `python _datos-privados/demo_panel.py` (los datos de demo de Don
+#  Necesita _datos-privados/demo-panel-mock.js (datos inventados para el
+#  mock; ya no se regenera —el generador quedó en _datos-privados/_cerrados/—,
+#  si hace falta otro dato se edita a mano; los datos de demo de Don
 #  Felipe y Dr. Maca Flos: no están en el repo, que es público).
 #
 #  Mismo método que probar-panel.sh: se reemplaza la línea del CDN de
@@ -26,7 +27,7 @@ cd "$(dirname "$0")/.."
 RAIZ="$(pwd)"
 OUT="_prueba"
 DEMO="_datos-privados/demo-panel-mock.js"
-[ -f "$DEMO" ] || { echo "Falta $DEMO: corré python _datos-privados/demo_panel.py" >&2; exit 1; }
+[ -f "$DEMO" ] || { echo "Falta $DEMO (datos del mock, en _datos-privados/)." >&2; exit 1; }
 
 if command -v cygpath >/dev/null 2>&1; then
   URL_RAIZ="file:///$(cygpath -m "$RAIZ")"
