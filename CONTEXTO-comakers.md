@@ -22,6 +22,20 @@ clientes ven sus reportes mensuales de Meta.
 - **Subí los archivos grandes como adjunto, no por capturas.** Pedir
   `sed -n 'X,Yp'` cuatro veces y que no llegue nos costó horas el 12/09.
 
+### ⛔ Regla (13/10/2026): datos de plata y configuración de clientes, congelados
+
+Los **datos de plata** (cobros, pagos, gastos, fondo, distribución) y la
+**configuración de los clientes** (contratos, montos, ejecutoras,
+integraciones, proyectos asignados) ya están **revisados y aprobados**.
+
+- **No** escribir SQL que los modifique: nada de `update` / `delete` /
+  `insert` sobre esos datos, ni imports, ni scripts de corrección.
+- Si un cambio funcional necesita tocarlos (backfill, trigger que los
+  reescriba, limpieza), **frenar y avisarle a Delfi antes**, sin escribir
+  el SQL.
+- **Sí** se pueden proponer migraciones que solo **agregan** columnas o
+  tablas nuevas (sin rellenar ni cambiar lo que ya está).
+
 ### El método que funcionó para editar archivos grandes
 
 Parches en Python con anclas de texto exacto, que verifican TODAS las
