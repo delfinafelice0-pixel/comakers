@@ -22,9 +22,15 @@ const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+// Publishable key (pública). authClient y llamador validan el token
+// ES256 del usuario con esta: con la anon legacy, Auth/PostgREST
+// verifican con el secreto viejo y rechazan ES256. El admin sigue con
+// service_role.
+const PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -240,8 +246,30 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
 
   try {
-    const auth = req.headers.get('Authorization') ?? '';
-    if (!auth.startsWith('Bearer ')) return json({ error: { message: 'Sin sesión' } }, 401);
+    // El token del usuario va en x-user-token: el edge-runtime rechaza
+    // los ES256 que vengan en Authorization (ahí el navegador manda el
+    // anon legacy, solo para pasar). Fallback a Authorization para
+    // llamadas server-side (service_role) que no usan x-user-token.
+    const userToken = (req.headers.get('x-user-token') ?? '').trim();
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const SB_URL = Deno.env.get('SUPABASE_URL')!;
+
+    // Dos caminos: el navegador manda el ES256 en x-user-token (el
+    // edge-runtime lo rechazaría en Authorization), y el cron server-side
+    // manda el service_role en Authorization, sin x-user-token. Solo el
+    // del navegador se valida con getUser; el service_role saltea RLS.
+    let llamador;
+    if (userToken) {
+      const authClient = createClient(SB_URL, PUBLISHABLE);
+      const { data: { user }, error: errUser } = await authClient.auth.getUser(userToken);
+      if (errUser || !user) return json({ error: { message: 'Sesión inválida' } }, 401);
+      llamador = createClient(SB_URL, PUBLISHABLE,
+        { global: { headers: { Authorization: 'Bearer ' + userToken } } });
+    } else {
+      if (!authHeader.startsWith('Bearer ')) return json({ error: { message: 'Sin sesión' } }, 401);
+      llamador = createClient(SB_URL, Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } });
+    }
 
     let body: any = {};
     try { body = await req.json(); } catch { /* vacío */ }
@@ -255,12 +283,7 @@ Deno.serve(async (req) => {
     }
 
     // ── 1. El acceso lo decide RLS, no un if nuestro ──────────
-    const llamador = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: auth } } },
-    );
-
+    // (el llamador ya se creó arriba, según navegador o server-side)
     const { data: cliente, error: errCli } = await llamador
       .from('clientes').select('id, nombre').eq('id', clienteId).maybeSingle();
 

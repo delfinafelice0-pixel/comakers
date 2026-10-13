@@ -667,11 +667,42 @@
   'use strict';
 
   // ── Conexión ────────────────────────────────────────────────
+  // Publishable key nueva (migración a JWT asimétricas). Las dos keys
+  // son públicas. La anon legacy se usa SOLO en el Authorization de las
+  // llamadas a Edge Functions (ver invocarFuncion): el gateway rechaza
+  // el ES256 ahí, así que el token de usuario va en x-user-token.
   const LOGIN = 'login-comakers.html';
-  const SB = supabase.createClient(
-    'https://ggcstolnadkkqhsqpzql.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs'
-  );
+  const PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
+  const ANON_LEGACY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
+  const SB = supabase.createClient('https://ggcstolnadkkqhsqpzql.supabase.co', PUBLISHABLE);
+
+  // Llama una Edge Function sorteando el gateway: el token de sesión
+  // ES256 va en x-user-token (el gateway lo rechaza en Authorization),
+  // y en Authorization va el anon legacy (HS256), solo para pasar. La
+  // función valida al usuario con x-user-token. Devuelve { data, error }
+  // como functions.invoke; error.message trae el motivo real.
+  async function invocarFuncion(nombre, body) {
+    let session = null;
+    try { const r = await SB.auth.getSession(); session = r.data && r.data.session; } catch (e) {}
+    if (!session) return { data: null, error: { message: 'Tu sesión expiró. Volvé a entrar.' } };
+    let resp, cuerpo;
+    try {
+      resp = await fetch('https://ggcstolnadkkqhsqpzql.supabase.co/functions/v1/' + nombre, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': PUBLISHABLE,
+          'Authorization': 'Bearer ' + ANON_LEGACY,
+          'x-user-token': session.access_token,
+        },
+        body: JSON.stringify(body || {}),
+      });
+      cuerpo = await resp.json().catch(() => null);
+    } catch (e) { return { data: null, error: { message: 'No se pudo conectar.' } }; }
+    if (resp.ok) return { data: cuerpo, error: null };
+    const m = (cuerpo && cuerpo.error && cuerpo.error.message) || 'La función devolvió un error.';
+    return { data: cuerpo, error: { message: m, status: resp.status } };
+  }
 
   // ── Estado ──────────────────────────────────────────────────
   let YO = null;            // perfil
@@ -2373,14 +2404,9 @@
     if (ba) ba.addEventListener('click', async () => {
       ba.disabled = true; ba.textContent = 'Generando…';
       try {
-        const { data, error } = await SB.functions.invoke('analizar-reporte', {
-          body: { cliente_id: CLIENTE.id, mes: MES }
-        });
+        const { error } = await invocarFuncion('analizar-reporte', { cliente_id: CLIENTE.id, mes: MES });
         if (error) {
-          // El mensaje bueno viene en el cuerpo, no en error.message.
-          let msg = 'No se pudo generar el análisis';
-          try { const c = await error.context.json(); if (c && c.error && c.error.message) msg = c.error.message; } catch (e) {}
-          toast(msg, true);
+          toast(error.message || 'No se pudo generar el análisis', true);
           ba.disabled = false; ba.textContent = 'Generar borrador';
           return;
         }
@@ -2399,11 +2425,10 @@
           '¿Regenerar el análisis?')) return;
       brg.disabled = true; brg.textContent = 'Regenerando…';
       try {
-        const { error } = await SB.functions.invoke('analizar-reporte', { body: { cliente_id: CLIENTE.id, mes: MES } });
+        const { error } = await invocarFuncion('analizar-reporte', { cliente_id: CLIENTE.id, mes: MES });
         if (error) {
-          let msg = 'No se pudo regenerar el análisis';
-          try { const c = await error.context.json(); if (c && c.error && c.error.message) msg = c.error.message; } catch (e) {}
-          toast(msg, true); brg.disabled = false; brg.textContent = 'Regenerar análisis'; return;
+          toast(error.message || 'No se pudo regenerar el análisis', true);
+          brg.disabled = false; brg.textContent = 'Regenerar análisis'; return;
         }
         toast('Análisis regenerado. Revisalo antes de publicar.');
         await cargarCliente();
