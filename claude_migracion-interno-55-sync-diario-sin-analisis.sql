@@ -118,10 +118,14 @@ revoke all on function public.sync_diario() from public;
 revoke all on function public.sync_diario() from anon, authenticated;
 
 -- ── Verificación ────────────────────────────────────────────────
--- La definición nueva NO tiene que mencionar analizar-reporte, y SÍ los
--- tres pulls. Cuenta sola, no llama a nada guardado.
+-- La definición guardada INCLUYE los comentarios del cuerpo, y el de
+-- arriba nombra "analizar-reporte": por eso se mira el código sin
+-- comentarios (si no, daría true aunque ya no la llame).
+-- Verificación completa (permisos y cron): claude_consulta-sync-diario.sql
+with c as (select regexp_replace(pg_get_functiondef('public.sync_diario()'::regprocedure), '--[^\n]*', '', 'g') as codigo)
 select
-  pg_get_functiondef('public.sync_diario()'::regprocedure) ilike '%analizar-reporte%'  as todavia_llama_analisis, -- false
-  pg_get_functiondef('public.sync_diario()'::regprocedure) ilike '%pull-ads%'           as llama_pull_ads,         -- true
-  pg_get_functiondef('public.sync_diario()'::regprocedure) ilike '%pull-instagram%'     as llama_pull_instagram,   -- true
-  pg_get_functiondef('public.sync_diario()'::regprocedure) ilike '%pull-posts%'         as llama_pull_posts;       -- true
+  codigo ilike '%analizar-reporte%'  as todavia_llama_analisis, -- false
+  codigo ilike '%pull-ads%'          as llama_pull_ads,         -- true
+  codigo ilike '%pull-instagram%'    as llama_pull_instagram,   -- true
+  codigo ilike '%pull-posts%'        as llama_pull_posts        -- true
+from c;
