@@ -263,7 +263,7 @@ código en `panel-modulos.js` quedan**: para volver, alcanza con
 devolver la clave a esas tres listas.
 
 **11/10/2026: ficha de contenido del Calendario.** Un solo campo de texto
-con formato (`cal_contenido.cuerpo`, migración 55, que pasa copy /
+con formato (`cal_contenido.cuerpo`, migración 58 —antes numerada 55—, que pasa copy /
 referencias / link a ese campo con su título; las columnas viejas quedan).
 El editor es **el mismo de /interno**: `fuente/build.py` copia el bloque
 `/*@@EDITOR*/ … /*@@FINEDITOR*/` de `interno.src.html` a `editor-texto.js`
@@ -469,6 +469,15 @@ Editor. Supabase no las tiene registradas como aplicadas. Si algún día se
 corre `supabase db push`, las va a reintentar — están escritas para que
 eso sea inofensivo (`if not exists`, `create or replace`, `on conflict do
 nothing`), pero conviene saberlo.
+
+**Numeración de `claude_migracion-interno-NN-*.sql`** (varias sesiones
+crean a la vez: antes de numerar, `git pull` y mirar el más alto).
+50a reporte_publicado (50B reservado) · 51 panel-modulos · 52
+contrato.apagado_por_archivo · 53 wa-enviar-outbox · 54 ejecutoras
+heredadas y solo socias · 55 sync_diario v5 sin análisis · 56
+proyecto_calendario · 57 contenido-color · 58 contenido-cuerpo (se
+escribió como 55 y se renumeró el 13/10: es la misma, no se corre dos
+veces).
 
 **Lo que los cursos llaman "TRANSCRIPCIÓN" de un reel es el caption**, no
 el audio. Los "hooks que más funcionaron" salen de la primera línea del

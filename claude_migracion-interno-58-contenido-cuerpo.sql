@@ -1,6 +1,9 @@
 -- ═══════════════════════════════════════════════════════════════
---  migracion-interno-55 · ficha de contenido del Calendario: un solo
+--  migracion-interno-58 · ficha de contenido del Calendario: un solo
 --  campo de texto con formato
+--  (Se escribió como 55; renumerada a 58 el 13/10/2026 porque otra sesión
+--  ya había usado el 55 para sync_diario. Si ya la corriste como 55, es
+--  la misma: no hay que correrla de nuevo.)
 --  11/10/2026
 --
 --  La ficha pasa de varios campos (copy, referencias, link) a UN campo

@@ -473,7 +473,7 @@
   //  En la base se guarda texto con marcas, nunca HTML; al mostrarlo,
   //  renderTexto escapa todo y además pasa por limpiarHtml (lista blanca).
   //  Lo que se había cargado en copy / referencias / link, mientras no haya
-  //  cuerpo, se muestra junto abajo de su título (igual que la migración 55).
+  //  cuerpo, se muestra junto abajo de su título (igual que la migración 58).
   const ED = () => window.EditorTexto || null;
 
   function cuerpoDe(c) {
@@ -722,10 +722,10 @@
       cerrarModal(); re();
     } finally { btn.disabled = false; }
   }
-  // Sin la migración 55 la columna `cuerpo` no existe: que se entienda.
+  // Sin la migración 58 la columna `cuerpo` no existe: que se entienda.
   function errorCuerpo(e) {
     const m = e.message || '';
-    return /cuerpo/.test(m) ? 'Falta correr la migración 55 (cal_contenido.cuerpo): no se guardó.'
+    return /cuerpo/.test(m) ? 'Falta correr la migración 58 (cal_contenido.cuerpo): no se guardó.'
       : /color/.test(m) ? 'Falta correr la migración 57 (color de la tarjeta): no se guardó.'
       : 'No se pudo guardar: ' + m;
   }
