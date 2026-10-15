@@ -722,6 +722,14 @@ console.log(JSON.stringify(await r.json(), null, 2));
 `pull-instagram`, `pull-posts` y `pull-ads` aceptan `debug: true` para
 diagnóstico sin escribir en la base.
 
+**15/10/2026 · botón "Traer datos de Meta" del panel.** Un mes sin reporte
+de un cliente con Meta conectado ofrece ese botón (dispara pull-instagram,
+pull-posts y pull-ads del mes y recarga). Desde el navegador el token del
+usuario va en `x-user-token` (mismo patrón que analizar-reporte); sin ese
+header las tres funciones se comportan igual que antes (el cron no cambia).
+**Hay que deployar las tres** para que el botón ande; antes de deployar
+`pull-instagram`, comparar con lo deployado (ver la advertencia de arriba).
+
 Deploy de una función:
 
 ```bash

@@ -358,6 +358,8 @@
   }
   .vacio h1 { font-family: var(--display); font-weight: 500; font-size: 32px; margin-bottom: 10px; }
   .vacio p { color: var(--ink-soft); margin-bottom: 20px; }
+  .link-cargar { font-size: 13px; color: var(--ink-soft); text-decoration: underline; text-underline-offset: 3px; align-self: center; }
+  .link-cargar:hover { color: var(--ink); }
 
   /* ── Editor (solo agencia) ── */
   .editor { display: flex; flex-direction: column; gap: 28px; }
@@ -720,6 +722,9 @@
   let BEDIT = null;
   let REPORTES = [];        // [{id, mes:'YYYY-MM', estado, resumen, proximos_pasos, metricas:[], destacados:[]}]
   let MES = null;           // 'YYYY-MM' seleccionado
+  // ¿Tiene Meta conectado? (cliente_integracion activa). Solo lo lee la
+  // agencia: decide si un mes sin reporte ofrece "Traer datos de Meta".
+  let META = { ig: false, ads: false };
   let EDITANDO = false;
   let BORRADOR = null;      // el reporte en edición (copia)
   let POSTS = [];           // posts de Instagram del cliente, todos los meses
@@ -863,6 +868,15 @@
       else if (m.modulo in MODULOS) MODULOS[m.modulo] = m.activo !== false;
     });
     if (SECCION !== 'reportes' && !MODULOS[SECCION]) SECCION = 'reportes';
+    META = { ig: false, ads: false };
+    if (AGENCIA) {
+      const { data: integ } = await SB.from('cliente_integracion')
+        .select('tipo, activo').eq('cliente_id', CLIENTE.id).eq('activo', true);
+      (integ || []).forEach(i => {
+        if (i.tipo === 'meta_ig') META.ig = true;
+        if (i.tipo === 'meta_ads') META.ads = true;
+      });
+    }
     if (window.PanelModulos) PanelModulos.reiniciar();
     pintarNav();
 
@@ -1114,6 +1128,38 @@
   // ── Render ──────────────────────────────────────────────────
   const reporteDe = mes => REPORTES.find(r => r.mes === mes) || null;
   const anteriorA = mes => REPORTES.filter(r => r.mes < mes).sort((a, b) => (a.mes < b.mes ? 1 : -1))[0] || null;
+
+  // ── Mes sin reporte ─────────────────────────────────────────
+  // Con Meta conectado: "Traer datos de Meta" (dispara los pulls del mes
+  // y recarga). Sin Meta: un link chico para cargarlo a mano.
+  function tieneMeta() { return META.ig || META.ads; }
+  function botonSinReporte(grande) {
+    if (!AGENCIA) return '';
+    if (tieneMeta()) return '<button type="button" class="btn primario" id="btnTraerMeta">Traer datos de Meta</button>';
+    return '<a href="#" class="link-cargar" id="btnCargar">' + (grande ? 'Cargar a mano' : 'cargar a mano') + '</a>';
+  }
+  function conectarSinReporte() {
+    const c = $('#btnCargar');
+    if (c) c.addEventListener('click', e => { e.preventDefault(); abrirEditor(); });
+    const t = $('#btnTraerMeta');
+    if (t) t.addEventListener('click', () => traerDeMeta(t));
+  }
+  async function traerDeMeta(btn) {
+    const mes = MES;
+    const fns = (META.ig ? ['pull-instagram', 'pull-posts'] : []).concat(META.ads ? ['pull-ads'] : []);
+    btn.disabled = true;
+    const fallas = [];
+    for (let i = 0; i < fns.length; i++) {
+      btn.textContent = 'Trayendo de Meta… (' + (i + 1) + '/' + fns.length + ')';
+      const { error } = await invocarFuncion(fns[i], { cliente_id: CLIENTE.id, mes: mes });
+      if (error) fallas.push(fns[i] + ': ' + error.message);
+    }
+    MES = mes;
+    await cargarCliente();
+    if (fallas.length === fns.length) toast('No se pudo traer nada de Meta. ' + fallas[0], true);
+    else if (fallas.length) toast('Se trajo una parte. Falló ' + fallas.join(' · '), true);
+    else toast(reporteDe(mes) ? 'Listo, datos de Meta traídos.' : 'Meta no devolvió datos para este mes.');
+  }
 
   function render() {
     document.querySelectorAll('#navGrupo .nav-item').forEach(b => b.classList.toggle('active', b.dataset.seccion === SECCION));
@@ -1925,7 +1971,7 @@
           '<h1><em>' + esc(MESES_ES[parseInt(ym, 10) - 1]) + '</em> ' + esc(ya) + '</h1>' +
           '<div class="sub">' + esc(CLIENTE.nombre) +
           ' <span class="pill">todavía sin reporte, el cliente no ve nada</span></div></div>' +
-          '<div class="acciones">' + navMes() + '<button type="button" class="btn primario" id="btnCargar">Cargar el reporte</button></div>' +
+          '<div class="acciones">' + navMes() + botonSinReporte(false) + '</div>' +
           '</div>' +
           '<p class="prosa mute">Esto es lo que se publicó hasta ahora. Se actualiza solo todas las noches.</p>' +
           renderPosts(enCurso);
@@ -1936,7 +1982,7 @@
           const cont = $('#listaPosts');
           if (cont) cont.innerHTML = renderListaPosts(enCurso);
         }));
-        $('#btnCargar').addEventListener('click', abrirEditor);
+        conectarSinReporte();
         return;
       }
 
@@ -1948,12 +1994,14 @@
         '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mv, 10) - 1]) + '</em> ' + esc(yv) + '</h1>' +
         '<div class="sub">' + esc(CLIENTE.nombre) + (AGENCIA ? ' <span class="pill">todavía sin reporte</span>' : '') + '</div></div>' +
         '<div class="acciones">' + navMes() + '</div></div>' +
-        '<div class="vacio"><p>' + esc(AGENCIA
-          ? 'Cargá los números del mes y escribí qué pasó. El cliente no lo ve hasta que lo publiques.'
-          : 'Cuando la agencia lo publique, lo vas a ver acá.') + '</p>' +
-        (AGENCIA ? '<button type="button" class="btn primario" id="btnCargar">Cargar el reporte de ' + esc(mesLabel(MES)) + '</button>' : '') +
+        '<div class="vacio"><p>' + esc(!AGENCIA
+          ? 'Cuando la agencia lo publique, lo vas a ver acá.'
+          : tieneMeta()
+            ? 'Este mes todavía no tiene datos. Traelos de Meta; el cliente no ve nada hasta que lo publiques.'
+            : 'Cargá los números del mes y escribí qué pasó. El cliente no lo ve hasta que lo publiques.') + '</p>' +
+        (AGENCIA ? botonSinReporte(true) : '') +
         '</div>';
-      const b = $('#btnCargar'); if (b) b.addEventListener('click', abrirEditor);
+      conectarSinReporte();
       return;
     }
 
@@ -2689,6 +2737,7 @@
         return null;
       };
 
+      let hayNumeros = false;
       ['organico', 'pauta'].forEach(mod => {
         if (!b.incluye[mod] && !(rep && rep.metricas.some(m => m.modulo === mod && m.origen === 'instagram'))) return;
         // El editor NO trae las métricas de Instagram (se muestran pero no
@@ -2699,6 +2748,7 @@
         const aMano = b.incluye[mod] ? b.metricas[mod] : [];
         const mets = deMeta.concat(aMano).filter(m => (m.etiqueta || '').trim() && String(m.valor ?? '').trim() !== '');
         if (!mets.length) return;
+        hayNumeros = true;
         L.push('');
         L.push(mod === 'organico' ? 'ORGÁNICO' : 'PAUTA');
         mets.forEach(m => {
@@ -2708,6 +2758,10 @@
           L.push(linea);
         });
       });
+
+      // Sin números no hay nada que analizar: copiar solo el nombre y el
+      // mes confundía (parecía que había copiado algo).
+      if (!hayNumeros) { toast('Este mes no tiene datos todavía.', true); return; }
 
       const posts = POSTS.filter(p => p.mes === MES);
       if (posts.length) {

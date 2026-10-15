@@ -23,11 +23,15 @@ const TZ = 'America/Argentina/Buenos_Aires';
 const MAX_DIAS_VENTANA = 30;
 
 const TIMEOUT_MS = 20_000;
+
+// Publishable key (pública): valida el token ES256 del navegador
+// (x-user-token). Con la anon legacy, PostgREST lo rechazaría.
+const PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
 const MAX_REINTENTOS = 3;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -262,7 +266,14 @@ Deno.serve(async (req) => {
   let admin: any = null;
 
   try {
-    const auth = req.headers.get('Authorization') ?? '';
+    // Dos caminos (mismo patrón que analizar-reporte):
+    //  · el cron manda el service_role en Authorization → igual que antes;
+    //  · el navegador (botón "Traer datos de Meta" del panel) manda el
+    //    token del usuario en x-user-token, porque el gateway rechaza los
+    //    ES256 en Authorization (ahí viene el anon legacy, solo para pasar).
+    //    Ese token se valida con la publishable key y RLS decide igual.
+    const userToken = (req.headers.get('x-user-token') ?? '').trim();
+    const auth = userToken ? 'Bearer ' + userToken : (req.headers.get('Authorization') ?? '');
     if (!auth.startsWith('Bearer ')) return json({ error: { code: null, message: 'Sin sesión' } }, 401);
 
     let body: any = {};
@@ -284,7 +295,7 @@ Deno.serve(async (req) => {
     // simplemente no vuelve.
     const llamador = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      userToken ? PUBLISHABLE : Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: auth } } },
     );
 
