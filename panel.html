@@ -2595,7 +2595,7 @@
       const base = r ? r.metricas.filter(m => m.modulo === mod && m.origen !== 'instagram')
                  : (prev && prev.metricas.some(m => m.modulo === mod)) ? prev.metricas.filter(m => m.modulo === mod).map(m => ({ ...m, valor: '' }))
                  : DEFAULTS[mod].map(m => ({ ...m, valor: '' }));
-      BORRADOR.metricas[mod] = base.map(m => ({ clave: m.clave, etiqueta: m.etiqueta, valor: m.valor === '' ? '' : m.valor, unidad: m.unidad, mejor: m.mejor }));
+      BORRADOR.metricas[mod] = base.map(m => ({ clave: m.clave, etiqueta: m.etiqueta, valor: m.valor === '' ? '' : m.valor, unidad: unidadGuardable(m.unidad), mejor: mejorGuardable(m.mejor) }));
     });
     EDITANDO = true;
     render();
@@ -2800,6 +2800,15 @@
     }
   }
 
+  // La base (reporte_metrica) solo acepta lo que ofrecen los selectores
+  // del editor: sentido 'sube'/'baja' y unidad 'num'/'ars'/'pct'. Las
+  // métricas traídas de Meta usan además 'neutro' (Frecuencia) y 'dec',
+  // que son solo de pantalla: si el editor las copiaba tal cual, guardar
+  // rompía con reporte_metrica_mejor_check. Lo que se ve de Meta sigue
+  // usando su propia definición (MAPA_ADS), no lo guardado acá.
+  function mejorGuardable(x) { return x === 'baja' ? 'baja' : 'sube'; }
+  function unidadGuardable(x) { return ['num', 'ars', 'pct'].indexOf(x) !== -1 ? x : 'num'; }
+
   async function guardar(estado) {
     const b = BORRADOR; b._leer();
     const btns = ['#edGuardar', '#edPublicar'].map(s => $(s)); btns.forEach(x => x.disabled = true);
@@ -2819,7 +2828,7 @@
           const sv = String(m.valor ?? '').trim();
           const nv = sv === '' ? NaN : Number(sv.replace(',', '.'));
           const valor = isNaN(nv) ? null : nv;
-          metricas.push({ modulo: mod, clave, etiqueta, valor, unidad: m.unidad || 'num', mejor: m.mejor || 'sube', orden: i });
+          metricas.push({ modulo: mod, clave, etiqueta, valor, unidad: unidadGuardable(m.unidad), mejor: mejorGuardable(m.mejor), orden: i });
         });
       });
       const destacados = b.destacados
