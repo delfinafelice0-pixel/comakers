@@ -49,7 +49,7 @@
 --
 --     Entonces: el panel solo cambia `estado`. Un disparador anota
 --     la fila pendiente en `evento_capi`, y la Edge Function
---     `capi-evento` la levanta y la manda. El token vive del lado
+--     `enviar-capi` la levanta y la manda. El token vive del lado
 --     del servidor y nunca sale.
 --
 --  3. EL MÓDULO NACE APAGADO.
@@ -246,7 +246,7 @@ create table if not exists public.evento_capi (
 );
 
 comment on table public.evento_capi is
-  'Cola de eventos para Conversions API. La llena un trigger, la vacía la Edge Function capi-evento.';
+  'Cola de eventos para Conversions API. La llena un trigger, la vacía la Edge Function enviar-capi.';
 
 create index if not exists evento_capi_pendientes_idx
   on public.evento_capi (estado, creado_en) where estado <> 'ok';
