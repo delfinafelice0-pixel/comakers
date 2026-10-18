@@ -1146,6 +1146,7 @@
   }
   async function traerDeMeta(btn) {
     const mes = MES;
+    const habia = !!reporteDe(mes);
     const fns = (META.ig ? ['pull-instagram', 'pull-posts'] : []).concat(META.ads ? ['pull-ads'] : []);
     btn.disabled = true;
     const fallas = [];
@@ -1158,7 +1159,8 @@
     await cargarCliente();
     if (fallas.length === fns.length) toast('No se pudo traer nada de Meta. ' + fallas[0], true);
     else if (fallas.length) toast('Se trajo una parte. Falló ' + fallas.join(' · '), true);
-    else toast(reporteDe(mes) ? 'Listo, datos de Meta traídos.' : 'Meta no devolvió datos para este mes.');
+    else toast(habia ? 'Listo, datos de Meta actualizados. Los textos quedaron como estaban.'
+               : reporteDe(mes) ? 'Listo, datos de Meta traídos.' : 'Meta no devolvió datos para este mes.');
   }
 
   function render() {
@@ -2067,6 +2069,10 @@
       '<button type="button" class="btn" id="btnPdf" title="Se abre el diálogo de impresión: elegí Guardar como PDF">' +
         '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
         'Descargar PDF</button>' +
+      // Actualizar de Meta: solo agencia y clientes con Meta. Publicado se
+      // ve igual, pero avisa que primero hay que volver a borrador.
+      (AGENCIA && tieneMeta() ? '<button type="button" class="btn" id="btnActualizarMeta" data-publicado="' + (estaPublicado ? '1' : '') + '"' +
+        ' title="Vuelve a traer los números y posts de Meta de este mes. No toca los textos escritos.">Actualizar datos de Meta</button>' : '') +
       (AGENCIA ? '<button type="button" class="btn" id="btnEditar">Editar</button>' +
         (estaPublicado
           ? (cambios ? '<button type="button" class="btn lima" id="btnRepublicar">Republicar</button>' : '') +
@@ -2436,6 +2442,14 @@
       if (cont) cont.innerHTML = renderListaPosts(postsMes);
     }));
     const be = $('#btnEditar'); if (be) be.addEventListener('click', abrirEditor);
+    const bam = $('#btnActualizarMeta');
+    if (bam) bam.addEventListener('click', () => {
+      if (bam.dataset.publicado) {
+        toast('Este reporte está publicado. Pasalo a borrador primero ("Volver a borrador") y después actualizá los datos de Meta.', true);
+        return;
+      }
+      traerDeMeta(bam);
+    });
     const bpdf = $('#btnPdf'); if (bpdf) bpdf.addEventListener('click', () => descargarPdf(r));
     // Los botones de generar/regenerar análisis se sacaron: el equipo
     // escribe el análisis a mano con su propia suscripción. La función
