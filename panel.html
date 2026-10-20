@@ -729,7 +729,7 @@
   let BORRADOR = null;      // el reporte en edición (copia)
   let POSTS = [];           // posts de Instagram del cliente, todos los meses
   let ANUNCIOS = [];        // anuncios de Meta Ads, todos los meses
-  let SNAPSHOTS = {};       // mes → snapshot publicado (reporte_publicado)
+  let SNAPSHOTS = {};       // mes → snapshot publicado (reporte_publicado); .en_vivo = automático (59)
   let SNAP_TABLA = false;   // ¿ya existe la tabla reporte_publicado? (50A corrida)
   let CRITERIO = 'alcance'; // con qué se ordena el top de posts
   let SOLAPA = 'cuenta';    // la solapa abierta: sobrevive a guardar y a cambiar de mes
@@ -971,6 +971,15 @@
       Object.keys(SNAPSHOTS).forEach(mes => {
         const snap = SNAPSHOTS[mes];
         if (!snap.reporte) return;
+        if (snap.en_vivo) {
+          // Mes en curso (o el anterior todavía sin publicar): solo números
+          // y posts. Las métricas se arman desde `cols`, igual que con lo vivo.
+          const rv = snap.reporte;
+          rv.en_vivo = true; rv.datos_al = snap.datos_al;
+          rv.metricas = Array.isArray(rv.metricas) ? rv.metricas : [];
+          rv.destacados = []; rv.bloques_extra = []; rv.notas_anuncios = {};
+          mezclarInstagram(rv); mezclarPauta(rv);
+        }
         const i = REPORTES.findIndex(r => r.mes === mes);
         if (i >= 0) REPORTES[i] = snap.reporte; else REPORTES.push(snap.reporte);
         POSTS    = POSTS.filter(p => p.mes !== mes).concat((snap.posts || []).map(p => ({ ...p })));
@@ -1059,15 +1068,22 @@
     // Si la tabla todavía no existe (50A sin correr), falla sola y
     // seguimos sin snapshots: el panel cae a lo vivo (fallback temporal).
     // Mientras no exista, la agencia tampoco ve UI de snapshot (SNAP_TABLA).
-    const { data, error } = await SB.from('reporte_publicado')
-      .select('mes, snapshot, publicado_en').eq('cliente_id', CLIENTE.id);
+    // en_vivo / datos_al son de la 59: si todavía no corrió, se vuelve a
+    // pedir sin ellas y todo se comporta como antes (nada es en vivo).
+    let { data, error } = await SB.from('reporte_publicado')
+      .select('mes, snapshot, publicado_en, en_vivo, datos_al').eq('cliente_id', CLIENTE.id);
+    if (error && (error.code === '42703' || /column/i.test(error.message || ''))) {
+      ({ data, error } = await SB.from('reporte_publicado')
+        .select('mes, snapshot, publicado_en').eq('cliente_id', CLIENTE.id));
+    }
     if (error) return;
     SNAP_TABLA = true;
     if (!data) return;
     data.forEach(s => {
       const mes = String(s.mes).slice(0, 7);
       if (s.snapshot && typeof s.snapshot === 'object')
-        SNAPSHOTS[mes] = Object.assign({ publicado_en: s.publicado_en }, s.snapshot);
+        SNAPSHOTS[mes] = Object.assign({ publicado_en: s.publicado_en }, s.snapshot,
+          { en_vivo: s.en_vivo === true, datos_al: s.datos_al || null });
     });
   }
 
@@ -1103,9 +1119,12 @@
     return JSON.stringify(norm(snap));
   }
 
-  function tieneSnapshot(mes) { return !!SNAPSHOTS[mes]; }
+  // "Publicado" = lo publicó la agencia. El snapshot en vivo (59) lo arma
+  // el cron solo con números: para la agencia ese mes sigue sin publicar.
+  function tieneSnapshot(mes) { return !!SNAPSHOTS[mes] && !SNAPSHOTS[mes].en_vivo; }
+  function snapshotEnVivo(mes) { return !!SNAPSHOTS[mes] && SNAPSHOTS[mes].en_vivo; }
   function hayCambiosSinPublicar(mes) {
-    const snap = SNAPSHOTS[mes]; if (!snap) return false;
+    const snap = SNAPSHOTS[mes]; if (!snap || snap.en_vivo) return false;
     const vivo = armarSnapshotMes(mes); if (!vivo) return false;
     return canonReporte(vivo) !== canonReporte(snap);
   }
@@ -2033,16 +2052,21 @@
       ? { txt: 'mes en curso', clase: 'nada' }
       : delta(m, prevVal(mod, m.clave));
     const sincro = ultimaSincro(r);
-    const marcaParcial = enCurso
-      ? ' <span class="parcial">parcial · datos al ' + esc(fechaDia(sincro || new Date())) + '</span>'
-      : '';
+    // El cliente, en un mes en vivo, ve de cuándo son los números y que se
+    // actualizan solos (no hay análisis hasta que la agencia lo publique).
+    const marcaParcial = (!AGENCIA && r.en_vivo)
+      ? ' <span class="parcial">Datos al ' + esc(fechaDia(r.datos_al ? new Date(r.datos_al) : (sincro || new Date()))) + ' · se actualiza todas las noches</span>'
+      : enCurso
+        ? ' <span class="parcial">parcial · datos al ' + esc(fechaDia(sincro || new Date())) + '</span>'
+        : '';
 
     // Estado de publicación según el SNAPSHOT (lo que ve el cliente de
     // verdad). Durante la transición, un reporte puede estar publicado en
     // vivo sin snapshot: el cliente lo ve por el fallback, pero conviene
     // avisarlo. `cambios` = lo vivo difiere del snapshot (solo agencia).
     const pubSnap = tieneSnapshot(r.mes);
-    const clienteVe = pubSnap || r.estado === 'publicado';
+    const vivoSnap = AGENCIA && snapshotEnVivo(r.mes);
+    const clienteVe = pubSnap || vivoSnap || r.estado === 'publicado';
     const cambios = AGENCIA && pubSnap && hayCambiosSinPublicar(r.mes);
     // El aviso "falta snapshot" (y el calificativo de la pill) solo tienen
     // sentido una vez que existe la tabla (50A corrida). Antes, el panel
@@ -2060,7 +2084,11 @@
       '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mm, 10) - 1]) + '</em> ' + esc(y) + '</h1>' +
       '<div class="sub">' + esc(CLIENTE.nombre) +
       (AGENCIA ? ' <span class="pill' + (clienteVe ? ' pub' : '') + '">' +
-        (clienteVe ? ((pubSnap || !SNAP_TABLA) ? 'publicado' : 'publicado · sin snapshot') : 'borrador, el cliente no lo ve') + '</span>'
+        (pubSnap || (clienteVe && !vivoSnap)
+          ? ((pubSnap || !SNAP_TABLA) ? 'publicado' : 'publicado · sin snapshot')
+          : vivoSnap
+            ? 'el cliente lo ve en vivo, sin análisis · datos al ' + esc(fechaDia(SNAPSHOTS[r.mes].datos_al ? new Date(SNAPSHOTS[r.mes].datos_al) : (sincro || new Date())))
+            : 'borrador, el cliente no lo ve') + '</span>'
         + (cambios ? ' <span class="pill cambios">cambios sin publicar</span>' : '') : '') +
       marcaParcial +
       (prev ? '<span style="color:var(--ink-mute);white-space:nowrap"> · comparado con ' + esc(mesLabel(prev.mes)) + '</span>' : '') +

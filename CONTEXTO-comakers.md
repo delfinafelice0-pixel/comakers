@@ -722,6 +722,17 @@ console.log(JSON.stringify(await r.json(), null, 2));
 `pull-instagram`, `pull-posts` y `pull-ads` aceptan `debug: true` para
 diagnóstico sin escribir en la base.
 
+**20/10/2026 · mes en curso "en vivo" (migración 59, corrida).** Cada noche
+a las 04:30 BA el cron `snapshot-en-vivo` corre `snapshot_en_vivo()`: arma en
+`reporte_publicado` (en_vivo = true, datos_al) el mes en curso y el anterior
+de cada cliente con Meta y el módulo `mes_en_vivo` prendido (sin fila =
+prendido), SOLO con números y posts (ningún texto escrito, ni métricas
+manuales). Nunca pisa lo publicado por la agencia; un trigger congela
+(en_vivo = false) toda fila que escribe una persona logueada. El cliente ve
+"Datos al X · se actualiza todas las noches" sin análisis; la agencia ve la
+pill "el cliente lo ve en vivo" y el botón Publicar. Apagar el toggle en el ⚙
+borra solo las filas en vivo de ese cliente. La regla de la 50B no cambia.
+
 **15/10/2026 · botón "Traer datos de Meta" del panel.** Un mes sin reporte
 de un cliente con Meta conectado ofrece ese botón (dispara pull-instagram,
 pull-posts y pull-ads del mes y recarga). Desde el navegador el token del

@@ -3677,7 +3677,7 @@
       <div class="res-sub" id="clAcceso" style="margin:0 0 8px"></div>
       <div class="panel-mods" id="clModulos"></div>
       <div class="res-sub" style="margin:8px 0 0">Los módulos encienden las solapas del panel. Un módulo nuevo
-        arranca apagado y no se ve hasta que lo prendas.</div>
+        arranca apagado y no se ve hasta que lo prendas (salvo «Mostrar mes en curso», que arranca prendido).</div>
 
       <!-- Dónde caen las tareas de edición y subida que crea el Calendario
            del panel (migración 56). Vacío = sueltas, en el tablero general. -->
@@ -7387,6 +7387,14 @@
     // 'objetivos' se sacó el 11/10/2026: los objetivos viven en Estrategia.
     { clave: 'one_shot',   nombre: 'One Shot',   def: false, ayuda: 'Diagnóstico inicial y auditorías cada 6 meses.' },
     { clave: 'servicio',   nombre: 'Servicio',   def: false, ayuda: 'Qué incluye el plan, el monto y sus actualizaciones.' },
+    // Migración 59. Sin fila = PRENDIDO (como lo trata snapshot_en_vivo()).
+    // Solo hace algo si el cliente tiene Meta conectado.
+    { clave: 'mes_en_vivo', nombre: 'Mostrar mes en curso', def: true,
+      ayuda: 'El cliente ve los números y posts del mes todos los días, sin análisis. Necesita Meta conectado.',
+      confirmar: function (q) {
+        return '¿Mostrarle a ' + q + ' los números del mes en curso todos los días (sin análisis)?\n\n' +
+               'Aparecen después de la sincronización de la noche.';
+      } },
   ];
 
   // Las dos conexiones posibles, en orden. `tipo` = valor real de
@@ -7579,6 +7587,14 @@
       pintarModulosCliente(null);
       toast('No se pudo cambiar el módulo: ' + error.message, 'warn');
       return;
+    }
+    // Apagar "Mostrar mes en curso" saca ya los snapshots EN VIVO de ese
+    // cliente (solo esos: lo publicado por la agencia no se toca). El cron
+    // igual los borraría a la noche; así deja de verlos ahora.
+    if (clave === 'mes_en_vivo' && !nuevo) {
+      const { error: eV } = await SB.from('reporte_publicado').delete()
+        .eq('cliente_id', CL_EDIT.id).eq('en_vivo', true);
+      if (eV) { toast(nom + ' apagado, pero no se pudo sacar lo que ya ve: ' + eV.message + '. Se saca solo esta noche.', 'warn'); return; }
     }
     toast(nom + (nuevo ? ' prendido' : ' apagado'), 'ok');
   }
