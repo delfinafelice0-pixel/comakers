@@ -194,34 +194,50 @@ Deno.serve(async (req) => {
   const nowSeg = Math.floor(Date.now() / 1000);
   type Listo = { fila: Fila; waba: string; dataset: string; evento: any };
   const porDataset = new Map<string, Listo[]>();
-  const marcas: { ids: string[]; patch: Record<string, unknown> }[] = [];
   // Para resolver datasets faltantes: waba → filas que lo esperan.
   const esperanDataset = new Map<string, { cliente: string; items: Listo[] }>();
 
-  const marcarTerminal = (id: string, codigo: string, detalle: string) => {
-    marcas.push({ ids: [id], patch: { estado: 'error', codigo, detalle, enviado_en: null, actualizado_en: nowIso() } });
+  // Cada decisión se ESCRIBE en el acto, no se difiere al final. Antes se
+  // juntaba todo en un array y se escribía recién después de las llamadas
+  // a Meta (secciones 3-4): si algo ahí fallaba, se perdían TODAS las
+  // marcas de la corrida —incluido un VENCIDO ya decidido— y la fila
+  // quedaba pendiente, codigo null, invisible para siempre. Escribir en el
+  // momento hace que lo decidido quede, pase lo que pase después.
+  const escribir = async (ids: string[], patch: Record<string, unknown>) => {
+    if (DRY_RUN || !ids.length) return;
+    const { error } = await admin.from('evento_capi').update(patch).in('id', ids);
+    if (error) console.log(`[CAPI][ERROR-ESCRITURA] ${error.message} · ids=${ids.join(',')}`);
   };
-  const marcarEspera = (id: string, codigo: string, detalle: string) => {
+  const marcarTerminal = (id: string, codigo: string, detalle: string) =>
+    escribir([id], { estado: 'error', codigo, detalle, enviado_en: null, actualizado_en: nowIso() });
+  const marcarEspera = (id: string, codigo: string, detalle: string) =>
     // Sigue pendiente, sin quemar intentos, reintento suave.
-    marcas.push({ ids: [id], patch: { codigo, detalle, proximo_intento: enMin(BACKOFF_CONFIG_MIN), actualizado_en: nowIso() } });
-  };
+    escribir([id], { codigo, detalle, proximo_intento: enMin(BACKOFF_CONFIG_MIN), actualizado_en: nowIso() });
 
   for (const f of filas) {
     const clienteId = clienteDeConv.get(f.conversacion_id) ?? null;
     const clid = clidDeConv.get(f.conversacion_id) ?? null;
     const cfg = clienteId ? cfgDeCliente.get(clienteId) : undefined;
 
-    // Validación local terminal (dato del evento, no se arregla con config).
-    if (!clid) { marcarTerminal(f.id, 'VALIDACION', 'sin ctwa_clid'); resumen.validacion++; continue; }
-    const evSeg = Math.floor(new Date(f.creado_en).getTime() / 1000);
-    if (nowSeg - evSeg > VENTANA_SEG) { marcarTerminal(f.id, 'VENCIDO', 'evento de más de 7 días'); resumen.vencidos++; continue; }
+    // VENCIDO primero, antes que todo lo demás: un evento de más de 7 días
+    // Meta no lo toma nunca, así que no importa que le falte clid o config.
+    // Tiene que quedar error/VENCIDO sí o sí, nunca pendiente invisible.
+    // (Date.parse por las dudas: si creado_en no parsea, NaN haría que la
+    // comparación diera false y el vencido se escaparía.)
+    const t = Date.parse(f.creado_en);
+    if (!Number.isFinite(t)) { await marcarTerminal(f.id, 'VALIDACION', 'creado_en no parsea: ' + f.creado_en); resumen.validacion++; continue; }
+    const evSeg = Math.floor(t / 1000);
+    if (nowSeg - evSeg > VENTANA_SEG) { await marcarTerminal(f.id, 'VENCIDO', 'evento de más de 7 días'); resumen.vencidos++; continue; }
+
+    // Resto de validación local terminal (dato del evento, no se arregla con config).
+    if (!clid) { await marcarTerminal(f.id, 'VALIDACION', 'sin ctwa_clid'); resumen.validacion++; continue; }
     if (f.evento === 'Purchase' && !(Number(f.valor) > 0)) {
-      marcarTerminal(f.id, 'VALIDACION', 'Purchase sin valor > 0'); resumen.validacion++; continue;
+      await marcarTerminal(f.id, 'VALIDACION', 'Purchase sin valor > 0'); resumen.validacion++; continue;
     }
 
     // Config pendiente (NO terminal): waba o dataset faltantes.
-    if (!cfg || cfg.wabas.size === 0) { marcarEspera(f.id, 'SIN_WABA', 'cliente_whatsapp sin waba_id activo'); resumen.sin_waba++; continue; }
-    if (cfg.wabas.size > 1) { marcarEspera(f.id, 'SIN_WABA', 'más de un WABA activo para el cliente; no se puede elegir dataset'); resumen.sin_waba++; continue; }
+    if (!cfg || cfg.wabas.size === 0) { await marcarEspera(f.id, 'SIN_WABA', 'cliente_whatsapp sin waba_id activo'); resumen.sin_waba++; continue; }
+    if (cfg.wabas.size > 1) { await marcarEspera(f.id, 'SIN_WABA', 'más de un WABA activo para el cliente; no se puede elegir dataset'); resumen.sin_waba++; continue; }
     const waba = [...cfg.wabas][0];
 
     const ev = {
@@ -249,40 +265,47 @@ Deno.serve(async (req) => {
   // ── 3 ── Resolver datasets faltantes (uno por WABA) ────────────
   // POST /{waba_id}/dataset es idempotente: si existe, devuelve el mismo.
   for (const [waba, g] of esperanDataset) {
-    if (DRY_RUN) {
-      // En dry-run no tocamos Meta ni las filas: solo contamos las que
-      // no se podrían enviar porque el dataset está sin resolver.
-      resumen.sin_dataset += g.items.length;
-      continue;
-    }
-    const r = await graphPost(`/${waba}/dataset`, {});
-    if (r.ok && r.body?.id) {
-      const dataset = String(r.body.id);
-      await admin.from('cliente_whatsapp').update({ dataset_id: dataset }).eq('cliente_id', g.cliente).is('dataset_id', null);
-      const arr = porDataset.get(dataset) ?? [];
-      for (const it of g.items) { it.dataset = dataset; arr.push(it); }
-      porDataset.set(dataset, arr);
-    } else {
-      const clase = clasificar(r.status, r.code);
-      const detalle = JSON.stringify(r.body?.error ?? r.body ?? {}).slice(0, 2000);
-      if (clase === 'PERMISO') {
-        console.log(`[CAPI][PERMISO-PENDIENTE] dataset WABA ${waba}: ${detalle}`);
-        for (const it of g.items) { marcarEspera(it.fila.id, 'PERMISO_PENDIENTE', detalle); resumen.permiso_pendiente++; }
-      } else {
-        // No se pudo dar de alta el dataset: sigue pendiente como SIN_DATASET.
-        console.log(`[CAPI][SIN_DATASET] WABA ${waba} (${clase}): ${detalle}`);
-        for (const it of g.items) { marcarEspera(it.fila.id, 'SIN_DATASET', detalle); resumen.sin_dataset++; }
+    try {
+      if (DRY_RUN) {
+        // En dry-run no tocamos Meta ni las filas: solo contamos las que
+        // no se podrían enviar porque el dataset está sin resolver.
+        resumen.sin_dataset += g.items.length;
+        continue;
       }
+      const r = await graphPost(`/${waba}/dataset`, {});
+      if (r.ok && r.body?.id) {
+        const dataset = String(r.body.id);
+        await admin.from('cliente_whatsapp').update({ dataset_id: dataset }).eq('cliente_id', g.cliente).is('dataset_id', null);
+        const arr = porDataset.get(dataset) ?? [];
+        for (const it of g.items) { it.dataset = dataset; arr.push(it); }
+        porDataset.set(dataset, arr);
+      } else {
+        const clase = clasificar(r.status, r.code);
+        const detalle = JSON.stringify(r.body?.error ?? r.body ?? {}).slice(0, 2000);
+        if (clase === 'PERMISO') {
+          console.log(`[CAPI][PERMISO-PENDIENTE] dataset WABA ${waba}: ${detalle}`);
+          for (const it of g.items) { await marcarEspera(it.fila.id, 'PERMISO_PENDIENTE', detalle); resumen.permiso_pendiente++; }
+        } else {
+          // No se pudo dar de alta el dataset: sigue pendiente como SIN_DATASET.
+          console.log(`[CAPI][SIN_DATASET] WABA ${waba} (${clase}): ${detalle}`);
+          for (const it of g.items) { await marcarEspera(it.fila.id, 'SIN_DATASET', detalle); resumen.sin_dataset++; }
+        }
+      }
+    } catch (e) {
+      // Un fallo resolviendo un WABA no aborta el resto: lo ya decidido
+      // quedó escrito; estas filas siguen pendientes para la próxima.
+      console.log(`[CAPI][ERROR] resolviendo dataset WABA ${waba}: ${String(e)}`);
     }
   }
 
   // ── 4 ── Enviar por dataset ────────────────────────────────────
   const dryPayloads: unknown[] = [];
 
-  // Aplica el resultado de enviar un grupo de eventos (ya POSTeado).
-  const aplicarResultado = (items: Listo[], r: { ok: boolean; status: number; body: any; code: number | null }) => {
+  // Aplica el resultado de enviar un grupo de eventos. Cada decisión se
+  // escribe en el acto (ver `escribir`), no se difiere.
+  const aplicarResultado = async (items: Listo[], r: { ok: boolean; status: number; body: any; code: number | null }) => {
     if (r.ok) {
-      marcas.push({ ids: items.map(i => i.fila.id), patch: { estado: 'ok', codigo: null, detalle: null, enviado_en: nowIso(), actualizado_en: nowIso() } });
+      await escribir(items.map(i => i.fila.id), { estado: 'ok', codigo: null, detalle: null, enviado_en: nowIso(), actualizado_en: nowIso() });
       resumen.ok += items.length;
       return;
     }
@@ -290,22 +313,22 @@ Deno.serve(async (req) => {
     const detalle = JSON.stringify(r.body?.error ?? r.body ?? {}).slice(0, 2000);
     if (clase === 'PERMISO') {
       console.log(`[CAPI][PERMISO-PENDIENTE] ${items.length} evento(s): ${detalle}`);
-      for (const it of items) marcarEspera(it.fila.id, 'PERMISO_PENDIENTE', detalle);
+      for (const it of items) await marcarEspera(it.fila.id, 'PERMISO_PENDIENTE', detalle);
       resumen.permiso_pendiente += items.length;
     } else if (clase === 'VALIDACION') {
       // Meta rechaza el lote entero si UN evento es inválido. Si el grupo
       // tiene más de uno, lo mandamos de a uno para aislar al malo y no
       // arrastrar a los sanos a 'error'. (Lo hace el llamador; acá, con
       // un solo item, es terminal.)
-      for (const it of items) marcarTerminal(it.fila.id, 'VALIDACION', detalle);
+      for (const it of items) await marcarTerminal(it.fila.id, 'VALIDACION', detalle);
       resumen.validacion += items.length;
     } else {
       for (const it of items) {
         const intentos = it.fila.intentos + 1;
         if (intentos >= MAX_INTENTOS) {
-          marcas.push({ ids: [it.fila.id], patch: { estado: 'error', codigo: 'TRANSITORIO', detalle: `agotó ${MAX_INTENTOS} intentos · ${detalle}`, intentos, actualizado_en: nowIso() } });
+          await escribir([it.fila.id], { estado: 'error', codigo: 'TRANSITORIO', detalle: `agotó ${MAX_INTENTOS} intentos · ${detalle}`, intentos, actualizado_en: nowIso() });
         } else {
-          marcas.push({ ids: [it.fila.id], patch: { codigo: 'TRANSITORIO', detalle, intentos, proximo_intento: new Date(Date.now() + backoffSeg(intentos) * 1000).toISOString(), actualizado_en: nowIso() } });
+          await escribir([it.fila.id], { codigo: 'TRANSITORIO', detalle, intentos, proximo_intento: new Date(Date.now() + backoffSeg(intentos) * 1000).toISOString(), actualizado_en: nowIso() });
           resumen.transitorios++;
         }
       }
@@ -324,28 +347,22 @@ Deno.serve(async (req) => {
         continue;   // en dry-run no tocamos ni Meta ni las filas
       }
 
-      const r = await graphPost(`/${dataset}/events`, payload);
-      // Validación con lote > 1: reintentar de a uno para aislar al malo.
-      if (!r.ok && grupo.length > 1 && clasificar(r.status, r.code) === 'VALIDACION') {
-        console.log(`[CAPI][VALIDACION] lote de ${grupo.length} rechazado; reintento individual para aislar`);
-        for (const it of grupo) {
-          const ri = await graphPost(`/${dataset}/events`, { data: [it.evento] });
-          aplicarResultado([it], ri);
+      try {
+        const r = await graphPost(`/${dataset}/events`, payload);
+        // Validación con lote > 1: reintentar de a uno para aislar al malo.
+        if (!r.ok && grupo.length > 1 && clasificar(r.status, r.code) === 'VALIDACION') {
+          console.log(`[CAPI][VALIDACION] lote de ${grupo.length} rechazado; reintento individual para aislar`);
+          for (const it of grupo) {
+            const ri = await graphPost(`/${dataset}/events`, { data: [it.evento] });
+            await aplicarResultado([it], ri);
+          }
+        } else {
+          await aplicarResultado(grupo, r);
         }
-      } else {
-        aplicarResultado(grupo, r);
+      } catch (e) {
+        // Un fallo en un dataset no aborta a los demás.
+        console.log(`[CAPI][ERROR] enviando al dataset ${dataset}: ${String(e)}`);
       }
-    }
-  }
-
-  // ── 5 ── Escribir todas las marcas ─────────────────────────────
-  // Dry-run es sin efectos: no se escribe ninguna fila (ni siquiera las
-  // validaciones locales), solo se loguean los payloads de arriba.
-  if (!DRY_RUN) {
-    for (const m of marcas) {
-      if (!m.ids.length) continue;
-      const { error } = await admin.from('evento_capi').update(m.patch).in('id', m.ids);
-      if (error) console.log(`[CAPI][ERROR-ESCRITURA] ${error.message} · ids=${m.ids.join(',')}`);
     }
   }
 
