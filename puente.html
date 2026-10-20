@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Puente · Leads de anuncios (CTWA) — CoMakers</title>
+<link rel="icon" href="data:,">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  /* Identidad del spec. Base clara; fucsia/coral dosificados; verde = venta.
+     Biro Script (display) y Salford (texto) son fuentes de marca: si no
+     están instaladas/servidas, caen a los fallbacks sin romperse. */
+  :root {
+    --fucsia:#FF82FF; --verde:#D3FF99; --coral:#F26A8D; --celeste:#CBEEF3; --blanco:#FFFFFF;
+    --tinta:#2a2230; --tinta-suave:#6b6472; --linea:#e7e0ea; --bg:#f7f3f9;
+    --display:'Biro Script','Brush Script MT','Segoe Script',cursive;
+    --texto:'Salford',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    --radio:12px;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:var(--texto); color:var(--tinta); background:var(--bg); line-height:1.5; }
+  a { color:var(--coral); }
+  .wrap { max-width:1100px; margin:0 auto; padding:18px 16px 60px; }
+
+  header.top { display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; margin-bottom:6px; }
+  .brand { font-family:var(--display); font-size:34px; line-height:1; color:var(--tinta); }
+  .brand em { color:var(--fucsia); font-style:normal; }
+  .top .sep { flex:1; }
+  .top .user { font-size:13px; color:var(--tinta-suave); }
+  .banner {
+    background:var(--celeste); border:1px solid #bfe6ee; color:#245b66;
+    border-radius:var(--radio); padding:9px 13px; font-size:13px; margin:10px 0 16px;
+  }
+  .barra { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .barra .sep { flex:1; }
+
+  button { font-family:var(--texto); font-size:14px; border-radius:9px; border:1px solid var(--linea);
+    background:var(--blanco); color:var(--tinta); padding:7px 13px; cursor:pointer; }
+  button:hover { border-color:var(--coral); }
+  button:disabled { opacity:.45; cursor:default; }
+  button.primario { background:var(--fucsia); border-color:var(--fucsia); color:#2a1030; font-weight:600; }
+  button.chico { padding:5px 9px; font-size:12.5px; }
+  button.venta { background:var(--verde); border-color:#b6ee77; color:#234d0a; }
+  select { font-family:var(--texto); font-size:14px; border-radius:9px; border:1px solid var(--linea);
+    background:var(--blanco); color:var(--tinta); padding:6px 10px; }
+
+  table { width:100%; border-collapse:collapse; background:var(--blanco); border:1px solid var(--linea);
+    border-radius:var(--radio); overflow:hidden; }
+  th, td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--linea); font-size:13.5px; vertical-align:top; }
+  th { font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--tinta-suave); background:#faf6fb; }
+  tr:last-child td { border-bottom:none; }
+  tr.resuelta { opacity:.6; }
+
+  .contacto .nom { font-weight:600; }
+  .contacto .tel { color:var(--tinta-suave); font-size:12px; }
+  .ctx { color:var(--tinta-suave); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pill { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:999px; border:1px solid var(--linea); }
+  .pill.nuevo { background:#f3eef5; color:var(--tinta-suave); }
+  .pill.lead { background:#ffe7fb; color:#9b2d86; border-color:#f3b9e8; }
+  .pill.venta { background:var(--verde); color:#234d0a; border-color:#b6ee77; }
+  .pill.descartado { background:#eee; color:#999; }
+  .attr-ok { color:#2a8a3e; }
+  .attr-no { color:#b06a00; }
+  .dl { font-size:12.5px; }
+  .dl.urgente { color:var(--coral); font-weight:700; }
+  .dl.vencida { color:#b00020; font-weight:700; }
+  .dl.sin { color:var(--tinta-suave); }
+  .acc { display:flex; gap:6px; flex-wrap:wrap; }
+  .nota-fila { font-size:11.5px; color:var(--tinta-suave); margin-top:4px; }
+
+  .vacio { text-align:center; color:var(--tinta-suave); padding:40px 10px; }
+  .aviso { background:var(--blanco); border:1px solid var(--linea); border-radius:var(--radio); padding:26px; text-align:center; }
+
+  /* Modal venta */
+  .modal-bg { position:fixed; inset:0; background:rgba(40,30,48,.45); display:none; align-items:center; justify-content:center; padding:16px; }
+  .modal-bg.on { display:flex; }
+  .modal { background:var(--blanco); border-radius:var(--radio); padding:20px; width:340px; max-width:100%; }
+  .modal h3 { font-family:var(--display); font-weight:400; margin:0 0 4px; font-size:22px; }
+  .modal p { margin:0 0 14px; font-size:13px; color:var(--tinta-suave); }
+  .modal label { display:block; font-size:12px; color:var(--tinta-suave); margin:10px 0 4px; }
+  .modal input, .modal select { width:100%; padding:8px 10px; border:1px solid var(--linea); border-radius:9px; font-size:15px; }
+  .modal .fila { display:flex; gap:10px; }
+  .modal .fila > div { flex:1; }
+  .modal .acc { justify-content:flex-end; margin-top:18px; }
+
+  #toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); background:var(--tinta); color:#fff;
+    padding:10px 16px; border-radius:10px; font-size:13.5px; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90vw; }
+  #toast.on { opacity:1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Puente <em>·</em> leads de anuncios</div>
+    <div class="sep"></div>
+    <div class="user" id="user"></div>
+    <button class="chico" id="btnSalir">Cerrar sesión</button>
+  </header>
+
+  <div class="banner">
+    Esto muestra <b>solo las conversaciones que entran desde anuncios</b> (con referral CTWA),
+    no todos los WhatsApp. El equipo sigue respondiendo donde lo hace hoy; acá solo se atribuyen
+    los leads de pauta para que Meta optimice contra resultados reales.
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="barra">
+      <button class="primario" id="btnSync">Sincronizar</button>
+      <span id="syncEstado" style="font-size:12.5px;color:var(--tinta-suave)"></span>
+      <div class="sep"></div>
+      <select id="filtroCuenta" style="display:none"></select>
+    </div>
+    <div id="tabla"></div>
+  </div>
+
+  <div id="avisoBox" class="aviso" style="display:none"></div>
+</div>
+
+<!-- Modal de venta: value + currency -->
+<div class="modal-bg" id="modalVenta">
+  <div class="modal">
+    <h3>Marcar venta</h3>
+    <p id="modalVentaSub"></p>
+    <div class="fila">
+      <div>
+        <label for="ventaValor">Monto</label>
+        <input type="number" id="ventaValor" min="0" step="0.01" placeholder="0">
+      </div>
+      <div>
+        <label for="ventaMoneda">Moneda</label>
+        <select id="ventaMoneda">
+          <option value="ARS" selected>ARS</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+    </div>
+    <div class="acc">
+      <button id="ventaCancelar">Cancelar</button>
+      <button class="venta" id="ventaConfirmar">Enviar venta</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Conexión (espeja crm.html exactamente) ───────────────────
+  // Publishable para createClient; anon legacy solo para pasar el
+  // gateway al llamar functions; el token ES256 del usuario va en
+  // x-user-token. Las dos keys son públicas.
+  var LOGIN = 'login-comakers.html';
+  var PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
+  var ANON_LEGACY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
+  var SB = supabase.createClient('https://ggcstolnadkkqhsqpzql.supabase.co', PUBLISHABLE);
+  var ZERNIO_SYNC_URL = 'https://ggcstolnadkkqhsqpzql.supabase.co/functions/v1/zernio-sync';
+  var ZERNIO_CONV_URL = 'https://ggcstolnadkkqhsqpzql.supabase.co/functions/v1/zernio-conversion';
+
+  var TZ = 'America/Argentina/Buenos_Aires';
+  var SIETE_DIAS = 7 * 24 * 3600 * 1000;
+
+  // ── Estado ────────────────────────────────────────────────────
+  var YO = null, AGENCIA = false;
+  var CUENTAS = [], CONVS = [], cuentaSel = '';
+  var ventaId = null;   // id de conversación en el modal de venta
+  var sincronizando = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  var toast = function (m) { var t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, 3200); };
+  var mostrarAviso = function (titulo, sub) {
+    $('app').style.display = 'none';
+    var b = $('avisoBox'); b.style.display = '';
+    b.innerHTML = '<div style="font-family:var(--display);font-size:24px;margin-bottom:6px">' + esc(titulo) + '</div>' +
+      (sub ? '<div style="color:var(--tinta-suave);font-size:14px">' + esc(sub) + '</div>' : '');
+  };
+
+  // ── Fechas ────────────────────────────────────────────────────
+  function fmtFecha(iso) {
+    if (!iso) return '—';
+    try {
+      return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+    } catch (e) { return '—'; }
+  }
+  // Deadline de atribución: 7 días DESDE EL CLIC (ctwa_captured_at), no
+  // desde el último mensaje. Devuelve objeto para pintar la celda.
+  function deadline(c) {
+    if (!c.ctwa_clid || !c.ctwa_captured_at) return { clase: 'sin', txt: 'sin clid', orden: Infinity };
+    var vence = new Date(c.ctwa_captured_at).getTime() + SIETE_DIAS;
+    var falta = vence - Date.now();
+    var resuelta = (c.estado === 'venta' || c.estado === 'descartado');
+    if (falta <= 0) return { clase: resuelta ? '' : 'vencida', txt: resuelta ? '—' : 'vencida — no atribuible', orden: vence };
+    var horas = falta / 3600000;
+    var txt = horas < 24 ? ('quedan ' + Math.max(1, Math.floor(horas)) + ' h') : ('quedan ' + Math.floor(horas / 24) + ' d');
+    var clase = resuelta ? '' : (horas < 48 ? 'urgente' : '');
+    return { clase: clase, txt: resuelta ? '—' : txt, orden: vence };
+  }
+
+  // ── Llamada a Edge Function (mismo esquema que crm.html) ──────
+  async function llamarFuncion(url, payload) {
+    var rs = await SB.auth.getSession();
+    var sess = rs.data && rs.data.session;
+    if (!sess) { toast('Tu sesión expiró. Volvé a entrar.'); return { error: { message: 'sin sesión' } }; }
+    try {
+      var resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': PUBLISHABLE,
+          'Authorization': 'Bearer ' + ANON_LEGACY,
+          'x-user-token': sess.access_token
+        },
+        body: JSON.stringify(payload || {})
+      });
+      var cuerpo = await resp.json().catch(function () { return null; });
+      return { data: cuerpo, status: resp.status };
+    } catch (e) { return { error: e }; }
+  }
+
+  // ── Datos ─────────────────────────────────────────────────────
+  async function cargarCuentas() {
+    var r = await SB.from('zernio_cuenta').select('zernio_account_id, label, activa').eq('activa', true).order('label');
+    CUENTAS = (r.data || []);
+    var sel = $('filtroCuenta');
+    if (CUENTAS.length > 1) {
+      sel.style.display = '';
+      sel.innerHTML = '<option value="">Todas las cuentas</option>' +
+        CUENTAS.map(function (c) { return '<option value="' + esc(c.zernio_account_id) + '">' + esc(c.label) + '</option>'; }).join('');
+    } else {
+      sel.style.display = 'none';
+    }
+  }
+  async function cargarConvs() {
+    var q = SB.from('zernio_conversacion')
+      .select('id, zernio_account_id, conversation_id, phone_e164, nombre, ctwa_clid, ctwa_headline, ctwa_captured_at, primer_mensaje, estado, ultimo_mensaje_at');
+    if (cuentaSel) q = q.eq('zernio_account_id', cuentaSel);
+    var r = await q.limit(500);
+    if (r.error) { toast('No se pudieron leer las conversaciones: ' + r.error.message); CONVS = []; }
+    else CONVS = r.data || [];
+    render();
+  }
+
+  // ── Render ────────────────────────────────────────────────────
+  function render() {
+    var activa = function (c) { return c.estado === 'nuevo' || c.estado === 'lead'; };
+    var filas = CONVS.slice().sort(function (a, b) {
+      // Activas (nuevo/lead) primero; dentro, por deadline ascendente.
+      var aa = activa(a), ba = activa(b);
+      if (aa !== ba) return aa ? -1 : 1;
+      if (aa) return deadline(a).orden - deadline(b).orden;
+      // Resueltas: por última actividad desc.
+      return new Date(b.ultimo_mensaje_at || 0) - new Date(a.ultimo_mensaje_at || 0);
+    });
+
+    if (!filas.length) {
+      $('tabla').innerHTML = '<div class="vacio">Todavía no hay conversaciones de anuncios. Tocá <b>Sincronizar</b> para traer las últimas.</div>';
+      return;
+    }
+
+    var filasHtml = filas.map(function (c) {
+      var dl = deadline(c);
+      var conClid = !!c.ctwa_clid;
+      var resuelta = (c.estado === 'venta' || c.estado === 'descartado');
+      var acc = '';
+      if (!resuelta) {
+        var dis = conClid ? '' : ' disabled';
+        if (c.estado === 'nuevo') acc += '<button class="chico" data-acc="lead" data-id="' + c.id + '"' + dis + '>Marcar lead</button>';
+        acc += '<button class="chico venta" data-acc="venta" data-id="' + c.id + '"' + dis + '>Marcar venta</button>';
+        acc += '<button class="chico" data-acc="descartar" data-id="' + c.id + '">Descartar</button>';
+      }
+      return '<tr class="' + (resuelta ? 'resuelta' : '') + '">' +
+        '<td class="contacto"><div class="nom">' + esc(c.nombre || 'Sin nombre') + '</div>' +
+          '<div class="tel">' + esc(c.phone_e164 || '—') + '</div></td>' +
+        '<td>' + esc(c.ctwa_headline || '—') + '</td>' +
+        '<td class="ctx" title="' + esc(c.primer_mensaje || '') + '">' + esc(c.primer_mensaje || '—') + '</td>' +
+        '<td><span class="pill ' + c.estado + '">' + esc(c.estado) + '</span></td>' +
+        '<td>' + (conClid ? '<span class="attr-ok">✓ con clid</span>' : '<span class="attr-no">⚠ sin clid</span>') + '</td>' +
+        '<td>' + esc(fmtFecha(c.ultimo_mensaje_at)) + '</td>' +
+        '<td><span class="dl ' + dl.clase + '">' + esc(dl.txt) + '</span></td>' +
+        '<td><div class="acc">' + acc + '</div>' +
+          (!resuelta && !conClid ? '<div class="nota-fila">sin clid aún — sincronizá más tarde</div>' : '') + '</td>' +
+      '</tr>';
+    }).join('');
+
+    $('tabla').innerHTML =
+      '<table><thead><tr>' +
+        '<th>Contacto</th><th>Anuncio</th><th>Contexto</th><th>Estado</th><th>Atribución</th><th>Última actividad</th><th>Deadline</th><th></th>' +
+      '</tr></thead><tbody>' + filasHtml + '</tbody></table>';
+  }
+
+  // ── Acciones ──────────────────────────────────────────────────
+  async function sincronizar(silencioso) {
+    if (sincronizando) return;
+    sincronizando = true;
+    $('btnSync').disabled = true;
+    $('syncEstado').textContent = 'Sincronizando…';
+    var payload = {};
+    if (cuentaSel) payload.zernio_account_id = cuentaSel;
+    var r = await llamarFuncion(ZERNIO_SYNC_URL, payload);
+    sincronizando = false;
+    $('btnSync').disabled = false;
+    if (r.error || !(r.data && r.data.ok)) {
+      var msg = (r.data && r.data.error) || (r.error && r.error.message) || 'Error al sincronizar';
+      $('syncEstado').textContent = '';
+      if (!silencioso) toast(msg);
+      return;
+    }
+    $('syncEstado').textContent = 'Trajo ' + (r.data.synced || 0) + ' · ' + fmtFecha(new Date().toISOString());
+    await cargarConvs();
+  }
+
+  async function clasificar(id, eventName, value, currency) {
+    var c = CONVS.filter(function (x) { return x.id === id; })[0];
+    toast(eventName === 'Purchase' ? 'Enviando venta…' : 'Enviando lead…');
+    var payload = { conversacion_id: id, event_name: eventName };
+    if (value != null) payload.value = value;
+    if (currency) payload.currency = currency;
+    var r = await llamarFuncion(ZERNIO_CONV_URL, payload);
+    var d = r.data;
+    if (!r.error && d && d.ok && d.estado_envio === 'enviado') {
+      if (c) c.estado = (eventName === 'Purchase' ? 'venta' : 'lead');
+      render();
+      toast('✓ Enviado a Meta' + (d.trace_id ? ' (trace ' + d.trace_id + ')' : ''));
+    } else {
+      var msg = (d && (d.error || (d.code === 'sin_clid' ? 'Todavía sin clid: sincronizá más tarde.' : null))) ||
+                (r.error && r.error.message) || 'No se pudo enviar.';
+      toast(msg);
+      await cargarConvs();  // refrescar por si cambió algo
+    }
+  }
+
+  async function descartar(id) {
+    var c = CONVS.filter(function (x) { return x.id === id; })[0];
+    if (!c) return;
+    if (!confirm('¿Descartar esta conversación? No se manda nada a Meta.')) return;
+    var r = await SB.from('zernio_conversacion').update({ estado: 'descartado', updated_at: new Date().toISOString() }).eq('id', id);
+    if (r.error) { toast('No se pudo descartar: ' + r.error.message); return; }
+    c.estado = 'descartado'; render(); toast('Descartada');
+  }
+
+  // Modal venta
+  function abrirVenta(id) {
+    var c = CONVS.filter(function (x) { return x.id === id; })[0];
+    ventaId = id;
+    $('modalVentaSub').textContent = c ? ((c.nombre || c.phone_e164 || 'Contacto') + ' · ' + (c.ctwa_headline || 'anuncio')) : '';
+    $('ventaValor').value = ''; $('ventaMoneda').value = 'ARS';
+    $('modalVenta').classList.add('on');
+    setTimeout(function () { $('ventaValor').focus(); }, 40);
+  }
+  function cerrarVenta() { $('modalVenta').classList.remove('on'); ventaId = null; }
+
+  // ── Eventos ───────────────────────────────────────────────────
+  $('tabla').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-acc]'); if (!b) return;
+    var id = b.getAttribute('data-id'), acc = b.getAttribute('data-acc');
+    if (acc === 'lead') clasificar(id, 'LeadSubmitted');
+    else if (acc === 'venta') abrirVenta(id);
+    else if (acc === 'descartar') descartar(id);
+  });
+  $('ventaCancelar').addEventListener('click', cerrarVenta);
+  $('ventaConfirmar').addEventListener('click', function () {
+    var v = parseFloat($('ventaValor').value);
+    if (!(v > 0)) { toast('Poné un monto mayor a 0.'); return; }
+    var moneda = $('ventaMoneda').value || 'ARS';
+    var id = ventaId; cerrarVenta();
+    clasificar(id, 'Purchase', v, moneda);
+  });
+  $('modalVenta').addEventListener('click', function (e) { if (e.target === this) cerrarVenta(); });
+  $('btnSync').addEventListener('click', function () { sincronizar(false); });
+  $('filtroCuenta').addEventListener('change', function () { cuentaSel = this.value; cargarConvs(); });
+  $('btnSalir').addEventListener('click', async function () {
+    try { await SB.auth.signOut(); } finally { location.replace(LOGIN); }
+  });
+
+  // ── Arranque y control de acceso ─────────────────────────────
+  async function arrancar() {
+    var session = null;
+    try { var r = await SB.auth.getSession(); session = r.data && r.data.session; } catch (e) {}
+    if (!session) { location.replace(LOGIN + '?next=' + encodeURIComponent(location.pathname + location.search)); return; }
+
+    try {
+      var rp = await SB.from('profiles').select('nombre, tipo, super_admin').eq('id', session.user.id).single();
+      YO = rp.data || { nombre: '' };
+    } catch (e) { YO = { nombre: '' }; }
+    AGENCIA = !!(YO.tipo === 'agencia' || YO.super_admin);
+
+    // Solo el equipo. Un cliente final no entra acá (la RLS tampoco le
+    // daría una fila, pero cortamos antes para no mostrar algo vacío).
+    if (!AGENCIA) {
+      mostrarAviso('Esto es del equipo', 'El puente de leads de anuncios lo maneja CoMakers. Tu panel está en otra parte.');
+      return;
+    }
+
+    $('user').textContent = YO.nombre || '';
+    $('app').style.display = '';
+    await cargarCuentas();
+    await cargarConvs();
+    sincronizar(true);   // sync automático al abrir (silencioso)
+
+    // Auto-sync suave mientras la página está abierta (spec: opcional).
+    setInterval(function () { if (!document.hidden) sincronizar(true); }, 60000);
+  }
+
+  arrancar();
+})();
+</script>
+</body>
+</html>
