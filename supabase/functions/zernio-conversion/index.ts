@@ -21,11 +21,12 @@
 //  Devuelve: { ok, estado_envio: 'enviado'|'fallido'|'sin_clid',
 //              trace_id?, events_received?, events_failed?, error? }
 //
-//  ⚠️ El endpoint de envío (POST /v1/whatsapp/conversions) NO se pudo
-//  confirmar en docs.zernio.com (404 al momento de escribir esto): se
-//  implementa AL CONTRATO DEL SPEC. El base URL (https://zernio.com/api/v1)
-//  y el auth Bearer sí están confirmados por el listado. Si Zernio
-//  cambió el path/campos, se ajusta acá en un solo lugar.
+//  Endpoint confirmado contra la doc oficial de Zernio: el path
+//  (POST /v1/whatsapp/conversions) y los campos del body/respuesta
+//  coinciden con el contrato del spec. URL final:
+//  https://zernio.com/api/v1/whatsapp/conversions (un solo "v1": la base
+//  ya lo trae, el path NO lo repite). Si Zernio cambia algo, se ajusta
+//  acá en un solo lugar.
 // ═══════════════════════════════════════════════════════════════
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
