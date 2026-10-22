@@ -1,7 +1,9 @@
 // ═══════════════════════════════════════════════════════════════
 //  Edge Function · zernio-sync
-//  Ingesta bajo demanda: lista conversaciones de Zernio, filtra las
-//  que vienen de anuncios (CTWA) y las upsertea en zernio_conversacion.
+//  Ingesta bajo demanda: lista TODAS las conversaciones de WhatsApp de
+//  Zernio (v1.1: ya no solo las de anuncios) dentro de la ventana
+//  since_days y las upsertea en zernio_conversacion. Los ctwa_* se
+//  llenan cuando existen; es_pauta se calcula sola en la base.
 //
 //  Aislado del camino Meta: no toca evento_capi ni nada sin prefijo
 //  zernio_. La ZERNIO_API_KEY vive solo acá (secret de Supabase).
@@ -25,12 +27,9 @@
 //    Auth: Authorization: Bearer <ZERNIO_API_KEY>
 //    Params: platform=whatsapp, folder=inbox, sortOrder=desc,
 //            limit (1..100), cursor (paginación por cursor), accountId.
-//    La API NO tiene filtro "since" ni filtro CTWA, así que:
-//      · since_days → se corta del lado nuestro por updatedTime (viene
-//        ordenado desc, así que al primer item más viejo que el corte se
-//        deja de paginar esa cuenta);
-//      · CTWA → nos quedamos solo con los que traen metadata.ctwa_clid
-//        (o al menos ctwa_source_id).
+//    La API NO tiene filtro "since", así que since_days se corta del
+//    lado nuestro por updatedTime (viene ordenado desc, así que al primer
+//    item más viejo que el corte se deja de paginar esa cuenta).
 //    Diferencias con el spec: el id de conversación es `id` (no `_id`),
 //    no hay `phone` suelto (uso whatsappUsername → participantId), y el
 //    timestamp es `updatedTime`.
@@ -116,8 +115,12 @@ Deno.serve(async (req) => {
         // que el corte, dejamos de mirar esta cuenta.
         if (Number.isFinite(upd) && upd < cutoff) { topeViejo = true; break; }
 
+        // v1.1: ya NO se filtra por CTWA. Entran todas las conversaciones
+        // de WhatsApp dentro de la ventana; los ctwa_* se llenan cuando
+        // existen y quedan NULL cuando no (es_pauta se calcula sola en la
+        // base). La ventana since_days evita traer los ~6 meses que Zernio
+        // importa en coexistencia.
         const md = it?.metadata ?? {};
-        if (!md.ctwa_clid && !md.ctwa_source_id) continue;   // solo CTWA
 
         upserts.push({
           zernio_account_id: accountId,

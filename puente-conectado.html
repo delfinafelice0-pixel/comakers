@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conexión de WhatsApp — CoMakers</title>
+<link rel="icon" href="data:,">
+<style>
+  /* Sin login, sin supabase-js, sin secrets: solo lee query params.
+     Misma identidad que puente.html, con fallbacks si no están las
+     fuentes de marca. */
+  :root {
+    --fucsia:#FF82FF; --verde:#D3FF99; --coral:#F26A8D; --celeste:#CBEEF3;
+    --tinta:#2a2230; --tinta-suave:#6b6472; --bg:#f7f3f9; --blanco:#fff;
+    --display:'Biro Script','Brush Script MT','Segoe Script',cursive;
+    --texto:'Salford',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    font-family:var(--texto); color:var(--tinta); background:var(--bg); padding:20px; }
+  .card { background:var(--blanco); border:1px solid #e7e0ea; border-radius:16px;
+    padding:34px 30px; max-width:440px; width:100%; text-align:center; }
+  .emoji { font-size:40px; line-height:1; margin-bottom:10px; }
+  h1 { font-family:var(--display); font-weight:400; font-size:30px; margin:0 0 10px; }
+  h1 em { color:var(--fucsia); font-style:normal; }
+  p { font-size:15px; line-height:1.6; color:var(--tinta); margin:0 0 10px; }
+  .sub { color:var(--tinta-suave); font-size:13.5px; }
+  .ok h1 em { color:#2a8a3e; }
+  .barra { height:6px; border-radius:6px; margin:0 0 20px; background:var(--celeste); }
+  .ok .barra { background:var(--verde); }
+  .err .barra { background:var(--coral); }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="barra"></div>
+    <div class="emoji" id="emoji">⏳</div>
+    <h1 id="titulo">Un momento…</h1>
+    <p id="msg"></p>
+    <p class="sub" id="sub"></p>
+  </div>
+<script>
+  (function () {
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    var q = new URLSearchParams(location.search);
+    var connected = q.get('connected');
+    var error = q.get('error');
+    var errorMsg = q.get('error_message');
+
+    var card = document.getElementById('card');
+    var set = function (clase, emoji, titulo, msg, sub) {
+      card.className = 'card ' + clase;
+      document.getElementById('emoji').textContent = emoji;
+      document.getElementById('titulo').innerHTML = titulo;   // solo texto controlado por nosotros
+      document.getElementById('msg').textContent = msg;       // textContent: seguro
+      document.getElementById('sub').textContent = sub || '';
+    };
+
+    if (connected === 'whatsapp') {
+      set('ok', '✅', '¡<em>Listo!</em>',
+        'Tu WhatsApp quedó conectado con CoMakers. Ya podés cerrar esta ventana.',
+        'Tu WhatsApp sigue funcionando igual que siempre.');
+    } else if (error === 'session_expired') {
+      set('err', '⌛', 'El link <em>venció</em>',
+        'Pedile a CoMakers uno nuevo y volvé a intentar.', '');
+    } else if (error) {
+      // error_message es texto de terceros: va por textContent (set lo
+      // pone con textContent, que no interpreta HTML).
+      set('err', '⚠️', 'No se pudo <em>conectar</em>',
+        errorMsg ? errorMsg : 'La conexión no se completó.',
+        'Avisale a CoMakers para que te mande un link nuevo.');
+    } else {
+      set('', '👋', 'Conexión de <em>WhatsApp</em>',
+        'Podés cerrar esta ventana.', '');
+    }
+  })();
+</script>
+</body>
+</html>

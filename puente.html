@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Puente · Leads de anuncios (CTWA) — CoMakers</title>
+<title>Puente · Consultas de WhatsApp — CoMakers</title>
 <link rel="icon" href="data:,">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   /* Identidad del spec. Base clara; fucsia/coral dosificados; verde = venta.
-     Biro Script (display) y Salford (texto) son fuentes de marca: si no
-     están instaladas/servidas, caen a los fallbacks sin romperse. */
+     Biro Script (display) y Salford (texto): si no están servidas, caen a
+     los fallbacks sin romperse. */
   :root {
     --fucsia:#FF82FF; --verde:#D3FF99; --coral:#F26A8D; --celeste:#CBEEF3; --blanco:#FFFFFF;
     --tinta:#2a2230; --tinta-suave:#6b6472; --linea:#e7e0ea; --bg:#f7f3f9;
@@ -29,10 +29,16 @@
   .top .user { font-size:13px; color:var(--tinta-suave); }
   .banner {
     background:var(--celeste); border:1px solid #bfe6ee; color:#245b66;
-    border-radius:var(--radio); padding:9px 13px; font-size:13px; margin:10px 0 16px;
+    border-radius:var(--radio); padding:10px 14px; font-size:13px; margin:10px 0 16px;
   }
+  .banner b { color:#14464f; }
+
   .barra { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
   .barra .sep { flex:1; }
+  .chips { display:inline-flex; gap:6px; }
+  .chip { font-size:13px; border:1px solid var(--linea); background:var(--blanco); color:var(--tinta-suave);
+    border-radius:999px; padding:5px 12px; cursor:pointer; }
+  .chip.on { background:var(--tinta); color:#fff; border-color:var(--tinta); }
 
   button { font-family:var(--texto); font-size:14px; border-radius:9px; border:1px solid var(--linea);
     background:var(--blanco); color:var(--tinta); padding:7px 13px; cursor:pointer; }
@@ -53,23 +59,43 @@
 
   .contacto .nom { font-weight:600; }
   .contacto .tel { color:var(--tinta-suave); font-size:12px; }
-  .ctx { color:var(--tinta-suave); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ctx { color:var(--tinta-suave); max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .pill { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:999px; border:1px solid var(--linea); }
   .pill.nuevo { background:#f3eef5; color:var(--tinta-suave); }
   .pill.lead { background:#ffe7fb; color:#9b2d86; border-color:#f3b9e8; }
   .pill.venta { background:var(--verde); color:#234d0a; border-color:#b6ee77; }
   .pill.descartado { background:#eee; color:#999; }
-  .attr-ok { color:#2a8a3e; }
-  .attr-no { color:#b06a00; }
+  .tag-pauta { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:999px;
+    background:#ffe7fb; color:#9b2d86; border:1px solid var(--fucsia); font-weight:600; }
+  .tag-nopauta { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:999px;
+    background:var(--celeste); color:#55707a; border:1px solid #bfe6ee; }
+  .clid { font-size:11px; margin-top:3px; }
+  .clid.ok { color:#2a8a3e; } .clid.no { color:#b06a00; }
   .dl { font-size:12.5px; }
   .dl.urgente { color:var(--coral); font-weight:700; }
   .dl.vencida { color:#b00020; font-weight:700; }
   .dl.sin { color:var(--tinta-suave); }
   .acc { display:flex; gap:6px; flex-wrap:wrap; }
-  .nota-fila { font-size:11.5px; color:var(--tinta-suave); margin-top:4px; }
+  .nota-fila { font-size:11.5px; color:var(--tinta-suave); margin-top:5px; max-width:230px; }
 
   .vacio { text-align:center; color:var(--tinta-suave); padding:40px 10px; }
   .aviso { background:var(--blanco); border:1px solid var(--linea); border-radius:var(--radio); padding:26px; text-align:center; }
+
+  /* Sección conectar cliente */
+  .conectar { margin-top:26px; border:1px solid var(--linea); border-radius:var(--radio); background:var(--blanco); }
+  .conectar > summary { cursor:pointer; padding:13px 16px; font-weight:600; list-style:none; }
+  .conectar > summary::-webkit-details-marker { display:none; }
+  .conectar > summary::before { content:'▸ '; color:var(--fucsia); }
+  .conectar[open] > summary::before { content:'▾ '; }
+  .conectar .cuerpo { padding:4px 16px 18px; }
+  .conectar .cuerpo .fila { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .conectar label { font-size:12px; color:var(--tinta-suave); display:block; margin-bottom:4px; }
+  .conectar input[type=text] { padding:8px 10px; border:1px solid var(--linea); border-radius:9px; font-size:15px; min-width:240px; }
+  .resLink { margin-top:14px; display:none; }
+  .resLink.on { display:block; }
+  .resLink .url { word-break:break-all; background:#faf6fb; border:1px solid var(--linea); border-radius:8px; padding:9px 11px; font-size:12.5px; }
+  .resLink .vence { font-size:12.5px; color:var(--tinta-suave); margin:6px 0; }
+  .recordatorio { margin-top:12px; font-size:12px; color:var(--tinta-suave); background:#faf6fb; border:1px dashed var(--linea); border-radius:8px; padding:9px 11px; }
 
   /* Modal venta */
   .modal-bg { position:fixed; inset:0; background:rgba(40,30,48,.45); display:none; align-items:center; justify-content:center; padding:16px; }
@@ -91,16 +117,17 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Puente <em>·</em> leads de anuncios</div>
+    <div class="brand">Puente <em>·</em> consultas</div>
     <div class="sep"></div>
     <div class="user" id="user"></div>
     <button class="chico" id="btnSalir">Cerrar sesión</button>
   </header>
 
   <div class="banner">
-    Esto muestra <b>solo las conversaciones que entran desde anuncios</b> (con referral CTWA),
-    no todos los WhatsApp. El equipo sigue respondiendo donde lo hace hoy; acá solo se atribuyen
-    los leads de pauta para que Meta optimice contra resultados reales.
+    Acá ves todas las consultas de WhatsApp de los últimos días para clasificarlas y hacer seguimiento.
+    Las que llegan desde un anuncio están marcadas <b>Pauta</b>, y cuando las marcás como lead o venta se
+    informan a Meta para que la pauta optimice contra resultados reales. Las <b>No pauta</b> solo quedan
+    registradas acá. El equipo sigue respondiendo desde WhatsApp como siempre.
   </div>
 
   <div id="app" style="display:none">
@@ -108,9 +135,40 @@
       <button class="primario" id="btnSync">Sincronizar</button>
       <span id="syncEstado" style="font-size:12.5px;color:var(--tinta-suave)"></span>
       <div class="sep"></div>
+      <div class="chips" id="chipsOrigen">
+        <button class="chip on" data-origen="todos">Todos</button>
+        <button class="chip" data-origen="pauta">Pauta</button>
+        <button class="chip" data-origen="nopauta">No pauta</button>
+      </div>
       <select id="filtroCuenta" style="display:none"></select>
     </div>
     <div id="tabla"></div>
+
+    <!-- Conectar WhatsApp de un cliente (link hospedado de Zernio) -->
+    <details class="conectar">
+      <summary>Conectar WhatsApp de un cliente</summary>
+      <div class="cuerpo">
+        <div class="fila">
+          <div>
+            <label for="cliNombre">Nombre del cliente</label>
+            <input type="text" id="cliNombre" maxlength="60" placeholder="Ej: Cabañas del Sol">
+          </div>
+          <button class="primario" id="btnLink">Generar link</button>
+        </div>
+        <div class="resLink" id="resLink">
+          <div class="url" id="linkUrl"></div>
+          <div class="vence" id="linkVence"></div>
+          <div class="acc">
+            <button class="chico" id="btnCopiarLink">Copiar link</button>
+            <button class="chico" id="btnCopiarMsg">Copiar mensaje para el cliente</button>
+          </div>
+        </div>
+        <div class="recordatorio">
+          Cuando el cliente termine: en Zernio → WhatsApp → Conversions → <b>Set up conversion tracking</b>
+          para su número, y agregá su Account ID a <code>zernio_cuenta</code>.
+        </div>
+      </div>
+    </details>
   </div>
 
   <div id="avisoBox" class="aviso" style="display:none"></div>
@@ -123,7 +181,7 @@
     <p id="modalVentaSub"></p>
     <div class="fila">
       <div>
-        <label for="ventaValor">Monto</label>
+        <label for="ventaValor">Monto (opcional)</label>
         <input type="number" id="ventaValor" min="0" step="0.01" placeholder="0">
       </div>
       <div>
@@ -137,7 +195,7 @@
     </div>
     <div class="acc">
       <button id="ventaCancelar">Cancelar</button>
-      <button class="venta" id="ventaConfirmar">Enviar venta</button>
+      <button class="venta" id="ventaConfirmar">Marcar venta</button>
     </div>
   </div>
 </div>
@@ -148,25 +206,24 @@
 (function () {
   'use strict';
 
-  // ── Conexión (espeja crm.html exactamente) ───────────────────
-  // Publishable para createClient; anon legacy solo para pasar el
-  // gateway al llamar functions; el token ES256 del usuario va en
-  // x-user-token. Las dos keys son públicas.
+  // ── Conexión (espeja crm.html) ───────────────────────────────
   var LOGIN = 'login-comakers.html';
   var PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
   var ANON_LEGACY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
   var SB = supabase.createClient('https://ggcstolnadkkqhsqpzql.supabase.co', PUBLISHABLE);
   var ZERNIO_SYNC_URL = 'https://ggcstolnadkkqhsqpzql.supabase.co/functions/v1/zernio-sync';
   var ZERNIO_CONV_URL = 'https://ggcstolnadkkqhsqpzql.supabase.co/functions/v1/zernio-conversion';
+  var ZERNIO_LINK_URL = 'https://ggcstolnadkkqhsqpzql.supabase.co/functions/v1/zernio-connect-link';
 
   var TZ = 'America/Argentina/Buenos_Aires';
   var SIETE_DIAS = 7 * 24 * 3600 * 1000;
+  var H48 = 48 * 3600 * 1000;
 
   // ── Estado ────────────────────────────────────────────────────
   var YO = null, AGENCIA = false;
-  var CUENTAS = [], CONVS = [], cuentaSel = '';
-  var ventaId = null;   // id de conversación en el modal de venta
-  var sincronizando = false;
+  var CUENTAS = [], CONVS = [], cuentaSel = '', origenSel = 'todos';
+  var ventaId = null, sincronizando = false;
+  var linkActual = null, linkVenceISO = null;
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) {
@@ -174,33 +231,36 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   };
-  var toast = function (m) { var t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, 3200); };
+  var toast = function (m) { var t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, 3400); };
   var mostrarAviso = function (titulo, sub) {
     $('app').style.display = 'none';
     var b = $('avisoBox'); b.style.display = '';
     b.innerHTML = '<div style="font-family:var(--display);font-size:24px;margin-bottom:6px">' + esc(titulo) + '</div>' +
       (sub ? '<div style="color:var(--tinta-suave);font-size:14px">' + esc(sub) + '</div>' : '');
   };
+  var find = function (id) { return CONVS.filter(function (x) { return x.id === id; })[0]; };
 
-  // ── Fechas ────────────────────────────────────────────────────
   function fmtFecha(iso) {
     if (!iso) return '—';
-    try {
-      return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
-    } catch (e) { return '—'; }
+    try { return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)); }
+    catch (e) { return '—'; }
   }
-  // Deadline de atribución: 7 días DESDE EL CLIC (ctwa_captured_at), no
-  // desde el último mensaje. Devuelve objeto para pintar la celda.
+  function fmtHora(iso) {
+    try { return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(new Date(iso)); }
+    catch (e) { return '--:--'; }
+  }
+  // Deadline de atribución: 7 días DESDE EL CLIC (ctwa_captured_at). Solo
+  // tiene sentido en Pauta con clid. Devuelve objeto para la celda.
   function deadline(c) {
-    if (!c.ctwa_clid || !c.ctwa_captured_at) return { clase: 'sin', txt: 'sin clid', orden: Infinity };
+    if (!c.ctwa_clid || !c.ctwa_captured_at) return { clase: 'sin', txt: '—', orden: Infinity, falta: Infinity };
     var vence = new Date(c.ctwa_captured_at).getTime() + SIETE_DIAS;
     var falta = vence - Date.now();
     var resuelta = (c.estado === 'venta' || c.estado === 'descartado');
-    if (falta <= 0) return { clase: resuelta ? '' : 'vencida', txt: resuelta ? '—' : 'vencida — no atribuible', orden: vence };
+    if (falta <= 0) return { clase: resuelta ? '' : 'vencida', txt: resuelta ? '—' : 'vencida — no atribuible', orden: vence, falta: falta };
     var horas = falta / 3600000;
     var txt = horas < 24 ? ('quedan ' + Math.max(1, Math.floor(horas)) + ' h') : ('quedan ' + Math.floor(horas / 24) + ' d');
-    var clase = resuelta ? '' : (horas < 48 ? 'urgente' : '');
-    return { clase: clase, txt: resuelta ? '—' : txt, orden: vence };
+    var clase = resuelta ? '' : (falta < H48 ? 'urgente' : '');
+    return { clase: clase, txt: resuelta ? '—' : txt, orden: vence, falta: falta };
   }
 
   // ── Llamada a Edge Function (mismo esquema que crm.html) ──────
@@ -211,17 +271,19 @@
     try {
       var resp = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': PUBLISHABLE,
-          'Authorization': 'Bearer ' + ANON_LEGACY,
-          'x-user-token': sess.access_token
-        },
+        headers: { 'Content-Type': 'application/json', 'apikey': PUBLISHABLE, 'Authorization': 'Bearer ' + ANON_LEGACY, 'x-user-token': sess.access_token },
         body: JSON.stringify(payload || {})
       });
       var cuerpo = await resp.json().catch(function () { return null; });
       return { data: cuerpo, status: resp.status };
     } catch (e) { return { error: e }; }
+  }
+  async function copiar(texto, ok) {
+    try { await navigator.clipboard.writeText(texto); toast(ok); }
+    catch (e) {
+      try { var ta = document.createElement('textarea'); ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast(ok); }
+      catch (e2) { toast('Tu navegador no dejó copiar. Seleccionalo a mano.'); }
+    }
   }
 
   // ── Datos ─────────────────────────────────────────────────────
@@ -233,13 +295,11 @@
       sel.style.display = '';
       sel.innerHTML = '<option value="">Todas las cuentas</option>' +
         CUENTAS.map(function (c) { return '<option value="' + esc(c.zernio_account_id) + '">' + esc(c.label) + '</option>'; }).join('');
-    } else {
-      sel.style.display = 'none';
-    }
+    } else { sel.style.display = 'none'; }
   }
   async function cargarConvs() {
     var q = SB.from('zernio_conversacion')
-      .select('id, zernio_account_id, conversation_id, phone_e164, nombre, ctwa_clid, ctwa_headline, ctwa_captured_at, primer_mensaje, estado, ultimo_mensaje_at');
+      .select('id, zernio_account_id, conversation_id, phone_e164, nombre, ctwa_clid, ctwa_headline, ctwa_captured_at, primer_mensaje, estado, es_pauta, valor, moneda, ultimo_mensaje_at');
     if (cuentaSel) q = q.eq('zernio_account_id', cuentaSel);
     var r = await q.limit(500);
     if (r.error) { toast('No se pudieron leer las conversaciones: ' + r.error.message); CONVS = []; }
@@ -249,112 +309,153 @@
 
   // ── Render ────────────────────────────────────────────────────
   function render() {
-    var activa = function (c) { return c.estado === 'nuevo' || c.estado === 'lead'; };
-    var filas = CONVS.slice().sort(function (a, b) {
-      // Activas (nuevo/lead) primero; dentro, por deadline ascendente.
-      var aa = activa(a), ba = activa(b);
-      if (aa !== ba) return aa ? -1 : 1;
-      if (aa) return deadline(a).orden - deadline(b).orden;
-      // Resueltas: por última actividad desc.
+    var lista = CONVS.filter(function (c) {
+      if (origenSel === 'pauta') return !!c.es_pauta;
+      if (origenSel === 'nopauta') return !c.es_pauta;
+      return true;
+    });
+
+    // Orden: (1) Pauta activa que vence en <48h, por deadline asc;
+    // (2) resto activo (nuevo/lead) por última actividad desc;
+    // (3) venta/descartado al final.
+    var grupo = function (c) {
+      var activa = (c.estado === 'nuevo' || c.estado === 'lead');
+      if (!activa) return 3;
+      if (c.es_pauta && c.ctwa_clid) { var dl = deadline(c); if (dl.falta < H48) return 1; }
+      return 2;
+    };
+    lista.sort(function (a, b) {
+      var ga = grupo(a), gb = grupo(b);
+      if (ga !== gb) return ga - gb;
+      if (ga === 1) return deadline(a).orden - deadline(b).orden;
       return new Date(b.ultimo_mensaje_at || 0) - new Date(a.ultimo_mensaje_at || 0);
     });
 
-    if (!filas.length) {
-      $('tabla').innerHTML = '<div class="vacio">Todavía no hay conversaciones de anuncios. Tocá <b>Sincronizar</b> para traer las últimas.</div>';
+    if (!lista.length) {
+      $('tabla').innerHTML = '<div class="vacio">No hay consultas para este filtro. Tocá <b>Sincronizar</b> para traer las últimas.</div>';
       return;
     }
 
-    var filasHtml = filas.map(function (c) {
-      var dl = deadline(c);
-      var conClid = !!c.ctwa_clid;
+    var filas = lista.map(function (c) {
       var resuelta = (c.estado === 'venta' || c.estado === 'descartado');
-      var acc = '';
-      if (!resuelta) {
-        var dis = conClid ? '' : ' disabled';
-        if (c.estado === 'nuevo') acc += '<button class="chico" data-acc="lead" data-id="' + c.id + '"' + dis + '>Marcar lead</button>';
-        acc += '<button class="chico venta" data-acc="venta" data-id="' + c.id + '"' + dis + '>Marcar venta</button>';
-        acc += '<button class="chico" data-acc="descartar" data-id="' + c.id + '">Descartar</button>';
-      }
+      var dl = c.es_pauta ? deadline(c) : null;
+      var origen = c.es_pauta
+        ? '<span class="tag-pauta">Pauta</span>' +
+          (c.ctwa_clid ? '<div class="clid ok">✓ con clid</div>' : '<div class="clid no">⚠ sin clid</div>')
+        : '<span class="tag-nopauta">No pauta</span>';
+      // Botones en TODAS las filas. Re-marcar permitido.
+      var acc =
+        '<button class="chico" data-acc="lead" data-id="' + c.id + '">Marcar lead</button>' +
+        '<button class="chico venta" data-acc="venta" data-id="' + c.id + '">Marcar venta</button>' +
+        '<button class="chico" data-acc="descartar" data-id="' + c.id + '">Descartar</button>';
       return '<tr class="' + (resuelta ? 'resuelta' : '') + '">' +
         '<td class="contacto"><div class="nom">' + esc(c.nombre || 'Sin nombre') + '</div>' +
           '<div class="tel">' + esc(c.phone_e164 || '—') + '</div></td>' +
         '<td>' + esc(c.ctwa_headline || '—') + '</td>' +
         '<td class="ctx" title="' + esc(c.primer_mensaje || '') + '">' + esc(c.primer_mensaje || '—') + '</td>' +
-        '<td><span class="pill ' + c.estado + '">' + esc(c.estado) + '</span></td>' +
-        '<td>' + (conClid ? '<span class="attr-ok">✓ con clid</span>' : '<span class="attr-no">⚠ sin clid</span>') + '</td>' +
+        '<td>' + origen + '</td>' +
+        '<td><span class="pill ' + c.estado + '">' + esc(c.estado) + '</span>' +
+          (c.estado === 'venta' && c.valor != null ? '<div class="clid" style="color:#234d0a">' + esc(c.moneda || '') + ' ' + esc(c.valor) + '</div>' : '') + '</td>' +
         '<td>' + esc(fmtFecha(c.ultimo_mensaje_at)) + '</td>' +
-        '<td><span class="dl ' + dl.clase + '">' + esc(dl.txt) + '</span></td>' +
+        '<td>' + (dl ? '<span class="dl ' + dl.clase + '">' + esc(dl.txt) + '</span>' : '<span class="dl sin">—</span>') + '</td>' +
         '<td><div class="acc">' + acc + '</div>' +
-          (!resuelta && !conClid ? '<div class="nota-fila">sin clid aún — sincronizá más tarde</div>' : '') + '</td>' +
+          (c._nota ? '<div class="nota-fila">' + esc(c._nota) + '</div>' : '') + '</td>' +
       '</tr>';
     }).join('');
 
     $('tabla').innerHTML =
       '<table><thead><tr>' +
-        '<th>Contacto</th><th>Anuncio</th><th>Contexto</th><th>Estado</th><th>Atribución</th><th>Última actividad</th><th>Deadline</th><th></th>' +
-      '</tr></thead><tbody>' + filasHtml + '</tbody></table>';
+        '<th>Contacto</th><th>Anuncio</th><th>Contexto</th><th>Origen</th><th>Estado</th><th>Última actividad</th><th>Deadline</th><th></th>' +
+      '</tr></thead><tbody>' + filas + '</tbody></table>';
   }
 
-  // ── Acciones ──────────────────────────────────────────────────
+  // ── Sincronizar ───────────────────────────────────────────────
   async function sincronizar(silencioso) {
     if (sincronizando) return;
-    sincronizando = true;
-    $('btnSync').disabled = true;
-    $('syncEstado').textContent = 'Sincronizando…';
-    var payload = {};
-    if (cuentaSel) payload.zernio_account_id = cuentaSel;
+    sincronizando = true; $('btnSync').disabled = true; $('syncEstado').textContent = 'Sincronizando…';
+    var payload = {}; if (cuentaSel) payload.zernio_account_id = cuentaSel;
     var r = await llamarFuncion(ZERNIO_SYNC_URL, payload);
-    sincronizando = false;
-    $('btnSync').disabled = false;
+    sincronizando = false; $('btnSync').disabled = false;
     if (r.error || !(r.data && r.data.ok)) {
-      var msg = (r.data && r.data.error) || (r.error && r.error.message) || 'Error al sincronizar';
       $('syncEstado').textContent = '';
-      if (!silencioso) toast(msg);
+      if (!silencioso) toast((r.data && r.data.error) || (r.error && r.error.message) || 'Error al sincronizar');
       return;
     }
     $('syncEstado').textContent = 'Trajo ' + (r.data.synced || 0) + ' · ' + fmtFecha(new Date().toISOString());
     await cargarConvs();
   }
 
+  // ── Clasificar (con clid → Meta; sin clid → local) ────────────
   async function clasificar(id, eventName, value, currency) {
-    var c = CONVS.filter(function (x) { return x.id === id; })[0];
-    toast(eventName === 'Purchase' ? 'Enviando venta…' : 'Enviando lead…');
-    var payload = { conversacion_id: id, event_name: eventName };
-    if (value != null) payload.value = value;
-    if (currency) payload.currency = currency;
-    var r = await llamarFuncion(ZERNIO_CONV_URL, payload);
-    var d = r.data;
-    if (!r.error && d && d.ok && d.estado_envio === 'enviado') {
-      if (c) c.estado = (eventName === 'Purchase' ? 'venta' : 'lead');
-      render();
-      toast('✓ Enviado a Meta' + (d.trace_id ? ' (trace ' + d.trace_id + ')' : ''));
-    } else {
-      var msg = (d && (d.error || (d.code === 'sin_clid' ? 'Todavía sin clid: sincronizá más tarde.' : null))) ||
-                (r.error && r.error.message) || 'No se pudo enviar.';
-      toast(msg);
-      await cargarConvs();  // refrescar por si cambió algo
+    var c = find(id); if (!c) return;
+
+    if (c.ctwa_clid) {
+      // Con clid: se informa a Meta vía zernio-conversion.
+      toast(eventName === 'Purchase' ? 'Enviando venta a Meta…' : 'Enviando lead a Meta…');
+      var r = await llamarFuncion(ZERNIO_CONV_URL, { conversacion_id: id, event_name: eventName, value: value, currency: currency });
+      var d = r.data;
+      if (!r.error && d && d.ok && d.estado_envio === 'enviado') {
+        c.estado = (eventName === 'Purchase' ? 'venta' : 'lead');
+        if (eventName === 'Purchase') { c.valor = value != null ? value : c.valor; c.moneda = currency || 'ARS'; }
+        c._nota = '✓ Informado a Meta' + (d.trace_id ? ' (trace ' + d.trace_id + ')' : '');
+        render(); toast('✓ Enviado a Meta');
+      } else {
+        toast((d && d.error) || (r.error && r.error.message) || 'No se pudo enviar.');
+        await cargarConvs();
+      }
+      return;
     }
+
+    // Sin clid: clasificación SOLO local (No pauta, o Pauta sin clid).
+    var patch = { estado: (eventName === 'Purchase' ? 'venta' : 'lead'), updated_at: new Date().toISOString() };
+    if (eventName === 'Purchase') { patch.valor = (value != null ? value : null); patch.moneda = currency || 'ARS'; }
+    var ru = await SB.from('zernio_conversacion').update(patch).eq('id', id);
+    if (ru.error) { toast('No se pudo guardar: ' + ru.error.message); return; }
+    c.estado = patch.estado;
+    if (eventName === 'Purchase') { c.valor = patch.valor; c.moneda = patch.moneda; }
+    c._nota = c.es_pauta
+      ? 'Registrado. No se pudo informar a Meta (el anuncio no trajo el ID de clic).'
+      : 'Registrado. No se informa a Meta porque no vino de un anuncio.';
+    render(); toast('Registrado');
   }
 
   async function descartar(id) {
-    var c = CONVS.filter(function (x) { return x.id === id; })[0];
-    if (!c) return;
+    var c = find(id); if (!c) return;
     if (!confirm('¿Descartar esta conversación? No se manda nada a Meta.')) return;
     var r = await SB.from('zernio_conversacion').update({ estado: 'descartado', updated_at: new Date().toISOString() }).eq('id', id);
     if (r.error) { toast('No se pudo descartar: ' + r.error.message); return; }
-    c.estado = 'descartado'; render(); toast('Descartada');
+    c.estado = 'descartado'; c._nota = null; render(); toast('Descartada');
   }
 
-  // Modal venta
+  // Modal venta (para con-clid y sin-clid por igual)
   function abrirVenta(id) {
-    var c = CONVS.filter(function (x) { return x.id === id; })[0];
-    ventaId = id;
-    $('modalVentaSub').textContent = c ? ((c.nombre || c.phone_e164 || 'Contacto') + ' · ' + (c.ctwa_headline || 'anuncio')) : '';
-    $('ventaValor').value = ''; $('ventaMoneda').value = 'ARS';
+    var c = find(id); ventaId = id;
+    $('modalVentaSub').textContent = c ? ((c.nombre || c.phone_e164 || 'Contacto') + (c.es_pauta ? ' · Pauta' : ' · No pauta')) : '';
+    $('ventaValor').value = ''; $('ventaMoneda').value = (c && c.moneda) || 'ARS';
     $('modalVenta').classList.add('on');
     setTimeout(function () { $('ventaValor').focus(); }, 40);
   }
   function cerrarVenta() { $('modalVenta').classList.remove('on'); ventaId = null; }
+
+  // ── Conectar cliente (link hospedado) ─────────────────────────
+  function mensajeCliente(link, hora) {
+    return '¡Hola! Para conectar tu WhatsApp con CoMakers, abrí este link desde una *computadora* (vence a las ' + hora + '): ' + link + '\n' +
+      'Vas a necesitar: tu cuenta de Facebook con acceso al portfolio de tu negocio, y el *celular* con WhatsApp Business *actualizado*.\n' +
+      'En un momento te va a mostrar un código QR: escanealo desde WhatsApp Business (Ajustes → Dispositivos vinculados). Dejá la app *abierta* hasta que la página confirme. Tu WhatsApp sigue funcionando igual que siempre. Si algo falla, probá de nuevo; suele andar al segundo intento.';
+  }
+  async function generarLink() {
+    var nombre = ($('cliNombre').value || '').trim();
+    if (nombre.length < 1) { toast('Poné el nombre del cliente.'); return; }
+    $('btnLink').disabled = true; $('btnLink').textContent = 'Generando…';
+    var r = await llamarFuncion(ZERNIO_LINK_URL, { cliente: nombre });
+    $('btnLink').disabled = false; $('btnLink').textContent = 'Generar link';
+    var d = r.data;
+    if (r.error || !(d && d.ok && d.url)) { toast((d && d.error) || (r.error && r.error.message) || 'No se pudo generar el link.'); return; }
+    linkActual = d.url; linkVenceISO = d.expira_at;
+    $('linkUrl').textContent = d.url;
+    $('linkVence').textContent = 'Vence a las ' + fmtHora(d.expira_at) + '.';
+    $('resLink').classList.add('on');
+  }
 
   // ── Eventos ───────────────────────────────────────────────────
   $('tabla').addEventListener('click', function (e) {
@@ -364,20 +465,26 @@
     else if (acc === 'venta') abrirVenta(id);
     else if (acc === 'descartar') descartar(id);
   });
+  $('chipsOrigen').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-origen]'); if (!b) return;
+    origenSel = b.getAttribute('data-origen');
+    [].forEach.call(this.querySelectorAll('.chip'), function (ch) { ch.classList.toggle('on', ch === b); });
+    render();
+  });
   $('ventaCancelar').addEventListener('click', cerrarVenta);
   $('ventaConfirmar').addEventListener('click', function () {
-    var v = parseFloat($('ventaValor').value);
-    if (!(v > 0)) { toast('Poné un monto mayor a 0.'); return; }
-    var moneda = $('ventaMoneda').value || 'ARS';
-    var id = ventaId; cerrarVenta();
+    var raw = $('ventaValor').value, v = raw === '' ? null : parseFloat(raw);
+    if (raw !== '' && !(v >= 0)) { toast('El monto tiene que ser un número.'); return; }
+    var moneda = $('ventaMoneda').value || 'ARS'; var id = ventaId; cerrarVenta();
     clasificar(id, 'Purchase', v, moneda);
   });
   $('modalVenta').addEventListener('click', function (e) { if (e.target === this) cerrarVenta(); });
   $('btnSync').addEventListener('click', function () { sincronizar(false); });
   $('filtroCuenta').addEventListener('change', function () { cuentaSel = this.value; cargarConvs(); });
-  $('btnSalir').addEventListener('click', async function () {
-    try { await SB.auth.signOut(); } finally { location.replace(LOGIN); }
-  });
+  $('btnLink').addEventListener('click', generarLink);
+  $('btnCopiarLink').addEventListener('click', function () { if (linkActual) copiar(linkActual, 'Link copiado'); });
+  $('btnCopiarMsg').addEventListener('click', function () { if (linkActual) copiar(mensajeCliente(linkActual, fmtHora(linkVenceISO)), 'Mensaje copiado'); });
+  $('btnSalir').addEventListener('click', async function () { try { await SB.auth.signOut(); } finally { location.replace(LOGIN); } });
 
   // ── Arranque y control de acceso ─────────────────────────────
   async function arrancar() {
@@ -391,20 +498,13 @@
     } catch (e) { YO = { nombre: '' }; }
     AGENCIA = !!(YO.tipo === 'agencia' || YO.super_admin);
 
-    // Solo el equipo. Un cliente final no entra acá (la RLS tampoco le
-    // daría una fila, pero cortamos antes para no mostrar algo vacío).
-    if (!AGENCIA) {
-      mostrarAviso('Esto es del equipo', 'El puente de leads de anuncios lo maneja CoMakers. Tu panel está en otra parte.');
-      return;
-    }
+    if (!AGENCIA) { mostrarAviso('Esto es del equipo', 'El puente de WhatsApp lo maneja CoMakers. Tu panel está en otra parte.'); return; }
 
     $('user').textContent = YO.nombre || '';
     $('app').style.display = '';
     await cargarCuentas();
     await cargarConvs();
-    sincronizar(true);   // sync automático al abrir (silencioso)
-
-    // Auto-sync suave mientras la página está abierta (spec: opcional).
+    sincronizar(true);
     setInterval(function () { if (!document.hidden) sincronizar(true); }, 60000);
   }
 

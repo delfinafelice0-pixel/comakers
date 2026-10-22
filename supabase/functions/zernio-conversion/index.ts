@@ -149,11 +149,14 @@ Deno.serve(async (req) => {
     error: enviado ? null : (j?.failures ?? j ?? { message: errMsg }),
   });
 
-  // Solo si salió, se clasifica la conversación.
+  // Solo si salió, se clasifica la conversación. En venta se guarda
+  // también el monto (v1.1), igual que la clasificación local.
   if (enviado) {
     const nuevoEstado = eventName === 'Purchase' ? 'venta' : 'lead';
+    const patch: Record<string, unknown> = { estado: nuevoEstado, updated_at: new Date().toISOString() };
+    if (eventName === 'Purchase') { patch.valor = value; patch.moneda = currency || 'ARS'; }
     const { error: eUpd } = await db.from('zernio_conversacion')
-      .update({ estado: nuevoEstado, updated_at: new Date().toISOString() })
+      .update(patch)
       .eq('id', conv.id);
     if (eUpd) {
       // El evento ya se mandó y quedó logueado; avisamos que el estado no se guardó.
