@@ -14,7 +14,10 @@
 //      --project-ref ggcstolnadkkqhsqpzql --no-verify-jwt
 //  Secret: ZERNIO_API_KEY
 //
-//  Auth: mismo esquema que crm.html (x-user-token → getUser(publishable)).
+//  Auth: mismo esquema que crm.html (x-user-token → getUser(publishable)),
+//  MÁS gate de equipo a mano (tipo='agencia'/super_admin) porque esta
+//  function no toca la base y la RLS no la cubre. Sin token → 401; token
+//  válido pero no-equipo → 403. Nada llega a Zernio en esos casos.
 //
 //  Recibe: { cliente: string }  (1..60, trim)
 //  Devuelve: { ok:true, url, profile_id, expira_at } | { ok:false, error }
@@ -58,6 +61,19 @@ Deno.serve(async (req) => {
   const authClient = createClient(SB_URL, PUBLISHABLE);
   const { data: { user }, error: eUser } = await authClient.auth.getUser(userToken);
   if (eUser || !user) return json({ ok: false, error: 'Sesión inválida' }, 401);
+
+  // Gate de EQUIPO, a mano: esta function NO toca la base, así que la RLS
+  // (es_equipo) no la cubre como a zernio-sync/zernio-conversion. Sin esto,
+  // cualquier usuario logueado —incluido un cliente— podría crear perfiles
+  // y quemar links/plan en Zernio. Mismo chequeo que crm.html/puente.html:
+  // tipo='agencia' o super_admin, leyendo su propia fila de profiles (RLS
+  // deja al usuario leerse a sí mismo). Va ANTES de cualquier llamada a Zernio.
+  const db = createClient(SB_URL, PUBLISHABLE, { global: { headers: { Authorization: 'Bearer ' + userToken } } });
+  const { data: perfil, error: ePerfil } = await db
+    .from('profiles').select('tipo, super_admin').eq('id', user.id).single();
+  if (ePerfil || !perfil || !(perfil.tipo === 'agencia' || perfil.super_admin)) {
+    return json({ ok: false, error: 'Solo el equipo puede generar links de conexión.' }, 403);
+  }
 
   let body: any = {};
   try { body = await req.json(); } catch { /* vacío */ }
