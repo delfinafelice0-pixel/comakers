@@ -1203,6 +1203,9 @@
       b.innerHTML = svg + esc(nombre);
       nav.appendChild(b);
     });
+    // Reportes va último (orden pedido el 22/10/2026), igual para todos.
+    const rep = nav.querySelector('.nav-item[data-seccion="reportes"]');
+    if (rep) nav.appendChild(rep);
     nav.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.seccion === SECCION));
   }
   $('#navGrupo').addEventListener('click', e => {

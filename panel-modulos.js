@@ -1675,12 +1675,14 @@
   // ═════════════════════════════════════════════════════════════
   const ICO = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
   const NAV = [
-    ['calendario', 'Calendario', ICO('<rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>')],
-    ['estrategia', 'Estrategia', ICO('<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>')],
+    // Orden del menú (22/10/2026): Servicio, One Shot, Estrategia,
+    // Calendario y, al final, Reportes (lo agrega panel.html).
     ['servicio', 'Servicio', ICO('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>')],
+    ['one_shot', 'One Shot', ICO('<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>')],
+    ['estrategia', 'Estrategia', ICO('<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>')],
+    ['calendario', 'Calendario', ICO('<rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>')],
     // Objetivos: oculto desde el 11/10/2026 (viven en Estrategia). El
     // código de abajo y la tabla `objetivo` quedan, sin entrada en el menú.
-    ['one_shot', 'One Shot', ICO('<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>')]
   ];
 
   const MODS = {
