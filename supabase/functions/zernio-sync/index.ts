@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════════════════════════════
 //  Edge Function · zernio-sync
-//  Ingesta bajo demanda: lista TODAS las conversaciones de WhatsApp de
-//  Zernio (v1.1: ya no solo las de anuncios) dentro de la ventana
-//  since_days y las upsertea en zernio_conversacion. Los ctwa_* se
-//  llenan cuando existen; es_pauta se calcula sola en la base.
+//  Ingesta bajo demanda: lista las conversaciones de WhatsApp de Zernio
+//  dentro de la ventana since_days y las upsertea en zernio_conversacion.
+//  Por defecto entran TODAS (v1.1); las cuentas con zernio_cuenta.solo_pauta
+//  = true traen solo las de anuncios (CTWA, v1.2). Los ctwa_* se llenan
+//  cuando existen; es_pauta se calcula sola en la base.
 //
 //  Aislado del camino Meta: no toca evento_capi ni nada sin prefijo
 //  zernio_. La ZERNIO_API_KEY vive solo acá (secret de Supabase).
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
   const cutoff = Date.now() - sinceDays * 24 * 3600 * 1000;
 
   // ── Cuentas a sincronizar (solo activas) ───────────────────────
-  let q = db.from('zernio_cuenta').select('zernio_account_id').eq('activa', true);
+  let q = db.from('zernio_cuenta').select('zernio_account_id, solo_pauta').eq('activa', true);
   if (body?.zernio_account_id) q = q.eq('zernio_account_id', String(body.zernio_account_id));
   const { data: cuentas, error: eCuentas } = await q;
   if (eCuentas) return json({ ok: false, error: 'No se pudieron leer las cuentas: ' + eCuentas.message }, 500);
@@ -84,6 +85,9 @@ Deno.serve(async (req) => {
 
   for (const cta of cuentas) {
     const accountId = String(cta.zernio_account_id);
+    // v1.2: cuenta con solo_pauta = true → solo se ingestan las que traen
+    // datos de referral CTWA (como el filtro de v1). El resto, todas.
+    const soloPauta = !!cta.solo_pauta;
     let cursor: string | null = null;
 
     for (let pagina = 0; pagina < MAX_PAGES; pagina++) {
@@ -115,12 +119,16 @@ Deno.serve(async (req) => {
         // que el corte, dejamos de mirar esta cuenta.
         if (Number.isFinite(upd) && upd < cutoff) { topeViejo = true; break; }
 
-        // v1.1: ya NO se filtra por CTWA. Entran todas las conversaciones
-        // de WhatsApp dentro de la ventana; los ctwa_* se llenan cuando
-        // existen y quedan NULL cuando no (es_pauta se calcula sola en la
-        // base). La ventana since_days evita traer los ~6 meses que Zernio
-        // importa en coexistencia.
+        // v1.1: por defecto entran TODAS las conversaciones de WhatsApp
+        // de la ventana; los ctwa_* se llenan cuando existen (es_pauta se
+        // calcula sola en la base). La ventana since_days evita traer los
+        // ~6 meses que Zernio importa en coexistencia.
         const md = it?.metadata ?? {};
+
+        // v1.2: en cuentas solo_pauta, se filtra por CTWA (clid o source_id),
+        // como en v1. Si una no-pauta recibe el clid más tarde, en la sync
+        // siguiente ya pasa el filtro y entra normal.
+        if (soloPauta && !md.ctwa_clid && !md.ctwa_source_id) continue;
 
         upserts.push({
           zernio_account_id: accountId,
