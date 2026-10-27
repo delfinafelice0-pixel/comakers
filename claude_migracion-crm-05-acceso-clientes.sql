@@ -297,7 +297,7 @@ select
   (select count(*) from public.zernio_conversacion
      where estado not in ('nuevo','interesado','cerro','no_cerro','sin_responder')) as estados_fuera_check, -- 0
   (select count(*) from pg_policies
-     where schemaname='public' and tablename like 'zernio_%')                     as policies,              -- 9
+     where schemaname='public' and tablename like 'zernio_%')                     as policies,              -- 11
   (select count(*) from pg_trigger
      where tgrelid='public.zernio_conversacion'::regclass
        and tgname='zernio_conversacion_guard_trg')                               as guard_trigger,         -- 1
