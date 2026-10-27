@@ -1164,16 +1164,22 @@
     const pub = d.publicacion || {};
     // Agencia normal: todo, con los interruptores. Agencia "como cliente"
     // y cliente: solo las partes publicadas (al cliente ya le llegan solas).
-    const ve = parte => P().AGENCIA ? (edita() || !!pub[parte]) : true;
+    // Equipo (agencia, no socia): la RPC no le manda montos (migración 60,
+    // `ve_montos: false`). Monto, historial y total no se dibujan, y
+    // tampoco los interruptores ni acciones sobre montos.
+    const sinMontos = P().AGENCIA && d.ve_montos === false;
+    const ve = parte => (sinMontos && (parte === 'monto' || parte === 'historial')) ? false
+      : P().AGENCIA ? (edita() || !!pub[parte]) : true;
     const cts = d.contratos || [];
     const lineas = String(d.incluye_texto || '').split('\n').map(x => x.trim()).filter(Boolean);
-    const inter = edita() ? '<div class="srv-pub"><span class="pm-et">Qué ve el cliente</span>' + PARTES_SRV.map(([k, n]) =>
+    const inter = edita() ? '<div class="srv-pub"><span class="pm-et">Qué ve el cliente</span>' + PARTES_SRV.filter(([k]) => !(sinMontos && (k === 'monto' || k === 'historial'))).map(([k, n]) =>
         '<button type="button" class="pm-pub ' + (pub[k] ? 'on' : 'off') + '" data-srvpub="' + k + '">' + (pub[k] ? '● ' : '○ ') + esc(n) + '</button>').join('') +
         '</div>' : '';
     const totalMensual = cts.filter(k => k.monto != null && (k.tipo || 'mensual') === 'mensual').reduce((s, k) => s + Number(k.monto), 0);
     const algo = cts.length && (ve('incluye') || ve('monto') || ve('historial') || ve('proximo_ajuste'));
 
-    let html = cabecera('Tu', 'servicio', '', edita() ? '<a class="btn" href="administracion.html" title="El monto y las fechas se editan en administración">Editar montos en administración ↗</a>' : '') + inter;
+    let html = cabecera('Tu', 'servicio', '', edita() && !sinMontos ? '<a class="btn" href="administracion.html" title="El monto y las fechas se editan en administración">Editar montos en administración ↗</a>' : '') + inter +
+      (sinMontos ? '<p class="pm-ayuda">Los montos de los servicios los ven solo las socias.</p>' : '');
     if (!algo) {
       main.innerHTML = html + '<div class="vacio"><p>' + (edita()
         ? (cts.length ? '' : 'Este cliente no tiene contratos activos. Cargalos en administración.')

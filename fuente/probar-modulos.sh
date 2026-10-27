@@ -119,6 +119,7 @@ fi
 if quiero servicio; then
   caso servicio-agencia     agencia "irA('servicio');" don-felipe 1800
   caso servicio-cliente     cliente "irA('servicio');" don-felipe 1800
+  caso servicio-equipo      equipo  "irA('servicio');" don-felipe 1800
 fi
 # El reporte con los módulos prendidos: la solapa Cuenta ya no muestra
 # el bloque de Objetivos (se sacó el 11/10/2026).

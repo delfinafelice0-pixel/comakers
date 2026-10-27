@@ -722,6 +722,14 @@ console.log(JSON.stringify(await r.json(), null, 2));
 `pull-instagram`, `pull-posts` y `pull-ads` aceptan `debug: true` para
 diagnóstico sin escribir en la base.
 
+**27/10/2026 · montos de servicios solo para socias (migración 60, PROPUESTA,
+no corrida).** `ve_montos()` = es_super() or es_socia(). `panel_servicio`
+al equipo (agencia no socia) le devuelve monto/tipo/historial/ajuste_pct en
+null y `ve_montos: false`; `contrato_ajuste` queda solo socias; en servicio,
+servicio_item, entregable y contrato se borra toda política que no pida
+socia y queda `<tabla>_socias`. El cliente sigue viendo su monto publicado.
+El panel (módulo Servicio) oculta monto/historial y sus interruptores al equipo.
+
 **20/10/2026 · mes en curso "en vivo" (migración 59, corrida).** Cada noche
 a las 04:30 BA el cron `snapshot-en-vivo` corre `snapshot_en_vivo()`: arma en
 `reporte_publicado` (en_vivo = true, datos_al) el mes en curso y el anterior

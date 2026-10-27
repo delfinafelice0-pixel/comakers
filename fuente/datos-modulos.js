@@ -85,17 +85,20 @@
       return { data: true, error: null };
     },
     panel_servicio: function (a) {
-      // Misma forma que la función de la 51.
+      // Misma forma que la función de la 51, con la 60: en modo 'equipo'
+      // (agencia, no socia) no viaja ningún monto.
       // El cliente no tiene estas tablas (las vacía comoCliente): la RPC
       // real corre como security definer y las lee igual. Acá, de BASE.
       var esAgencia = window.__MODO !== 'cliente';
       var src = esAgencia ? window.__TABLAS : BASE;
       var pub = (src.servicio_publicacion || []).find(function (p) { return p.cliente_id === a.p_cliente; }) || {};
-      var inc = esAgencia || !!pub.incluye, mon = esAgencia || !!pub.monto, his = esAgencia || !!pub.historial, prox = esAgencia || !!pub.proximo_ajuste;
+      var eq = window.__MODO === 'equipo';
+      var inc = esAgencia || !!pub.incluye, mon = !eq && (esAgencia || !!pub.monto), his = !eq && (esAgencia || !!pub.historial), prox = esAgencia || !!pub.proximo_ajuste;
       var cts = (src.contrato || []).filter(function (k) { return k.cliente_id === a.p_cliente && k.activo !== false; })
         .sort(function (x, y) { return x.nombre < y.nombre ? -1 : 1; });
       return { data: {
         agencia: esAgencia,
+        ve_montos: !eq,
         publicacion: esAgencia ? { incluye: !!pub.incluye, monto: !!pub.monto, historial: !!pub.historial, proximo_ajuste: !!pub.proximo_ajuste } : null,
         incluye_texto: inc ? (pub.incluye_texto || null) : null,
         contratos: !(inc || mon || his || prox) ? [] : cts.map(function (k) {
@@ -107,7 +110,7 @@
                 return { nombre: e.nombre, cantidad: i.cantidad, unidad: e.unidad }; }) : null,
             monto: mon ? k.monto : null, tipo: mon ? k.tipo : null,
             ultimo_ajuste: (his || prox) ? k.ultimo_ajuste : null, proximo_ajuste: prox ? k.proximo_ajuste : null,
-            ajuste_pct: esAgencia ? k.ajuste_pct : null,
+            ajuste_pct: esAgencia && !eq ? k.ajuste_pct : null,
             historial: his ? (src.contrato_ajuste || []).filter(function (h) { return h.contrato_id === k.id; })
               .sort(function (x, y) { return x.fecha < y.fecha ? 1 : -1; })
               .map(function (h) { return { id: h.id, fecha: h.fecha, anterior: h.monto_anterior, nuevo: h.monto_nuevo, pct: h.pct, nota: h.nota }; }) : null
