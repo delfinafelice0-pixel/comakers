@@ -18,7 +18,8 @@
 //  manda apikey=publishable, Authorization=Bearer anon-legacy (solo para
 //  pasar el gateway) y x-user-token=token de sesión ES256. Acá se valida
 //  el usuario con getUser(publishable) y se usa ese token como llamador,
-//  así la RLS (es_equipo) decide. No se usa service_role.
+//  así la RLS decide qué cuentas ve (equipo: las de su agencia + las de
+//  prueba; cliente: solo las suyas, v1.3). No se usa service_role.
 //
 //  Recibe: { zernio_account_id?: string, since_days?: number }  (default 7)
 //  Devuelve: { ok: true, synced: <int> } | { ok: false, error: <string> }

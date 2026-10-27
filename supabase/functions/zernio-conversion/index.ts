@@ -149,10 +149,13 @@ Deno.serve(async (req) => {
     error: enviado ? null : (j?.failures ?? j ?? { message: errMsg }),
   });
 
-  // Solo si salió, se clasifica la conversación. En venta se guarda
-  // también el monto (v1.1), igual que la clasificación local.
+  // Solo si salió, se clasifica la conversación. En cerro se guarda
+  // también el monto (v1.1), igual que la clasificación local. Estados
+  // por rubro (v1.3): LeadSubmitted→interesado, Purchase→cerro. El
+  // event_id NO cambia (sigue 'zpuente:<conv>:<eventName>'), así Meta no
+  // ve duplicados de un lead ya enviado.
   if (enviado) {
-    const nuevoEstado = eventName === 'Purchase' ? 'venta' : 'lead';
+    const nuevoEstado = eventName === 'Purchase' ? 'cerro' : 'interesado';
     const patch: Record<string, unknown> = { estado: nuevoEstado, updated_at: new Date().toISOString() };
     if (eventName === 'Purchase') { patch.valor = value; patch.moneda = currency || 'ARS'; }
     const { error: eUpd } = await db.from('zernio_conversacion')

@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  /* Identidad del spec. Base clara; fucsia/coral dosificados; verde = venta.
+  /* Identidad del spec. Base clara; fucsia/coral dosificados; verde = cerró.
      Biro Script (display) y Salford (texto): si no están servidas, caen a
      los fallbacks sin romperse. */
   :root {
@@ -21,6 +21,9 @@
   body { margin:0; font-family:var(--texto); color:var(--tinta); background:var(--bg); line-height:1.5; }
   a { color:var(--coral); }
   .wrap { max-width:1100px; margin:0 auto; padding:18px 16px 60px; }
+
+  .volver { display:none; font-size:13px; text-decoration:none; color:var(--tinta-suave); margin-bottom:8px; }
+  .volver:hover { color:var(--coral); }
 
   header.top { display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; margin-bottom:6px; }
   .brand { font-family:var(--display); font-size:34px; line-height:1; color:var(--tinta); }
@@ -46,7 +49,7 @@
   button:disabled { opacity:.45; cursor:default; }
   button.primario { background:var(--fucsia); border-color:var(--fucsia); color:#2a1030; font-weight:600; }
   button.chico { padding:5px 9px; font-size:12.5px; }
-  button.venta { background:var(--verde); border-color:#b6ee77; color:#234d0a; }
+  button.cerro { background:var(--verde); border-color:#b6ee77; color:#234d0a; }
   select { font-family:var(--texto); font-size:14px; border-radius:9px; border:1px solid var(--linea);
     background:var(--blanco); color:var(--tinta); padding:6px 10px; }
 
@@ -60,11 +63,13 @@
   .contacto .nom { font-weight:600; }
   .contacto .tel { color:var(--tinta-suave); font-size:12px; }
   .ctx { color:var(--tinta-suave); max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* Pills: un color por estado fijo (el nombre lo pone el rubro). */
   .pill { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:999px; border:1px solid var(--linea); }
   .pill.nuevo { background:#f3eef5; color:var(--tinta-suave); }
-  .pill.lead { background:#ffe7fb; color:#9b2d86; border-color:#f3b9e8; }
-  .pill.venta { background:var(--verde); color:#234d0a; border-color:#b6ee77; }
-  .pill.descartado { background:#eee; color:#999; }
+  .pill.interesado { background:var(--celeste); color:#2a6c78; border-color:#bfe6ee; }
+  .pill.cerro { background:var(--verde); color:#234d0a; border-color:#b6ee77; }
+  .pill.no_cerro { background:#eee; color:#999; }
+  .pill.sin_responder { background:#fde3ea; color:#9b2743; border-color:var(--coral); }
   .tag-pauta { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:999px;
     background:#ffe7fb; color:#9b2d86; border:1px solid var(--fucsia); font-weight:600; }
   .tag-nopauta { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:999px;
@@ -81,7 +86,7 @@
   .vacio { text-align:center; color:var(--tinta-suave); padding:40px 10px; }
   .aviso { background:var(--blanco); border:1px solid var(--linea); border-radius:var(--radio); padding:26px; text-align:center; }
 
-  /* Sección conectar cliente */
+  /* Sección conectar cliente (solo equipo) */
   .conectar { margin-top:26px; border:1px solid var(--linea); border-radius:var(--radio); background:var(--blanco); }
   .conectar > summary { cursor:pointer; padding:13px 16px; font-weight:600; list-style:none; }
   .conectar > summary::-webkit-details-marker { display:none; }
@@ -97,7 +102,7 @@
   .resLink .vence { font-size:12.5px; color:var(--tinta-suave); margin:6px 0; }
   .recordatorio { margin-top:12px; font-size:12px; color:var(--tinta-suave); background:#faf6fb; border:1px dashed var(--linea); border-radius:8px; padding:9px 11px; }
 
-  /* Modal venta */
+  /* Modal cierre */
   .modal-bg { position:fixed; inset:0; background:rgba(40,30,48,.45); display:none; align-items:center; justify-content:center; padding:16px; }
   .modal-bg.on { display:flex; }
   .modal { background:var(--blanco); border-radius:var(--radio); padding:20px; width:340px; max-width:100%; }
@@ -116,6 +121,9 @@
 </head>
 <body>
 <div class="wrap">
+  <!-- Solo para clientes (ajuste v1.3): vuelta a su panel. -->
+  <a class="volver" id="volverPanel" href="panel.html">← Volver al panel</a>
+
   <header class="top">
     <div class="brand">Puente <em>·</em> consultas</div>
     <div class="sep"></div>
@@ -123,11 +131,11 @@
     <button class="chico" id="btnSalir">Cerrar sesión</button>
   </header>
 
-  <div class="banner">
+  <div class="banner" id="banner">
     Acá ves todas las consultas de WhatsApp de los últimos días para clasificarlas y hacer seguimiento.
-    Las que llegan desde un anuncio están marcadas <b>Pauta</b>, y cuando las marcás como lead o venta se
-    informan a Meta para que la pauta optimice contra resultados reales. Las <b>No pauta</b> solo quedan
-    registradas acá. El equipo sigue respondiendo desde WhatsApp como siempre.
+    Las que llegan desde un anuncio están marcadas <b>Pauta</b>, y cuando las clasificás según cómo
+    terminaron se informa a Meta lo que corresponde para que la pauta optimice contra resultados reales.
+    Las <b>No pauta</b> solo quedan registradas acá. El equipo sigue respondiendo desde WhatsApp como siempre.
   </div>
 
   <div id="app" style="display:none">
@@ -144,8 +152,8 @@
     </div>
     <div id="tabla"></div>
 
-    <!-- Conectar WhatsApp de un cliente (link hospedado de Zernio) -->
-    <details class="conectar">
+    <!-- Conectar WhatsApp de un cliente (link hospedado de Zernio). Solo equipo. -->
+    <details class="conectar" id="seccionConectar">
       <summary>Conectar WhatsApp de un cliente</summary>
       <div class="cuerpo">
         <div class="fila">
@@ -174,10 +182,10 @@
   <div id="avisoBox" class="aviso" style="display:none"></div>
 </div>
 
-<!-- Modal de venta: value + currency -->
+<!-- Modal de cierre: value + currency. El título lo pone el rubro. -->
 <div class="modal-bg" id="modalVenta">
   <div class="modal">
-    <h3>Marcar venta</h3>
+    <h3 id="modalVentaTit">Marcar cierre</h3>
     <p id="modalVentaSub"></p>
     <div class="fila">
       <div>
@@ -195,7 +203,7 @@
     </div>
     <div class="acc">
       <button id="ventaCancelar">Cancelar</button>
-      <button class="venta" id="ventaConfirmar">Marcar venta</button>
+      <button class="cerro" id="ventaConfirmar">Confirmar</button>
     </div>
   </div>
 </div>
@@ -206,7 +214,7 @@
 (function () {
   'use strict';
 
-  // ── Conexión (espeja crm.html) ───────────────────────────────
+  // ── Conexión (espeja crm.html / panel.html) ──────────────────
   var LOGIN = 'login-comakers.html';
   var PUBLISHABLE = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
   var ANON_LEGACY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
@@ -219,11 +227,18 @@
   var SIETE_DIAS = 7 * 24 * 3600 * 1000;
   var H48 = 48 * 3600 * 1000;
 
+  // Estados fijos (claves de código). Los nombres los pone el rubro.
+  var EVENTO_DE = { interesado: 'LeadSubmitted', cerro: 'Purchase' };   // los que van a Meta
+  var ETIQUETA_DEFAULT = { interesado: 'Pidió presupuesto', cerro: 'Contrató', no_cerro: 'No contrató', sin_responder: 'Sin responder' };
+
   // ── Estado ────────────────────────────────────────────────────
   var YO = null, AGENCIA = false;
   var CUENTAS = [], CONVS = [], cuentaSel = '', origenSel = 'todos';
-  var ventaId = null, sincronizando = false;
+  var cierreId = null, sincronizando = false;
   var linkActual = null, linkVenceISO = null;
+  var RUBROS = {};            // rubro -> { interesado, cerro, no_cerro, sin_responder }
+  var CUENTA_RUBRO = {};      // zernio_account_id -> rubro
+  var soloPautaCliente = false;
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) {
@@ -240,6 +255,17 @@
   };
   var find = function (id) { return CONVS.filter(function (x) { return x.id === id; })[0]; };
 
+  // Etiquetas del rubro de la cuenta de esta conversación.
+  function etiquetas(c) {
+    var r = CUENTA_RUBRO[c.zernio_account_id];
+    return (r && RUBROS[r]) || ETIQUETA_DEFAULT;
+  }
+  // Texto del estado para la pill (el nombre del rubro; nuevo = sin clasificar).
+  function nombreEstado(c) {
+    if (c.estado === 'nuevo') return 'sin clasificar';
+    return etiquetas(c)[c.estado] || c.estado;
+  }
+
   function fmtFecha(iso) {
     if (!iso) return '—';
     try { return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)); }
@@ -249,18 +275,21 @@
     try { return new Intl.DateTimeFormat('es-AR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(new Date(iso)); }
     catch (e) { return '--:--'; }
   }
+  // "Resuelta" = ya no espera acción: cerró, no cerró, o sin responder.
+  function resuelta(c) { return c.estado === 'cerro' || c.estado === 'no_cerro' || c.estado === 'sin_responder'; }
+
   // Deadline de atribución: 7 días DESDE EL CLIC (ctwa_captured_at). Solo
   // tiene sentido en Pauta con clid. Devuelve objeto para la celda.
   function deadline(c) {
     if (!c.ctwa_clid || !c.ctwa_captured_at) return { clase: 'sin', txt: '—', orden: Infinity, falta: Infinity };
     var vence = new Date(c.ctwa_captured_at).getTime() + SIETE_DIAS;
     var falta = vence - Date.now();
-    var resuelta = (c.estado === 'venta' || c.estado === 'descartado');
-    if (falta <= 0) return { clase: resuelta ? '' : 'vencida', txt: resuelta ? '—' : 'vencida — no atribuible', orden: vence, falta: falta };
+    var fin = resuelta(c);
+    if (falta <= 0) return { clase: fin ? '' : 'vencida', txt: fin ? '—' : 'vencida — no atribuible', orden: vence, falta: falta };
     var horas = falta / 3600000;
     var txt = horas < 24 ? ('quedan ' + Math.max(1, Math.floor(horas)) + ' h') : ('quedan ' + Math.floor(horas / 24) + ' d');
-    var clase = resuelta ? '' : (falta < H48 ? 'urgente' : '');
-    return { clase: clase, txt: resuelta ? '—' : txt, orden: vence, falta: falta };
+    var clase = fin ? '' : (falta < H48 ? 'urgente' : '');
+    return { clase: clase, txt: fin ? '—' : txt, orden: vence, falta: falta };
   }
 
   // ── Llamada a Edge Function (mismo esquema que crm.html) ──────
@@ -287,15 +316,31 @@
   }
 
   // ── Datos ─────────────────────────────────────────────────────
+  async function cargarRubros() {
+    var r = await SB.from('zernio_rubro').select('rubro, etiqueta_interesado, etiqueta_cerro, etiqueta_no_cerro, etiqueta_sin_responder');
+    RUBROS = {};
+    (r.data || []).forEach(function (x) {
+      RUBROS[x.rubro] = {
+        interesado: x.etiqueta_interesado, cerro: x.etiqueta_cerro,
+        no_cerro: x.etiqueta_no_cerro, sin_responder: x.etiqueta_sin_responder
+      };
+    });
+  }
   async function cargarCuentas() {
-    var r = await SB.from('zernio_cuenta').select('zernio_account_id, label, activa').eq('activa', true).order('label');
+    var r = await SB.from('zernio_cuenta').select('zernio_account_id, label, activa, rubro, solo_pauta').eq('activa', true).order('label');
     CUENTAS = (r.data || []);
+    CUENTA_RUBRO = {};
+    CUENTAS.forEach(function (c) { CUENTA_RUBRO[c.zernio_account_id] = c.rubro; });
+    // El cliente no elige cuenta; el equipo sí, si tiene más de una.
     var sel = $('filtroCuenta');
-    if (CUENTAS.length > 1) {
+    if (AGENCIA && CUENTAS.length > 1) {
       sel.style.display = '';
       sel.innerHTML = '<option value="">Todas las cuentas</option>' +
         CUENTAS.map(function (c) { return '<option value="' + esc(c.zernio_account_id) + '">' + esc(c.label) + '</option>'; }).join('');
     } else { sel.style.display = 'none'; }
+    // Para un cliente, si todas sus cuentas son solo_pauta, no hay nada
+    // que filtrar (todo es Pauta): se ocultan los chips.
+    soloPautaCliente = !AGENCIA && CUENTAS.length > 0 && CUENTAS.every(function (c) { return c.solo_pauta; });
   }
   async function cargarConvs() {
     var q = SB.from('zernio_conversacion')
@@ -316,10 +361,10 @@
     });
 
     // Orden: (1) Pauta activa que vence en <48h, por deadline asc;
-    // (2) resto activo (nuevo/lead) por última actividad desc;
-    // (3) venta/descartado al final.
+    // (2) resto activo (nuevo/interesado) por última actividad desc;
+    // (3) resueltas al final.
     var grupo = function (c) {
-      var activa = (c.estado === 'nuevo' || c.estado === 'lead');
+      var activa = (c.estado === 'nuevo' || c.estado === 'interesado');
       if (!activa) return 3;
       if (c.es_pauta && c.ctwa_clid) { var dl = deadline(c); if (dl.falta < H48) return 1; }
       return 2;
@@ -337,25 +382,27 @@
     }
 
     var filas = lista.map(function (c) {
-      var resuelta = (c.estado === 'venta' || c.estado === 'descartado');
+      var fin = resuelta(c);
+      var et = etiquetas(c);
       var dl = c.es_pauta ? deadline(c) : null;
       var origen = c.es_pauta
         ? '<span class="tag-pauta">Pauta</span>' +
           (c.ctwa_clid ? '<div class="clid ok">✓ con clid</div>' : '<div class="clid no">⚠ sin clid</div>')
         : '<span class="tag-nopauta">No pauta</span>';
-      // Botones en TODAS las filas. Re-marcar permitido.
+      // Botones por rubro, en TODAS las filas. Re-marcar permitido.
       var acc =
-        '<button class="chico" data-acc="lead" data-id="' + c.id + '">Marcar lead</button>' +
-        '<button class="chico venta" data-acc="venta" data-id="' + c.id + '">Marcar venta</button>' +
-        '<button class="chico" data-acc="descartar" data-id="' + c.id + '">Descartar</button>';
-      return '<tr class="' + (resuelta ? 'resuelta' : '') + '">' +
+        '<button class="chico" data-acc="interesado" data-id="' + c.id + '">' + esc(et.interesado) + '</button>' +
+        '<button class="chico cerro" data-acc="cerro" data-id="' + c.id + '">' + esc(et.cerro) + '</button>' +
+        '<button class="chico" data-acc="no_cerro" data-id="' + c.id + '">' + esc(et.no_cerro) + '</button>' +
+        '<button class="chico" data-acc="sin_responder" data-id="' + c.id + '">' + esc(et.sin_responder) + '</button>';
+      return '<tr class="' + (fin ? 'resuelta' : '') + '">' +
         '<td class="contacto"><div class="nom">' + esc(c.nombre || 'Sin nombre') + '</div>' +
           '<div class="tel">' + esc(c.phone_e164 || '—') + '</div></td>' +
         '<td>' + esc(c.ctwa_headline || '—') + '</td>' +
         '<td class="ctx" title="' + esc(c.primer_mensaje || '') + '">' + esc(c.primer_mensaje || '—') + '</td>' +
         '<td>' + origen + '</td>' +
-        '<td><span class="pill ' + c.estado + '">' + esc(c.estado) + '</span>' +
-          (c.estado === 'venta' && c.valor != null ? '<div class="clid" style="color:#234d0a">' + esc(c.moneda || '') + ' ' + esc(c.valor) + '</div>' : '') + '</td>' +
+        '<td><span class="pill ' + c.estado + '">' + esc(nombreEstado(c)) + '</span>' +
+          (c.estado === 'cerro' && c.valor != null ? '<div class="clid" style="color:#234d0a">' + esc(c.moneda || '') + ' ' + esc(c.valor) + '</div>' : '') + '</td>' +
         '<td>' + esc(fmtFecha(c.ultimo_mensaje_at)) + '</td>' +
         '<td>' + (dl ? '<span class="dl ' + dl.clase + '">' + esc(dl.txt) + '</span>' : '<span class="dl sin">—</span>') + '</td>' +
         '<td><div class="acc">' + acc + '</div>' +
@@ -385,18 +432,21 @@
     await cargarConvs();
   }
 
-  // ── Clasificar (con clid → Meta; sin clid → local) ────────────
-  async function clasificar(id, eventName, value, currency) {
+  // ── Clasificar ────────────────────────────────────────────────
+  //   destino ∈ interesado | cerro | no_cerro | sin_responder.
+  //   interesado/cerro con clid → a Meta (zernio-conversion). Sin clid, o
+  //   no_cerro/sin_responder → clasificación local (nunca Meta).
+  async function clasificar(destino, id, value, currency) {
     var c = find(id); if (!c) return;
+    var eventName = EVENTO_DE[destino];   // undefined para no_cerro/sin_responder
 
-    if (c.ctwa_clid) {
-      // Con clid: se informa a Meta vía zernio-conversion.
-      toast(eventName === 'Purchase' ? 'Enviando venta a Meta…' : 'Enviando lead a Meta…');
+    if (eventName && c.ctwa_clid) {
+      toast(eventName === 'Purchase' ? 'Enviando cierre a Meta…' : 'Enviando interés a Meta…');
       var r = await llamarFuncion(ZERNIO_CONV_URL, { conversacion_id: id, event_name: eventName, value: value, currency: currency });
       var d = r.data;
       if (!r.error && d && d.ok && d.estado_envio === 'enviado') {
-        c.estado = (eventName === 'Purchase' ? 'venta' : 'lead');
-        if (eventName === 'Purchase') { c.valor = value != null ? value : c.valor; c.moneda = currency || 'ARS'; }
+        c.estado = destino;
+        if (destino === 'cerro') { c.valor = value != null ? value : c.valor; c.moneda = currency || 'ARS'; }
         c._nota = '✓ Informado a Meta' + (d.trace_id ? ' (trace ' + d.trace_id + ')' : '');
         render(); toast('✓ Enviado a Meta');
       } else {
@@ -406,36 +456,34 @@
       return;
     }
 
-    // Sin clid: clasificación SOLO local (No pauta, o Pauta sin clid).
-    var patch = { estado: (eventName === 'Purchase' ? 'venta' : 'lead'), updated_at: new Date().toISOString() };
-    if (eventName === 'Purchase') { patch.valor = (value != null ? value : null); patch.moneda = currency || 'ARS'; }
+    // Local: no se informa a Meta.
+    var patch = { estado: destino, updated_at: new Date().toISOString() };
+    if (destino === 'cerro') { patch.valor = (value != null ? value : null); patch.moneda = currency || 'ARS'; }
+    else if (destino !== 'interesado') { /* no_cerro / sin_responder no tocan monto */ }
     var ru = await SB.from('zernio_conversacion').update(patch).eq('id', id);
     if (ru.error) { toast('No se pudo guardar: ' + ru.error.message); return; }
-    c.estado = patch.estado;
-    if (eventName === 'Purchase') { c.valor = patch.valor; c.moneda = patch.moneda; }
-    c._nota = c.es_pauta
-      ? 'Registrado. No se pudo informar a Meta (el anuncio no trajo el ID de clic).'
-      : 'Registrado. No se informa a Meta porque no vino de un anuncio.';
+    c.estado = destino;
+    if (destino === 'cerro') { c.valor = patch.valor; c.moneda = patch.moneda; }
+    c._nota = !eventName
+      ? 'Registrado. No se informa a Meta.'
+      : (c.es_pauta
+          ? 'Registrado. No se pudo informar a Meta (el anuncio no trajo el ID de clic).'
+          : 'Registrado. No se informa a Meta porque no vino de un anuncio.');
     render(); toast('Registrado');
   }
 
-  async function descartar(id) {
-    var c = find(id); if (!c) return;
-    if (!confirm('¿Descartar esta conversación? No se manda nada a Meta.')) return;
-    var r = await SB.from('zernio_conversacion').update({ estado: 'descartado', updated_at: new Date().toISOString() }).eq('id', id);
-    if (r.error) { toast('No se pudo descartar: ' + r.error.message); return; }
-    c.estado = 'descartado'; c._nota = null; render(); toast('Descartada');
-  }
-
-  // Modal venta (para con-clid y sin-clid por igual)
-  function abrirVenta(id) {
-    var c = find(id); ventaId = id;
+  // Modal de cierre (para con-clid y sin-clid por igual)
+  function abrirCierre(id) {
+    var c = find(id); cierreId = id;
+    var et = c ? etiquetas(c) : ETIQUETA_DEFAULT;
+    $('modalVentaTit').textContent = et.cerro;
+    $('ventaConfirmar').textContent = et.cerro;
     $('modalVentaSub').textContent = c ? ((c.nombre || c.phone_e164 || 'Contacto') + (c.es_pauta ? ' · Pauta' : ' · No pauta')) : '';
     $('ventaValor').value = ''; $('ventaMoneda').value = (c && c.moneda) || 'ARS';
     $('modalVenta').classList.add('on');
     setTimeout(function () { $('ventaValor').focus(); }, 40);
   }
-  function cerrarVenta() { $('modalVenta').classList.remove('on'); ventaId = null; }
+  function cerrarCierre() { $('modalVenta').classList.remove('on'); cierreId = null; }
 
   // ── Conectar cliente (link hospedado) ─────────────────────────
   function mensajeCliente(link, hora) {
@@ -453,7 +501,7 @@
     if (r.error || !(d && d.ok && d.url)) { toast((d && d.error) || (r.error && r.error.message) || 'No se pudo generar el link.'); return; }
     linkActual = d.url; linkVenceISO = d.expira_at;
     $('linkUrl').textContent = d.url;
-    $('linkVence').textContent = 'Vence a las ' + fmtHora(d.expira_at) + '.';
+    $('linkVence').textContent = 'Vence a las ' + fmtHora(d.expira_at);   // fmtHora ya termina en "m."
     $('resLink').classList.add('on');
   }
 
@@ -461,9 +509,8 @@
   $('tabla').addEventListener('click', function (e) {
     var b = e.target.closest('[data-acc]'); if (!b) return;
     var id = b.getAttribute('data-id'), acc = b.getAttribute('data-acc');
-    if (acc === 'lead') clasificar(id, 'LeadSubmitted');
-    else if (acc === 'venta') abrirVenta(id);
-    else if (acc === 'descartar') descartar(id);
+    if (acc === 'cerro') abrirCierre(id);
+    else clasificar(acc, id);                       // interesado / no_cerro / sin_responder
   });
   $('chipsOrigen').addEventListener('click', function (e) {
     var b = e.target.closest('[data-origen]'); if (!b) return;
@@ -471,20 +518,34 @@
     [].forEach.call(this.querySelectorAll('.chip'), function (ch) { ch.classList.toggle('on', ch === b); });
     render();
   });
-  $('ventaCancelar').addEventListener('click', cerrarVenta);
+  $('ventaCancelar').addEventListener('click', cerrarCierre);
   $('ventaConfirmar').addEventListener('click', function () {
     var raw = $('ventaValor').value, v = raw === '' ? null : parseFloat(raw);
     if (raw !== '' && !(v >= 0)) { toast('El monto tiene que ser un número.'); return; }
-    var moneda = $('ventaMoneda').value || 'ARS'; var id = ventaId; cerrarVenta();
-    clasificar(id, 'Purchase', v, moneda);
+    var moneda = $('ventaMoneda').value || 'ARS'; var id = cierreId; cerrarCierre();
+    clasificar('cerro', id, v, moneda);
   });
-  $('modalVenta').addEventListener('click', function (e) { if (e.target === this) cerrarVenta(); });
+  $('modalVenta').addEventListener('click', function (e) { if (e.target === this) cerrarCierre(); });
   $('btnSync').addEventListener('click', function () { sincronizar(false); });
   $('filtroCuenta').addEventListener('change', function () { cuentaSel = this.value; cargarConvs(); });
   $('btnLink').addEventListener('click', generarLink);
   $('btnCopiarLink').addEventListener('click', function () { if (linkActual) copiar(linkActual, 'Link copiado'); });
   $('btnCopiarMsg').addEventListener('click', function () { if (linkActual) copiar(mensajeCliente(linkActual, fmtHora(linkVenceISO)), 'Mensaje copiado'); });
   $('btnSalir').addEventListener('click', async function () { try { await SB.auth.signOut(); } finally { location.replace(LOGIN); } });
+
+  // ── Vista: equipo vs cliente ──────────────────────────────────
+  function aplicarVista() {
+    if (AGENCIA) return;   // el equipo ve todo como hoy
+    // Cliente: sin conectar, sin selector de cuenta, banner propio, y sin
+    // chips si su cuenta es solo_pauta (todo es Pauta).
+    $('volverPanel').style.display = 'inline-block';
+    $('seccionConectar').style.display = 'none';
+    $('filtroCuenta').style.display = 'none';
+    if (soloPautaCliente) { $('chipsOrigen').style.display = 'none'; origenSel = 'todos'; }
+    $('banner').innerHTML =
+      'Acá aparecen las consultas que llegan desde tus anuncios. Marcá cómo terminó cada una: así Meta aprende ' +
+      'qué tipo de personas terminan contratando y busca más parecidas. Seguís respondiendo desde WhatsApp como siempre.';
+  }
 
   // ── Arranque y control de acceso ─────────────────────────────
   async function arrancar() {
@@ -498,11 +559,20 @@
     } catch (e) { YO = { nombre: '' }; }
     AGENCIA = !!(YO.tipo === 'agencia' || YO.super_admin);
 
-    if (!AGENCIA) { mostrarAviso('Esto es del equipo', 'El puente de WhatsApp lo maneja CoMakers. Tu panel está en otra parte.'); return; }
+    // Carga lo que la RLS deje ver (equipo: todo; cliente: lo suyo).
+    await cargarRubros();
+    await cargarCuentas();
+
+    // Un cliente sin cuentas vinculadas no tiene nada que clasificar.
+    if (!AGENCIA && !CUENTAS.length) {
+      mostrarAviso('Todavía no hay consultas', 'Cuando conectemos tu WhatsApp y empiecen a llegar consultas desde tus anuncios, las vas a ver acá.');
+      $('volverPanel').style.display = 'inline-block';
+      return;
+    }
 
     $('user').textContent = YO.nombre || '';
+    aplicarVista();
     $('app').style.display = '';
-    await cargarCuentas();
     await cargarConvs();
     sincronizar(true);
     setInterval(function () { if (!document.hidden) sincronizar(true); }, 60000);
