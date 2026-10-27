@@ -2110,6 +2110,36 @@
     font-size: 12.5px; line-height: 1.5; background: var(--line-soft); border: 1px solid var(--line);
     border-radius: 8px; padding: 10px 12px; margin: 8px 0; user-select: text;
   }
+  /* ── Control de tareas: grilla cliente × columna (migración 61) ── */
+  .ctrl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-elev); }
+  .ctrl-tabla { border-collapse: separate; border-spacing: 0; min-width: 100%; font-size: 13.5px; }
+  .ctrl-tabla th, .ctrl-tabla td { border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft); padding: 0; text-align: left; vertical-align: middle; }
+  .ctrl-tabla thead th { background: var(--line-soft); font-size: 11.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-soft); position: sticky; top: 0; z-index: 2; }
+  .ctrl-tabla .ctrl-fija { position: sticky; left: 0; z-index: 1; background: var(--bg-elev); min-width: 190px; padding: 8px 12px; font-weight: 600; }
+  .ctrl-tabla thead .ctrl-fija { z-index: 3; background: var(--line-soft); }
+  .ctrl-th { display: flex; align-items: center; gap: 4px; padding: 8px 6px 8px 10px; min-width: 140px; }
+  .ctrl-th span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ctrl-th small { font-weight: 400; color: var(--ink-mute); }
+  .ctrl-menu-btn { border: 0; background: none; cursor: pointer; color: var(--ink-mute); padding: 2px 6px; border-radius: 6px; font-size: 15px; line-height: 1; }
+  .ctrl-menu-btn:hover { background: var(--bg-elev); color: var(--ink); }
+  .ctrl-in { width: 100%; border: 0; background: transparent; padding: 8px 10px; font: inherit; color: var(--ink); min-width: 140px; }
+  .ctrl-in:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--bg); }
+  .ctrl-in.guardando { opacity: .55; }
+  .ctrl-casilla { display: flex; align-items: center; justify-content: center; width: 100%; min-width: 140px; height: 36px; border: 0; background: transparent; cursor: pointer; }
+  .ctrl-casilla:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .ctrl-casilla .caja { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
+  .ctrl-casilla.on .caja { background: var(--verde-txt, #4c7a0f); border-color: transparent; color: #fff; }
+  .ctrl-nueva { padding: 6px 10px; white-space: nowrap; }
+  .ctrl-pop { position: fixed; z-index: 1000; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.18); padding: 6px; min-width: 210px; display: flex; flex-direction: column; gap: 2px; }
+  .ctrl-pop button { text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 13px; color: var(--ink); }
+  .ctrl-pop button:hover { background: var(--line-soft); }
+  .ctrl-pop button:disabled { opacity: .4; cursor: default; background: none; }
+  .ctrl-pop .peligro { color: var(--warn); }
+  .ctrl-pop .sep { height: 1px; background: var(--line-soft); margin: 4px 0; }
+  .ctrl-pop .et { font-size: 11px; color: var(--ink-mute); padding: 4px 10px 2px; }
+  .ctrl-pop input, .ctrl-pop select { font: inherit; font-size: 13px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--ink); margin: 2px 4px; }
+  .ctrl-ayuda { font-size: 12.5px; color: var(--ink-mute); margin: 0 0 10px; }
+
   /* Tablas del texto con formato (descripciones, comentarios, wiki). */
   table.tabla-txt { border-collapse: collapse; margin: 8px 0; max-width: 100%; font-size: inherit; }
   table.tabla-txt th, table.tabla-txt td {
@@ -3011,6 +3041,10 @@
         Bandeja
         <span class="badge-nov" id="navNov" style="display:none">0</span>
       </button>
+      <button class="nav-item" id="navControl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+        Control de tareas
+      </button>
       <button class="nav-item active" id="navTablero">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
         Todo el tablero
@@ -3061,6 +3095,10 @@
         <button class="nav-item" id="navDist" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
           Distribución
+        </button>
+        <button class="nav-item" id="navControl">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+          Control de tareas
         </button>
         <button class="nav-item" id="navWiki">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
@@ -3266,6 +3304,9 @@
     <!-- ═══════════ WIKI ═══════════ -->
     <div id="modWiki" style="display:none"></div>
 <!--@@FIN-->
+
+    <!-- ═══════════ CONTROL DE TAREAS (las dos páginas) ═══════════ -->
+    <div id="modControl" style="display:none"></div>
   </main>
 </div>
 <!-- ═══════════ MODAL SERVICIO CONTRATADO ═══════════ -->
@@ -6773,7 +6814,7 @@
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
     dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
-    servicios: 'Servicios', etiquetas: 'Etiquetas'
+    servicios: 'Servicios', etiquetas: 'Etiquetas', control: 'Control de tareas'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -6790,6 +6831,238 @@
     if (t) t.classList.remove('on');
   }
 
+  // ═══════════════ CONTROL DE TAREAS (migración 61) ═══════════════
+  // Grilla tipo planilla: una fila por cliente activo (alfabético) y las
+  // columnas que define la agencia (control_columna). Cada celda guarda
+  // sola al cambiar (control_celda, un campo por tipo: cambiar el tipo de
+  // una columna no pisa lo cargado). Vive en las dos páginas: socias en
+  // administración, equipo en el panel interno. El cliente no tiene
+  // permisos sobre estas tablas.
+  const CTRL = { cargado: false, falta: false, cols: [], celdas: {} };
+  const CTRL_TIPOS = { texto: 'Texto', fecha: 'Fecha', casilla: 'Casilla (sí/no)' };
+  const ctrlClave = (cl, col) => cl + '|' + col;
+
+  async function cargarControl() {
+    const [rc, rv] = await Promise.all([
+      SB.from('control_columna').select('id, nombre, tipo, orden').order('orden').order('creado_en'),
+      SB.from('control_celda').select('cliente_id, columna_id, valor_texto, valor_fecha, valor_casilla')
+    ]);
+    const err = rc.error || rv.error;
+    CTRL.falta = !!err && /control_columna|control_celda|does not exist|no existe|schema cache/i.test(err.message || '');
+    if (err && !CTRL.falta) { toast('No se pudo cargar el control: ' + err.message, 'warn'); }
+    CTRL.cols = rc.data || [];
+    CTRL.celdas = {};
+    (rv.data || []).forEach(v => { CTRL.celdas[ctrlClave(v.cliente_id, v.columna_id)] = v; });
+    CTRL.cargado = true;
+  }
+
+  function ctrlClientes() {
+    return CLIENTES.filter(c => c.activo !== false)
+      .slice().sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es', { sensitivity: 'base' }));
+  }
+
+  function ctrlCelda(cl, col) {
+    const v = CTRL.celdas[ctrlClave(cl.id, col.id)] || {};
+    const d = 'data-ccl="' + esc(cl.id) + '" data-ccol="' + esc(col.id) + '"';
+    if (col.tipo === 'casilla') {
+      const on = v.valor_casilla === true;
+      return '<td><button type="button" class="ctrl-casilla' + (on ? ' on' : '') + '" ' + d + ' aria-pressed="' + on + '" title="' + esc(col.nombre) + '"><span class="caja">✓</span></button></td>';
+    }
+    if (col.tipo === 'fecha') {
+      return '<td><input type="date" class="ctrl-in" ' + d + ' value="' + esc(v.valor_fecha || '') + '"></td>';
+    }
+    return '<td><input type="text" class="ctrl-in" ' + d + ' value="' + esc(v.valor_texto || '') + '" data-antes="' + esc(v.valor_texto || '') + '"></td>';
+  }
+
+  async function renderControl() {
+    const cont = $si('#modControl');
+    if (!cont) return;
+    if (!CTRL.cargado) {
+      cont.innerHTML = '<p class="ctrl-ayuda">Cargando…</p>';
+      await cargarControl();
+      if (MODULO !== 'control') return;
+    }
+    if (CTRL.falta) {
+      cont.innerHTML = '<p class="ctrl-ayuda">Falta correr la migración 61 (Control de tareas) en Supabase.</p>';
+      return;
+    }
+    const cls = ctrlClientes();
+    const cols = CTRL.cols;
+    let h = '<p class="ctrl-ayuda">Clic en una celda y escribí: se guarda solo al salir (Enter baja a la fila siguiente, Esc deshace). ' +
+      'Las casillas se marcan con un clic. Con ⋯ en el encabezado se renombra, se mueve, se cambia el tipo o se borra la columna.</p>';
+    h += '<div class="ctrl-wrap"><table class="ctrl-tabla"><thead><tr><th class="ctrl-fija">Cliente</th>' +
+      cols.map(col => '<th><div class="ctrl-th"><span title="' + esc(col.nombre) + '">' + esc(col.nombre) + ' <small>' +
+        esc(col.tipo === 'casilla' ? 'sí/no' : col.tipo) + '</small></span>' +
+        '<button type="button" class="ctrl-menu-btn" data-cmenu="' + esc(col.id) + '" title="Opciones de la columna" aria-label="Opciones de la columna">⋯</button></div></th>').join('') +
+      '<th><button type="button" class="btn-ghost ctrl-nueva" id="ctrlNueva">+ Columna</button></th></tr></thead><tbody>';
+    if (!cls.length) {
+      h += '<tr><td class="ctrl-fija" colspan="' + (cols.length + 2) + '">No hay clientes activos.</td></tr>';
+    } else {
+      h += cls.map(cl => '<tr><td class="ctrl-fija">' + esc(cl.nombre || '—') + '</td>' +
+        cols.map(col => ctrlCelda(cl, col)).join('') + '<td></td></tr>').join('');
+    }
+    h += '</tbody></table></div>';
+    cont.innerHTML = h;
+  }
+  MODULOS.control = renderControl;
+
+  // ── Guardar una celda ──
+  async function ctrlGuardar(clId, colId, patch) {
+    const k = ctrlClave(clId, colId);
+    const antes = CTRL.celdas[k] ? Object.assign({}, CTRL.celdas[k]) : null;
+    CTRL.celdas[k] = Object.assign({ cliente_id: clId, columna_id: colId }, antes || {}, patch);
+    const { error } = await SB.from('control_celda').upsert(
+      Object.assign({ cliente_id: clId, columna_id: colId, actualizado_en: new Date().toISOString() }, patch),
+      { onConflict: 'cliente_id,columna_id' });
+    if (error) {
+      if (antes) CTRL.celdas[k] = antes; else delete CTRL.celdas[k];
+      toast('No se guardó: ' + error.message, 'warn');
+      return false;
+    }
+    return true;
+  }
+
+  async function ctrlGuardarInput(inp) {
+    const col = CTRL.cols.find(x => x.id === inp.dataset.ccol); if (!col) return;
+    const k = ctrlClave(inp.dataset.ccl, col.id);
+    const v = CTRL.celdas[k] || {};
+    const val = inp.value.trim();
+    const patch = col.tipo === 'fecha' ? { valor_fecha: val || null } : { valor_texto: val || null };
+    const previo = col.tipo === 'fecha' ? (v.valor_fecha || '') : (v.valor_texto || '');
+    if ((val || '') === previo) return;
+    inp.classList.add('guardando');
+    const ok = await ctrlGuardar(inp.dataset.ccl, col.id, patch);
+    inp.classList.remove('guardando');
+    if (!ok) inp.value = previo;
+    else inp.dataset.antes = val;
+  }
+
+  // ── Columnas ──
+  function ctrlCerrarPop() { const p = $si('#ctrlPop'); if (p) p.remove(); }
+  function ctrlPop(ancla, html, conectar) {
+    ctrlCerrarPop();
+    const p = document.createElement('div');
+    p.className = 'ctrl-pop'; p.id = 'ctrlPop'; p.innerHTML = html;
+    document.body.appendChild(p);
+    const r = ancla.getBoundingClientRect();
+    const izq = Math.min(r.left, window.innerWidth - p.offsetWidth - 12);
+    p.style.left = Math.max(12, izq) + 'px';
+    p.style.top = Math.min(r.bottom + 4, window.innerHeight - p.offsetHeight - 12) + 'px';
+    conectar(p);
+  }
+
+  async function ctrlReordenar(cols) {
+    // Se renumera todo de 1 en adelante; solo se escribe lo que cambió.
+    const cambios = [];
+    cols.forEach((c, i) => { if (c.orden !== i + 1) { c.orden = i + 1; cambios.push(c); } });
+    CTRL.cols = cols;
+    renderControl();
+    for (const c of cambios) {
+      const { error } = await SB.from('control_columna').update({ orden: c.orden }).eq('id', c.id);
+      if (error) { toast('No se pudo mover la columna: ' + error.message, 'warn'); CTRL.cargado = false; renderControl(); return; }
+    }
+  }
+
+  function ctrlMenuColumna(btn) {
+    const col = CTRL.cols.find(x => x.id === btn.dataset.cmenu); if (!col) return;
+    const i = CTRL.cols.indexOf(col), n = CTRL.cols.length;
+    ctrlPop(btn,
+      '<button type="button" data-cacc="renombrar">Renombrar</button>' +
+      '<button type="button" data-cacc="izq"' + (i === 0 ? ' disabled' : '') + '>← Mover a la izquierda</button>' +
+      '<button type="button" data-cacc="der"' + (i === n - 1 ? ' disabled' : '') + '>Mover a la derecha →</button>' +
+      '<div class="sep"></div><div class="et">Tipo</div>' +
+      Object.keys(CTRL_TIPOS).map(t => '<button type="button" data-ctipo="' + t + '"' + (t === col.tipo ? ' disabled' : '') + '>' +
+        (t === col.tipo ? '● ' : '○ ') + CTRL_TIPOS[t] + '</button>').join('') +
+      '<div class="sep"></div><button type="button" class="peligro" data-cacc="borrar">Borrar columna</button>',
+      p => p.addEventListener('click', async e => {
+        const b = e.target.closest('button'); if (!b || b.disabled) return;
+        ctrlCerrarPop();
+        if (b.dataset.ctipo) {
+          const nuevo = b.dataset.ctipo, viejo = col.tipo;
+          col.tipo = nuevo; renderControl();
+          const { error } = await SB.from('control_columna').update({ tipo: nuevo }).eq('id', col.id);
+          if (error) { col.tipo = viejo; renderControl(); toast('No se pudo cambiar el tipo: ' + error.message, 'warn'); }
+          else toast('Ahora es ' + CTRL_TIPOS[nuevo].toLowerCase() + '. Lo cargado con el tipo anterior se guarda por si volvés.', 'ok');
+          return;
+        }
+        const acc = b.dataset.cacc;
+        if (acc === 'izq' || acc === 'der') {
+          const cols = CTRL.cols.slice(), j = acc === 'izq' ? i - 1 : i + 1;
+          [cols[i], cols[j]] = [cols[j], cols[i]];
+          await ctrlReordenar(cols);
+        } else if (acc === 'renombrar') {
+          const nom = (prompt('Nuevo nombre de la columna:', col.nombre) || '').trim();
+          if (!nom || nom === col.nombre) return;
+          const viejo = col.nombre; col.nombre = nom; renderControl();
+          const { error } = await SB.from('control_columna').update({ nombre: nom }).eq('id', col.id);
+          if (error) { col.nombre = viejo; renderControl(); toast('No se pudo renombrar: ' + error.message, 'warn'); }
+        } else if (acc === 'borrar') {
+          if (!confirm('¿Borrar la columna “' + col.nombre + '”?\n\nSe pierde lo cargado en esa columna para todos los clientes. No se puede deshacer.')) return;
+          const { error } = await SB.from('control_columna').delete().eq('id', col.id);
+          if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
+          CTRL.cols = CTRL.cols.filter(x => x.id !== col.id);
+          Object.keys(CTRL.celdas).forEach(k => { if (k.endsWith('|' + col.id)) delete CTRL.celdas[k]; });
+          renderControl(); toast('Columna borrada.', 'ok');
+        }
+      }));
+  }
+
+  function ctrlNuevaColumna(btn) {
+    ctrlPop(btn,
+      '<div class="et">Nueva columna</div>' +
+      '<input id="ctrlNom" placeholder="Nombre (ej: Calendario revisado)" maxlength="60">' +
+      '<select id="ctrlTipo">' + Object.keys(CTRL_TIPOS).map(t => '<option value="' + t + '">' + CTRL_TIPOS[t] + '</option>').join('') + '</select>' +
+      '<button type="button" id="ctrlCrear"><b>Agregar</b></button>',
+      p => {
+        const nom = p.querySelector('#ctrlNom'); nom.focus();
+        const crear = async () => {
+          const nombre = nom.value.trim();
+          if (!nombre) { nom.focus(); return; }
+          const tipo = p.querySelector('#ctrlTipo').value;
+          const orden = CTRL.cols.reduce((m, c) => Math.max(m, c.orden || 0), 0) + 1;
+          ctrlCerrarPop();
+          const { data, error } = await SB.from('control_columna')
+            .insert({ agencia: (ME && ME.agencia) || 'CoMakers', nombre, tipo, orden }).select('id, nombre, tipo, orden').single();
+          if (error) { toast('No se pudo agregar la columna: ' + error.message, 'warn'); return; }
+          CTRL.cols.push(data); renderControl(); toast('Columna agregada.', 'ok');
+        };
+        p.querySelector('#ctrlCrear').addEventListener('click', crear);
+        nom.addEventListener('keydown', e => { if (e.key === 'Enter') crear(); if (e.key === 'Escape') ctrlCerrarPop(); });
+      });
+  }
+
+  // Eventos de la grilla: delegados en el contenedor (se re-dibuja entero).
+  (function conectarControl() {
+    const cont = $si('#modControl'); if (!cont) return;
+    cont.addEventListener('click', async e => {
+      const menu = e.target.closest('[data-cmenu]'); if (menu) { e.stopPropagation(); ctrlMenuColumna(menu); return; }
+      const nueva = e.target.closest('#ctrlNueva'); if (nueva) { e.stopPropagation(); ctrlNuevaColumna(nueva); return; }
+      const cas = e.target.closest('.ctrl-casilla');
+      if (cas) {
+        const on = !cas.classList.contains('on');
+        cas.classList.toggle('on', on); cas.setAttribute('aria-pressed', on);
+        const ok = await ctrlGuardar(cas.dataset.ccl, cas.dataset.ccol, { valor_casilla: on });
+        if (!ok) { cas.classList.toggle('on', !on); cas.setAttribute('aria-pressed', !on); }
+      }
+    });
+    // Texto: guarda al salir. Fecha: guarda al elegir (change).
+    cont.addEventListener('change', e => { const i = e.target.closest('.ctrl-in'); if (i) ctrlGuardarInput(i); });
+    cont.addEventListener('keydown', e => {
+      const i = e.target.closest('.ctrl-in'); if (!i) return;
+      if (e.key === 'Escape' && i.type === 'text') { i.value = i.dataset.antes || ''; i.blur(); return; }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        // Enter baja a la misma columna en la fila siguiente (como una planilla).
+        const td = i.closest('td'), tr = td.parentElement, idx = Array.prototype.indexOf.call(tr.children, td);
+        const sig = tr.nextElementSibling && tr.nextElementSibling.children[idx];
+        const foco = sig && sig.querySelector('input, button');
+        i.blur();
+        if (foco) foco.focus();
+      }
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('#ctrlPop')) ctrlCerrarPop(); });
+  })();
+
   function cambiarModulo(m) {
     // Equipo, Clientes y Contabilidad son de las socias. Esto es la
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
@@ -6804,6 +7077,7 @@
     if (m === 'wiki' && !WIKI_CARGADA) cargarWiki();
 /*@@FIN*/
     if (m === 'bandeja' && !BAN_CARGADA) cargarBandeja();
+    if (m === 'control') CTRL.cargado = false;   // siempre fresco al entrar: lo editan varias a la vez
     render();
   }
 
@@ -6836,6 +7110,7 @@
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
     mostrar('#modWiki',      MODULO === 'wiki');
+    mostrar('#modControl',   MODULO === 'control');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
 
@@ -6859,6 +7134,7 @@
     activar('#navTablero',  MODULO === 'tareas' && !FILTRO.proyecto);
     activar('#navClientes', MODULO === 'clientes');
     activar('#navWiki',     MODULO === 'wiki');
+    activar('#navControl',  MODULO === 'control');
     activar('#navServicios', MODULO === 'servicios');
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
@@ -6882,6 +7158,7 @@
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
       dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca, y el fondo + gastos.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
+      control:  ['Control de <em>tareas</em>', 'Una fila por cliente activo y las columnas que definimos nosotras. Se guarda solo.'],
       etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página
     t.querySelector('h1').innerHTML = H[0];
@@ -15589,6 +15866,9 @@
   on('#navBandeja', 'click', () => cambiarModulo('bandeja'));
   on('#navClientes', 'click', () => cambiarModulo('clientes'));
   on('#navWiki', 'click', () => cambiarModulo('wiki'));
+  on('#navControl', 'click', () => cambiarModulo('control'));
+  // "Actualizar" también trae de nuevo la grilla si estás en Control de tareas.
+  on('#btnRefrescar', 'click', () => { if (MODULO === 'control') { CTRL.cargado = false; render(); } });
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));
 /*@@INTERNO*/
   on('#fGuardar', 'click', guardar);

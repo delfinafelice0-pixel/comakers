@@ -722,6 +722,13 @@ console.log(JSON.stringify(await r.json(), null, 2));
 `pull-instagram`, `pull-posts` y `pull-ads` aceptan `debug: true` para
 diagnóstico sin escribir en la base.
 
+**27/10/2026 · solapa "Control de tareas" (migración 61, corrida).** Grilla
+cliente × columna en las DOS páginas (administración para socias, panel
+interno para el equipo; código compartido en interno.src.html, módulo
+`control`). Columnas en `control_columna` (por agencia, texto de
+profiles.agencia), valores en `control_celda` (un campo por tipo). El
+cliente no tiene permisos sobre esas tablas.
+
 **27/10/2026 · montos de servicios solo para socias (migración 60, PROPUESTA,
 no corrida).** `ve_montos()` = es_super() or es_socia(). `panel_servicio`
 al equipo (agencia no socia) le devuelve monto/tipo/historial/ajuste_pct en
