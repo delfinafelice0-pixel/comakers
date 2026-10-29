@@ -6,6 +6,13 @@
 <title>Interno · CoMakers</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
 
+<!-- PWA (sin marcar @@: va a interno.html y a administracion.html) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF82FF">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CoMakers">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ── Guard de sesión ─────────────────────────────────────────
@@ -1023,22 +1030,6 @@
      abajo, así se lee como una sola rama y no como dos ganchos sueltos. */
   .fila.sub + .fila.sub .fila-rama { top: -50%; }
 
-  /* El botón para plegar las subtareas de una fila. Va pegado al título
-     y no a la izquierda: ahí está la manito de arrastrar. */
-  .subs-pill {
-    display: inline-flex; align-items: center; gap: 3px; vertical-align: 1px;
-    margin-left: 7px; padding: 1px 7px 1px 4px; border: none; border-radius: 999px;
-    background: var(--line-soft); color: var(--ink-mute); cursor: pointer;
-    font-family: var(--body); font-size: 10.5px; font-weight: 600; line-height: 16px;
-    font-variant-numeric: tabular-nums; transition: background .12s, color .12s;
-  }
-  .subs-pill svg { width: 11px; height: 11px; transition: transform .15s; }
-  .subs-pill.cerrada svg { transform: rotate(-90deg); }
-  .subs-pill:hover { background: var(--linea-fuerte); color: var(--ink); }
-  .subs-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .subs-pill.alerta { background: var(--warn-soft); color: var(--warn); }
-  @media (prefers-reduced-motion: reduce) { .subs-pill svg { transition: none; } }
-
   /* ── A PAGAR ──────────────────────────────── */
   /* El contador de la solapa: cuántos trabajos hay sin saldar. */
   .tab-n {
@@ -1139,133 +1130,6 @@
   .cliente-row .nomc [contenteditable]:hover { background: var(--line-soft); }
   .cliente-row .nomc [contenteditable]:focus { background: var(--bg-elev); box-shadow: 0 0 0 1px var(--accent); }
   .cliente-row.inactivo { opacity: .55; }
-
-  /* ── Botón de configuración (engranaje) en la tabla de clientes ── */
-  .prow .cli .cfg-cli {
-    display: inline-flex; align-items: center; justify-content: center;
-    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-mute);
-    border-radius: 6px; width: 20px; height: 20px; margin-left: 6px; padding: 0;
-    cursor: pointer; vertical-align: middle; opacity: .55;
-    transition: opacity .15s, border-color .15s, color .15s;
-  }
-  .prow .cli .cfg-cli svg { width: 13px; height: 13px; }
-  .prow:hover .cli .cfg-cli, .prow .cli .cfg-cli:focus { opacity: 1; }
-  .prow .cli .cfg-cli:hover { border-color: var(--ink); color: var(--ink); }
-
-  /* Una tabla vacía (inactivos ocultos) no deja una caja fantasma. */
-  .tabla:empty { display: none; }
-
-  /* Distribución: caja de Supuestos y columna de verificación. */
-  .supuestos {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-    font-size: 11.5px; color: var(--ink-mute); margin: 0 0 12px;
-    padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev);
-  }
-  .supuestos b { color: var(--ink); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
-  .supuestos span { background: var(--line-soft); border-radius: 20px; padding: 2px 9px; }
-  .supuestos .sep { background: none; padding: 0; color: var(--line); }
-  .supuestos .supuestos-warn { background: var(--warn-soft); color: var(--ink); }
-  .verif { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 5px; }
-  .verif.ok  { color: var(--verde-txt, #4E7C1C); }
-  .verif.err { color: #b23; background: var(--warn-soft); }
-
-  /* Fondo + Gastos: la tabla de gastos. */
-  .gasto-tabla { min-width: 820px; }
-  .gasto-row { display: grid; grid-template-columns: 72px minmax(150px,2fr) 132px 96px 112px minmax(120px,1.4fr) 104px 34px; }
-  .gasto-row .g-desc { font-weight: 500; overflow-wrap: anywhere; }
-  .gasto-row .g-comp { color: var(--ink-mute); font-size: 11.5px; overflow-wrap: anywhere; }
-  .g-borrar {
-    width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
-    color: var(--ink-mute); cursor: pointer; opacity: 0; transition: opacity .15s, color .15s, border-color .15s;
-  }
-  .gasto-row:hover .g-borrar { opacity: 1; }
-  .g-borrar:hover { color: #b23; border-color: var(--line); }
-
-  /* Servicios del cliente en el popup. */
-  .cl-serv-row {
-    display: flex; align-items: center; gap: 8px; padding: 7px 0;
-    border-bottom: 1px solid var(--line-soft); font-size: 13px;
-  }
-  .cl-serv-row:last-child { border-bottom: none; }
-  .cl-serv-nom { font-weight: 500; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-  .cl-serv-monto { display: inline-flex; align-items: center; gap: 2px; color: var(--ink-mute); }
-  .cl-serv-monto .peso { font-size: 12px; }
-  .cl-serv-input {
-    width: 96px; text-align: right; font-variant-numeric: tabular-nums;
-    padding: 4px 6px; font-size: 12.5px;
-  }
-  .cl-serv-x {
-    width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
-    color: var(--ink-mute); cursor: pointer;
-  }
-  .cl-serv-x:hover { color: #b23; border-color: var(--line); }
-
-  /* Servicios: resumen de costo/margen del plan y toggle de proyección. */
-  .sv-costo-resumen {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-    font-size: 12.5px; color: var(--ink-soft); margin: 8px 0 2px;
-    padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev);
-  }
-  .sv-costo-resumen .sep { color: var(--line); }
-  .cs-costo { color: var(--ink-mute); font-variant-numeric: tabular-nums; font-size: 12.5px; }
-  .margen-ok  { color: var(--verde-txt, #4E7C1C); }
-  .margen-mal { color: #b23; }
-  .proy-toggle { display: inline-flex; gap: 4px; margin-left: auto; }
-  .proy-toggle button {
-    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-soft);
-    border-radius: 20px; padding: 4px 11px; font-size: 12px; cursor: pointer;
-  }
-  .proy-toggle button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
-  .cs-fila.archivada { opacity: .6; }
-  .cs-fila.archivada input, .cs-fila.archivada select { background: var(--line-soft); }
-
-  /* ── Popup de cliente · sección Panel ── */
-  .panel-tit { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
-  .panel-tit-sub { font-weight: 400; color: var(--ink-mute); }
-  .panel-mods { display: flex; flex-wrap: wrap; gap: 8px; }
-  .mod-chip {
-    display: inline-flex; align-items: center; gap: 7px;
-    border: 1px solid var(--line); background: var(--bg);
-    border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500;
-    color: var(--ink-soft); cursor: pointer; transition: all .15s;
-  }
-  .mod-chip:hover { border-color: var(--ink-soft); }
-  .mod-chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
-  .mod-chip .mod-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--line); transition: background .15s;
-  }
-  .mod-chip.on .mod-dot { background: var(--accent); }
-
-  .conex {
-    border: 1px solid var(--line); border-radius: 10px;
-    padding: 11px 12px; margin-bottom: 8px; background: var(--bg-elev);
-  }
-  .conex.apagada { opacity: .7; }
-  .conex-cab { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .conex-nom { font-weight: 600; font-size: 13px; color: var(--ink); }
-  .conex-estado {
-    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px;
-    padding: 2px 7px; border-radius: 20px; margin-left: auto;
-  }
-  .conex-estado.on { background: var(--good-soft); color: var(--ink); }
-  .conex-estado.off { background: var(--line-soft); color: var(--ink-mute); }
-  .conex-id { display: flex; align-items: baseline; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
-  .conex-id .k { font-size: 11px; color: var(--ink-mute); }
-  .conex-id code {
-    font-size: 12px; font-family: var(--mono, monospace); color: var(--ink);
-    background: var(--line-soft); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere;
-  }
-  .conex-sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 2px; }
-  .conex-err {
-    font-size: 11.5px; color: var(--ink); background: var(--warn-soft);
-    border-radius: 6px; padding: 5px 8px; margin-top: 6px; overflow-wrap: anywhere;
-  }
-  .conex .btn-ghost.chico { margin-top: 9px; }
-  .conex .conex-acc { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
-  .conex.editando input[type="text"] { width: 100%; }
-  .campo-label.chico { font-size: 11px; color: var(--ink-mute); display: block; margin-bottom: 3px; }
-  .btn-ghost.chico, .btn-primary.chico { padding: 6px 11px; font-size: 12px; }
 
   /* Wiki */
   .wiki { display: grid; grid-template-columns: 250px minmax(0,1fr); gap: 18px; align-items: start; }
@@ -1495,22 +1359,6 @@
     display: flex; align-items: center; gap: 5px; font-size: 11px;
     color: var(--ink-mute); cursor: pointer; user-select: none; white-space: nowrap;
   }
-  /* Interruptor "Cliente activo" del popup. */
-  .cl-activo { margin-bottom: 4px; }
-  .sw { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
-  .sw input { position: absolute; opacity: 0; width: 0; height: 0; }
-  .sw-pista {
-    width: 38px; height: 22px; border-radius: 999px; background: var(--line);
-    position: relative; flex-shrink: 0; transition: background .15s;
-  }
-  .sw-pista::after {
-    content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
-    border-radius: 50%; background: #fff; box-shadow: var(--shadow); transition: transform .15s;
-  }
-  .sw input:checked + .sw-pista { background: var(--verde-txt); }
-  .sw input:checked + .sw-pista::after { transform: translateX(16px); }
-  .sw input:focus-visible + .sw-pista { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
-  .sw-txt { font-size: 13px; font-weight: 500; color: var(--ink); }
   .aviso-secreto {
     background: var(--warn-soft); border-radius: 8px; padding: 9px 11px;
     font-size: 11px; line-height: 1.5; color: var(--ink); margin-top: 14px;
@@ -2093,85 +1941,6 @@
   .editor a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
   .editor .mencion { cursor: default; }
 
-  /* ── Resaltado, línea y checklist ──────────
-     Van sin el prefijo .editor porque el mismo texto se dibuja también
-     en comentarios, en el Resumen y en administración. */
-  :root { --resalte: #FFEC85; }
-  html[data-tema="oscuro"] { --resalte: rgba(240, 194, 75, .34); }
-  mark {
-    background: var(--resalte); color: inherit; border-radius: 3px; padding: 0 2px;
-    -webkit-box-decoration-break: clone; box-decoration-break: clone;
-  }
-  hr { border: none; border-top: 1px solid var(--linea-fuerte); margin: 10px 0; height: 0; }
-  li.chk { list-style: none; }
-  /* Bloques de código del texto con formato (p. ej. un prompt en la wiki). */
-  pre.bloque-codigo {
-    white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 12.5px; line-height: 1.5; background: var(--line-soft); border: 1px solid var(--line);
-    border-radius: 8px; padding: 10px 12px; margin: 8px 0; user-select: text;
-  }
-  /* ── Control de tareas: grilla cliente × columna (migración 61) ── */
-  .ctrl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-elev); }
-  .ctrl-tabla { border-collapse: separate; border-spacing: 0; min-width: 100%; font-size: 13.5px; }
-  .ctrl-tabla th, .ctrl-tabla td { border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft); padding: 0; text-align: left; vertical-align: middle; }
-  .ctrl-tabla thead th { background: var(--line-soft); font-size: 11.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-soft); position: sticky; top: 0; z-index: 2; }
-  .ctrl-tabla .ctrl-fija { position: sticky; left: 0; z-index: 1; background: var(--bg-elev); min-width: 190px; padding: 8px 12px; font-weight: 600; }
-  .ctrl-tabla thead .ctrl-fija { z-index: 3; background: var(--line-soft); }
-  .ctrl-th { display: flex; align-items: center; gap: 4px; padding: 8px 6px 8px 10px; min-width: 140px; }
-  .ctrl-th span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ctrl-th small { font-weight: 400; color: var(--ink-mute); }
-  .ctrl-menu-btn { border: 0; background: none; cursor: pointer; color: var(--ink-mute); padding: 2px 6px; border-radius: 6px; font-size: 15px; line-height: 1; }
-  .ctrl-menu-btn:hover { background: var(--bg-elev); color: var(--ink); }
-  .ctrl-in { width: 100%; border: 0; background: transparent; padding: 8px 10px; font: inherit; color: var(--ink); min-width: 140px; }
-  .ctrl-in:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--bg); }
-  .ctrl-in.guardando { opacity: .55; }
-  .ctrl-casilla { display: flex; align-items: center; justify-content: center; width: 100%; min-width: 140px; height: 36px; border: 0; background: transparent; cursor: pointer; }
-  .ctrl-casilla:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .ctrl-casilla .caja { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
-  .ctrl-casilla.on .caja { background: var(--verde-txt, #4c7a0f); border-color: transparent; color: #fff; }
-  .ctrl-nueva { padding: 6px 10px; white-space: nowrap; }
-  .ctrl-pop { position: fixed; z-index: 1000; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.18); padding: 6px; min-width: 210px; display: flex; flex-direction: column; gap: 2px; }
-  .ctrl-pop button { text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 13px; color: var(--ink); }
-  .ctrl-pop button:hover { background: var(--line-soft); }
-  .ctrl-pop button:disabled { opacity: .4; cursor: default; background: none; }
-  .ctrl-pop .peligro { color: var(--warn); }
-  .ctrl-pop .sep { height: 1px; background: var(--line-soft); margin: 4px 0; }
-  .ctrl-pop .et { font-size: 11px; color: var(--ink-mute); padding: 4px 10px 2px; }
-  .ctrl-pop input, .ctrl-pop select { font: inherit; font-size: 13px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--ink); margin: 2px 4px; }
-  .ctrl-ayuda { font-size: 12.5px; color: var(--ink-mute); margin: 0 0 10px; }
-
-  /* Tablas del texto con formato (descripciones, comentarios, wiki). */
-  table.tabla-txt { border-collapse: collapse; margin: 8px 0; max-width: 100%; font-size: inherit; }
-  table.tabla-txt th, table.tabla-txt td {
-    border: 1px solid var(--line); padding: 5px 9px; text-align: left; vertical-align: top; min-width: 60px;
-  }
-  table.tabla-txt th { background: var(--line-soft); font-weight: 600; }
-  .tabla-barra {
-    position: absolute; z-index: 1200; display: flex; gap: 2px; padding: 3px; border-radius: 8px;
-    background: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.18);
-  }
-  .tabla-barra button {
-    border: 0; background: none; color: #fff; font: inherit; font-size: 11.5px; padding: 3px 7px; border-radius: 6px; cursor: pointer;
-  }
-  .tabla-barra button:hover { background: rgba(255,255,255,.16); }
-  /* La casilla ocupa el lugar de la viñeta: el texto queda alineado con
-     el de los renglones comunes de la misma lista. */
-  .chk-box {
-    display: inline-block; position: relative; vertical-align: -2px;
-    width: 14px; height: 14px; margin: 0 7px 0 -21px; box-sizing: border-box;
-    border: 1.5px solid var(--ink-mute); border-radius: 4px; background: transparent;
-    transition: background .12s, border-color .12s; user-select: none;
-  }
-  .editor .chk-box { cursor: pointer; }
-  .editor .chk-box:hover { border-color: var(--ink); }
-  .chk-box.on { background: var(--accent); border-color: var(--accent); }
-  .chk-box.on::after {
-    content: ""; position: absolute; left: 3.5px; top: 0.5px; width: 3.5px; height: 7px;
-    border: solid var(--sobre-acento); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg);
-  }
-  li.chk.hecho { color: var(--ink-mute); }
-  li.chk.hecho > ul, li.chk.hecho > ol { color: var(--ink); }
-
   /* ── EL COMENTARIO, PEGADO ABAJO ────────────
      Como en Asana: por más que scrollees la tarea entera, el casillero
      para comentar sigue ahí. Antes había que bajar hasta el final. */
@@ -2433,8 +2202,6 @@
   .est.vencido   { background: var(--warn-soft); color: var(--warn); border-color: #F6C7D4; }
   .est.nocorr    { background: var(--line-soft); color: var(--ink-mute); border-color: var(--line); }
   .est.aviso     { background: var(--warn-soft); color: var(--warn); border-color: #F6C7D4; }
-  .est.amarillo  { background: #FFF4CC; color: #8A6100; border-color: #F2DC8C; }
-  html[data-tema="oscuro"] .est.amarillo { background: #3A3214; color: #F2CF5B; border-color: #5C4E1E; }
 
   .det-contrato {
     padding: 16px 18px 18px; background: var(--line-soft);
@@ -2485,23 +2252,12 @@
      columna por colaboradora, así que no entra en una pantalla. En vez
      de achicar la letra hasta que no se lea, scrollea al costado y la
      primera columna (el cliente) queda pegada. */
-  .tabla-ancha { overflow-x: auto; max-width: 100%; padding-bottom: 4px; scrollbar-color: var(--ink-soft) var(--line-soft); }
+  .tabla-ancha { overflow-x: auto; max-width: 100%; padding-bottom: 4px; }
   .tabla-ancha .tabla { overflow: visible; border-radius: var(--radius-lg); }
-  /* La barra de scroll, bien visible: con el mouse (sin trackpad) es la
-     única forma de llegar a las columnas de la derecha, así que no puede
-     pasar desapercibida. El scroll lateral además se hace con la rueda
-     (ver el handler 'wheel' sobre #modDist). */
-  .tabla-ancha::-webkit-scrollbar { height: 10px; }
-  .tabla-ancha::-webkit-scrollbar-track { background: var(--line-soft); border-radius: 6px; }
-  .tabla-ancha::-webkit-scrollbar-thumb { background: var(--ink-soft); border-radius: 6px; }
-  .tabla-ancha::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
   .dist-row { gap: 10px; }
   .dist-row > div:first-child {
     position: sticky; left: 0; z-index: 2;
     background: var(--bg-elev); margin: -6px 0; padding: 6px 0;
-    /* Sombrita a la derecha: avisa que la columna queda fija y que hay
-       más tabla corrida por debajo. */
-    box-shadow: 7px 0 7px -7px rgba(0, 0, 0, .18);
   }
   .prow.cab.dist-row > div:first-child { background: var(--line-soft); margin: -5px 0; padding: 5px 0; }
   .dist-row.apagada { opacity: .5; }
@@ -2510,71 +2266,6 @@
     border-top: 1px solid var(--line); border-bottom: none;
   }
   .prow.totales > div:first-child { background: var(--line-soft); }
-
-  /* Trabajos como planilla: líneas en todas las celdas, encabezado fijo
-     (la caja scrollea por dentro, así la barra de abajo siempre se ve),
-     columnas con ancho propio (--gt, se arrastra el borde) y orden al
-     tocar el encabezado. */
-  .tabla-ancha.excel-wrap { max-height: calc(100vh - 230px); min-height: 260px; overflow: auto; }
-  .tabla.excel { border-radius: 10px; overflow: visible; min-width: 0; }
-  .tabla.excel .prow {
-    grid-template-columns: var(--gt); gap: 0; padding: 0; align-items: stretch;
-    border-bottom: 0;
-  }
-  .tabla.excel .prow > div {
-    padding: 5px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    min-width: 0; overflow: hidden; display: flex; align-items: center;
-  }
-  .tabla.excel .prow > div:last-child { border-right: 0; }
-  .tabla.excel .prow > div.num { justify-content: flex-end; }
-  .tabla.excel .celda-serv { flex-direction: column; align-items: flex-start !important; justify-content: center; }
-  .tabla.excel .celda-serv .nom, .tabla.excel .celda-serv .sub {
-    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .tabla.excel .dist-row > div:first-child { margin: 0; padding: 5px 8px; }
-  .tabla.excel .prow.cab { position: sticky; top: 0; z-index: 4; }
-  .tabla.excel .prow.cab > div {
-    position: relative; cursor: pointer; user-select: none; background: var(--line-soft);
-    border-bottom: 1px solid var(--line-strong, #d9d4cc); white-space: normal; line-height: 1.25;
-  }
-  .tabla.excel .prow.cab > div:first-child { z-index: 5; margin: 0; padding: 5px 8px; }
-  .tabla.excel .prow.cab > div:hover { color: var(--ink); }
-  .tabla.excel .prow.cab > div.ordenada { color: var(--ink); }
-  .tabla.excel .th-ord { margin-left: 3px; font-size: 9px; }
-  .tabla.excel .col-res {
-    position: absolute; top: 0; right: -4px; width: 8px; height: 100%; cursor: col-resize; z-index: 6;
-  }
-  .tabla.excel .col-res:hover, body.arrastrando-col .col-res:hover { background: var(--ink-soft); opacity: .35; }
-  body.arrastrando-col, body.arrastrando-col * { cursor: col-resize !important; user-select: none !important; }
-  .tabla.excel .prow:not(.cab):not(.totales):hover > div { background: var(--bg); }
-  .tabla.excel .prow:not(.cab):not(.totales):hover > div:first-child { background: var(--bg); }
-  .tabla.excel .tb-fecha, .tabla.excel .tb-ejec {
-    color: var(--ink-mute); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .tabla.excel .prow.totales > div { border-bottom: 0; }
-  .sin-asignar { color: var(--warn); font-weight: 600; font-size: 11.5px; white-space: nowrap; }
-
-  /* Pagos · detalle por persona (desplegable por cada una). */
-  .pg-det { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
-  .pg-det > summary {
-    display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; cursor: pointer; list-style: none;
-  }
-  .pg-det > summary::-webkit-details-marker { display: none; }
-  .pg-det > summary::before { content: '›'; color: var(--ink-mute); transition: transform .12s; display: inline-block; }
-  .pg-det[open] > summary::before { transform: rotate(90deg); }
-  .pg-det-nom { font-weight: 600; font-size: 13.5px; }
-  .pg-det-rol { font-size: 11.5px; color: var(--ink-mute); flex: 1; }
-  .pg-det-tot { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13.5px; }
-  .pg-det-tabla { border-top: 1px solid var(--line); }
-  .pg-det-fila {
-    display: grid; grid-template-columns: 84px minmax(140px, 1fr) 110px minmax(180px, 2fr);
-    gap: 0; font-size: 12.5px; border-bottom: 1px solid var(--line-soft);
-  }
-  .pg-det-fila > div { padding: 6px 14px; min-width: 0; overflow-wrap: anywhere; }
-  .pg-det-fila > div.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .pg-det-fila.cab { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-mute); font-weight: 600; background: var(--line-soft); }
-  .pg-det-fila.aparte { color: var(--ink-soft); font-style: italic; }
-  .pg-det-fila:last-child { border-bottom: 0; }
 
   /* La celda «Pago Ludmi»: un botón que no parece un botón hasta que
      lo tocás. Vacía muestra un + al pasar por encima. */
@@ -2705,7 +2396,6 @@
     color: var(--ink-mute); font-weight: 600; margin-bottom: 8px;
   }
   .ejec-pop .miembros { gap: 5px; }
-  .ejec-pop .miembro-chip.no-socia { text-decoration: line-through; color: var(--warn); }
   .ejec-pop .nota { font-size: 11px; color: var(--ink-mute); margin-top: 9px; line-height: 1.45; }
 
 
@@ -3025,10 +2715,6 @@
         Bandeja
         <span class="badge-nov" id="navNov" style="display:none">0</span>
       </button>
-      <button class="nav-item" id="navControl">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line></svg>
-        Control de tareas
-      </button>
       <button class="nav-item active" id="navTablero">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="18"></rect><rect x="10" y="3" width="6" height="10"></rect><rect x="17" y="3" width="4" height="14"></rect></svg>
         Todo el tablero
@@ -3058,7 +2744,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
         Ir a administración
       </a>
-      <a class="link-cliente" href="panel.html">
+      <a class="link-cliente" href="panel-comakers.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         Ver panel de cliente
       </a>
@@ -3074,7 +2760,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 10:23</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 18:17</div>
     </div>
   </aside>
 
@@ -3199,9 +2885,6 @@
     <!-- ═══════════ BANDEJA ═══════════ -->
     <div id="modBandeja" style="display:none"></div>
 
-
-    <!-- ═══════════ CONTROL DE TAREAS (las dos páginas) ═══════════ -->
-    <div id="modControl" style="display:none"></div>
   </main>
 </div>
 <!-- ═══════════ MODAL SERVICIO CONTRATADO ═══════════ -->
@@ -3554,11 +3237,8 @@
           <button class="mini-btn fmt" data-fmt="*" title="Cursiva (⌘I)"><i>i</i></button>
           <button class="mini-btn fmt" data-fmt="__" title="Subrayado (⌘U)"><u>U</u></button>
           <button class="mini-btn fmt" data-fmt="~~" title="Tachado"><s>S</s></button>
-          <button class="mini-btn fmt" data-fmt="==" title="Resaltar (⌘⇧H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"></path><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></svg></button>
           <button class="mini-btn fmt" data-lista="" title="Lista">•—</button>
           <button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>
-          <button class="mini-btn fmt" data-chk="" title="Checklist (⌘↵ tilda el renglón)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></svg></button>
-          <button class="mini-btn fmt" data-hr="" title="Línea divisoria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><polyline points="8 7 12 3 16 7"></polyline><polyline points="16 17 12 21 8 17"></polyline></svg></button>
           <button class="mini-btn" id="dEmojiDesc" title="Poner un emoji">🙂</button>
           <button class="mini-btn" id="dLinkDesc" title="Poner un link (⌘K)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -3570,7 +3250,7 @@
            editaba veías los ** crudos. -->
       <div class="d-desc editor" id="dDesc" contenteditable="true" role="textbox" aria-multiline="true"
            data-ph="Escribí acá qué hay que hacer, con qué material y qué se espera de vuelta…"></div>
-      <div class="d-hint" id="dHint" style="display:none">Seleccioná texto y usá los botones de arriba, o ⌘B negrita · ⌘I cursiva · ⌘U subrayado · ⌘⇧H resaltar · ⌘K link.</div>
+      <div class="d-hint" id="dHint" style="display:none">Seleccioná texto y usá los botones de arriba, o ⌘B negrita · ⌘I cursiva · ⌘U subrayado · ⌘K link.</div>
     </div>
 
     <!-- Solo lo ven las socias. No es un `display:none` decorativo: la
@@ -3839,23 +3519,7 @@
     violeta: '#A98BE0', ocre: '#DCA84E', gris: '#938C99'
   };
   let EDITANDO = null;
-  // Las secciones y grupos plegados de la lista, y las tareas con las
-  // subtareas escondidas. Van al navegador como la barra de la
-  // izquierda: es cuánto querés ver en ESTA pantalla.
-  //  Cada grupo se anota con cómo estabas agrupando ("sec:…",
-  //  "responsable:…"), así plegar "Sin responsable" no pliega también
-  //  un grupo que casualmente tiene la misma clave en otra vista.
-  const COL_LS = 'cm_grupos_plegados';
-  const SUBS_LS = 'cm_subtareas_plegadas';
   let COLAPSADOS = {};
-  let SUBS_PLEG = new Set();
-  try { COLAPSADOS = JSON.parse(localStorage.getItem(COL_LS) || '{}') || {}; } catch (_) { COLAPSADOS = {}; }
-  try { SUBS_PLEG = new Set(JSON.parse(localStorage.getItem(SUBS_LS) || '[]')); } catch (_) { SUBS_PLEG = new Set(); }
-  function guardarColapsados() {
-    // Lo desplegado no se anota: la lista arranca abierta.
-    Object.keys(COLAPSADOS).forEach(k => { if (!COLAPSADOS[k]) delete COLAPSADOS[k]; });
-    try { localStorage.setItem(COL_LS, JSON.stringify(COLAPSADOS)); } catch (_) {}
-  }
   let PROYECTOS = [];
   let MIEMBROS = {};  // proyecto_id → [user_id]
   let SECCIONES = []; // todas las secciones de los proyectos visibles
@@ -4333,7 +3997,7 @@
 
     // Guard de rol: este panel es solo para la agencia.
     if (prof.tipo !== 'agencia' && !prof.super_admin) {
-      window.location.replace('panel.html');
+      window.location.replace('panel-comakers.html');
       return;
     }
     // Dada de baja: se corta acá. La base tampoco la deja leer nada,
@@ -5859,8 +5523,8 @@
           ? 'Cuando marques pagado se carga solo en Contabilidad como egreso de colaboradoras, ' +
             'colgado del cobro del cliente — así baja el neto <b>antes</b> del reparto. ' +
             'No lo cargues también a mano.'
-          : 'Acá se anota nomás. Se marca pagado desde esta misma tarea en <b>Administración</b>, ' +
-            'y ahí pasa a Distribución → Pagos.') +
+          : 'Acá se anota nomás. Se paga desde <b>Administración → Equipo → A pagar</b>, ' +
+            'que es donde está la plata.') +
         '</div>');
   }
 
@@ -6078,11 +5742,6 @@
   let SALUDO_BASE = '';
   let ACCESOS = {};                 // cliente_id → [user_id]
   let CL_EDIT = null, CL_PERSONAS = [], CL_CUELGA = [];
-  // Estado del popup de cliente para la sección Panel y de la solapa.
-  let CL_MODULOS = {};              // modulo → activo (del cliente abierto)
-  let CL_INTEG = [];                // filas de cliente_integracion del cliente abierto
-  let CL_CX_EDIT = null;            // tipo de conexión en modo edición, o null
-  let VER_INACTIVOS = false;        // toggle de la barra: mostrar clientes archivados
   let EQUIPO = [];            // todo el equipo, incluidas las bajas
   let WIKI_CARPETAS = [], WIKI_PAGINAS = [], WIKI_SEL = null, WIKI_CARGADA = false;
 
@@ -6095,8 +5754,8 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
-    servicios: 'Servicios', etiquetas: 'Etiquetas', control: 'Control de tareas'
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', servicios: 'Servicios',
+    etiquetas: 'Etiquetas'
   };
   function pintarTituloMovil() {
     const el = $('#bmTitulo');
@@ -6113,246 +5772,7 @@
     if (t) t.classList.remove('on');
   }
 
-  // ═══════════════ CONTROL DE TAREAS (migración 61) ═══════════════
-  // Grilla tipo planilla: una fila por cliente activo (alfabético) y las
-  // columnas que define la agencia (control_columna). Cada celda guarda
-  // sola al cambiar (control_celda, un campo por tipo: cambiar el tipo de
-  // una columna no pisa lo cargado). Vive en las dos páginas: socias en
-  // administración, equipo en el panel interno. El cliente no tiene
-  // permisos sobre estas tablas.
-  const CTRL = { cargado: false, falta: false, cols: [], celdas: {} };
-  const CTRL_TIPOS = { texto: 'Texto', fecha: 'Fecha', casilla: 'Casilla (sí/no)' };
-  const ctrlClave = (cl, col) => cl + '|' + col;
-
-  async function cargarControl() {
-    const [rc, rv] = await Promise.all([
-      SB.from('control_columna').select('id, nombre, tipo, orden').order('orden').order('creado_en'),
-      SB.from('control_celda').select('cliente_id, columna_id, valor_texto, valor_fecha, valor_casilla')
-    ]);
-    const err = rc.error || rv.error;
-    CTRL.falta = !!err && /control_columna|control_celda|does not exist|no existe|schema cache/i.test(err.message || '');
-    if (err && !CTRL.falta) { toast('No se pudo cargar el control: ' + err.message, 'warn'); }
-    CTRL.cols = rc.data || [];
-    CTRL.celdas = {};
-    (rv.data || []).forEach(v => { CTRL.celdas[ctrlClave(v.cliente_id, v.columna_id)] = v; });
-    CTRL.cargado = true;
-  }
-
-  function ctrlClientes() {
-    return CLIENTES.filter(c => c.activo !== false)
-      .slice().sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es', { sensitivity: 'base' }));
-  }
-
-  function ctrlCelda(cl, col) {
-    const v = CTRL.celdas[ctrlClave(cl.id, col.id)] || {};
-    const d = 'data-ccl="' + esc(cl.id) + '" data-ccol="' + esc(col.id) + '"';
-    if (col.tipo === 'casilla') {
-      const on = v.valor_casilla === true;
-      return '<td><button type="button" class="ctrl-casilla' + (on ? ' on' : '') + '" ' + d + ' aria-pressed="' + on + '" title="' + esc(col.nombre) + '"><span class="caja">✓</span></button></td>';
-    }
-    if (col.tipo === 'fecha') {
-      return '<td><input type="date" class="ctrl-in" ' + d + ' value="' + esc(v.valor_fecha || '') + '"></td>';
-    }
-    return '<td><input type="text" class="ctrl-in" ' + d + ' value="' + esc(v.valor_texto || '') + '" data-antes="' + esc(v.valor_texto || '') + '"></td>';
-  }
-
-  async function renderControl() {
-    const cont = $si('#modControl');
-    if (!cont) return;
-    if (!CTRL.cargado) {
-      cont.innerHTML = '<p class="ctrl-ayuda">Cargando…</p>';
-      await cargarControl();
-      if (MODULO !== 'control') return;
-    }
-    if (CTRL.falta) {
-      cont.innerHTML = '<p class="ctrl-ayuda">Falta correr la migración 61 (Control de tareas) en Supabase.</p>';
-      return;
-    }
-    const cls = ctrlClientes();
-    const cols = CTRL.cols;
-    let h = '<p class="ctrl-ayuda">Clic en una celda y escribí: se guarda solo al salir (Enter baja a la fila siguiente, Esc deshace). ' +
-      'Las casillas se marcan con un clic. Con ⋯ en el encabezado se renombra, se mueve, se cambia el tipo o se borra la columna.</p>';
-    h += '<div class="ctrl-wrap"><table class="ctrl-tabla"><thead><tr><th class="ctrl-fija">Cliente</th>' +
-      cols.map(col => '<th><div class="ctrl-th"><span title="' + esc(col.nombre) + '">' + esc(col.nombre) + ' <small>' +
-        esc(col.tipo === 'casilla' ? 'sí/no' : col.tipo) + '</small></span>' +
-        '<button type="button" class="ctrl-menu-btn" data-cmenu="' + esc(col.id) + '" title="Opciones de la columna" aria-label="Opciones de la columna">⋯</button></div></th>').join('') +
-      '<th><button type="button" class="btn-ghost ctrl-nueva" id="ctrlNueva">+ Columna</button></th></tr></thead><tbody>';
-    if (!cls.length) {
-      h += '<tr><td class="ctrl-fija" colspan="' + (cols.length + 2) + '">No hay clientes activos.</td></tr>';
-    } else {
-      h += cls.map(cl => '<tr><td class="ctrl-fija">' + esc(cl.nombre || '—') + '</td>' +
-        cols.map(col => ctrlCelda(cl, col)).join('') + '<td></td></tr>').join('');
-    }
-    h += '</tbody></table></div>';
-    cont.innerHTML = h;
-  }
-  MODULOS.control = renderControl;
-
-  // ── Guardar una celda ──
-  async function ctrlGuardar(clId, colId, patch) {
-    const k = ctrlClave(clId, colId);
-    const antes = CTRL.celdas[k] ? Object.assign({}, CTRL.celdas[k]) : null;
-    CTRL.celdas[k] = Object.assign({ cliente_id: clId, columna_id: colId }, antes || {}, patch);
-    const { error } = await SB.from('control_celda').upsert(
-      Object.assign({ cliente_id: clId, columna_id: colId, actualizado_en: new Date().toISOString() }, patch),
-      { onConflict: 'cliente_id,columna_id' });
-    if (error) {
-      if (antes) CTRL.celdas[k] = antes; else delete CTRL.celdas[k];
-      toast('No se guardó: ' + error.message, 'warn');
-      return false;
-    }
-    return true;
-  }
-
-  async function ctrlGuardarInput(inp) {
-    const col = CTRL.cols.find(x => x.id === inp.dataset.ccol); if (!col) return;
-    const k = ctrlClave(inp.dataset.ccl, col.id);
-    const v = CTRL.celdas[k] || {};
-    const val = inp.value.trim();
-    const patch = col.tipo === 'fecha' ? { valor_fecha: val || null } : { valor_texto: val || null };
-    const previo = col.tipo === 'fecha' ? (v.valor_fecha || '') : (v.valor_texto || '');
-    if ((val || '') === previo) return;
-    inp.classList.add('guardando');
-    const ok = await ctrlGuardar(inp.dataset.ccl, col.id, patch);
-    inp.classList.remove('guardando');
-    if (!ok) inp.value = previo;
-    else inp.dataset.antes = val;
-  }
-
-  // ── Columnas ──
-  function ctrlCerrarPop() { const p = $si('#ctrlPop'); if (p) p.remove(); }
-  function ctrlPop(ancla, html, conectar) {
-    ctrlCerrarPop();
-    const p = document.createElement('div');
-    p.className = 'ctrl-pop'; p.id = 'ctrlPop'; p.innerHTML = html;
-    document.body.appendChild(p);
-    const r = ancla.getBoundingClientRect();
-    const izq = Math.min(r.left, window.innerWidth - p.offsetWidth - 12);
-    p.style.left = Math.max(12, izq) + 'px';
-    p.style.top = Math.min(r.bottom + 4, window.innerHeight - p.offsetHeight - 12) + 'px';
-    conectar(p);
-  }
-
-  async function ctrlReordenar(cols) {
-    // Se renumera todo de 1 en adelante; solo se escribe lo que cambió.
-    const cambios = [];
-    cols.forEach((c, i) => { if (c.orden !== i + 1) { c.orden = i + 1; cambios.push(c); } });
-    CTRL.cols = cols;
-    renderControl();
-    for (const c of cambios) {
-      const { error } = await SB.from('control_columna').update({ orden: c.orden }).eq('id', c.id);
-      if (error) { toast('No se pudo mover la columna: ' + error.message, 'warn'); CTRL.cargado = false; renderControl(); return; }
-    }
-  }
-
-  function ctrlMenuColumna(btn) {
-    const col = CTRL.cols.find(x => x.id === btn.dataset.cmenu); if (!col) return;
-    const i = CTRL.cols.indexOf(col), n = CTRL.cols.length;
-    ctrlPop(btn,
-      '<button type="button" data-cacc="renombrar">Renombrar</button>' +
-      '<button type="button" data-cacc="izq"' + (i === 0 ? ' disabled' : '') + '>← Mover a la izquierda</button>' +
-      '<button type="button" data-cacc="der"' + (i === n - 1 ? ' disabled' : '') + '>Mover a la derecha →</button>' +
-      '<div class="sep"></div><div class="et">Tipo</div>' +
-      Object.keys(CTRL_TIPOS).map(t => '<button type="button" data-ctipo="' + t + '"' + (t === col.tipo ? ' disabled' : '') + '>' +
-        (t === col.tipo ? '● ' : '○ ') + CTRL_TIPOS[t] + '</button>').join('') +
-      '<div class="sep"></div><button type="button" class="peligro" data-cacc="borrar">Borrar columna</button>',
-      p => p.addEventListener('click', async e => {
-        const b = e.target.closest('button'); if (!b || b.disabled) return;
-        ctrlCerrarPop();
-        if (b.dataset.ctipo) {
-          const nuevo = b.dataset.ctipo, viejo = col.tipo;
-          col.tipo = nuevo; renderControl();
-          const { error } = await SB.from('control_columna').update({ tipo: nuevo }).eq('id', col.id);
-          if (error) { col.tipo = viejo; renderControl(); toast('No se pudo cambiar el tipo: ' + error.message, 'warn'); }
-          else toast('Ahora es ' + CTRL_TIPOS[nuevo].toLowerCase() + '. Lo cargado con el tipo anterior se guarda por si volvés.', 'ok');
-          return;
-        }
-        const acc = b.dataset.cacc;
-        if (acc === 'izq' || acc === 'der') {
-          const cols = CTRL.cols.slice(), j = acc === 'izq' ? i - 1 : i + 1;
-          [cols[i], cols[j]] = [cols[j], cols[i]];
-          await ctrlReordenar(cols);
-        } else if (acc === 'renombrar') {
-          const nom = (prompt('Nuevo nombre de la columna:', col.nombre) || '').trim();
-          if (!nom || nom === col.nombre) return;
-          const viejo = col.nombre; col.nombre = nom; renderControl();
-          const { error } = await SB.from('control_columna').update({ nombre: nom }).eq('id', col.id);
-          if (error) { col.nombre = viejo; renderControl(); toast('No se pudo renombrar: ' + error.message, 'warn'); }
-        } else if (acc === 'borrar') {
-          if (!confirm('¿Borrar la columna “' + col.nombre + '”?\n\nSe pierde lo cargado en esa columna para todos los clientes. No se puede deshacer.')) return;
-          const { error } = await SB.from('control_columna').delete().eq('id', col.id);
-          if (error) { toast('No se pudo borrar: ' + error.message, 'warn'); return; }
-          CTRL.cols = CTRL.cols.filter(x => x.id !== col.id);
-          Object.keys(CTRL.celdas).forEach(k => { if (k.endsWith('|' + col.id)) delete CTRL.celdas[k]; });
-          renderControl(); toast('Columna borrada.', 'ok');
-        }
-      }));
-  }
-
-  function ctrlNuevaColumna(btn) {
-    ctrlPop(btn,
-      '<div class="et">Nueva columna</div>' +
-      '<input id="ctrlNom" placeholder="Nombre (ej: Calendario revisado)" maxlength="60">' +
-      '<select id="ctrlTipo">' + Object.keys(CTRL_TIPOS).map(t => '<option value="' + t + '">' + CTRL_TIPOS[t] + '</option>').join('') + '</select>' +
-      '<button type="button" id="ctrlCrear"><b>Agregar</b></button>',
-      p => {
-        const nom = p.querySelector('#ctrlNom'); nom.focus();
-        const crear = async () => {
-          const nombre = nom.value.trim();
-          if (!nombre) { nom.focus(); return; }
-          const tipo = p.querySelector('#ctrlTipo').value;
-          const orden = CTRL.cols.reduce((m, c) => Math.max(m, c.orden || 0), 0) + 1;
-          ctrlCerrarPop();
-          const { data, error } = await SB.from('control_columna')
-            .insert({ agencia: (ME && ME.agencia) || 'CoMakers', nombre, tipo, orden }).select('id, nombre, tipo, orden').single();
-          if (error) { toast('No se pudo agregar la columna: ' + error.message, 'warn'); return; }
-          CTRL.cols.push(data); renderControl(); toast('Columna agregada.', 'ok');
-        };
-        p.querySelector('#ctrlCrear').addEventListener('click', crear);
-        nom.addEventListener('keydown', e => { if (e.key === 'Enter') crear(); if (e.key === 'Escape') ctrlCerrarPop(); });
-      });
-  }
-
-  // Eventos de la grilla: delegados en el contenedor (se re-dibuja entero).
-  (function conectarControl() {
-    const cont = $si('#modControl'); if (!cont) return;
-    cont.addEventListener('click', async e => {
-      const menu = e.target.closest('[data-cmenu]'); if (menu) { e.stopPropagation(); ctrlMenuColumna(menu); return; }
-      const nueva = e.target.closest('#ctrlNueva'); if (nueva) { e.stopPropagation(); ctrlNuevaColumna(nueva); return; }
-      const cas = e.target.closest('.ctrl-casilla');
-      if (cas) {
-        const on = !cas.classList.contains('on');
-        cas.classList.toggle('on', on); cas.setAttribute('aria-pressed', on);
-        const ok = await ctrlGuardar(cas.dataset.ccl, cas.dataset.ccol, { valor_casilla: on });
-        if (!ok) { cas.classList.toggle('on', !on); cas.setAttribute('aria-pressed', !on); }
-      }
-    });
-    // Texto: guarda al salir. Fecha: guarda al elegir (change).
-    cont.addEventListener('change', e => { const i = e.target.closest('.ctrl-in'); if (i) ctrlGuardarInput(i); });
-    cont.addEventListener('keydown', e => {
-      const i = e.target.closest('.ctrl-in'); if (!i) return;
-      if (e.key === 'Escape' && i.type === 'text') { i.value = i.dataset.antes || ''; i.blur(); return; }
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        // Enter baja a la misma columna en la fila siguiente (como una planilla).
-        const td = i.closest('td'), tr = td.parentElement, idx = Array.prototype.indexOf.call(tr.children, td);
-        const sig = tr.nextElementSibling && tr.nextElementSibling.children[idx];
-        const foco = sig && sig.querySelector('input, button');
-        i.blur();
-        if (foco) foco.focus();
-      }
-    });
-    document.addEventListener('click', e => { if (!e.target.closest('#ctrlPop')) ctrlCerrarPop(); });
-  })();
-
-  // Solapas sacadas del menú (29/10/2026). Sus tablas y su contenido
-  // siguen intactos (la Wiki tiene el instructivo de análisis): para
-  // volver a mostrar una, sacala de esta lista.
-  const SOLAPAS_OCULTAS = ['etiquetas', 'wiki'];
-  const NAV_DE = { etiquetas: '#navEtiquetas', wiki: '#navWiki' };
-
   function cambiarModulo(m) {
-    if (SOLAPAS_OCULTAS.indexOf(m) !== -1) return;
     // Equipo, Clientes y Contabilidad son de las socias. Esto es la
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
@@ -6363,7 +5783,6 @@
     // costado: no se cierra al entrar ahí.
     if (m !== 'tareas' && m !== 'bandeja') { cerrarDrawer(); }
     if (m === 'bandeja' && !BAN_CARGADA) cargarBandeja();
-    if (m === 'control') CTRL.cargado = false;   // siempre fresco al entrar: lo editan varias a la vez
     render();
   }
 
@@ -6396,7 +5815,6 @@
     mostrar('#modPlata',     MODULO === 'plata');
     mostrar('#modDist',      MODULO === 'dist');
     mostrar('#modWiki',      MODULO === 'wiki');
-    mostrar('#modControl',   MODULO === 'control');
     mostrar('.controles',    MODULO === 'tareas');
     mostrar('#btnNueva',     MODULO === 'tareas');
 
@@ -6406,10 +5824,8 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas', '#navWiki']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
         .forEach(sel => mostrar(sel, true));
-      // …menos las que se sacaron del menú (SOLAPAS_OCULTAS).
-      SOLAPAS_OCULTAS.forEach(m => { if (NAV_DE[m]) mostrar(NAV_DE[m], false); });
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
       // que se muestra según el rol es la puerta de entrada a la otra
@@ -6422,7 +5838,6 @@
     activar('#navTablero',  MODULO === 'tareas' && !FILTRO.proyecto);
     activar('#navClientes', MODULO === 'clientes');
     activar('#navWiki',     MODULO === 'wiki');
-    activar('#navControl',  MODULO === 'control');
     activar('#navServicios', MODULO === 'servicios');
     activar('#navEtiquetas', MODULO === 'etiquetas');
     activar('#navPlata',    MODULO === 'plata');
@@ -6444,20 +5859,14 @@
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
-      dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca, y el fondo + gastos.'],
+      dist:     ['La <em>distribución</em>', 'Quién hizo qué, cuánto le toca y si ya se le pagó.'],
       wiki:     ['La <em>wiki</em>', 'Lo que sabemos hacer, escrito para que no haya que preguntarlo.'],
-      control:  ['Control de <em>tareas</em>', 'Una fila por cliente activo y las columnas que definimos nosotras. Se guarda solo.'],
       etiquetas: ['Las <em>etiquetas</em>', 'Para agrupar lo que no es un proyecto ni un cliente. Las crean las socias; las pone cualquiera.']
     }[MODULO] || ['El <em>panel</em>', ''];   // un módulo nuevo sin título no rompe la página
     t.querySelector('h1').innerHTML = H[0];
     $('#saludo').textContent = H[1];
   }
 
-  // ── De acá hasta @@FINEDITOR, build.py lo copia además a
-  //    editor-texto.js, que usa el panel del cliente (la ficha de
-  //    contenido del Calendario). UNA sola fuente: lo que se arregle acá
-  //    se arregla en los dos. Los bloques @@INTERNO/@@ADMIN de adentro no
-  //    van a esa copia.
   // ═══════════════ TEXTO CON FORMATO ═══════════════
   // Guardamos markdown mínimo en texto plano: [palabra](url).
   // Nunca guardamos HTML escrito por el usuario: escapamos TODO
@@ -6520,11 +5929,6 @@
     { re: /\*\*([\s\S]+?)\*\*/g,  a: '<strong>', z: '</strong>' },
     { re: /__([\s\S]+?)__/g,      a: '<u>',      z: '</u>' },
     { re: /~~([\s\S]+?)~~/g,      a: '<s>',      z: '</s>' },
-    // El resaltador. Pide algo pegado a los `==` de los dos lados: así
-    // un "a == b" escrito en el medio de una frase no se pinta solo.
-    // (Los links ya están guardados aparte, así que el `==` de un
-    // base64 en una URL tampoco lo toca.)
-    { re: /==(?=\S)([\s\S]*?\S)==/g, a: '<mark>', z: '</mark>' },
     { re: /(^|[^*])\*([^\n*]+)\*(?!\*)/g, a: '<em>', z: '</em>', pre: true }
   ];
 
@@ -6580,7 +5984,7 @@
     const tipo = items[i].tipo;
     let html = '<' + tipo + '>';
     while (i < items.length && items[i].nivel === nivel && items[i].tipo === tipo) {
-      html += abrirLi(items[i]);
+      html += '<li>' + items[i].texto;
       i++;
       // Lo que venga más adentro cuelga de este renglón.
       while (i < items.length && items[i].nivel > nivel) {
@@ -6594,19 +5998,6 @@
     return { html: html + '</' + tipo + '>', i: i };
   }
 
-  // Un renglón de checklist es una viñeta que arranca con `[ ]` o `[x]`.
-  // La casilla es `contenteditable=false`: adentro del editor se clickea
-  // pero no se puede escribir encima ni borrarla letra por letra.
-  const RE_CHK = /^\[([ xX])\](?:[ \t]+|$)/;
-  function cajaChk(hecha) {
-    return '<span class="chk-box' + (hecha ? ' on' : '') + '" contenteditable="false"' +
-      ' role="checkbox" aria-checked="' + (hecha ? 'true' : 'false') + '"></span>';
-  }
-  function abrirLi(it) {
-    if (it.chk == null) return '<li>' + it.texto;
-    return '<li class="chk' + (it.chk ? ' hecho' : '') + '">' + cajaChk(it.chk) + it.texto;
-  }
-
   function renderTexto(txt) {
     if (!txt) return '';
     let h = esc(enderezarLinks(String(txt).replace(/\u0000/g, '')));
@@ -6615,13 +6006,6 @@
     // una URL con __ adentro rompería su propio atributo href.
     const piezas = [];
     const guardar = html => '\u0000' + (piezas.push(html) - 1) + '\u0000';
-
-    // Bloques de código: entre dos renglones ``` . Adentro NO hay formato
-    // (ni negritas, ni links, ni listas): se ve exactamente como se
-    // escribió, para copiarlo tal cual (un prompt, por ejemplo). Va
-    // primero, antes que cualquier otra marca. El texto ya viene escapado.
-    h = h.replace(/(^|\n)[ \t]*```[^\n]*\n([\s\S]*?)\n[ \t]*```[ \t]*(?=\n|$)/g,
-      (m, pre, dentro) => pre + guardar('<pre class="bloque-codigo">' + dentro + '</pre>'));
 
     // El `data-mid` no es decorativo: es lo que le permite al editor
     // volver de la pastilla al texto `@[Nombre](id)` cuando guarda.
@@ -6665,19 +6049,7 @@
       pend = []; nivAnt = -1;
     };
 
-    // Tablas: renglones seguidos que empiezan y terminan con "|". El
-    // segundo, si es "| --- | --- |", dice que el primero es encabezado.
-    // Un "|" dentro de una celda se guarda escapado: "\|".
-    let filasTabla = [];
-    const volcarTabla = () => {
-      if (!filasTabla.length) return;
-      salida += tablaHTML(filasTabla);
-      filasTabla = [];
-    };
-
     lineas.forEach((l, i) => {
-      if (RE_FILA_TABLA.test(l)) { cerrar(); filasTabla.push(l); return; }
-      volcarTabla();
       const m = l.match(/^([ \t]*)([-•]|\d+[.)])[ \t]+(.*)$/);
       if (m) {
         const ancho = m[1].replace(/\t/g, '  ').length;
@@ -6685,59 +6057,15 @@
         // Si no, el árbol queda con agujeros y el dibujo se cuelga.
         const nivel = Math.min(Math.floor(ancho / 2), nivAnt + 1);
         nivAnt = nivel;
-        const tipo = (m[2] === '-' || m[2] === '•') ? 'ul' : 'ol';
-        // La casilla solo va en viñetas: "1. [ ]" se deja como texto.
-        const c = tipo === 'ul' ? m[3].match(RE_CHK) : null;
-        pend.push({ nivel: nivel, tipo: tipo,
-                    texto: c ? m[3].slice(c[0].length) : m[3],
-                    chk: c ? (c[1] !== ' ' ? 1 : 0) : null });
-      } else if (/^#{1,2}[ \t]+\S/.test(l)) {
-        // Un título: "# Grande" o "## Chico". Va como bloque propio, sin
-        // <br> atrás (el título ya ocupa su renglón).
-        cerrar();
-        const nivelT = l.match(/^#+/)[0].length;
-        salida += (nivelT === 1 ? '<h3>' : '<h4>') + l.replace(/^#{1,2}[ \t]+/, '') + (nivelT === 1 ? '</h3>' : '</h4>');
-      } else if (/^[ \t]*-{3,}[ \t]*$/.test(l)) {
-        // Un renglón de puros guiones es una línea divisoria. Los
-        // "-------" que ya venían escritos a mano se ven como línea
-        // sin tocar nada.
-        cerrar();
-        salida += '<hr>';
+        pend.push({ nivel: nivel, tipo: (m[2] === '-' || m[2] === '•') ? 'ul' : 'ol', texto: m[3] });
       } else {
         cerrar();
-        const soloBloque = /^\u0000\d+\u0000$/.test(l) && /^<pre /.test(piezas[+l.slice(1, -1)] || '');
-        salida += l + (i < lineas.length - 1 && !soloBloque ? '<br>' : '');
+        salida += l + (i < lineas.length - 1 ? '<br>' : '');
       }
     });
-    volcarTabla();
     cerrar();
 
     return salida.replace(/\u0000(\d+)\u0000/g, (m, i) => piezas[+i]);
-  }
-
-  // ── Tablas ───────────────────────────────────────────────────
-  //  Se guardan como en markdown, en texto:
-  //    | Columna 1 | Columna 2 |
-  //    | --- | --- |
-  //    | celda | celda |
-  //  El HTML lo arma tablaHTML (las celdas ya vienen escapadas y con su
-  //  formato, igual que cualquier renglón). Las celdas vacías llevan un
-  //  <br> para que en el editor se puedan clickear.
-  const RE_FILA_TABLA = /^[ \t]*\|.*\|[ \t]*$/;
-  const RE_SEP_TABLA = /^[ \t]*\|([ \t]*:?-{3,}:?[ \t]*\|)+[ \t]*$/;
-  function celdasDe(l) {
-    return l.trim().replace(/^\|/, '').replace(/\|$/, '')
-      .split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, '|'));
-  }
-  function tablaHTML(filas) {
-    let cab = null, cuerpo = filas;
-    if (filas.length > 1 && RE_SEP_TABLA.test(filas[1])) { cab = celdasDe(filas[0]); cuerpo = filas.slice(2); }
-    cuerpo = cuerpo.filter(f => !RE_SEP_TABLA.test(f)).map(celdasDe);
-    const n = Math.max(cab ? cab.length : 0, ...cuerpo.map(f => f.length), 1);
-    const celda = (tag, c) => '<' + tag + '>' + (c || '<br>') + '</' + tag + '>';
-    const fila = (tag, f) => '<tr>' + Array.from({ length: n }, (_, k) => celda(tag, f[k])).join('') + '</tr>';
-    return '<table class="tabla-txt">' + (cab ? '<thead>' + fila('th', cab) + '</thead>' : '') +
-      '<tbody>' + cuerpo.map(f => fila('td', f)).join('') + '</tbody></table>';
   }
 
   // Para previews de una línea: se ve la palabra, no el markdown.
@@ -6748,12 +6076,7 @@
       .replace(/\*\*([\s\S]+?)\*\*/g, '$1')
       .replace(/__([\s\S]+?)__/g, '$1')
       .replace(/~~([\s\S]+?)~~/g, '$1')
-      .replace(/==(?=\S)([\s\S]*?\S)==/g, '$1')
       .replace(/(^|[^*])\*([^\n*]+)\*(?!\*)/g, '$1$2')
-      .replace(/^[ \t]*-{3,}[ \t]*$/gm, '')
-      .replace(/^#{1,2}[ \t]+/gm, '')
-      .replace(/^[ \t]*```[^\n]*$/gm, '')
-      .replace(/^\s*[-•]\s+\[[ xX]\](?:[ \t]+|$)/gm, '')
       .replace(/^\s*[-•]\s+/gm, '')
       .replace(/^\s*\d+[.)]\s+/gm, '');
   }
@@ -6841,7 +6164,7 @@
   }
 
   // De qué marca es cada etiqueta, al volver a texto.
-  const TAG_MARCA = { B: '**', STRONG: '**', I: '*', EM: '*', U: '__', S: '~~', STRIKE: '~~', DEL: '~~', MARK: '==' };
+  const TAG_MARCA = { B: '**', STRONG: '**', I: '*', EM: '*', U: '__', S: '~~', STRIKE: '~~', DEL: '~~' };
 
   // Una lista, con las que le cuelguen adentro. Cada nivel son dos
   // espacios de sangría, que es lo que después lee `renderTexto`.
@@ -6865,23 +6188,10 @@
         const c = h.childNodes[k];
         ((c.tagName === 'UL' || c.tagName === 'OL') ? subs : propios).push(c);
       }
-      // La casilla no tiene texto: lo que dice es si está tildada.
-      const caja = tag === 'UL' ? cajaDe(h) : null;
-      const pre = caja ? (caja.classList.contains('on') ? '[x] ' : '[ ] ') : '';
-      s += sangria + (tag === 'UL' ? '- ' : (i++) + '. ') + (pre + serieNodos(propios).trim()).trimEnd() + '\n';
+      s += sangria + (tag === 'UL' ? '- ' : (i++) + '. ') + serieNodos(propios).trim() + '\n';
       subs.forEach(u => { s += serieLista(u, nivel + 1); });
     }
     return s;
-  }
-
-  // La casilla de un renglón de checklist: la que es hija directa, no la
-  // de una sublista que cuelgue de él.
-  function cajaDe(li) {
-    for (let k = 0; k < li.childNodes.length; k++) {
-      const c = li.childNodes[k];
-      if (c.nodeType === 1 && c.classList.contains('chk-box')) return c;
-    }
-    return null;
   }
 
   function serieNodos(nodos) {
@@ -6894,12 +6204,6 @@
 
       if (tag === 'BR') { s += '\n'; continue; }
       if (tag === 'SVG' || tag === 'svg') continue;
-      // La línea divisoria: un renglón propio con tres guiones.
-      if (tag === 'HR') {
-        if (s && !/\n$/.test(s)) s += '\n';
-        s += '---\n';
-        continue;
-      }
 
       // Una mención: vuelve a ser @[Nombre](id).
       if (n.classList && n.classList.contains('mencion')) {
@@ -6947,36 +6251,9 @@
         s += serieLista(n, 0);
         continue;
       }
-      // Un bloque de código vuelve a ser ``` … ```, con su texto tal cual.
-      if (tag === 'PRE') {
-        if (s && !/\n$/.test(s)) s += '\n';
-        s += '```\n' + n.textContent.replace(/\n+$/, '') + '\n```\n';
-        continue;
-      }
-      // Una tabla vuelve a ser sus renglones "| … |". La primera fila es
-      // el encabezado (lleva su "| --- |" abajo). El texto de cada celda
-      // va en un solo renglón y con sus "|" escapados.
-      if (tag === 'TABLE') {
-        if (s && !/\n$/.test(s)) s += '\n';
-        const trs = Array.from(n.querySelectorAll('tr'));
-        trs.forEach((tr, i) => {
-          const cs = Array.from(tr.children).filter(c => c.tagName === 'TD' || c.tagName === 'TH');
-          if (!cs.length) return;
-          s += '| ' + cs.map(c => serieNodos(c.childNodes).replace(/\s*\n+\s*/g, ' ').trim().replace(/\|/g, '\\|')).join(' | ') + ' |\n';
-          if (i === 0) s += '|' + cs.map(() => ' --- ').join('|') + '|\n';
-        });
-        continue;
-      }
       if (tag === 'DIV' || tag === 'P' || /^H[1-6]$/.test(tag)) {
         if (s && !/\n$/.test(s)) s += '\n';
-        // Un título vuelve a ser "# …" (h1–h3) o "## …" (h4–h6).
-        const tit = /^H[1-6]$/.test(tag) ? (Number(tag[1]) <= 3 ? '# ' : '## ') : '';
-        const dentroTit = serieNodos(n.childNodes);
-        s += (tit && dentroTit.trim()) ? tit + dentroTit.replace(/\n+/g, ' ').trim() + '\n' : dentroTit;
-        // Un renglón-bloque seguido de texto suelto: el texto va abajo,
-        // no pegado al final ("Guionesdespués").
-        const sig = nodos[k + 1];
-        if (sig && sig.nodeType === 3 && sig.nodeValue.length && !/\n$/.test(s)) s += '\n';
+        s += serieNodos(n.childNodes);
         continue;
       }
       const marca = TAG_MARCA[tag];
@@ -7010,10 +6287,7 @@
   // tocás el campo y desde ahí ya no está vacío para el CSS.
   function marcarVacio(el) {
     if (!el) return;
-    // Una viñeta recién creada todavía no tiene texto, pero no está
-    // vacía: si se la tratara como vacía se borraba en el acto, y por eso
-    // el botón de lista no hacía nada en un detalle en blanco.
-    const vacio = !el.textContent.trim() && !el.querySelector('img, .mencion, a, hr, .chk-box, li, table');
+    const vacio = !el.textContent.trim() && !el.querySelector('img, .mencion, a');
     el.classList.toggle('vacio', vacio);
     if (vacio && el.innerHTML && el.innerHTML !== '<br>') el.innerHTML = '';
   }
@@ -7053,33 +6327,20 @@
       if (e.key === 'Tab' && enViñeta()) {
         e.preventDefault();
         mandar(e.shiftKey ? 'outdent' : 'indent');
-        ordenarChecklist(el);
         guardarCampoDe(el);
         return;
       }
 
-      // Tab en una tabla pasa a la celda siguiente; en la última, agrega
-      // una fila. Shift+Tab vuelve.
-      if (e.key === 'Tab' && celdaDelCursor(el)) {
-        e.preventDefault();
-        moverEnTabla(el, e.shiftKey ? -1 : 1);
-        return;
-      }
-
-      // La checklist tiene su propio Enter, su Backspace y su ⌘↵.
-      if (tecladoChecklist(e, el)) return;
-
       const meta = e.metaKey || e.ctrlKey;
       if (!meta) return;
       const k = (e.key || '').toLowerCase();
-      if (k === 'h' && e.shiftKey) { e.preventDefault(); resaltar(el); return; }
       if (k === 'b' || k === 'i' || k === 'u') {
         e.preventDefault();
         mandar(k === 'b' ? 'bold' : k === 'i' ? 'italic' : 'underline');
       }
     });
 
-    el.addEventListener('input', () => { ordenarChecklist(el); marcarVacio(el); });
+    el.addEventListener('input', () => marcarVacio(el));
     el.addEventListener('blur', () => marcarVacio(el));
     marcarVacio(el);
   }
@@ -7096,124 +6357,6 @@
     return !!(n && n.closest && n.closest('li'));
   }
 
-  // ── Tablas: insertar, filas y columnas ───────────────────────
-  //  Con el cursor adentro de una tabla aparece una barrita arriba de
-  //  ella: + fila, − fila, + columna, − columna, borrar. Es una sola para
-  //  toda la página y sirve en /interno y en el panel.
-  function insertarTabla(el) {
-    if (!el) return;
-    if (!esEditor(el)) { insertarEn(el, '\n| Columna 1 | Columna 2 |\n| --- | --- |\n|  |  |\n'); return; }
-    el = raizEditor(el);
-    alCursor(el);
-    mandar('insertHTML', '<table class="tabla-txt"><thead><tr><th>Columna 1</th><th>Columna 2</th></tr></thead>' +
-      '<tbody><tr><td><br></td><td><br></td></tr></tbody></table><div><br></div>');
-    marcarVacio(el);
-    guardarCampoDe(el);
-  }
-
-  function celdaDelCursor(el) {
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return null;
-    let n = sel.getRangeAt(0).startContainer;
-    if (n && n.nodeType === 3) n = n.parentNode;
-    const c = n && n.closest ? n.closest('td, th') : null;
-    return (c && el.contains(c)) ? c : null;
-  }
-
-  function ponerCursorEn(celda) {
-    const r = document.createRange();
-    r.selectNodeContents(celda); r.collapse(false);
-    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
-  }
-
-  function celdaNueva(tag) { const c = document.createElement(tag); c.appendChild(document.createElement('br')); return c; }
-
-  function opTabla(el, op) {
-    el = raizEditor(el);
-    const c = celdaDelCursor(el);
-    if (!c) return;
-    const tr = c.parentNode, tabla = c.closest('table');
-    const col = Array.from(tr.children).indexOf(c);
-    const filas = Array.from(tabla.querySelectorAll('tr'));
-    if (op === 'fila+') {
-      const nueva = document.createElement('tr');
-      const ancho = tr.children.length;
-      for (let k = 0; k < ancho; k++) nueva.appendChild(celdaNueva('td'));
-      // Abajo del encabezado, la fila nueva va primera en el cuerpo.
-      if (tr.parentNode.tagName === 'THEAD') {
-        let tb = tabla.querySelector('tbody');
-        if (!tb) { tb = document.createElement('tbody'); tabla.appendChild(tb); }
-        tb.insertBefore(nueva, tb.firstChild);
-      } else tr.after(nueva);
-      ponerCursorEn(nueva.children[Math.min(col, ancho - 1)]);
-    } else if (op === 'fila-') {
-      const sig = tr.nextElementSibling || tr.previousElementSibling;
-      tr.remove();
-      if (!tabla.querySelector('tr')) { tabla.remove(); ocultarBarraTabla(); }
-      else if (sig && sig.children[col]) ponerCursorEn(sig.children[col]);
-    } else if (op === 'col+') {
-      filas.forEach(f => {
-        const ref = f.children[col];
-        const nueva = celdaNueva(f.parentNode.tagName === 'THEAD' ? 'th' : 'td');
-        if (ref) ref.after(nueva); else f.appendChild(nueva);
-      });
-      ponerCursorEn(tr.children[col + 1]);
-    } else if (op === 'col-') {
-      filas.forEach(f => { if (f.children[col]) f.children[col].remove(); });
-      if (!tabla.querySelector('td, th')) { tabla.remove(); ocultarBarraTabla(); }
-      else ponerCursorEn(tr.children[Math.max(0, col - 1)]);
-    } else if (op === 'borrar') {
-      tabla.remove(); ocultarBarraTabla();
-    }
-    marcarVacio(el);
-    guardarCampoDe(el);
-    pintarBarraTabla();
-  }
-
-  function moverEnTabla(el, paso) {
-    const c = celdaDelCursor(el); if (!c) return;
-    const todas = Array.from(c.closest('table').querySelectorAll('td, th'));
-    const i = todas.indexOf(c) + paso;
-    if (i >= todas.length) { opTabla(el, 'fila+'); ponerCursorEn(c.closest('table').querySelector('tr:last-child').firstElementChild); return; }
-    if (i >= 0) ponerCursorEn(todas[i]);
-  }
-
-  // La barrita de la tabla, una sola para toda la página.
-  let BARRA_TABLA = null;
-  function barraTabla() {
-    if (BARRA_TABLA) return BARRA_TABLA;
-    const b = document.createElement('div');
-    b.className = 'tabla-barra';
-    b.innerHTML = [['fila+', '+ fila'], ['fila-', '− fila'], ['col+', '+ columna'], ['col-', '− columna'], ['borrar', 'Borrar tabla']]
-      .map(([op, t]) => '<button type="button" data-tablaop="' + op + '">' + t + '</button>').join('');
-    // mousedown y no click: así el editor no pierde el foco ni el cursor.
-    b.addEventListener('mousedown', e => {
-      const btn = e.target.closest('[data-tablaop]'); if (!btn) return;
-      e.preventDefault();
-      const sel = window.getSelection();
-      const n = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
-      const ed = n && (n.nodeType === 3 ? n.parentNode : n).closest('[contenteditable="true"]');
-      if (ed) opTabla(ed, btn.dataset.tablaop);
-    });
-    b.style.display = 'none';
-    document.body.appendChild(b);
-    return (BARRA_TABLA = b);
-  }
-  function ocultarBarraTabla() { if (BARRA_TABLA) BARRA_TABLA.style.display = 'none'; }
-  function pintarBarraTabla() {
-    const sel = window.getSelection();
-    const n = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
-    const nodo = n && (n.nodeType === 3 ? n.parentNode : n);
-    const ed = nodo && nodo.closest ? nodo.closest('[contenteditable="true"]') : null;
-    const c = ed ? celdaDelCursor(ed) : null;
-    if (!c) { ocultarBarraTabla(); return; }
-    const b = barraTabla(), r = c.closest('table').getBoundingClientRect();
-    b.style.display = 'flex';
-    b.style.left = (r.left + window.scrollX) + 'px';
-    b.style.top = Math.max(0, r.top + window.scrollY - b.offsetHeight - 4) + 'px';
-  }
-  document.addEventListener('selectionchange', pintarBarraTabla);
-
   function mandar(cmd, valor) {
     try { document.execCommand('styleWithCSS', false, false); } catch (_) {}
     try { document.execCommand(cmd, false, valor == null ? null : valor); } catch (_) {}
@@ -7221,7 +6364,7 @@
 
   // Gancho para las pruebas automáticas. No expone datos ni permisos:
   // son funciones puras de texto.
-  window.__panel = { renderTexto: renderTexto, textoPlano: textoPlano, leerTexto: leerTexto, ponerTexto: ponerTexto };
+  window.__panel = { renderTexto: renderTexto, textoPlano: textoPlano, leerTexto: leerTexto };
 
   // Al clickear el botón de emoji o el de link, el campo pierde el foco.
   // Sin esto, el editor se cerraría justo antes de que insertemos nada.
@@ -7353,337 +6496,6 @@
     guardarCampoDe(el);
   }
 
-  // ── Resaltar ─────────────────────────────────────────────────
-  //  En el editor se le pide al navegador que pinte el fondo (así se
-  //  arregla solo con selecciones que cruzan renglones o viñetas) con un
-  //  color de contraseña, y enseguida cada pedazo pintado se cambia por
-  //  un <mark> nuestro. El color de verdad lo pone la hoja de estilo, por
-  //  eso en modo oscuro también se ve bien.
-  //  Si lo seleccionado ya estaba resaltado, se despinta: el mismo botón
-  //  prende y apaga, como la negrita.
-  const COLOR_SEÑA = 'rgb(255, 254, 1)';
-
-  function desenvolver(n) {
-    const p = n.parentNode;
-    if (!p) return;
-    while (n.firstChild) p.insertBefore(n.firstChild, n);
-    p.removeChild(n);
-  }
-
-  // Con el atajo el foco ya está en el campo y la selección de ahora es
-  // la buena. Solo un click en la barra se lleva el foco, y ahí sí hay
-  // que volver a donde estaba el cursor.
-  function alCursor(el) {
-    if (document.activeElement !== el) volverAlCursor(el);
-  }
-
-  function resaltar(el) {
-    if (!el) return;
-    if (!esEditor(el)) { envolver(el, '=='); return; }
-    el = raizEditor(el);
-    alCursor(el);
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
-    const r = sel.getRangeAt(0);
-    if (!el.contains(r.commonAncestorContainer)) return;
-
-    const pintadas = Array.from(el.querySelectorAll('mark')).filter(m => r.intersectsNode(m));
-    if (pintadas.length) {
-      pintadas.forEach(desenvolver);
-      el.normalize();
-      guardarCampoDe(el);
-      return;
-    }
-    if (r.collapsed) return;
-
-    try { document.execCommand('styleWithCSS', false, true); } catch (_) {}
-    try { document.execCommand('hiliteColor', false, COLOR_SEÑA); } catch (_) {}
-    try { document.execCommand('styleWithCSS', false, false); } catch (_) {}
-
-    const nuevas = [];
-    el.querySelectorAll('[style]').forEach(n => {
-      if (n.style.backgroundColor !== COLOR_SEÑA) return;
-      if (n.tagName === 'SPAN' && !n.classList.contains('mencion')) {
-        const m = document.createElement('mark');
-        n.parentNode.insertBefore(m, n);
-        while (n.firstChild) m.appendChild(n.firstChild);
-        n.remove();
-        nuevas.push(m);
-      } else {
-        // Algo nuestro (una mención, un renglón) que el navegador pintó
-        // por arriba: se le saca el fondo y queda como estaba.
-        n.style.removeProperty('background-color');
-        if (!n.getAttribute('style')) n.removeAttribute('style');
-      }
-    });
-    // Dos pedazos pegados quedan como uno solo.
-    nuevas.forEach(m => {
-      const sig = m.nextSibling;
-      if (sig && sig.nodeType === 1 && sig.tagName === 'MARK') {
-        while (sig.firstChild) m.appendChild(sig.firstChild);
-        sig.remove();
-      }
-    });
-    const vivas = nuevas.filter(m => m.isConnected);
-    if (vivas.length) {
-      const nr = document.createRange();
-      nr.setStartBefore(vivas[0]);
-      nr.setEndAfter(vivas[vivas.length - 1]);
-      sel.removeAllRanges();
-      sel.addRange(nr);
-    }
-    guardarCampoDe(el);
-  }
-
-  // ── Línea divisoria ──────────────────────────────────────────
-  //  Adentro de una viñeta no se mete: la línea iría a parar adentro del
-  //  renglón y al guardar partiría la lista en dos. Va abajo de la lista
-  //  entera, con un renglón vacío después para seguir escribiendo.
-  function divisor(el) {
-    if (!el) return;
-    if (!esEditor(el)) { insertarEn(el, '\n---\n'); return; }
-    el = raizEditor(el);
-    alCursor(el);
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
-    let n = sel.getRangeAt(0).startContainer;
-    if (n.nodeType === 3) n = n.parentNode;
-    const li = n.closest ? n.closest('li') : null;
-    if (li && el.contains(li)) {
-      let tope = li;
-      while (tope.parentNode && tope.parentNode !== el) tope = tope.parentNode;
-      const hr = document.createElement('hr');
-      const sig = document.createElement('div');
-      sig.appendChild(document.createElement('br'));
-      tope.after(hr, sig);
-      const r = document.createRange();
-      r.setStart(sig, 0); r.collapse(true);
-      sel.removeAllRanges(); sel.addRange(r);
-    } else {
-      mandar('insertHorizontalRule');
-    }
-    marcarVacio(el);
-    guardarCampoDe(el);
-  }
-
-  // ── Checklist ────────────────────────────────────────────────
-  //  Un renglón de checklist es un <li class="chk"> con su casilla
-  //  adelante. Se guarda como `- [ ] texto` o `- [x] texto`.
-  function nuevaCaja(hecha) {
-    const t = document.createElement('template');
-    t.innerHTML = cajaChk(hecha);
-    return t.content.firstChild;
-  }
-  function ponerChk(li) {
-    if (!cajaDe(li)) li.insertBefore(nuevaCaja(false), li.firstChild);
-    li.classList.add('chk');
-  }
-  function sacarChk(li) {
-    const c = cajaDe(li);
-    if (c) c.remove();
-    li.classList.remove('chk', 'hecho');
-    if (!li.getAttribute('class')) li.removeAttribute('class');
-  }
-  function liDelCursor(el) {
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return null;
-    const r = sel.getRangeAt(0);
-    let n = r.startContainer;
-    if (n.nodeType === 3) n = n.parentNode;
-    let li = n && n.closest ? n.closest('li') : null;
-    // Recién creada una lista, el navegador deja el cursor "apuntando" a
-    // la lista desde afuera (el campo, posición 0) aunque lo que escribas
-    // vaya adentro del renglón. Se busca el renglón al que apunta.
-    if (!li && r.startContainer.nodeType === 1) {
-      const kids = r.startContainer.childNodes;
-      const desp = kids[r.startOffset], ant = kids[r.startOffset - 1];
-      const c = (desp && desp.nodeType === 1) ? desp : ant;
-      if (c && c.nodeType === 1) {
-        if (c.tagName === 'LI') li = c;
-        else if (c.tagName === 'UL' || c.tagName === 'OL') {
-          const todos = c.querySelectorAll('li');
-          li = c === desp ? todos[0] : todos[todos.length - 1];
-        }
-      }
-    }
-    return (li && el.contains(li)) ? li : null;
-  }
-  // Los renglones que toca la selección. Si seleccionás un renglón con
-  // sublista adentro, cuenta el renglón y no todos los de abajo.
-  function lisDeSeleccion(el) {
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return [];
-    const r = sel.getRangeAt(0);
-    const propio = liDelCursor(el);
-    if (r.collapsed) return propio ? [propio] : [];
-    const tocadas = Array.from(el.querySelectorAll('li')).filter(li => r.intersectsNode(li));
-    return tocadas.filter(li => li === propio || !tocadas.some(o => o !== li && li.contains(o)));
-  }
-
-  function checklist(el) {
-    if (!el || !esEditor(el)) return;
-    el = raizEditor(el);
-    alCursor(el);
-    let lis = lisDeSeleccion(el);
-    // Fuera de una lista, o en una numerada: primero se vuelve viñeta.
-    if (!lis.length || lis.some(li => li.parentNode.tagName === 'OL')) {
-      mandar('insertUnorderedList');
-      lis = lisDeSeleccion(el);
-      if (lis.some(li => li.parentNode.tagName === 'OL')) { mandar('insertUnorderedList'); lis = lisDeSeleccion(el); }
-    }
-    if (!lis.length) return;
-    const todas = lis.every(li => li.classList.contains('chk'));
-    lis.forEach(li => todas ? sacarChk(li) : ponerChk(li));
-    // En un renglón vacío el cursor va DESPUÉS de la casilla: si quedara
-    // adelante, lo que escribas iría antes que ella.
-    if (!todas && lis.length === 1 && !textoPropio(lis[0])) {
-      const c = cajaDe(lis[0]);
-      const r = document.createRange();
-      r.setStartAfter(c); r.collapse(true);
-      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
-    }
-    marcarVacio(el);
-    guardarCampoDe(el);
-  }
-
-  function tildar(caja) {
-    const li = caja.closest('li');
-    const on = !caja.classList.contains('on');
-    caja.classList.toggle('on', on);
-    caja.setAttribute('aria-checked', on ? 'true' : 'false');
-    if (li) li.classList.toggle('hecho', on);
-  }
-
-  // Lo que el renglón tiene escrito, sin contar sus sublistas.
-  function textoPropio(li) {
-    let t = '';
-    li.childNodes.forEach(c => {
-      if (c.nodeType === 1 && (c.tagName === 'UL' || c.tagName === 'OL')) return;
-      t += c.textContent;
-    });
-    return t.replace(/\u00a0/g, ' ').trim();
-  }
-
-  // El navegador no sabe qué es una casilla: al partir, juntar o correr
-  // renglones la puede dejar en cualquier lado. Esto la vuelve a su lugar
-  // después de cada cambio, sin tocar el texto.
-  function ordenarChecklist(el) {
-    el.querySelectorAll('.chk-box').forEach(c => {
-      const li = c.parentNode && c.parentNode.tagName === 'LI' ? c.parentNode : null;
-      // Una casilla suelta (afuera de una viñeta, o en una numerada) sobra.
-      if (!li || li.parentNode.tagName !== 'UL') { c.remove(); if (li) li.classList.remove('chk', 'hecho'); return; }
-      // Solo vale la que está primera. Las demás vienen de juntar renglones.
-      let primero = li.firstChild;
-      while (primero && primero.nodeType === 3 && !primero.nodeValue.length) primero = primero.nextSibling;
-      if (primero !== c) {
-        // Si adelante hay OTRA casilla, esta sobra (vino de juntar dos
-        // renglones). Si no, es la del renglón y se la vuelve al principio.
-        if (primero && primero.nodeType === 1 && primero.classList.contains('chk-box')) { c.remove(); return; }
-        li.insertBefore(c, li.firstChild);
-      }
-      li.classList.add('chk');
-      li.classList.toggle('hecho', c.classList.contains('on'));
-      // Al correr renglones el navegador le pega estilos copiados (un
-      // fondo blanco, la tipografía): taparían el rosa de tildada.
-      if (c.hasAttribute('style')) c.removeAttribute('style');
-    });
-    // Un renglón marcado que se quedó sin casilla la recupera.
-    el.querySelectorAll('li.chk').forEach(li => {
-      if (li.parentNode.tagName !== 'UL') { li.classList.remove('chk', 'hecho'); return; }
-      if (!cajaDe(li)) li.insertBefore(nuevaCaja(li.classList.contains('hecho')), li.firstChild);
-    });
-  }
-
-  function tecladoChecklist(e, el) {
-    if (e.isComposing) return false;
-    const li = liDelCursor(el);
-    if (!li || !li.classList.contains('chk')) return false;
-    const sel = window.getSelection();
-    const r = sel.getRangeAt(0);
-
-    // ⌘↵ tilda o destilda el renglón donde estás.
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      const c = cajaDe(li);
-      if (c) { tildar(c); guardarCampoDe(el); }
-      return true;
-    }
-
-    // Borrar al principio del renglón saca la casilla y deja una viñeta
-    // común. Un segundo borrar ya hace lo de siempre.
-    if (e.key === 'Backspace' && r.collapsed && !e.metaKey && !e.ctrlKey && !e.altKey) {
-      const antes = document.createRange();
-      antes.setStart(li, 0);
-      antes.setEnd(r.startContainer, r.startOffset);
-      if (!antes.toString().replace(/\u00a0/g, ' ').length) {
-        e.preventDefault();
-        sacarChk(li);
-        if (!li.firstChild) li.appendChild(document.createElement('br'));
-        guardarCampoDe(el);
-        return true;
-      }
-      return false;
-    }
-
-    if (e.key !== 'Enter' || e.shiftKey || e.altKey) return false;
-    e.preventDefault();
-
-    // Enter en un renglón vacío: en una sublista lo trae un nivel para
-    // afuera; en el primer nivel sale de la checklist.
-    if (!textoPropio(li) && !li.querySelector('ul, ol')) {
-      const anidado = li.parentNode.parentNode && li.parentNode.parentNode.tagName === 'LI';
-      if (anidado) { mandar('outdent'); ordenarChecklist(el); }
-      else {
-        sacarChk(li);
-        if (!li.firstChild) li.appendChild(document.createElement('br'));
-        mandar('insertUnorderedList');
-      }
-      guardarCampoDe(el);
-      return true;
-    }
-
-    // Enter con texto: se parte el renglón y el pedazo de la derecha va
-    // a un renglón nuevo, también con casilla (sin tildar). Las
-    // sublistas se quedan colgando del renglón de arriba.
-    if (!r.collapsed) r.deleteContents();
-    const resto = document.createRange();
-    resto.setStart(r.startContainer, r.startOffset);
-    const sub = Array.from(li.childNodes).find(c => c.nodeType === 1 && (c.tagName === 'UL' || c.tagName === 'OL'));
-    if (sub) resto.setEndBefore(sub); else resto.setEnd(li, li.childNodes.length);
-    const pedazo = resto.extractContents();
-
-    const nuevo = document.createElement('li');
-    nuevo.className = 'chk';
-    const caja = nuevaCaja(false);
-    nuevo.appendChild(caja);
-    nuevo.appendChild(pedazo);
-    if (!nuevo.textContent.trim() && !nuevo.querySelector('br, img, .mencion')) nuevo.appendChild(document.createElement('br'));
-    if (!textoPropio(li) && !Array.from(li.childNodes).some(c => c.nodeType === 1 && c.tagName === 'BR')) {
-      li.insertBefore(document.createElement('br'), sub || null);
-    }
-    li.after(nuevo);
-
-    const cur = document.createRange();
-    cur.setStartAfter(caja); cur.collapse(true);
-    sel.removeAllRanges(); sel.addRange(cur);
-    marcarVacio(el);
-    guardarCampoDe(el);
-    return true;
-  }
-
-  // Click en una casilla: se tilda y se guarda. Solo adentro de un
-  // editor; en un comentario ya mandado o en administración la casilla
-  // se ve pero no se toca.
-  document.addEventListener('mousedown', e => {
-    const caja = e.target.closest && e.target.closest('.chk-box');
-    if (!caja) return;
-    const ed = caja.closest('[contenteditable="true"]');
-    if (!ed) return;
-    e.preventDefault();          // que el cursor no salte a la casilla
-    tildar(caja);
-    guardarCampoDe(ed);
-  });
-
   // Cada campo se guarda donde corresponde
   function guardarCampoDe(el) {
     if (!el) return;
@@ -7698,10 +6510,8 @@
     '<button class="mini-btn fmt" data-fmt="*" title="Cursiva (⌘I)"><i>i</i></button>' +
     '<button class="mini-btn fmt" data-fmt="__" title="Subrayado (⌘U)"><u>U</u></button>' +
     '<button class="mini-btn fmt" data-fmt="~~" title="Tachado"><s>S</s></button>' +
-    '<button class="mini-btn fmt" data-fmt="==" title="Resaltar (⌘⇧H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"></path><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></svg></button>' +
     '<button class="mini-btn fmt" data-lista="" title="Lista">•—</button>' +
-    '<button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>' +
-    '<button class="mini-btn fmt" data-tabla="1" title="Tabla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="10" y1="4" x2="10" y2="20"></line></svg></button>';
+    '<button class="mini-btn fmt" data-lista="1" title="Lista numerada">1—</button>';
 
   // ── Modal para poner un link ─────────────────────────────────
   let LK_DESTINO = null, LK_INI = 0, LK_FIN = 0;
@@ -9019,10 +7829,9 @@
       const vencidas = todos.filter(estaVencida).length;
       const abiertas = todos.filter(t => !t.completada).length;
       const items = ordenarFilas(g.items);
-      const ck = AGRUPAR + ':' + k;
-      const col = COLAPSADOS[ck] ? ' collapsed' : '';
+      const col = COLAPSADOS[k] ? ' collapsed' : '';
       return '' +
-        '<div class="grupo' + col + (NOTA_GRUPO[k] ? ' grupo-sin' : '') + '" data-grupo="' + esc(k) + '" data-pleg="' + esc(ck) + '">' +
+        '<div class="grupo' + col + (NOTA_GRUPO[k] ? ' grupo-sin' : '') + '" data-grupo="' + esc(k) + '">' +
           cabezaGrupo(g.label, vencidas, abiertas, todos.length, NOTA_GRUPO[k] || '') +
           '<div class="grupo-body">' + items.map(filaHTML).join('') + '</div>' +
         '</div>';
@@ -9108,15 +7917,12 @@
     const todos = conSubs ? conSubs(items) : items;
     const vencidas = todos.filter(estaVencida).length;
     const abiertas = todos.filter(t => !t.completada).length;
-    // "Sin sección" tiene la misma clave en todos los proyectos: se le
-    // suma el proyecto para que plegarla en uno no la pliegue en todos.
-    const ck = 'sec:' + (sec.id === SIN_SEC && p ? p.id + ':' : '') + sec.id;
-    const col = COLAPSADOS[ck] ? ' collapsed' : '';
+    const col = COLAPSADOS[sec.id] ? ' collapsed' : '';
     // Sí se pueden arrastrar desde "Sin sección": justamente sacarlas de
     // ahí es para lo que está. Lo que no tiene sentido es agregar una
     // tarea nueva adentro, así que esa fila no va.
     const movible = !!p;
-    return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '" data-pleg="' + esc(ck) + '">' +
+    return '<div class="grupo' + col + '" data-grupo="' + esc(sec.id) + '">' +
       cabezaGrupo(sec.nombre, vencidas, abiertas, todos.length,
         sinSeccion ? 'Están en el proyecto pero no cayeron en ninguna sección. Arrastralas a la que corresponda y este grupo desaparece solo.' : '') +
       '<div class="grupo-body" data-col="' + esc(sec.id) + '" data-tipo="' + esc(sec.tipo || '') + '">' +
@@ -9143,44 +7949,12 @@
   //
   //  No se pueden arrastrar: su lugar lo decide de quién cuelgan, no
   //  el orden de la sección.
-  //
-  //  Una tarea con subtareas se puede plegar, como una sección. Plegada
-  //  muestra cuántas tiene, y en rojo si alguna de las escondidas está
-  //  vencida: plegar no puede ser la forma de que lo atrasado desaparezca.
-  //  Buscando, lo plegado no cuenta: si no, el resultado podría quedar
-  //  escondido adentro de una madre cerrada.
   function filaHTML(t, movible) {
-    const subs = subsVisibles(t.id);
-    const buscando = !!FILTRO.texto.trim();
-    const plegada = !!subs.length && !buscando && SUBS_PLEG.has(t.id);
-    const info = (subs.length && !buscando) ? { subs: subs, plegada: plegada } : null;
-    return filaSola(t, movible, false, info) +
-      (plegada ? '' : subs.map(s => filaSola(s, false, true)).join(''));
+    return filaSola(t, movible) +
+      subsVisibles(t.id).map(s => filaSola(s, false, true)).join('');
   }
 
-  const CHEV_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-
-  function pillSubs(t, info) {
-    if (!info) return '';
-    const n = info.subs.length;
-    const venc = info.plegada ? info.subs.filter(estaVencida).length : 0;
-    const titulo = info.plegada
-      ? 'Mostrar las ' + n + ' subtarea' + (n === 1 ? '' : 's') + (venc ? ' (' + venc + ' vencida' + (venc === 1 ? '' : 's') + ')' : '')
-      : 'Esconder las subtareas';
-    return '<button class="subs-pill' + (info.plegada ? ' cerrada' : '') + (venc ? ' alerta' : '') + '"' +
-      ' data-plegsub="' + t.id + '" aria-expanded="' + (info.plegada ? 'false' : 'true') + '" title="' + titulo + '">' +
-      CHEV_SVG + n + (venc ? ' · ' + venc + ' vencida' + (venc === 1 ? '' : 's') : '') + '</button>';
-  }
-
-  function plegarSubs(id) {
-    if (SUBS_PLEG.has(id)) SUBS_PLEG.delete(id); else SUBS_PLEG.add(id);
-    // Las que ya no existen se limpian solas, para que la lista no crezca para siempre.
-    SUBS_PLEG.forEach(x => { if (!TAREAS.some(t => t.id === x)) SUBS_PLEG.delete(x); });
-    try { localStorage.setItem(SUBS_LS, JSON.stringify(Array.from(SUBS_PLEG))); } catch (_) {}
-    render();
-  }
-
-  function filaSola(t, movible, esSub, info) {
+  function filaSola(t, movible, esSub) {
     const desc = resumenTexto(t.descripcion);
     const f = fechaTxt(t.vence);
     const done = !!t.completada;
@@ -9192,7 +7966,7 @@
         '<div class="check' + (done ? ' checked' : '') + '" data-check="' + t.id + '"></div>' +
         '<div class="fila-main">' +
           '<div class="fila-titulo">' + esc(t.titulo) +
-            pillSubs(t, info) + pillEspera(t) + '</div>' +
+            pillEspera(t) + '</div>' +
           (desc ? '<div class="fila-desc">' + esc(desc) + '</div>' : '') +
         '</div>' +
         '<div class="fila-chips">' + chipsDe(t, proyActivo()) + '</div>' +
@@ -10895,9 +9669,6 @@
   on('#navBandeja', 'click', () => cambiarModulo('bandeja'));
   on('#navClientes', 'click', () => cambiarModulo('clientes'));
   on('#navWiki', 'click', () => cambiarModulo('wiki'));
-  on('#navControl', 'click', () => cambiarModulo('control'));
-  // "Actualizar" también trae de nuevo la grilla si estás en Control de tareas.
-  on('#btnRefrescar', 'click', () => { if (MODULO === 'control') { CTRL.cargado = false; render(); } });
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));
   on('#fGuardar', 'click', guardar);
   on('#fBorrar', 'click', () => borrarTarea(EDITANDO));
@@ -11058,10 +9829,6 @@
     const el = campoDeLaBarra(b);
     if (!el) return;
     if (b.hasAttribute('data-lista')) listar(el, b.dataset.lista === '1');
-    else if (b.hasAttribute('data-tabla')) insertarTabla(el);
-    else if (b.hasAttribute('data-chk')) checklist(el);
-    else if (b.hasAttribute('data-hr')) divisor(el);
-    else if (b.dataset.fmt === '==') resaltar(el);
     else envolver(el, b.dataset.fmt);
   }, true);
 
@@ -11364,9 +10131,7 @@
   });
   on('#filtroPersona', 'change', e => { FILTRO.persona = e.target.value; e.target.classList.toggle('on', !!e.target.value); render(); });
   on('#filtroCliente', 'change', e => { FILTRO.cliente = e.target.value; e.target.classList.toggle('on', !!e.target.value); render(); });
-  // Ya no se borra lo plegado al cambiar de agrupación: cada una tiene
-  // sus propias claves, y volver a la anterior la deja como estaba.
-  on('#agrupar', 'change', e => { AGRUPAR = e.target.value; render(); });
+  on('#agrupar', 'change', e => { AGRUPAR = e.target.value; COLAPSADOS = {}; render(); });
   on('#btnMias', 'click', function () { FILTRO.mias = !FILTRO.mias; this.classList.toggle('active', FILTRO.mias); render(); });
   on('#btnLimpiar', 'click', () => {
     FILTRO = { texto: '', persona: '', cliente: '', proyecto: '', mias: false };
@@ -11427,9 +10192,6 @@
     const check = e.target.closest('[data-check]');
     if (check) { e.stopPropagation(); alternarCompletada(check.dataset.check); return; }
 
-    const plegSub = e.target.closest('[data-plegsub]');
-    if (plegSub) { e.stopPropagation(); plegarSubs(plegSub.dataset.plegsub); return; }
-
     // Ordenar por columna. Segundo click en la misma: al revés.
     const ord = e.target.closest('[data-orden]');
     if (ord) {
@@ -11445,8 +10207,7 @@
     if (head) {
       const g = head.closest('.grupo');
       g.classList.toggle('collapsed');
-      COLAPSADOS[g.dataset.pleg || g.dataset.grupo] = g.classList.contains('collapsed');
-      if (g.dataset.pleg) guardarColapsados();
+      COLAPSADOS[g.dataset.grupo] = g.classList.contains('collapsed');
       return;
     }
 
@@ -11646,6 +10407,14 @@
 
   iniciar();
 })();
+</script>
+<!-- PWA: registra el service worker (que la app se pueda instalar) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
 </script>
 </body>
 </html>
