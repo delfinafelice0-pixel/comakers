@@ -3074,7 +3074,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v27/10 01:42</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 10:23</div>
     </div>
   </aside>
 
@@ -6345,7 +6345,14 @@
     document.addEventListener('click', e => { if (!e.target.closest('#ctrlPop')) ctrlCerrarPop(); });
   })();
 
+  // Solapas sacadas del menú (29/10/2026). Sus tablas y su contenido
+  // siguen intactos (la Wiki tiene el instructivo de análisis): para
+  // volver a mostrar una, sacala de esta lista.
+  const SOLAPAS_OCULTAS = ['etiquetas', 'wiki'];
+  const NAV_DE = { etiquetas: '#navEtiquetas', wiki: '#navWiki' };
+
   function cambiarModulo(m) {
+    if (SOLAPAS_OCULTAS.indexOf(m) !== -1) return;
     // Equipo, Clientes y Contabilidad son de las socias. Esto es la
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
@@ -6399,8 +6406,10 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas']
+      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas', '#navWiki']
         .forEach(sel => mostrar(sel, true));
+      // …menos las que se sacaron del menú (SOLAPAS_OCULTAS).
+      SOLAPAS_OCULTAS.forEach(m => { if (NAV_DE[m]) mostrar(NAV_DE[m], false); });
     } else {
       // En el panel interno ya no hay módulos de la agencia: lo único
       // que se muestra según el rol es la puerta de entrada a la otra
