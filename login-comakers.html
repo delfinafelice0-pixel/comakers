@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Iniciar sesión · CoMakers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF82FF">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CoMakers">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
@@ -226,6 +233,29 @@
   const SUPABASE_URL      = 'https://ggcstolnadkkqhsqpzql.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
 
+  // ── ¿VENIMOS DE UN MAIL? ─────────────────────────────
+  //  Se mira ANTES de crear el cliente: al crearlo, Supabase procesa el
+  //  token y limpia la URL. Si lo leyéramos después, a veces ya no está.
+  //
+  //  Los dos mails que caen en esta página —la invitación a alguien
+  //  nuevo y la recuperación de contraseña— necesitan lo mismo: que la
+  //  persona ELIJA una contraseña. Por eso no se distingue entre uno y
+  //  otro: si venís de un link de mail, ponés contraseña.
+  //
+  //  Antes esto solo miraba `type=recovery`. Una invitación llega con
+  //  `type=invite`, así que caía por el otro lado: Supabase le abría
+  //  la sesión y la persona entraba al panel SIN haber puesto nunca una
+  //  contraseña. Entraba esa vez y ninguna más, sin entender por qué.
+  const _hash  = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+  const _query = new URLSearchParams(location.search || '');
+  const _tipo  = _hash.get('type') || _query.get('type') || '';
+  const vengoDeUnMail =
+    _tipo === 'recovery' || _tipo === 'invite' ||
+    // El flujo nuevo de Supabase no manda `type`: manda un `code`. Como
+    // acá los únicos mails que llegan son esos dos, alcanza con que haya
+    // uno para saber que hay que pedir contraseña.
+    !!_query.get('code') || !!_hash.get('access_token');
+
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -233,25 +263,8 @@
   // Agencia (o super admin) → panel interno.
   // Cliente → su panel de reportes.
   // Si el perfil no se puede leer, cae al panel de cliente (lo más restrictivo).
-  // Solo rutas relativas del mismo sitio (evita open redirect): empieza
-  // con '/', no con '//', sin ':' ni '\'.
-  function destinoValido(n) {
-    return typeof n === 'string'
-      && n.charAt(0) === '/'
-      && n.charAt(1) !== '/'
-      && n.indexOf(':') === -1
-      && n.indexOf('\\') === -1;
-  }
-
   async function irAlPanel(session) {
-    // ¿Veníamos de un guard que guardó a dónde iba? Si el next es válido,
-    // vamos ahí. Y lo sacamos de la URL del login para que un refresh o
-    // el botón atrás no lo vuelvan a disparar.
-    var next = new URLSearchParams(location.search).get('next');
-    if (location.search) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
-    if (destinoValido(next)) { window.location.href = next; return; }
-
-    let destino = 'panel.html';
+    let destino = 'panel-comakers.html';
     try {
       const { data: perfil } = await sb
         .from('profiles')
@@ -265,18 +278,16 @@
     window.location.href = destino;
   }
 
-  // ── ¿VENIMOS DEL MAIL DE RECUPERACIÓN? ───────────────
-  // Supabase manda el token en el # de la URL. Si es de tipo recovery,
-  // NO entramos al panel: mostramos el formulario para poner una nueva.
-  const hash = new URLSearchParams((location.hash || '').replace(/^#/, ''));
-  const esRecuperacion = hash.get('type') === 'recovery';
-
-  if (esRecuperacion) {
+  if (vengoDeUnMail) {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('nuevaForm').style.display = '';
-    document.querySelector('h1').textContent = 'Elegí una contraseña nueva';
-    document.querySelector('.subtitle').textContent =
-      'La anterior no la puede ver nadie, ni nosotras. Poné una nueva y entrás directo.';
+    const esInvitacion = _tipo === 'invite';
+    document.querySelector('h1').textContent = esInvitacion
+      ? 'Bienvenida — elegí tu contraseña'
+      : 'Elegí una contraseña nueva';
+    document.querySelector('.subtitle').textContent = esInvitacion
+      ? 'La elegís vos y no la ve nadie más, ni nosotras. Con esto entrás al panel.'
+      : 'La anterior no la puede ver nadie, ni nosotras. Poné una nueva y entrás directo.';
   } else {
     // Si ya hay sesión activa, ir directo al panel que corresponda
     sb.auth.getSession().then(({ data: { session } }) => {
@@ -395,6 +406,13 @@
     if (data && data.session) await irAlPanel(data.session);
     else window.location.href = window.location.pathname;
   });
+
+  // ── PWA: registra el service worker (que la app se pueda instalar) ──
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
 </script>
 
 </body>
