@@ -2662,6 +2662,32 @@
   html[data-tema="oscuro"] .tema-btn .luna { display: block; }
   html[data-tema="oscuro"] .tema-btn .sol  { display: none; }
 
+  /* ── Selector de panel (arriba): Interno / Administración ──────────
+     Fijo y visible también en el celu, a diferencia de los links del
+     menú que eran solo de escritorio. La pestaña activa la marca el
+     build con data-page; la de Administración solo se prende si sos socia. */
+  .panel-switch {
+    display: flex; gap: 4px; align-items: center; width: fit-content;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px; margin: 0 0 18px;
+  }
+  .panel-switch .ps-tab {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 18px; border-radius: 999px;
+    font-family: var(--body); font-size: 13px; font-weight: 600;
+    color: var(--ink-soft); text-decoration: none; white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .panel-switch .ps-tab svg { width: 15px; height: 15px; }
+  .panel-switch .ps-tab:hover { color: var(--ink); }
+  .panel-switch[data-page="interno"] .ps-tab[data-for="interno"],
+  .panel-switch[data-page="administracion"] .ps-tab[data-for="administracion"] {
+    background: var(--accent); color: var(--sobre-lleno);
+  }
+  @media (max-width: 900px) {
+    .panel-switch { width: 100%; }
+    .panel-switch .ps-tab { flex: 1; }
+  }
 </style>
 
 <script>
@@ -2778,7 +2804,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 18:17</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 20:09</div>
     </div>
   </aside>
 
@@ -2796,6 +2822,18 @@
           Nueva tarea
         </button>
       </div>
+    </div>
+
+    <!-- Selector de panel: aparece en interno y en administración -->
+    <div class="panel-switch" data-page="administracion">
+      <a class="ps-tab" data-for="interno" href="interno.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Interno
+      </a>
+      <a class="ps-tab" data-for="administracion" id="swAdmin" href="administracion.html" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
+        Administración
+      </a>
     </div>
 
 
@@ -5793,6 +5831,8 @@
   function activar(sel, cond) { const e = $si(sel); if (e) e.classList.toggle('active', !!cond); }
 
   function pintarModulos() {
+    // Selector de panel de arriba: la pestaña Administración solo para socias.
+    mostrar('#swAdmin', soySocia());
     mostrar('#modTareas',    MODULO === 'tareas');
     mostrar('#modBandeja',   MODULO === 'bandeja');
     mostrar('#modEquipo',    MODULO === 'equipo');
