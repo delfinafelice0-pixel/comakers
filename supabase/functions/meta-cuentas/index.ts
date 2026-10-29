@@ -28,7 +28,7 @@ const GRAPH = `https://graph.facebook.com/${V}`;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -60,7 +60,13 @@ Deno.serve(async (req) => {
     // ── 1. ¿Quién llama? ──────────────────────────────────────
     // Sin esto, cualquiera con la anon key (que está en el HTML)
     // podría listar las cuentas de Meta de tus clientes.
-    const auth = req.headers.get('Authorization') ?? '';
+    // Dos caminos (mismo patrón que los pulls y analizar-reporte):
+    //  · navegador: el token de sesión (ES256) en x-user-token; en
+    //    Authorization viene el anon legacy, solo para pasar el gateway;
+    //  · como hasta hoy: el token de sesión en Authorization.
+    // En los dos casos se valida con getUser: el anon solo no alcanza.
+    const userToken = (req.headers.get('x-user-token') ?? '').trim();
+    const auth = userToken ? 'Bearer ' + userToken : (req.headers.get('Authorization') ?? '');
     if (!auth.startsWith('Bearer ')) return json({ error: 'Sin sesión' }, 401);
 
     const admin = createClient(
