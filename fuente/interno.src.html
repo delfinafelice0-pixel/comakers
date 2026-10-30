@@ -14714,6 +14714,35 @@
     if (barra) { abrirDrawer(barra.dataset.id); return; }
   });
 
+  // ── Abrir la tarea en el PRIMER toque (iOS) ──────────────────
+  //  En iOS Safari, un `click` sobre una tarjeta a veces no dispara en el
+  //  primer toque (lo consume el :hover o el draggable), y hay que tocar
+  //  dos veces. Para que abra siempre al primer toque, escuchamos el
+  //  `touchend`: si fue un toque corto y quieto (no un scroll) sobre una
+  //  tarjeta o fila, abrimos nosotros y cancelamos el click fantasma que
+  //  vendría después. En desktop esto ni se usa (no hay touch).
+  let _toque = null;
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) { _toque = null; return; }
+    const el = e.target.closest('.card-k, .fila');
+    _toque = el ? { x: e.touches[0].clientX, y: e.touches[0].clientY, el: el } : null;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    const info = _toque; _toque = null;
+    if (!info) return;
+    if (e.target.closest('#drawer')) return;
+    // Si el dedo tocó un control de adentro (check, terminar, +, botones,
+    // links, campos), que lo maneje el click normal: no abrimos la tarea.
+    if (e.target.closest('[data-fin],[data-check],[data-secdel],[data-nueva],[data-orden],.grupo-head,button,a,input,select,textarea,[contenteditable]')) return;
+    const t = e.changedTouches[0];
+    const movido = Math.abs(t.clientX - info.x) > 10 || Math.abs(t.clientY - info.y) > 10;
+    if (movido) return;                 // fue un scroll, no un tap
+    const id = info.el.dataset.id;
+    if (!id) return;
+    e.preventDefault();                 // evita el click fantasma (doble apertura)
+    abrirDrawer(id);
+  }, { passive: false });
+
   // ── Resumen del proyecto ─────────────────────────────────────
   on('#resumen', 'click', e => {
     const rev = e.target.closest('[data-revelar]');
