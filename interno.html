@@ -2889,7 +2889,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 14:08</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 14:35</div>
     </div>
   </aside>
 
@@ -8605,13 +8605,33 @@
       : '🔔 Activar notificaciones';
   }
 
-  async function cargarEstadoPush() {
+  // Lee la suscripción que tiene ESTE navegador y la (re)guarda en la base.
+  //  Clave: si borraste las filas de la base pero el navegador todavía
+  //  tiene su suscripción, esto la vuelve a dejar guardada sola. Devuelve
+  //  true si hay una suscripción.
+  async function sincronizarSuscripcion() {
     try {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        const reg = await navigator.serviceWorker.ready;
-        PUSH_ON = !!(await reg.pushManager.getSubscription());
-      }
-    } catch (e) { /* noop */ }
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !ME || !SB) return false;
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (!sub) return false;
+      const j = sub.toJSON();
+      await SB.from('push_suscripcion').upsert({
+        user_id: ME.id,
+        endpoint: sub.endpoint,
+        p256dh: j.keys.p256dh,
+        auth: j.keys.auth,
+        user_agent: (navigator.userAgent || '').slice(0, 300),
+        ultima_en: new Date().toISOString(),
+      }, { onConflict: 'endpoint' });
+      return true;
+    } catch (e) { return false; }
+  }
+
+  async function cargarEstadoPush() {
+    // Si el navegador ya tiene suscripción, la re-guardamos en la base
+    // (self-heal). Así nunca queda "activada en el celu pero sin fila".
+    try { PUSH_ON = await sincronizarSuscripcion(); } catch (e) { /* noop */ }
     try {
       if (ME && SB) {
         const { data } = await SB.from('preferencia').select('push_modo').eq('user_id', ME.id).maybeSingle();
@@ -8646,16 +8666,8 @@
       if (!sub) {
         sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aU8(VAPID_PUBLIC) });
       }
-      const j = sub.toJSON();
-      const { error } = await SB.from('push_suscripcion').upsert({
-        user_id: ME.id,
-        endpoint: sub.endpoint,
-        p256dh: j.keys.p256dh,
-        auth: j.keys.auth,
-        user_agent: (navigator.userAgent || '').slice(0, 300),
-        ultima_en: new Date().toISOString(),
-      }, { onConflict: 'endpoint' });
-      if (error) { toast('No se pudo guardar la suscripción: ' + error.message, 'warn'); return false; }
+      const ok = await sincronizarSuscripcion();
+      if (!ok) { toast('No se pudo guardar la suscripción.', 'warn'); return false; }
       PUSH_ON = true;
       // Prueba (no bloquea): confirma que el caño anda.
       SB.functions.invoke('enviar-push', { body: { test: true, user_id: ME.id } });
@@ -10090,6 +10102,7 @@
     if (!b) return;
     cerrar('ovModo');
     await guardarPushModo(b.dataset.modo);
+    await sincronizarSuscripcion();   // deja la fila guardada sí o sí
     if (window.__notifCoach) { mostrarCoach(); window.__notifCoach = false; }
     else toast('Vas a recibir: ' + (b.dataset.modo === 'menciones' ? 'solo menciones' : 'todo'), 'ok');
   });
