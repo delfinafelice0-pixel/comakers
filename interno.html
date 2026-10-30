@@ -2849,9 +2849,8 @@
           <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
         </button>
       </div>
-      <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 03:13</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 04:35</div>
     </div>
   </aside>
 
@@ -8518,52 +8517,6 @@
   function refrescarFechaBtn() { if (PICKER_FORM) PICKER_FORM.refrescar(); }
   function refrescarFechaDetalle() { if (PICKER_DET) PICKER_DET.refrescar(); }
   function fpCerrar() { if (PICKER_FORM) PICKER_FORM.cerrar(); }
-  // ═══════════════ NOTIFICACIONES PUSH ═══════════════
-  //  Paso A: pedir permiso, suscribir este navegador/celular, guardar la
-  //  suscripción en Supabase y mandar una de prueba. (La UI linda con la
-  //  pregunta "¿qué querés que te llegue?" + el globo va en el Paso B.)
-  const VAPID_PUBLIC = 'BI5AHzyVBe57_wxOWOWQL-ThzmywxpVJu4mIlBEApmx0Vu1F1maMvyBhhKUiJcGmy2ABN_PJgT56bqYxrgLLev0';
-
-  function b64aU8(base64) {
-    const pad = '='.repeat((4 - base64.length % 4) % 4);
-    const b64 = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(b64);
-    const u8 = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++) u8[i] = raw.charCodeAt(i);
-    return u8;
-  }
-
-  async function activarNotificaciones() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      toast('Este navegador no soporta notificaciones push.', 'warn'); return;
-    }
-    if (!ME || !SB) { toast('Esperá a que termine de cargar el panel.', 'warn'); return; }
-    try {
-      const permiso = await Notification.requestPermission();
-      if (permiso !== 'granted') { toast('Sin permiso no te puedo mandar notificaciones.', 'warn'); return; }
-      const reg = await navigator.serviceWorker.ready;
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aU8(VAPID_PUBLIC) });
-      }
-      const j = sub.toJSON();
-      const { error } = await SB.from('push_suscripcion').upsert({
-        user_id: ME.id,
-        endpoint: sub.endpoint,
-        p256dh: j.keys.p256dh,
-        auth: j.keys.auth,
-        user_agent: (navigator.userAgent || '').slice(0, 300),
-        ultima_en: new Date().toISOString(),
-      }, { onConflict: 'endpoint' });
-      if (error) { toast('No se pudo guardar la suscripción: ' + error.message, 'warn'); return; }
-      toast('Activadas. Te mando una de prueba…', 'ok');
-      const { error: e2 } = await SB.functions.invoke('enviar-push', { body: { test: true, user_id: ME.id } });
-      if (e2) toast('Suscripción ok, pero la prueba falló: ' + e2.message, 'warn');
-    } catch (e) {
-      toast('No se pudo activar: ' + (e && e.message ? e.message : e), 'warn');
-    }
-  }
-
   function abrirForm(t, seccionPreset) {
     EDITANDO = t;
     $('#formTitulo').textContent = t ? 'Editar tarea' : 'Nueva tarea';
@@ -9968,7 +9921,6 @@
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));
   on('#fGuardar', 'click', guardar);
   initFechaPicker();
-  on('#btnNotif', 'click', activarNotificaciones);
   on('#fBorrar', 'click', () => borrarTarea(EDITANDO));
   on('#dEnviarCom', 'click', enviarComentario);
   // Los "+ Agregar" de subtareas y links: hasta que no los tocás, los

@@ -16,7 +16,7 @@
    eso borra el caché viejo y evita que el SW se quede "pegado".
    ═══════════════════════════════════════════════════════════════ */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `comakers-${VERSION}`;
 
 // Lo mínimo para que la pantalla de respaldo se vea aunque no haya red.
@@ -27,7 +27,11 @@ const RESPALDO = [
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(RESPALDO)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      // Si algún archivo del respaldo no está, no abortamos la instalación:
+      // el SW se instala igual (el respaldo es un lujo, no un requisito).
+      .then((c) => Promise.allSettled(RESPALDO.map((u) => c.add(u))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -65,38 +69,5 @@ self.addEventListener('fetch', (e) => {
   // hay red probamos el caché por si es algo del respaldo.
   e.respondWith(
     fetch(req).catch(() => caches.match(req))
-  );
-});
-
-/* ── NOTIFICACIONES PUSH ─────────────────────────────────────────
-   Llega un push (aunque la app esté cerrada) → mostramos la notificación.
-   La Edge Function `enviar-push` manda un JSON { title, body, url, tag }. */
-self.addEventListener('push', (e) => {
-  let d = {};
-  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: 'CoMakers', body: e.data ? e.data.text() : '' }; }
-  const title = d.title || 'CoMakers';
-  e.waitUntil(
-    self.registration.showNotification(title, {
-      body: d.body || '',
-      icon: './icons/icon-192.png',
-      badge: './icons/icon-192.png',
-      tag: d.tag || 'comakers',
-      renotify: true,
-      data: { url: d.url || 'interno.html' },
-    })
-  );
-});
-
-// Tocar la notificación → traer la app al frente (o abrirla) en la tarea.
-self.addEventListener('notificationclick', (e) => {
-  e.notification.close();
-  const destino = (e.notification.data && e.notification.data.url) || 'interno.html';
-  e.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
-      for (const w of wins) {
-        if ('focus' in w) { w.focus(); if ('navigate' in w) w.navigate(destino).catch(() => {}); return; }
-      }
-      return self.clients.openWindow(destino);
-    })
   );
 });
