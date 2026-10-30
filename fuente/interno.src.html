@@ -2692,6 +2692,65 @@
   @media (max-width: 420px) {
     .panel-switch .ps-tab svg { display: none; }
   }
+
+  /* ── Picker de fecha estilo Asana (un campo; inicio opcional) ───── */
+  .fecha-field { position: relative; display: flex; align-items: center; gap: 6px; }
+  .fecha-btn {
+    flex: 1; display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 9px 12px; font: inherit; font-size: 14px; color: var(--ink);
+    cursor: pointer; text-align: left; transition: border-color .15s;
+  }
+  .fecha-btn:hover { border-color: var(--ink-mute); }
+  .fecha-btn svg { width: 16px; height: 16px; color: var(--ink-mute); flex-shrink: 0; }
+  .fecha-btn.vacio span { color: var(--ink-mute); }
+  .fecha-clear {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg-elev); color: var(--ink-mute); cursor: pointer; flex-shrink: 0;
+  }
+  .fecha-clear:hover { color: var(--warn); border-color: var(--warn); }
+  .fecha-clear svg { width: 14px; height: 14px; }
+
+  .fecha-pop {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+    width: min(300px, 86vw);
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.14); padding: 12px;
+  }
+  .fecha-pop[hidden] { display: none; }
+  .fp-chips { display: flex; gap: 6px; margin-bottom: 10px; }
+  .fp-chip {
+    flex: 1; border: 1px solid var(--line); background: var(--bg); border-radius: 8px;
+    padding: 6px 9px; cursor: pointer; text-align: left; font: inherit;
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .fp-chip.active { border-color: var(--accent); background: var(--accent-soft); }
+  .fp-chip small { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-mute); }
+  .fp-chip b { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .fp-chip b.vacio { color: var(--ink-mute); font-weight: 500; }
+  .fp-toggle { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 10px; cursor: pointer; user-select: none; }
+  .fp-toggle input { width: 15px; height: 15px; accent-color: var(--accent); }
+  .fp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .fp-mes { font-size: 13px; font-weight: 600; color: var(--ink); text-transform: capitalize; }
+  .fp-nav { width: 26px; height: 26px; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: var(--ink-soft); font-size: 17px; line-height: 1; }
+  .fp-nav:hover { background: var(--bg); color: var(--ink); }
+  .fp-dow, .fp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .fp-dow span { text-align: center; font-size: 10px; color: var(--ink-mute); padding: 2px 0; text-transform: uppercase; }
+  .fp-dia {
+    aspect-ratio: 1; border: none; background: transparent; border-radius: 7px; cursor: pointer;
+    font: inherit; font-size: 12.5px; color: var(--ink); display: flex; align-items: center; justify-content: center;
+  }
+  .fp-dia:hover { background: var(--bg); }
+  .fp-dia.otro { color: var(--ink-mute); opacity: .45; }
+  .fp-dia.hoy { font-weight: 700; color: var(--accent); }
+  .fp-dia.rango { background: var(--accent-soft); border-radius: 0; }
+  .fp-dia.sel { background: var(--accent); color: var(--sobre-lleno); font-weight: 600; border-radius: 7px; }
+  .fp-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .fp-foot button { border: none; background: transparent; cursor: pointer; font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 7px; }
+  .fp-foot .fp-quitar { color: var(--ink-mute); }
+  .fp-foot .fp-quitar:hover { color: var(--warn); background: var(--warn-soft); }
+  .fp-foot .fp-listo { color: var(--sobre-lleno); background: var(--accent); font-weight: 600; }
 </style>
 
 <script>
@@ -3541,14 +3600,19 @@
         </select>
       </div>
     </div>
-    <div class="campo campo-row">
-      <div>
-        <label class="campo-label">Empieza (opcional)</label>
-        <input type="date" id="fEmpieza">
-      </div>
-      <div>
-        <label class="campo-label">Vence</label>
-        <input type="date" id="fVence">
+    <div class="campo">
+      <label class="campo-label">Fecha</label>
+      <input type="hidden" id="fEmpieza">
+      <input type="hidden" id="fVence">
+      <div class="fecha-field">
+        <button type="button" id="fechaBtn" class="fecha-btn vacio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span id="fechaBtnTxt">Sin fecha</span>
+        </button>
+        <button type="button" id="fechaClear" class="fecha-clear" title="Quitar fecha" aria-label="Quitar fecha" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div id="fechaPop" class="fecha-pop" hidden></div>
       </div>
 <!--@@FIN-->
 <!--@@ADMIN-->
@@ -10134,6 +10198,7 @@
       cerrarQuick();
       abrirForm(null);
       $('#fVence').value = iso;
+      refrescarFechaBtn();
       if (titulo) $('#fTitulo').value = titulo;
       setTimeout(() => $('#fTitulo').focus(), 80);
     });
@@ -11803,6 +11868,130 @@
     await cargarColabs();
   }
 
+  // ═══════════════ PICKER DE FECHA (estilo Asana) ═══════════════
+  //  Un solo campo. Por default elegís la fecha de entrega (vence); con el
+  //  toggle "Agregar fecha de inicio" habilitás el rango (empieza→vence).
+  //  Los valores viven en los inputs ocultos #fEmpieza/#fVence, así la
+  //  carga y el guardado de la tarea siguen igual que siempre.
+  const FP_MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const FP_MES3  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  let fpMesVista = null;    // Date: primer día del mes mostrado
+  let fpActivo = 'vence';   // qué campo setea el próximo click
+
+  function fpGet(id) { const e = $('#' + id); return (e && e.value) ? e.value : null; }
+  function fpSet(id, iso) { const e = $('#' + id); if (e) e.value = iso || ''; }
+  function fpFmt(iso) { const d = dDe(iso); return d.getDate() + ' ' + FP_MES3[d.getMonth()]; }
+
+  // Texto y aspecto del botón (vacío / fecha / rango) + la X de limpiar.
+  function refrescarFechaBtn() {
+    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
+    const btn = $('#fechaBtn'), txt = $('#fechaBtnTxt'), x = $('#fechaClear');
+    if (!btn || !txt) return;
+    if (!ven && !emp) { txt.textContent = 'Sin fecha'; btn.classList.add('vacio'); if (x) x.style.display = 'none'; return; }
+    btn.classList.remove('vacio');
+    if (x) x.style.display = '';
+    txt.textContent = (emp && ven) ? (fpFmt(emp) + ' → ' + fpFmt(ven)) : fpFmt(ven || emp);
+  }
+
+  function fpToggleRango(on) {
+    if (on) fpActivo = fpGet('fEmpieza') ? 'vence' : 'empieza';
+    else { fpSet('fEmpieza', null); fpActivo = 'vence'; }
+    refrescarFechaBtn();
+    fpRender();
+  }
+
+  function fpClickDia(iso) {
+    fpSet(fpActivo, iso);
+    if (fpActivo === 'empieza') fpActivo = 'vence';   // cargado el inicio, sigue la entrega
+    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
+    if (emp && ven && emp > ven) { fpSet('fEmpieza', ven); fpSet('fVence', emp); }  // destildo cruce
+    refrescarFechaBtn();
+    fpRender();
+  }
+
+  function fpRender() {
+    const pop = $('#fechaPop'); if (!pop || pop.hidden) return;
+    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
+    const rango = $('#fpRango') ? $('#fpRango').checked : !!emp;
+    if (!fpMesVista) fpMesVista = dDe(ven || emp || hoyISO());
+    fpMesVista = new Date(fpMesVista.getFullYear(), fpMesVista.getMonth(), 1);
+
+    const chip = (campo, lab, val) =>
+      '<button type="button" class="fp-chip' + (fpActivo === campo ? ' active' : '') + '" data-fcampo="' + campo + '">' +
+        '<small>' + lab + '</small><b class="' + (val ? '' : 'vacio') + '">' + (val ? fpFmt(val) : '—') + '</b></button>';
+    const chips = rango
+      ? '<div class="fp-chips">' + chip('empieza', 'Inicio', emp) + chip('vence', 'Entrega', ven) + '</div>'
+      : '';
+
+    const y = fpMesVista.getFullYear(), m = fpMesVista.getMonth();
+    const primero = new Date(y, m, 1);
+    const ini = (primero.getDay() + 6) % 7;        // lunes = 0
+    const start = masDias(primero, -ini);
+    const hoy = hoyISO();
+    let celdas = '';
+    for (let i = 0; i < 42; i++) {
+      const d = masDias(start, i);
+      const iso = isoDe(d);
+      const otro = d.getMonth() !== m;
+      const esSel = (emp && iso === emp) || (ven && iso === ven);
+      const enRango = rango && emp && ven && iso > emp && iso < ven;
+      const cls = ['fp-dia'];
+      if (otro) cls.push('otro');
+      if (iso === hoy) cls.push('hoy');
+      if (enRango) cls.push('rango');
+      if (esSel) cls.push('sel');
+      celdas += '<button type="button" class="' + cls.join(' ') + '" data-fdia="' + iso + '">' + d.getDate() + '</button>';
+    }
+    const dow = ['lu','ma','mi','ju','vi','sá','do'].map(x => '<span>' + x + '</span>').join('');
+
+    pop.innerHTML =
+      chips +
+      '<label class="fp-toggle"><input type="checkbox" id="fpRango"' + (rango ? ' checked' : '') + '> Agregar fecha de inicio</label>' +
+      '<div class="fp-head"><button type="button" class="fp-nav" data-fnav="-1">‹</button>' +
+        '<span class="fp-mes">' + FP_MESES[m] + ' ' + y + '</span>' +
+        '<button type="button" class="fp-nav" data-fnav="1">›</button></div>' +
+      '<div class="fp-dow">' + dow + '</div>' +
+      '<div class="fp-grid">' + celdas + '</div>' +
+      '<div class="fp-foot"><button type="button" class="fp-quitar">Quitar</button>' +
+        '<button type="button" class="fp-listo">Listo</button></div>';
+  }
+
+  function fpAbrir() {
+    const pop = $('#fechaPop'); if (!pop) return;
+    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
+    fpActivo = 'vence';
+    fpMesVista = dDe(ven || emp || hoyISO());
+    pop.hidden = false;
+    fpRender();
+  }
+  function fpCerrar() { const pop = $('#fechaPop'); if (pop) pop.hidden = true; }
+
+  function initFechaPicker() {
+    const pop = $('#fechaPop'); if (!pop) return;
+    on('#fechaBtn', 'click', (e) => { e.stopPropagation(); pop.hidden ? fpAbrir() : fpCerrar(); });
+    on('#fechaClear', 'click', (e) => {
+      e.stopPropagation();
+      fpSet('fEmpieza', null); fpSet('fVence', null); fpActivo = 'vence';
+      refrescarFechaBtn(); if (!pop.hidden) fpRender();
+    });
+    pop.addEventListener('click', (e) => {
+      const dia = e.target.closest('[data-fdia]');
+      if (dia) { fpClickDia(dia.dataset.fdia); return; }
+      const nav = e.target.closest('[data-fnav]');
+      if (nav) { fpMesVista = new Date(fpMesVista.getFullYear(), fpMesVista.getMonth() + (+nav.dataset.fnav), 1); fpRender(); return; }
+      const ch = e.target.closest('[data-fcampo]');
+      if (ch) { fpActivo = ch.dataset.fcampo; fpRender(); return; }
+      if (e.target.closest('.fp-quitar')) { fpSet('fEmpieza', null); fpSet('fVence', null); fpActivo = 'vence'; refrescarFechaBtn(); fpCerrar(); return; }
+      if (e.target.closest('.fp-listo')) { fpCerrar(); return; }
+    });
+    pop.addEventListener('change', (e) => { if (e.target.id === 'fpRango') fpToggleRango(e.target.checked); });
+    document.addEventListener('click', (e) => {
+      if (pop.hidden) return;
+      if (e.target.closest('.fecha-field')) return;
+      fpCerrar();
+    });
+  }
+
   function abrirForm(t, seccionPreset) {
     EDITANDO = t;
     $('#formTitulo').textContent = t ? 'Editar tarea' : 'Nueva tarea';
@@ -11815,6 +12004,7 @@
     $('#fPrioridad').value = t ? (t.urgencia || 'normal') : 'normal';
     $('#fEmpieza').value = t ? (t.empieza || '') : '';
     $('#fVence').value = t ? (t.vence || '') : '';
+    refrescarFechaBtn(); fpCerrar();
     $('#fProyecto').value = t ? (t.proyecto_id || '') : (FILTRO.proyecto && FILTRO.proyecto !== '__sinproy' ? FILTRO.proyecto : '');
     F_COLABS = t ? (COLABS[t.id] || []).filter(c => c.motivo !== 'responsable').map(c => c.id) : [];
     pintarColabsForm();
@@ -13881,6 +14071,7 @@
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));
 /*@@INTERNO*/
   on('#fGuardar', 'click', guardar);
+  initFechaPicker();
   on('#fBorrar', 'click', () => borrarTarea(EDITANDO));
   on('#dEnviarCom', 'click', enviarComentario);
   // Los "+ Agregar" de subtareas y links: hasta que no los tocás, los
