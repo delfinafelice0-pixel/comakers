@@ -2790,7 +2790,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 23:52</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 02:11</div>
     </div>
   </aside>
 
@@ -7698,13 +7698,17 @@
     }
 
     cont.innerHTML = cols.map(c => {
-      const items = list.filter(t => {
+      const filtradas = list.filter(t => {
             if (!p) return tipoDe(t) === c.id;
             const x = tpEn(t.id, p.id);
             if (!x) return false;
             return c.virtual ? !validas.has(x.seccion_id) : x.seccion_id === c.id;
-          })
-          .sort((a, b) => ordenDe(a, p ? p.id : null) - ordenDe(b, p ? p.id : null));
+          });
+      // Dentro de un proyecto: el orden a mano (secciones + arrastre). En el
+      // tablero global: por fecha, primero lo vencido y después lo más próximo.
+      const items = p
+        ? filtradas.slice().sort((a, b) => ordenDe(a, p.id) - ordenDe(b, p.id))
+        : ordenPorFecha(filtradas);
       const cards = items.length ? items.map(t => cardHTML(t, p)).join('') : '<div class="empty-col">Nada acá</div>';
       return '' +
         '<div class="columna' + (c.virtual ? ' columna-sinsec' : '') + '" data-col="' + c.id + '" data-tipo="' + c.tipo + '">' +
@@ -7911,6 +7915,13 @@
         return av.localeCompare(bv, 'es') * ORDEN.dir;
       });
     }
+    return ordenPorFecha(items);
+  }
+
+  // Orden por fecha: primero lo vencido, después por fecha ascendente (lo
+  // más próximo arriba), y lo que no tiene fecha al fondo. Lo usan la Lista
+  // (cuando no elegiste otro orden) y el Tablero global.
+  function ordenPorFecha(items) {
     return items.slice().sort((a, b) => {
       const av = estaVencida(a) ? 0 : 1, bv = estaVencida(b) ? 0 : 1;
       if (av !== bv) return av - bv;
