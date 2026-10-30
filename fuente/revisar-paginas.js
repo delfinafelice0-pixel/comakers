@@ -21,7 +21,7 @@ const DE_AFUERA = new Set([
   'window','document','console','location','navigator','history','screen',
   'localStorage','sessionStorage','fetch','alert','confirm','prompt',
   'setTimeout','clearTimeout','setInterval','clearInterval','requestAnimationFrame',
-  'Math','JSON','Date','Number','String','Boolean','Array','Object','Promise',
+  'Math','JSON','Date','Number','String','Boolean','Array','Object','Promise','Notification','Uint8Array',
   'Map','Set','WeakMap','WeakSet','RegExp','Error','TypeError','Intl','Symbol',
   'parseInt','parseFloat','isNaN','isFinite','encodeURIComponent','decodeURIComponent',
   'encodeURI','decodeURI','URL','URLSearchParams','Blob','FormData','FileReader',
