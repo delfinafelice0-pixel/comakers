@@ -2681,12 +2681,16 @@
   .panel-switch .ps-tab svg { width: 15px; height: 15px; }
   .panel-switch .ps-tab:hover { color: var(--ink); }
   .panel-switch[data-page="interno"] .ps-tab[data-for="interno"],
+  .panel-switch[data-page="reportes"] .ps-tab[data-for="reportes"],
   .panel-switch[data-page="administracion"] .ps-tab[data-for="administracion"] {
     background: var(--accent); color: var(--sobre-lleno);
   }
   @media (max-width: 900px) {
     .panel-switch { width: 100%; }
-    .panel-switch .ps-tab { flex: 1; }
+    .panel-switch .ps-tab { flex: 1; padding: 8px 6px; font-size: 12px; }
+  }
+  @media (max-width: 420px) {
+    .panel-switch .ps-tab svg { display: none; }
   }
 </style>
 
@@ -2786,7 +2790,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 20:09</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v29/10 23:52</div>
     </div>
   </aside>
 
@@ -2811,6 +2815,10 @@
       <a class="ps-tab" data-for="interno" href="interno.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         Interno
+      </a>
+      <a class="ps-tab" data-for="reportes" href="panel-comakers.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
+        Reportes
       </a>
       <a class="ps-tab" data-for="administracion" id="swAdmin" href="administracion.html" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>

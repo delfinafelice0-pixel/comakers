@@ -6071,6 +6071,33 @@
   .recurso-add-input { flex: 1; min-width: 160px; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-family: var(--body); font-size: 13px; color: var(--ink); background: var(--bg-elev); }
   .recurso-add-input:focus { outline: none; border-color: var(--accent); }
 
+  /* ── Selector de panel (arriba): Interno / Reportes / Administración ──
+     `data-agency-only` hace que applyRole lo oculte a los clientes.
+     La pestaña Administración se prende aparte solo para socias (initSesion). */
+  .panel-switch {
+    display: flex; gap: 4px; align-items: center; width: fit-content;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px; margin: 0 0 18px;
+  }
+  .panel-switch .ps-tab {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    color: var(--ink-soft); text-decoration: none; white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .panel-switch .ps-tab svg { width: 15px; height: 15px; }
+  .panel-switch .ps-tab:hover { color: var(--ink); }
+  .panel-switch[data-page="reportes"] .ps-tab[data-for="reportes"] {
+    background: var(--accent); color: #1B1620;
+  }
+  @media (max-width: 900px) {
+    .panel-switch { width: 100%; }
+    .panel-switch .ps-tab { flex: 1; padding: 8px 6px; font-size: 12px; }
+  }
+  @media (max-width: 420px) {
+    .panel-switch .ps-tab svg { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -6174,6 +6201,22 @@
 
   <!-- ═══════════════ MAIN ═══════════════ -->
   <main class="main">
+
+    <!-- Selector de panel: solo agencia (data-agency-only); Administración solo socias -->
+    <div class="panel-switch" data-page="reportes" data-agency-only>
+      <a class="ps-tab" data-for="interno" href="interno.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Interno
+      </a>
+      <a class="ps-tab" data-for="reportes" href="panel-comakers.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
+        Reportes
+      </a>
+      <a class="ps-tab" data-for="administracion" id="swAdminR" href="administracion.html" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
+        Administración
+      </a>
+    </div>
 
     <!-- ─────────── PANEL: RESUMEN ─────────── -->
     <section class="panel active" id="panel-resumen">
@@ -14019,7 +14062,7 @@
       const { data: { session } } = await window.__sb.auth.getSession();
       if (!session) return;
       const { data: prof } = await window.__sb.from('profiles')
-        .select('tipo, agencia, super_admin, nombre').eq('id', session.user.id).maybeSingle();
+        .select('tipo, agencia, super_admin, nombre, rol').eq('id', session.user.id).maybeSingle();
       perfil = prof;
     } catch (e) { return; }
 
@@ -14081,6 +14124,12 @@
     const tipo = (perfil && perfil.tipo) ? perfil.tipo : 'agencia';
     currentRole = (tipo === 'cliente') ? 'client' : 'agency';
     applyRole(currentRole);
+
+    // Pestaña "Administración" del selector de arriba: solo socias (o super-admin).
+    if (currentRole === 'agency' && perfil && (perfil.rol === 'socia' || perfil.super_admin)) {
+      const _adm = document.getElementById('swAdminR');
+      if (_adm) _adm.style.display = '';
+    }
 
     // 3) Nombre y saludo reales (encima de lo que puso applyRole)
     if (perfil && perfil.nombre) {
