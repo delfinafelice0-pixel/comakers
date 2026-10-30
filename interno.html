@@ -395,7 +395,12 @@
        el menú Copiar/Consultar en vez de abrirse la tarea. */
     -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   }
-  .card-k:hover { border-color: var(--ink-soft); box-shadow: var(--shadow); transform: translateY(-1px); }
+  /* El hover solo en dispositivos con mouse de verdad. En el celu, un
+     elemento con :hover hace que el PRIMER toque solo "muestre el hover" y
+     recién el segundo abra. Con esto, en touch el primer toque ya abre. */
+  @media (hover: hover) {
+    .card-k:hover { border-color: var(--ink-soft); box-shadow: var(--shadow); transform: translateY(-1px); }
+  }
   .card-k:active { cursor: grabbing; }
   .card-k.dragging { opacity: 0.35; }
   .card-k.vencida { border-left: 3px solid var(--warn); }
@@ -474,7 +479,7 @@
   .lista-head .fija { color: var(--ink-mute); cursor: default; }
   .lista-head .centro { justify-content: center; }
   .fila:last-child { border-bottom: none; }
-  .fila:hover { background: var(--line-soft); }
+  @media (hover: hover) { .fila:hover { background: var(--line-soft); } }
   .fila.done .fila-titulo { text-decoration: line-through; color: var(--ink-mute); }
   .check {
     width: 18px; height: 18px; border: 1.5px solid var(--ink-mute);
@@ -645,7 +650,7 @@
     display: flex; align-items: center; justify-content: center;
     opacity: 0; transition: all 0.15s; color: var(--ink-mute); z-index: 2;
   }
-  .card-k:hover .card-k-fin { opacity: 1; }
+  @media (hover: hover) { .card-k:hover .card-k-fin { opacity: 1; } }
   .card-k-fin:hover { border-color: var(--accent); background: var(--accent); color: var(--sobre-acento); }
   .card-k-fin svg { width: 12px; height: 12px; }
   .card-k.hecha .card-k-fin { opacity: 1; background: var(--accent); border-color: var(--accent); color: var(--sobre-acento); }
@@ -2857,7 +2862,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 04:59</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 12:41</div>
     </div>
   </aside>
 
@@ -8563,8 +8568,16 @@
       }, { onConflict: 'endpoint' });
       if (error) { toast('No se pudo guardar la suscripción: ' + error.message, 'warn'); return; }
       toast('Activadas. Te mando una de prueba…', 'ok');
-      const { error: e2 } = await SB.functions.invoke('enviar-push', { body: { test: true, user_id: ME.id } });
-      if (e2) toast('Suscripción ok, pero la prueba falló: ' + e2.message, 'warn');
+      const { data: res, error: e2 } = await SB.functions.invoke('enviar-push', { body: { test: true, user_id: ME.id } });
+      if (e2) { toast('Suscripción ok, pero la prueba falló: ' + e2.message, 'warn'); }
+      else {
+        // Feedback para diagnosticar: cuántas mandó el servidor.
+        // enviadas>=1 y no ves nada = iOS no la muestra (revisá Ajustes).
+        // enviadas=0 = no hay suscripción viva guardada.
+        const env = res && typeof res.enviadas === 'number' ? res.enviadas : '?';
+        const lim = res && typeof res.limpiadas === 'number' ? res.limpiadas : 0;
+        toast('Prueba enviada · enviadas: ' + env + (lim ? ' · limpiadas: ' + lim : ''), 'ok');
+      }
     } catch (e) {
       toast('No se pudo activar: ' + (e && e.message ? e.message : e), 'warn');
     }
