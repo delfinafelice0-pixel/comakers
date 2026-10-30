@@ -2763,6 +2763,33 @@
   .fp-foot .fp-quitar { color: var(--ink-mute); }
   .fp-foot .fp-quitar:hover { color: var(--warn); background: var(--warn-soft); }
   .fp-foot .fp-listo { color: var(--sobre-lleno); background: var(--accent); font-weight: 600; }
+
+  /* ── Notificaciones: modal de "qué recibir" + globo coach ──────── */
+  .btn-modo {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 15px; margin-bottom: 10px; font-family: var(--body);
+    transition: border-color .15s, background .15s;
+  }
+  .btn-modo:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .btn-modo b { display: block; font-size: 14px; color: var(--ink); margin-bottom: 2px; }
+  .btn-modo span { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+
+  .notif-coach {
+    position: fixed; left: 16px; bottom: 96px; z-index: 120; width: 230px;
+    background: var(--ink); color: var(--bg-elev); border-radius: 12px;
+    padding: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.25);
+    animation: modalIn .25s cubic-bezier(0.16,1,0.3,1);
+  }
+  .notif-coach .nc-flecha {
+    position: absolute; bottom: -7px; left: 30px; width: 14px; height: 14px;
+    background: var(--ink); transform: rotate(45deg);
+  }
+  .notif-coach .nc-txt { font-size: 13px; line-height: 1.45; margin-bottom: 10px; }
+  .notif-coach .nc-ok {
+    background: var(--accent); color: var(--sobre-lleno); border: none; cursor: pointer;
+    border-radius: 8px; padding: 7px 14px; font-family: var(--body); font-size: 13px; font-weight: 600;
+  }
 </style>
 
 <script>
@@ -2879,7 +2906,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 13:27</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 14:08</div>
     </div>
   </aside>
 
@@ -4127,6 +4154,7 @@
     cargarVistas();          // con qué vista dejaste cada proyecto la última vez
     leerPlegado();           // la barra y la bandeja, como las dejaste
     cargarTema();            // claro u oscuro, lo que elegiste vos (no se espera)
+    cargarEstadoPush();      // estado de las notificaciones + preferencia (no se espera)
 
     $('#miNombre').textContent = prof.nombre || prof.email;
     $('#miAvatar').textContent = iniciales(prof.nombre, prof.email);

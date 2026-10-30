@@ -2763,6 +2763,33 @@
   .fp-foot .fp-quitar { color: var(--ink-mute); }
   .fp-foot .fp-quitar:hover { color: var(--warn); background: var(--warn-soft); }
   .fp-foot .fp-listo { color: var(--sobre-lleno); background: var(--accent); font-weight: 600; }
+
+  /* ── Notificaciones: modal de "qué recibir" + globo coach ──────── */
+  .btn-modo {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 15px; margin-bottom: 10px; font-family: var(--body);
+    transition: border-color .15s, background .15s;
+  }
+  .btn-modo:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .btn-modo b { display: block; font-size: 14px; color: var(--ink); margin-bottom: 2px; }
+  .btn-modo span { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+
+  .notif-coach {
+    position: fixed; left: 16px; bottom: 96px; z-index: 120; width: 230px;
+    background: var(--ink); color: var(--bg-elev); border-radius: 12px;
+    padding: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.25);
+    animation: modalIn .25s cubic-bezier(0.16,1,0.3,1);
+  }
+  .notif-coach .nc-flecha {
+    position: absolute; bottom: -7px; left: 30px; width: 14px; height: 14px;
+    background: var(--ink); transform: rotate(45deg);
+  }
+  .notif-coach .nc-txt { font-size: 13px; line-height: 1.45; margin-bottom: 10px; }
+  .notif-coach .nc-ok {
+    background: var(--accent); color: var(--sobre-lleno); border: none; cursor: pointer;
+    border-radius: 8px; padding: 7px 14px; font-family: var(--body); font-size: 13px; font-weight: 600;
+  }
 </style>
 
 <script>
@@ -2862,7 +2889,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 13:27</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 14:08</div>
     </div>
   </aside>
 
@@ -3201,6 +3228,28 @@
       <button class="btn-ghost" data-cerrar="ovFin" style="text-align:center; border-color:transparent">Cancelar</button>
     </div>
   </div>
+</div>
+
+<!-- ═══════════ Notificaciones: elegir qué recibir ═══════════ -->
+<div class="overlay" id="ovModo">
+  <div class="modal" style="max-width:380px; text-align:center;">
+    <div style="font-size:30px; margin-bottom:6px;">🔔</div>
+    <h3 style="font-size:18px; margin-bottom:6px;">¿Qué querés recibir?</h3>
+    <p style="font-size:13px; color:var(--ink-soft); margin-bottom:18px;">Podés cambiarlo cuando quieras.</p>
+    <button class="btn-modo" data-modo="todo">
+      <b>Todo</b><span>Todo lo que cae en tu bandeja: tareas, comentarios, menciones.</span>
+    </button>
+    <button class="btn-modo" data-modo="menciones">
+      <b>Solo menciones</b><span>Únicamente cuando alguien te menciona.</span>
+    </button>
+  </div>
+</div>
+
+<!-- Globo que señala dónde se cambia -->
+<div id="notifCoach" class="notif-coach" style="display:none">
+  <div class="nc-flecha"></div>
+  <div class="nc-txt">Lo cambiás desde acá cuando quieras 👆</div>
+  <button class="nc-ok" id="notifCoachOk">Entendido</button>
 </div>
 
 <!-- ═══════════ DRAWER · detalle de la tarea ═══════════ -->
@@ -4145,6 +4194,7 @@
     leerPlegado();           // la barra y la bandeja, como las dejaste
     leerMedidas();           // y cuánto mide un día en el calendario
     cargarTema();            // claro u oscuro, lo que elegiste vos (no se espera)
+    cargarEstadoPush();      // estado de las notificaciones + preferencia (no se espera)
 
     $('#miNombre').textContent = prof.nombre || prof.email;
     $('#miAvatar').textContent = iniciales(prof.nombre, prof.email);
@@ -8544,14 +8594,53 @@
     return u8;
   }
 
+  // Estado de las notificaciones (de ESTE navegador/celu) y la preferencia.
+  let PUSH_ON = false;
+  let PUSH_MODO = 'todo';
+
+  function pintarBotonNotif() {
+    const b = $si('#btnNotif'); if (!b) return;
+    b.textContent = (PUSH_ON && PUSH_MODO !== 'off')
+      ? '🔔 Notificaciones: ' + (PUSH_MODO === 'menciones' ? 'solo menciones' : 'todo')
+      : '🔔 Activar notificaciones';
+  }
+
+  async function cargarEstadoPush() {
+    try {
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        const reg = await navigator.serviceWorker.ready;
+        PUSH_ON = !!(await reg.pushManager.getSubscription());
+      }
+    } catch (e) { /* noop */ }
+    try {
+      if (ME && SB) {
+        const { data } = await SB.from('preferencia').select('push_modo').eq('user_id', ME.id).maybeSingle();
+        if (data && data.push_modo) PUSH_MODO = data.push_modo;
+      }
+    } catch (e) { /* la columna puede no existir todavía */ }
+    pintarBotonNotif();
+  }
+
+  async function guardarPushModo(modo) {
+    PUSH_MODO = modo;
+    pintarBotonNotif();
+    if (!ME || !SB) return;
+    try {
+      await SB.from('preferencia').upsert(
+        { user_id: ME.id, push_modo: modo, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' });
+    } catch (e) { /* noop */ }
+  }
+
+  // Suscribe este navegador/celu y guarda la suscripción. Devuelve true si salió bien.
   async function activarNotificaciones() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      toast('Este navegador no soporta notificaciones push.', 'warn'); return;
+      toast('Este navegador no soporta notificaciones push.', 'warn'); return false;
     }
-    if (!ME || !SB) { toast('Esperá a que termine de cargar el panel.', 'warn'); return; }
+    if (!ME || !SB) { toast('Esperá a que termine de cargar el panel.', 'warn'); return false; }
     try {
       const permiso = await Notification.requestPermission();
-      if (permiso !== 'granted') { toast('Sin permiso no te puedo mandar notificaciones.', 'warn'); return; }
+      if (permiso !== 'granted') { toast('Sin permiso no te puedo mandar notificaciones.', 'warn'); return false; }
       const reg = await navigator.serviceWorker.ready;
       let sub = await reg.pushManager.getSubscription();
       if (!sub) {
@@ -8566,22 +8655,23 @@
         user_agent: (navigator.userAgent || '').slice(0, 300),
         ultima_en: new Date().toISOString(),
       }, { onConflict: 'endpoint' });
-      if (error) { toast('No se pudo guardar la suscripción: ' + error.message, 'warn'); return; }
-      toast('Activadas. Te mando una de prueba…', 'ok');
-      const { data: res, error: e2 } = await SB.functions.invoke('enviar-push', { body: { test: true, user_id: ME.id } });
-      if (e2) { toast('Suscripción ok, pero la prueba falló: ' + e2.message, 'warn'); }
-      else {
-        // Feedback para diagnosticar.
-        const env = res && typeof res.enviadas === 'number' ? res.enviadas : '?';
-        const est = (res && res.estados && res.estados.length) ? res.estados.join(',') : '—';
-        const mot = (res && res.diag && res.diag.motivo) ? res.diag.motivo : '';
-        if (env >= 1) toast('¡Enviada! (' + env + ') · revisá si te llegó 🔔', 'ok');
-        else toast('estados: ' + est + (mot ? ' · ' + mot : ''), 'warn');
-      }
+      if (error) { toast('No se pudo guardar la suscripción: ' + error.message, 'warn'); return false; }
+      PUSH_ON = true;
+      // Prueba (no bloquea): confirma que el caño anda.
+      SB.functions.invoke('enviar-push', { body: { test: true, user_id: ME.id } });
+      return true;
     } catch (e) {
       toast('No se pudo activar: ' + (e && e.message ? e.message : e), 'warn');
+      return false;
     }
   }
+
+  // Abre el modal para elegir qué recibir. Si `conCoach`, al elegir muestra el globo.
+  function elegirModoNotif(conCoach) {
+    window.__notifCoach = !!conCoach;
+    abrir('ovModo');
+  }
+  function mostrarCoach() { const c = $si('#notifCoach'); if (c) c.style.display = ''; }
 
   function abrirForm(t, seccionPreset) {
     EDITANDO = t;
@@ -9987,7 +10077,23 @@
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));
   on('#fGuardar', 'click', guardar);
   initFechaPicker();
-  on('#btnNotif', 'click', activarNotificaciones);
+  // Botón de notificaciones: si no está activo, activa y pregunta qué recibir
+  // (con globo). Si ya está activo, abre el modal para cambiar la preferencia.
+  on('#btnNotif', 'click', async () => {
+    if (PUSH_ON && PUSH_MODO !== 'off') { elegirModoNotif(false); return; }
+    const ok = await activarNotificaciones();
+    if (ok) elegirModoNotif(true);
+  });
+  // Elegir "Todo" / "Solo menciones" dentro del modal.
+  on('#ovModo', 'click', async (e) => {
+    const b = e.target.closest('[data-modo]');
+    if (!b) return;
+    cerrar('ovModo');
+    await guardarPushModo(b.dataset.modo);
+    if (window.__notifCoach) { mostrarCoach(); window.__notifCoach = false; }
+    else toast('Vas a recibir: ' + (b.dataset.modo === 'menciones' ? 'solo menciones' : 'todo'), 'ok');
+  });
+  on('#notifCoachOk', 'click', () => { const c = $si('#notifCoach'); if (c) c.style.display = 'none'; });
   on('#fBorrar', 'click', () => borrarTarea(EDITANDO));
   on('#dEnviarCom', 'click', enviarComentario);
   // Los "+ Agregar" de subtareas y links: hasta que no los tocás, los
