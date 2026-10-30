@@ -390,6 +390,10 @@
   .card-k {
     background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
     padding: 11px 12px; cursor: grab; transition: all 0.15s;
+    /* En el celu, un tap sobre la tarjeta tiene que ABRIRLA, no seleccionar
+       su texto. Sin esto, iOS interpreta el toque como selección y aparece
+       el menú Copiar/Consultar en vez de abrirse la tarea. */
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   }
   .card-k:hover { border-color: var(--ink-soft); box-shadow: var(--shadow); transform: translateY(-1px); }
   .card-k:active { cursor: grabbing; }
@@ -447,6 +451,8 @@
     display: grid; grid-template-columns: var(--cols, 24px 1fr 170px 96px 26px 88px);
     gap: 14px; align-items: center; padding: 11px 20px;
     border-bottom: 1px solid var(--line-soft); transition: background 0.12s; cursor: pointer;
+    /* Igual que las tarjetas: en el celu el tap abre la fila, no selecciona texto. */
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   }
   .fila-chips { display: flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; }
   .fila-chips > * { overflow: hidden; text-overflow: ellipsis; }
@@ -2868,7 +2874,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 04:35</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 04:59</div>
     </div>
   </aside>
 
