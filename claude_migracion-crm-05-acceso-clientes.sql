@@ -219,28 +219,36 @@ create policy zernio_rubro_escribe on public.zernio_rubro
 
 
 -- ── 6 ── Guard de columnas del cliente ─────────────────────────
+--     OJO: esta es la versión ORIGINAL del guardián, tal como se corrió.
+--     La REEMPLAZA la migración crm-06 (que deja pasar a service_role,
+--     necesario porque zernio-sync pasó a escribir con service_role).
+--     Se deja acá como estaba para que el repo refleje lo que se aplicó
+--     en este paso; no la vuelvas a correr: corré crm-06 después.
+--
 --     Lo que el spec pide como "permisos por columna como la 46": el
 --     cliente solo puede tocar estado, valor y moneda; nada de lo que
 --     trae Zernio.
 --
---     Qué restringe: SOLO lo que escribe el NAVEGADOR de un cliente. La
---     ingesta (zernio-sync) escribe todas las columnas de Zernio con
---     service_role (ver nota en la function), que acá pasa entero —igual
---     que el webhook de la 46—. El rol authenticated que NO es equipo (un
---     cliente desde el navegador) es el único que queda limitado a
---     estado/valor/moneda; si a ese rol le diéramos grants amplios podría
---     pisar el teléfono, el clid o el monto. Grants por columna no servían
---     porque antes la sync también corría como authenticated; ahora que la
---     sync va por service_role, el trigger alcanza y es más simple de leer.
+--     Por qué un trigger y NO grants por columna: en la 46 el que
+--     escribe TODAS las columnas es el webhook, que entra con
+--     service_role (otro rol) y saltea los grants; el navegador, como
+--     authenticated, solo tiene grant de (estado, nota, valor). Acá, en
+--     cambio, la ingesta (zernio-sync) corría con el token del USUARIO
+--     —mismo rol authenticated que el navegador— y necesitaba escribir
+--     todas las columnas de Zernio. Un grant por columna no distingue
+--     "sync" de "clasificación" dentro del mismo rol, así que cortaría
+--     también la sync del equipo. El trigger sí distingue por quién
+--     llama: al equipo lo deja pasar entero; a un no-equipo le vuelve a
+--     dejar los campos de Zernio como estaban (no rompe, no error), así
+--     el cliente efectivamente solo cambia estado/valor/moneda.
 create or replace function public.zernio_conversacion_guard()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  -- service_role (la ingesta) y cualquier rol elevado pasan enteros: el
-  -- único restringido es el rol authenticated que no es equipo.
-  if current_user <> 'authenticated' then return new; end if;
-  if public.es_equipo() then return new; end if;   -- el equipo escribe todo
-  -- Cliente desde el navegador: se preservan los datos de Zernio. Solo
-  -- quedan editables estado, valor, moneda (y updated_at, inocuo).
+  if public.es_equipo() then
+    return new;   -- el equipo escribe todo (sync incluida)
+  end if;
+  -- No-equipo (cliente): se preservan los datos de Zernio. Solo quedan
+  -- editables estado, valor, moneda (y updated_at, inocuo).
   new.zernio_account_id := old.zernio_account_id;
   new.conversation_id   := old.conversation_id;
   new.phone_e164        := old.phone_e164;
@@ -259,7 +267,7 @@ begin
 end $$;
 
 comment on function public.zernio_conversacion_guard() is
-  'Permisos por columna del cliente, por trigger. Solo limita al rol authenticated que no es equipo (navegador de un cliente): preserva los campos de Zernio y deja cambiar estado/valor/moneda. service_role (la ingesta zernio-sync) y el equipo pasan enteros.';
+  'Equivalente a los permisos por columna de la 46, pero por trigger. El equipo pasa entero; a un cliente se le preservan los campos de Zernio y solo cambia estado/valor/moneda. (Versión original; la reemplaza crm-06 para dejar pasar también a service_role.)';
 
 drop trigger if exists zernio_conversacion_guard_trg on public.zernio_conversacion;
 create trigger zernio_conversacion_guard_trg
