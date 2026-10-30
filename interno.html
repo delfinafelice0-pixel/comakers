@@ -2862,7 +2862,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 12:41</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 12:59</div>
     </div>
   </aside>
 
@@ -8571,12 +8571,12 @@
       const { data: res, error: e2 } = await SB.functions.invoke('enviar-push', { body: { test: true, user_id: ME.id } });
       if (e2) { toast('Suscripción ok, pero la prueba falló: ' + e2.message, 'warn'); }
       else {
-        // Feedback para diagnosticar: cuántas mandó el servidor.
-        // enviadas>=1 y no ves nada = iOS no la muestra (revisá Ajustes).
-        // enviadas=0 = no hay suscripción viva guardada.
+        // Feedback para diagnosticar.
         const env = res && typeof res.enviadas === 'number' ? res.enviadas : '?';
-        const lim = res && typeof res.limpiadas === 'number' ? res.limpiadas : 0;
-        toast('Prueba enviada · enviadas: ' + env + (lim ? ' · limpiadas: ' + lim : ''), 'ok');
+        const d = (res && res.diag) || {};
+        const filas = (typeof d.filas_en_base === 'number') ? d.filas_en_base : '?';
+        const sk = d.tiene_service_key ? 'sí' : 'NO';
+        toast('enviadas: ' + env + ' · filas en base: ' + filas + ' · service-key: ' + sk, 'ok');
       }
     } catch (e) {
       toast('No se pudo activar: ' + (e && e.message ? e.message : e), 'warn');
