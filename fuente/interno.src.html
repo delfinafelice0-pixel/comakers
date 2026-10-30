@@ -12049,10 +12049,9 @@
       else {
         // Feedback para diagnosticar.
         const env = res && typeof res.enviadas === 'number' ? res.enviadas : '?';
-        const d = (res && res.diag) || {};
-        const filas = (typeof d.filas_en_base === 'number') ? d.filas_en_base : '?';
-        const sk = d.tiene_service_key ? 'sí' : 'NO';
-        toast('enviadas: ' + env + ' · filas en base: ' + filas + ' · service-key: ' + sk, 'ok');
+        const est = (res && res.estados && res.estados.length) ? res.estados.join(',') : '—';
+        if (env >= 1) toast('¡Enviada! (' + env + ') · revisá si te llegó 🔔', 'ok');
+        else toast('enviadas: ' + env + ' · estados: ' + est, 'warn');
       }
     } catch (e) {
       toast('No se pudo activar: ' + (e && e.message ? e.message : e), 'warn');
