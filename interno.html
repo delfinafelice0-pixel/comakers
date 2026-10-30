@@ -2695,6 +2695,7 @@
 
   /* ── Picker de fecha estilo Asana (un campo; inicio opcional) ───── */
   .fecha-field { position: relative; display: flex; align-items: center; gap: 6px; }
+  .prop-val .fecha-field { flex: 1; min-width: 0; }
   .fecha-btn {
     flex: 1; display: inline-flex; align-items: center; gap: 8px;
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
@@ -2849,7 +2850,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 02:40</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 02:53</div>
     </div>
   </aside>
 
@@ -3244,17 +3245,24 @@
 
       <div class="prop">
         <div class="prop-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 12 5 19 12"></polyline><line x1="12" y1="19" x2="12" y2="5"></line></svg>
-          Empieza
-        </div>
-        <div class="prop-val"><input type="date" id="dEmpieza"></div>
-      </div>
-      <div class="prop">
-        <div class="prop-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          Vence
+          Fecha
         </div>
-        <div class="prop-val"><input type="date" id="dVence"><span class="fecha" id="dVenceTag"></span></div>
+        <div class="prop-val">
+          <input type="hidden" id="dEmpieza">
+          <input type="hidden" id="dVence">
+          <div class="fecha-field">
+            <button type="button" id="dFechaBtn" class="fecha-btn vacio">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span id="dFechaBtnTxt">Sin fecha</span>
+            </button>
+            <button type="button" id="dFechaClear" class="fecha-clear" title="Quitar fecha" aria-label="Quitar fecha" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div id="dFechaPop" class="fecha-pop" hidden></div>
+          </div>
+          <span class="fecha" id="dVenceTag"></span>
+        </div>
       </div>
       <div class="prop">
         <div class="prop-label">
@@ -8395,129 +8403,120 @@
   }
 
   // ═══════════════ PICKER DE FECHA (estilo Asana) ═══════════════
-  //  Un solo campo. Por default elegís la fecha de entrega (vence); con el
-  //  toggle "Agregar fecha de inicio" habilitás el rango (empieza→vence).
-  //  Los valores viven en los inputs ocultos #fEmpieza/#fVence, así la
-  //  carga y el guardado de la tarea siguen igual que siempre.
+  //  Un solo campo que abre un calendario. Por default elegís la fecha de
+  //  entrega (vence); con "Agregar fecha de inicio" habilitás el rango
+  //  (empieza→vence). Se usa en DOS pantallas: el form de Nueva/Editar
+  //  tarea y el detalle de la tarea. Los valores viven en inputs ocultos
+  //  (los mismos ids de siempre), así la carga y el guardado de cada
+  //  pantalla no cambian. Al cambiar una fecha, el picker dispara el
+  //  evento `change` del input oculto: en el detalle eso guarda solo (ya
+  //  había un listener), y en el form no hace nada (guarda al apretar
+  //  Guardar).
   const FP_MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const FP_MES3  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  let fpMesVista = null;    // Date: primer día del mes mostrado
-  let fpActivo = 'vence';   // qué campo setea el próximo click
-
-  function fpGet(id) { const e = $('#' + id); return (e && e.value) ? e.value : null; }
-  function fpSet(id, iso) { const e = $('#' + id); if (e) e.value = iso || ''; }
   function fpFmt(iso) { const d = dDe(iso); return d.getDate() + ' ' + FP_MES3[d.getMonth()]; }
 
-  // Texto y aspecto del botón (vacío / fecha / rango) + la X de limpiar.
-  function refrescarFechaBtn() {
-    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
-    const btn = $('#fechaBtn'), txt = $('#fechaBtnTxt'), x = $('#fechaClear');
-    if (!btn || !txt) return;
-    if (!ven && !emp) { txt.textContent = 'Sin fecha'; btn.classList.add('vacio'); if (x) x.style.display = 'none'; return; }
-    btn.classList.remove('vacio');
-    if (x) x.style.display = '';
-    txt.textContent = (emp && ven) ? (fpFmt(emp) + ' → ' + fpFmt(ven)) : fpFmt(ven || emp);
-  }
+  // o = { emp, ven, btn, txt, clear, pop }  (ids, sin #)
+  function montarPicker(o) {
+    const pop = $('#' + o.pop);
+    if (!pop) return null;
+    const get = id => { const e = $('#' + id); return (e && e.value) ? e.value : null; };
+    const set = (id, iso) => { const e = $('#' + id); if (e) e.value = iso || ''; };
+    let mes = null, activo = 'vence';
 
-  function fpToggleRango(on) {
-    if (on) fpActivo = fpGet('fEmpieza') ? 'vence' : 'empieza';
-    else { fpSet('fEmpieza', null); fpActivo = 'vence'; }
-    refrescarFechaBtn();
-    fpRender();
-  }
-
-  function fpClickDia(iso) {
-    fpSet(fpActivo, iso);
-    if (fpActivo === 'empieza') fpActivo = 'vence';   // cargado el inicio, sigue la entrega
-    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
-    if (emp && ven && emp > ven) { fpSet('fEmpieza', ven); fpSet('fVence', emp); }  // destildo cruce
-    refrescarFechaBtn();
-    fpRender();
-  }
-
-  function fpRender() {
-    const pop = $('#fechaPop'); if (!pop || pop.hidden) return;
-    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
-    const rango = $('#fpRango') ? $('#fpRango').checked : !!emp;
-    if (!fpMesVista) fpMesVista = dDe(ven || emp || hoyISO());
-    fpMesVista = new Date(fpMesVista.getFullYear(), fpMesVista.getMonth(), 1);
-
-    const chip = (campo, lab, val) =>
-      '<button type="button" class="fp-chip' + (fpActivo === campo ? ' active' : '') + '" data-fcampo="' + campo + '">' +
-        '<small>' + lab + '</small><b class="' + (val ? '' : 'vacio') + '">' + (val ? fpFmt(val) : '—') + '</b></button>';
-    const chips = rango
-      ? '<div class="fp-chips">' + chip('empieza', 'Inicio', emp) + chip('vence', 'Entrega', ven) + '</div>'
-      : '';
-
-    const y = fpMesVista.getFullYear(), m = fpMesVista.getMonth();
-    const primero = new Date(y, m, 1);
-    const ini = (primero.getDay() + 6) % 7;        // lunes = 0
-    const start = masDias(primero, -ini);
-    const hoy = hoyISO();
-    let celdas = '';
-    for (let i = 0; i < 42; i++) {
-      const d = masDias(start, i);
-      const iso = isoDe(d);
-      const otro = d.getMonth() !== m;
-      const esSel = (emp && iso === emp) || (ven && iso === ven);
-      const enRango = rango && emp && ven && iso > emp && iso < ven;
-      const cls = ['fp-dia'];
-      if (otro) cls.push('otro');
-      if (iso === hoy) cls.push('hoy');
-      if (enRango) cls.push('rango');
-      if (esSel) cls.push('sel');
-      celdas += '<button type="button" class="' + cls.join(' ') + '" data-fdia="' + iso + '">' + d.getDate() + '</button>';
+    function refrescar() {
+      const emp = get(o.emp), ven = get(o.ven);
+      const btn = $('#' + o.btn), txt = $('#' + o.txt), x = $('#' + o.clear);
+      if (!btn || !txt) return;
+      if (!ven && !emp) { txt.textContent = 'Sin fecha'; btn.classList.add('vacio'); if (x) x.style.display = 'none'; }
+      else { btn.classList.remove('vacio'); if (x) x.style.display = ''; txt.textContent = (emp && ven) ? (fpFmt(emp) + ' → ' + fpFmt(ven)) : fpFmt(ven || emp); }
     }
-    const dow = ['lu','ma','mi','ju','vi','sá','do'].map(x => '<span>' + x + '</span>').join('');
+    // Avisa a la pantalla (dispara `change` en los dos ocultos) + refresca botón.
+    function commit() {
+      refrescar();
+      [o.emp, o.ven].forEach(id => { const e = $('#' + id); if (e) e.dispatchEvent(new Event('change', { bubbles: true })); });
+    }
 
-    pop.innerHTML =
-      chips +
-      '<label class="fp-toggle"><input type="checkbox" id="fpRango"' + (rango ? ' checked' : '') + '> Agregar fecha de inicio</label>' +
-      '<div class="fp-head"><button type="button" class="fp-nav" data-fnav="-1">‹</button>' +
-        '<span class="fp-mes">' + FP_MESES[m] + ' ' + y + '</span>' +
-        '<button type="button" class="fp-nav" data-fnav="1">›</button></div>' +
-      '<div class="fp-dow">' + dow + '</div>' +
-      '<div class="fp-grid">' + celdas + '</div>' +
-      '<div class="fp-foot"><button type="button" class="fp-quitar">Quitar</button>' +
-        '<button type="button" class="fp-listo">Listo</button></div>';
-  }
-
-  function fpAbrir() {
-    const pop = $('#fechaPop'); if (!pop) return;
-    const emp = fpGet('fEmpieza'), ven = fpGet('fVence');
-    fpActivo = 'vence';
-    fpMesVista = dDe(ven || emp || hoyISO());
-    pop.hidden = false;
-    fpRender();
-  }
-  function fpCerrar() { const pop = $('#fechaPop'); if (pop) pop.hidden = true; }
-
-  function initFechaPicker() {
-    const pop = $('#fechaPop'); if (!pop) return;
-    on('#fechaBtn', 'click', (e) => { e.stopPropagation(); pop.hidden ? fpAbrir() : fpCerrar(); });
-    on('#fechaClear', 'click', (e) => {
-      e.stopPropagation();
-      fpSet('fEmpieza', null); fpSet('fVence', null); fpActivo = 'vence';
-      refrescarFechaBtn(); if (!pop.hidden) fpRender();
-    });
-    pop.addEventListener('click', (e) => {
-      const dia = e.target.closest('[data-fdia]');
-      if (dia) { fpClickDia(dia.dataset.fdia); return; }
-      const nav = e.target.closest('[data-fnav]');
-      if (nav) { fpMesVista = new Date(fpMesVista.getFullYear(), fpMesVista.getMonth() + (+nav.dataset.fnav), 1); fpRender(); return; }
-      const ch = e.target.closest('[data-fcampo]');
-      if (ch) { fpActivo = ch.dataset.fcampo; fpRender(); return; }
-      if (e.target.closest('.fp-quitar')) { fpSet('fEmpieza', null); fpSet('fVence', null); fpActivo = 'vence'; refrescarFechaBtn(); fpCerrar(); return; }
-      if (e.target.closest('.fp-listo')) { fpCerrar(); return; }
-    });
-    pop.addEventListener('change', (e) => { if (e.target.id === 'fpRango') fpToggleRango(e.target.checked); });
-    document.addEventListener('click', (e) => {
+    function pintar() {
       if (pop.hidden) return;
-      if (e.target.closest('.fecha-field')) return;
-      fpCerrar();
+      const emp = get(o.emp), ven = get(o.ven);
+      const r = pop.querySelector('.fp-rango');
+      const rango = r ? r.checked : !!emp;
+      if (!mes) mes = dDe(ven || emp || hoyISO());
+      mes = new Date(mes.getFullYear(), mes.getMonth(), 1);
+      const chip = (campo, lab, val) =>
+        '<button type="button" class="fp-chip' + (activo === campo ? ' active' : '') + '" data-fcampo="' + campo + '">' +
+          '<small>' + lab + '</small><b class="' + (val ? '' : 'vacio') + '">' + (val ? fpFmt(val) : '—') + '</b></button>';
+      const chips = rango ? '<div class="fp-chips">' + chip('empieza', 'Inicio', emp) + chip('vence', 'Entrega', ven) + '</div>' : '';
+      const y = mes.getFullYear(), m = mes.getMonth();
+      const primero = new Date(y, m, 1);
+      const ini = (primero.getDay() + 6) % 7;
+      const start = masDias(primero, -ini);
+      const hoy = hoyISO();
+      let celdas = '';
+      for (let i = 0; i < 42; i++) {
+        const d = masDias(start, i), iso = isoDe(d), otro = d.getMonth() !== m;
+        const esSel = (emp && iso === emp) || (ven && iso === ven);
+        const enRango = rango && emp && ven && iso > emp && iso < ven;
+        const cls = ['fp-dia'];
+        if (otro) cls.push('otro'); if (iso === hoy) cls.push('hoy'); if (enRango) cls.push('rango'); if (esSel) cls.push('sel');
+        celdas += '<button type="button" class="' + cls.join(' ') + '" data-fdia="' + iso + '">' + d.getDate() + '</button>';
+      }
+      const dow = ['lu','ma','mi','ju','vi','sá','do'].map(x => '<span>' + x + '</span>').join('');
+      pop.innerHTML = chips +
+        '<label class="fp-toggle"><input type="checkbox" class="fp-rango"' + (rango ? ' checked' : '') + '> Agregar fecha de inicio</label>' +
+        '<div class="fp-head"><button type="button" class="fp-nav" data-fnav="-1">‹</button>' +
+          '<span class="fp-mes">' + FP_MESES[m] + ' ' + y + '</span>' +
+          '<button type="button" class="fp-nav" data-fnav="1">›</button></div>' +
+        '<div class="fp-dow">' + dow + '</div><div class="fp-grid">' + celdas + '</div>' +
+        '<div class="fp-foot"><button type="button" class="fp-quitar">Quitar</button><button type="button" class="fp-listo">Listo</button></div>';
+    }
+
+    function abrir() { activo = 'vence'; mes = dDe(get(o.ven) || get(o.emp) || hoyISO()); pop.hidden = false; pintar(); }
+    function cerrar() { pop.hidden = true; }
+
+    on('#' + o.btn, 'click', e => { e.stopPropagation(); pop.hidden ? abrir() : cerrar(); });
+    on('#' + o.clear, 'click', e => { e.stopPropagation(); set(o.emp, null); set(o.ven, null); activo = 'vence'; commit(); if (!pop.hidden) pintar(); });
+    pop.addEventListener('click', e => {
+      const dia = e.target.closest('[data-fdia]');
+      if (dia) {
+        set(activo, dia.dataset.fdia);
+        if (activo === 'empieza') activo = 'vence';
+        const emp = get(o.emp), ven = get(o.ven);
+        if (emp && ven && emp > ven) { set(o.emp, ven); set(o.ven, emp); }
+        commit(); pintar(); return;
+      }
+      const nav = e.target.closest('[data-fnav]');
+      if (nav) { mes = new Date(mes.getFullYear(), mes.getMonth() + (+nav.dataset.fnav), 1); pintar(); return; }
+      const ch = e.target.closest('[data-fcampo]');
+      if (ch) { activo = ch.dataset.fcampo; pintar(); return; }
+      if (e.target.closest('.fp-quitar')) { set(o.emp, null); set(o.ven, null); activo = 'vence'; commit(); cerrar(); return; }
+      if (e.target.closest('.fp-listo')) { cerrar(); return; }
     });
+    pop.addEventListener('change', e => {
+      if (!e.target.classList || !e.target.classList.contains('fp-rango')) return;
+      if (e.target.checked) activo = get(o.emp) ? 'vence' : 'empieza';
+      else { set(o.emp, null); activo = 'vence'; commit(); }
+      pintar();
+    });
+    document.addEventListener('click', e => {
+      if (pop.hidden) return;
+      if (e.target.closest('#' + o.pop) || e.target.closest('#' + o.btn) || e.target.closest('#' + o.clear)) return;
+      cerrar();
+    });
+
+    refrescar();
+    return { refrescar, abrir, cerrar };
   }
 
+  let PICKER_FORM = null, PICKER_DET = null;
+  function initFechaPicker() {
+    PICKER_FORM = montarPicker({ emp: 'fEmpieza', ven: 'fVence', btn: 'fechaBtn', txt: 'fechaBtnTxt', clear: 'fechaClear', pop: 'fechaPop' });
+    PICKER_DET  = montarPicker({ emp: 'dEmpieza', ven: 'dVence', btn: 'dFechaBtn', txt: 'dFechaBtnTxt', clear: 'dFechaClear', pop: 'dFechaPop' });
+  }
+  function refrescarFechaBtn() { if (PICKER_FORM) PICKER_FORM.refrescar(); }
+  function refrescarFechaDetalle() { if (PICKER_DET) PICKER_DET.refrescar(); }
+  function fpCerrar() { if (PICKER_FORM) PICKER_FORM.cerrar(); }
   function abrirForm(t, seccionPreset) {
     EDITANDO = t;
     $('#formTitulo').textContent = t ? 'Editar tarea' : 'Nueva tarea';
@@ -8824,6 +8823,7 @@
 
     $('#dEmpieza').value = t.empieza || '';
     $('#dVence').value = t.vence || '';
+    refrescarFechaDetalle();
     $('#dPrioridad').value = t.urgencia || 'normal';
     pintarBotonFin();
     pintarEtiquetasDrawer();
