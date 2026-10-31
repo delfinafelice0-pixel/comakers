@@ -153,6 +153,11 @@
     /* El contenido se corre para no quedar abajo del botón flotante. */
     .app.barra-oculta .main { padding-left: 54px; }
   }
+  /* En el celu la barra es un cajón: los botones de plegar no van (el
+     ícono de barra-cerrar se inflaba enorme y negro). */
+  @media (max-width: 900px) {
+    .barra-abrir, .barra-cerrar { display: none !important; }
+  }
 
   /* ── SIDEBAR ───────────────────────────────── */
   .sidebar {
@@ -1915,7 +1920,7 @@
     font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em;
     text-transform: uppercase; font-weight: 600; margin-bottom: 5px; display: block;
   }
-  .campo input[type=text], .campo input[type=date], .campo input[type=number], .campo select, .campo textarea {
+  .campo input[type=text], .campo input[type=date], .campo input[type=month], .campo input[type=number], .campo select, .campo textarea {
     width: 100%; border: 1px solid var(--line); background: var(--bg);
     border-radius: var(--radius); padding: 9px 12px; font-size: 13px;
     color: var(--ink); outline: none; transition: border-color 0.15s;
@@ -2990,36 +2995,21 @@
   html[data-tema="oscuro"] .tema-btn .luna { display: block; }
   html[data-tema="oscuro"] .tema-btn .sol  { display: none; }
 
-  /* ── Selector de panel (arriba): Interno / Administración ──────────
-     Fijo y visible también en el celu, a diferencia de los links del
-     menú que eran solo de escritorio. La pestaña activa la marca el
-     build con data-page; la de Administración solo se prende si sos socia. */
-  .panel-switch {
-    display: flex; gap: 4px; align-items: center; width: fit-content;
-    background: var(--bg-elev); border: 1px solid var(--line);
-    border-radius: 999px; padding: 4px; margin: 0 0 18px;
+  /* ── Selector de panel (en la barra, debajo del logo) ──────────────
+     Un select chico: Panel interno / Reportes / Administración. La
+     opción Administración solo se muestra a las socias (pintarModulos). */
+  .panel-sel {
+    margin-top: 6px; max-width: 100%;
+    font-family: var(--body); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute);
+    background: transparent; border: 1px solid var(--line); border-radius: 7px;
+    padding: 4px 22px 4px 8px; cursor: pointer; appearance: none; -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 11px) 52%, calc(100% - 7px) 52%;
+    background-size: 4px 4px, 4px 4px; background-repeat: no-repeat;
   }
-  .panel-switch .ps-tab {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 7px 18px; border-radius: 999px;
-    font-family: var(--body); font-size: 13px; font-weight: 600;
-    color: var(--ink-soft); text-decoration: none; white-space: nowrap;
-    transition: background 0.15s, color 0.15s;
-  }
-  .panel-switch .ps-tab svg { width: 15px; height: 15px; }
-  .panel-switch .ps-tab:hover { color: var(--ink); }
-  .panel-switch[data-page="interno"] .ps-tab[data-for="interno"],
-  .panel-switch[data-page="reportes"] .ps-tab[data-for="reportes"],
-  .panel-switch[data-page="administracion"] .ps-tab[data-for="administracion"] {
-    background: var(--accent); color: var(--sobre-lleno);
-  }
-  @media (max-width: 900px) {
-    .panel-switch { width: 100%; }
-    .panel-switch .ps-tab { flex: 1; padding: 8px 6px; font-size: 12px; }
-  }
-  @media (max-width: 420px) {
-    .panel-switch .ps-tab svg { display: none; }
-  }
+  .panel-sel:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .panel-sel:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   /* ── Picker de fecha estilo Asana (un campo; inicio opcional) ───── */
   .fecha-field { position: relative; display: flex; align-items: center; gap: 6px; }
@@ -3164,7 +3154,11 @@
     </button>
     <div class="brand">
       <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
-      <div class="brand-sub">Administración</div>
+      <select class="panel-sel" id="panelSel" onchange="if(this.value)location.href=this.value" aria-label="Cambiar de panel">
+        <option value="interno.html">Panel interno</option>
+        <option value="panel-comakers.html">Reportes</option>
+        <option value="administracion.html" selected>Administración</option>
+      </select>
     </div>
 
 
@@ -3227,7 +3221,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 14:50</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/10 14:00</div>
     </div>
   </aside>
 
@@ -3247,21 +3241,6 @@
       </div>
     </div>
 
-    <!-- Selector de panel: aparece en interno y en administración -->
-    <div class="panel-switch" data-page="administracion">
-      <a class="ps-tab" data-for="interno" href="interno.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        Interno
-      </a>
-      <a class="ps-tab" data-for="reportes" href="panel-comakers.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
-        Reportes
-      </a>
-      <a class="ps-tab" data-for="administracion" id="swAdmin" href="administracion.html" style="display:none">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
-        Administración
-      </a>
-    </div>
 
 
 
@@ -3349,6 +3328,16 @@
       <div>
         <label class="campo-label">y el día</label>
         <input type="number" id="ctDiaHasta" min="1" max="31" step="1" placeholder="10">
+      </div>
+    </div>
+    <div class="campo campo-row">
+      <div>
+        <label class="campo-label">Desde (mes)</label>
+        <input type="month" id="ctDesde">
+      </div>
+      <div>
+        <label class="campo-label">Hasta (mes, opcional)</label>
+        <input type="month" id="ctHasta">
       </div>
     </div>
     <div class="campo campo-row">
@@ -6540,7 +6529,9 @@
   // siguen intactos (la Wiki tiene el instructivo de análisis): para
   // volver a mostrar una, sacala de esta lista.
   const SOLAPAS_OCULTAS = ['etiquetas', 'wiki'];
-  const NAV_DE = { etiquetas: '#navEtiquetas', wiki: '#navWiki' };
+  const NAV_DE = { etiquetas: '#navEtiquetas', wiki: '#navWiki', control: '#navControl' };
+  // Control de tareas vive solo en el panel interno (31/10/2026).
+  SOLAPAS_OCULTAS.push('control');
 
   function cambiarModulo(m) {
     if (SOLAPAS_OCULTAS.indexOf(m) !== -1) return;
@@ -6579,8 +6570,10 @@
   function activar(sel, cond) { const e = $si(sel); if (e) e.classList.toggle('active', !!cond); }
 
   function pintarModulos() {
-    // Selector de panel de arriba: la pestaña Administración solo para socias.
-    mostrar('#swAdmin', soySocia());
+    // Selector de panel de la barra: la opción Administración solo para
+    // socias. Es un <option hidden>: se maneja con .hidden, no con display.
+    const optAdmin = $si('#panelSelAdmin');
+    if (optAdmin) optAdmin.hidden = !soySocia();
     mostrar('#modTareas',    MODULO === 'tareas');
     mostrar('#modBandeja',   MODULO === 'bandeja');
     mostrar('#modEquipo',    MODULO === 'equipo');
@@ -9235,6 +9228,14 @@
 
   // ── Consultas sobre los datos cargados ───────────────────────
   function contratosDe(clienteId) { return CONTRATOS.filter(c => c.cliente_id === clienteId); }
+  // ¿El servicio corre en ese mes? Desde/hasta son meses (migración 64);
+  // sin "desde" corre desde siempre, sin "hasta" no termina.
+  function vigenteEn(ct, periodo) {
+    const m = mesDe(periodo || PERIODO);
+    if (ct.desde && mesDe(ct.desde) > m) return false;
+    if (ct.hasta && mesDe(ct.hasta) < m) return false;
+    return true;
+  }
   function contratoDe(id) { return CONTRATOS.find(c => c.id === id) || null; }
   function cobroDe(contratoId, periodo) {
     return COBROS.find(c => c.contrato_id === contratoId && mesDe(c.periodo) === mesDe(periodo)) || null;
@@ -10329,11 +10330,16 @@
 
     let filas = '';
     activos.forEach(cl => {
-      const cts = contratosDe(cl.id).filter(c => c.activo !== false);
+      // Solo los servicios que corren en el mes que se está mirando.
+      const todos = contratosDe(cl.id).filter(c => c.activo !== false);
+      const cts = todos.filter(c => vigenteEn(c, PERIODO));
       if (!cts.length) {
+        const prox = todos.filter(c => c.desde && mesDe(c.desde) > mesDe(PERIODO))
+          .map(c => mesDe(c.desde)).sort()[0];
         filas += '<div class="prow cols-serv clic g-ini" data-ctnuevo="' + cl.id + '">' +
           '<div class="cli">' + cel(esc(cl.nombre), 'cl', cl.id, 'nombre', cl.nombre, 'text') + botonCfg(cl.id) + '</div>' +
-          '<div><div class="sub">Sin servicio cargado — clickeá para agregarle uno</div></div>' +
+          '<div><div class="sub">' + (prox ? 'Su servicio arranca en ' + esc(mesCorto(prox)) + ' — clickeá para agregarle otro'
+            : todos.length ? 'Sin servicio en este mes — clickeá para agregarle uno' : 'Sin servicio cargado — clickeá para agregarle uno') + '</div></div>' +
           '<div class="oculta-mob"></div>' +
           '<div class="num oculta-mob">—</div><div class="oculta-mob"></div>' +
           '<div class="oculta-mob"></div><div></div>' +
@@ -11509,6 +11515,10 @@
     $('#ctDiaDesde').value = ct ? (ct.dia_desde || '') : 1;
     $('#ctDiaHasta').value = ct ? (ct.dia_hasta || '') : 10;
     $('#ctProxAjuste').value = ct ? (ct.proximo_ajuste || '') : '';
+    // Vigencia (migración 64). Nuevo: arranca este mes; sin "hasta" = sigue.
+    const hoyM = new Date();
+    $('#ctDesde').value = ct ? mesDe(ct.desde) : hoyM.getFullYear() + '-' + String(hoyM.getMonth() + 1).padStart(2, '0');
+    $('#ctHasta').value = ct ? mesDe(ct.hasta) : '';
     $('#ctAjustePct').value = ct ? (ct.ajuste_pct || '') : '';
     $('#ctNotas').value = ct ? (ct.notas || '') : '';
     $('#ctArchivar').style.display = ct ? '' : 'none';
@@ -11581,6 +11591,8 @@
       dia_desde: numOrNull('#ctDiaDesde'),
       dia_hasta: numOrNull('#ctDiaHasta'),
       proximo_ajuste: $('#ctProxAjuste').value || null,
+      desde: $('#ctDesde').value ? $('#ctDesde').value + '-01' : null,
+      hasta: $('#ctHasta').value ? $('#ctHasta').value + '-01' : null,
       ajuste_pct: numOrNull('#ctAjustePct'),
       notas: $('#ctNotas').value.trim() || null
     };

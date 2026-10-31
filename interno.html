@@ -153,6 +153,11 @@
     /* El contenido se corre para no quedar abajo del botón flotante. */
     .app.barra-oculta .main { padding-left: 54px; }
   }
+  /* En el celu la barra es un cajón: los botones de plegar no van (el
+     ícono de barra-cerrar se inflaba enorme y negro). */
+  @media (max-width: 900px) {
+    .barra-abrir, .barra-cerrar { display: none !important; }
+  }
 
   /* ── SIDEBAR ───────────────────────────────── */
   .sidebar {
@@ -1915,7 +1920,7 @@
     font-size: 10px; color: var(--ink-mute); letter-spacing: 0.08em;
     text-transform: uppercase; font-weight: 600; margin-bottom: 5px; display: block;
   }
-  .campo input[type=text], .campo input[type=date], .campo input[type=number], .campo select, .campo textarea {
+  .campo input[type=text], .campo input[type=date], .campo input[type=month], .campo input[type=number], .campo select, .campo textarea {
     width: 100%; border: 1px solid var(--line); background: var(--bg);
     border-radius: var(--radius); padding: 9px 12px; font-size: 13px;
     color: var(--ink); outline: none; transition: border-color 0.15s;
@@ -2990,36 +2995,21 @@
   html[data-tema="oscuro"] .tema-btn .luna { display: block; }
   html[data-tema="oscuro"] .tema-btn .sol  { display: none; }
 
-  /* ── Selector de panel (arriba): Interno / Administración ──────────
-     Fijo y visible también en el celu, a diferencia de los links del
-     menú que eran solo de escritorio. La pestaña activa la marca el
-     build con data-page; la de Administración solo se prende si sos socia. */
-  .panel-switch {
-    display: flex; gap: 4px; align-items: center; width: fit-content;
-    background: var(--bg-elev); border: 1px solid var(--line);
-    border-radius: 999px; padding: 4px; margin: 0 0 18px;
+  /* ── Selector de panel (en la barra, debajo del logo) ──────────────
+     Un select chico: Panel interno / Reportes / Administración. La
+     opción Administración solo se muestra a las socias (pintarModulos). */
+  .panel-sel {
+    margin-top: 6px; max-width: 100%;
+    font-family: var(--body); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute);
+    background: transparent; border: 1px solid var(--line); border-radius: 7px;
+    padding: 4px 22px 4px 8px; cursor: pointer; appearance: none; -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 11px) 52%, calc(100% - 7px) 52%;
+    background-size: 4px 4px, 4px 4px; background-repeat: no-repeat;
   }
-  .panel-switch .ps-tab {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 7px 18px; border-radius: 999px;
-    font-family: var(--body); font-size: 13px; font-weight: 600;
-    color: var(--ink-soft); text-decoration: none; white-space: nowrap;
-    transition: background 0.15s, color 0.15s;
-  }
-  .panel-switch .ps-tab svg { width: 15px; height: 15px; }
-  .panel-switch .ps-tab:hover { color: var(--ink); }
-  .panel-switch[data-page="interno"] .ps-tab[data-for="interno"],
-  .panel-switch[data-page="reportes"] .ps-tab[data-for="reportes"],
-  .panel-switch[data-page="administracion"] .ps-tab[data-for="administracion"] {
-    background: var(--accent); color: var(--sobre-lleno);
-  }
-  @media (max-width: 900px) {
-    .panel-switch { width: 100%; }
-    .panel-switch .ps-tab { flex: 1; padding: 8px 6px; font-size: 12px; }
-  }
-  @media (max-width: 420px) {
-    .panel-switch .ps-tab svg { display: none; }
-  }
+  .panel-sel:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .panel-sel:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   /* ── Picker de fecha estilo Asana (un campo; inicio opcional) ───── */
   .fecha-field { position: relative; display: flex; align-items: center; gap: 6px; }
@@ -3151,7 +3141,11 @@
     </button>
     <div class="brand">
       <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
-      <div class="brand-sub">Panel interno</div>
+      <select class="panel-sel" id="panelSel" onchange="if(this.value)location.href=this.value" aria-label="Cambiar de panel">
+        <option value="interno.html" selected>Panel interno</option>
+        <option value="panel-comakers.html">Reportes</option>
+        <option value="administracion.html" id="panelSelAdmin" hidden>Administración</option>
+      </select>
     </div>
 
     <nav class="nav-group">
@@ -3210,7 +3204,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v30/10 14:50</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/10 14:00</div>
     </div>
   </aside>
 
@@ -3230,21 +3224,6 @@
       </div>
     </div>
 
-    <!-- Selector de panel: aparece en interno y en administración -->
-    <div class="panel-switch" data-page="interno">
-      <a class="ps-tab" data-for="interno" href="interno.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        Interno
-      </a>
-      <a class="ps-tab" data-for="reportes" href="panel-comakers.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
-        Reportes
-      </a>
-      <a class="ps-tab" data-for="administracion" id="swAdmin" href="administracion.html" style="display:none">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
-        Administración
-      </a>
-    </div>
 
     <!-- Cabecera del proyecto activo -->
     <div class="proy-header" id="proyHeader">
@@ -6539,7 +6518,7 @@
   // siguen intactos (la Wiki tiene el instructivo de análisis): para
   // volver a mostrar una, sacala de esta lista.
   const SOLAPAS_OCULTAS = ['etiquetas', 'wiki'];
-  const NAV_DE = { etiquetas: '#navEtiquetas', wiki: '#navWiki' };
+  const NAV_DE = { etiquetas: '#navEtiquetas', wiki: '#navWiki', control: '#navControl' };
 
   function cambiarModulo(m) {
     if (SOLAPAS_OCULTAS.indexOf(m) !== -1) return;
@@ -6577,8 +6556,10 @@
   function activar(sel, cond) { const e = $si(sel); if (e) e.classList.toggle('active', !!cond); }
 
   function pintarModulos() {
-    // Selector de panel de arriba: la pestaña Administración solo para socias.
-    mostrar('#swAdmin', soySocia());
+    // Selector de panel de la barra: la opción Administración solo para
+    // socias. Es un <option hidden>: se maneja con .hidden, no con display.
+    const optAdmin = $si('#panelSelAdmin');
+    if (optAdmin) optAdmin.hidden = !soySocia();
     mostrar('#modTareas',    MODULO === 'tareas');
     mostrar('#modBandeja',   MODULO === 'bandeja');
     mostrar('#modEquipo',    MODULO === 'equipo');
