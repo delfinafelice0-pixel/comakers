@@ -1206,7 +1206,7 @@
 
   /* Servicios del cliente en el popup. */
   .cl-serv-row {
-    display: flex; align-items: center; gap: 8px; padding: 7px 0;
+    display: flex; align-items: center; gap: 8px; padding: 7px 0; flex-wrap: wrap;
     border-bottom: 1px solid var(--line-soft); font-size: 13px;
   }
   .cl-serv-row:last-child { border-bottom: none; }
@@ -1217,6 +1217,14 @@
     width: 96px; text-align: right; font-variant-numeric: tabular-nums;
     padding: 4px 6px; font-size: 12.5px;
   }
+  /* Vigencia en línea (migración 64): Desde / Hasta, mes. Vacío = sin límite. */
+  .cl-serv-vig { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-mute); font-size: 11px; }
+  .cl-serv-vig input[type=month] {
+    width: 128px; padding: 3px 5px; font-size: 12px; font-family: var(--body);
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink);
+  }
+  /* Desde/Hasta van en su propio renglón, debajo de nombre + monto + ✕. */
+  .cl-serv-vigs { order: 3; flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px 14px; padding-top: 2px; }
   .cl-serv-x {
     width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
     color: var(--ink-mute); cursor: pointer;
@@ -8132,6 +8140,13 @@
           '<span class="cl-serv-monto"><span class="peso">$</span>' +
             '<input type="number" min="0" step="1000" class="cl-serv-input" data-clservmonto="' + ct.id + '" ' +
             'value="' + (ct.monto != null && ct.monto !== '' ? esc(String(ct.monto)) : '') + '" placeholder="pactado"></span>' +
+          // Vigencia: desde qué mes y hasta qué mes corre. Vacío = sin límite.
+          '<span class="cl-serv-vigs">' +
+          '<label class="cl-serv-vig" title="Desde qué mes corre (vacío = desde siempre)">Desde' +
+            '<input type="month" data-clservdesde="' + ct.id + '" value="' + esc(mesDe(ct.desde)) + '"></label>' +
+          '<label class="cl-serv-vig" title="Hasta qué mes corre (vacío = sin fecha de fin)">Hasta' +
+            '<input type="month" data-clservhasta="' + ct.id + '" value="' + esc(mesDe(ct.hasta)) + '"></label>' +
+          '</span>' +
           '<button class="cl-serv-x" data-clservquitar="' + ct.id + '" title="Quitar servicio">✕</button>' +
         '</div>').join('')
       : '<div class="vacio-mini">Sin servicios asignados.</div>';
@@ -8179,6 +8194,34 @@
     if (error) { ct.monto = antes; toast('No se pudo guardar el monto: ' + error.message, 'warn'); return; }
     flashGuardado();
     render();                             // la tabla de Clientes muestra este monto
+  }
+
+  // Guarda Desde o Hasta (migración 64) de un servicio del cliente, desde
+  // el popup. 'YYYY-MM' → 'YYYY-MM-01'; vacío = null (sin límite). La tabla
+  // de Clientes filtra con vigenteEn(), así que el render() alcanza.
+  async function guardarVigenciaServicioCliente(ctId, campo, valor) {
+    if (campo !== 'desde' && campo !== 'hasta') return;
+    const ct = CONTRATOS.find(x => x.id === ctId);
+    if (!ct) return;
+    const nuevo = valor ? String(valor).slice(0, 7) + '-01' : null;
+    if (mesDe(ct[campo]) === mesDe(nuevo)) return;
+    const d = campo === 'desde' ? nuevo : ct.desde, h = campo === 'hasta' ? nuevo : ct.hasta;
+    if (d && h && mesDe(h) < mesDe(d)) {
+      toast('“Hasta” no puede ser antes que “Desde”.', 'warn');
+      if (CL_EDIT) pintarClServicios(CL_EDIT);
+      return;
+    }
+    const antes = ct[campo];
+    ct[campo] = nuevo;
+    const { error } = await SB.from('contrato').update({ [campo]: nuevo }).eq('id', ctId);
+    if (error) {
+      ct[campo] = antes;
+      if (CL_EDIT) pintarClServicios(CL_EDIT);
+      toast('No se pudo guardar la vigencia: ' + error.message, 'warn');
+      return;
+    }
+    flashGuardado();
+    render();                             // la tabla de Clientes aplica la vigencia
   }
 
   async function quitarServicioCliente(ctId) {
@@ -17607,7 +17650,10 @@
   });
   on('#clServiciosWrap', 'change', e => {
     const m = e.target.closest('[data-clservmonto]');
-    if (m) guardarMontoServicioCliente(m.dataset.clservmonto, m.value).catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+    if (m) { guardarMontoServicioCliente(m.dataset.clservmonto, m.value).catch(err => toast('No se pudo: ' + (err.message || err), 'warn')); return; }
+    const vd = e.target.closest('[data-clservdesde]'), vh = e.target.closest('[data-clservhasta]');
+    if (vd) guardarVigenciaServicioCliente(vd.dataset.clservdesde, 'desde', vd.value).catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
+    if (vh) guardarVigenciaServicioCliente(vh.dataset.clservhasta, 'hasta', vh.value).catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
   });
   on('#clGuardar', 'click', () => {
     guardarClienteModal().catch(e => toast('No se pudo guardar: ' + (e.message || e), 'warn'));

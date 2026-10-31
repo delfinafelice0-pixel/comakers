@@ -1206,7 +1206,7 @@
 
   /* Servicios del cliente en el popup. */
   .cl-serv-row {
-    display: flex; align-items: center; gap: 8px; padding: 7px 0;
+    display: flex; align-items: center; gap: 8px; padding: 7px 0; flex-wrap: wrap;
     border-bottom: 1px solid var(--line-soft); font-size: 13px;
   }
   .cl-serv-row:last-child { border-bottom: none; }
@@ -1217,6 +1217,14 @@
     width: 96px; text-align: right; font-variant-numeric: tabular-nums;
     padding: 4px 6px; font-size: 12.5px;
   }
+  /* Vigencia en línea (migración 64): Desde / Hasta, mes. Vacío = sin límite. */
+  .cl-serv-vig { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-mute); font-size: 11px; }
+  .cl-serv-vig input[type=month] {
+    width: 128px; padding: 3px 5px; font-size: 12px; font-family: var(--body);
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink);
+  }
+  /* Desde/Hasta van en su propio renglón, debajo de nombre + monto + ✕. */
+  .cl-serv-vigs { order: 3; flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px 14px; padding-top: 2px; }
   .cl-serv-x {
     width: 22px; height: 22px; border-radius: 6px; border: 1px solid transparent;
     color: var(--ink-mute); cursor: pointer;
@@ -3204,7 +3212,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/10 14:00</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v31/10 14:41</div>
     </div>
   </aside>
 
