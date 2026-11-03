@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conectar WhatsApp · CoMakers</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --fucsia:#FF82FF; --lime:#D3FF99; --coral:#F26A8D; --cyan:#CBEEF3;
+    --ink:#1b1b1f; --ink-mute:#6b6b74; --line:#e6e6ea; --bg:#faf8fb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       background:var(--bg);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;
+        padding:30px 28px;box-shadow:0 8px 30px rgba(0,0,0,.05)}
+  .marca{font-weight:800;font-size:20px;letter-spacing:-.01em;margin-bottom:4px}
+  .marca em{color:var(--fucsia);font-style:normal}
+  h1{font-size:20px;margin:14px 0 6px}
+  p.sub{color:var(--ink-mute);font-size:14px;line-height:1.5;margin:0 0 20px}
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink-mute);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.03em}
+  input,select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:#fff}
+  input:focus,select:focus{outline:none;border-color:var(--ink-mute)}
+  button{width:100%;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px;transition:opacity .12s}
+  button:hover{opacity:.9}
+  button:disabled{opacity:.5;cursor:default}
+  .btn-wa{background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-ink{background:var(--ink);color:#fff}
+  .msg{margin-top:16px;padding:12px 14px;border-radius:10px;font-size:14px;line-height:1.45;display:none}
+  .msg.ok{background:var(--lime);color:#2f4d11;display:block}
+  .msg.err{background:#ffe2e9;color:#8a2740;display:block}
+  .msg.info{background:var(--cyan);color:#1f5560;display:block}
+  .hide{display:none}
+  .hint{font-size:12px;color:var(--ink-mute);margin-top:8px;line-height:1.4}
+  .paso{font-size:12px;color:var(--ink-mute);margin-top:18px;border-top:1px solid var(--line);padding-top:14px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="marca">Co<em>Makers</em></div>
+
+  <!-- LOGIN -->
+  <div id="vistaLogin">
+    <h1>Conectar WhatsApp</h1>
+    <p class="sub">Entrá con tu cuenta del equipo para conectar el WhatsApp de un cliente al CRM.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" placeholder="vos@comakers.com.ar">
+    <label for="pass">Contraseña</label>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button id="btnLogin" class="btn-ink">Entrar</button>
+    <div id="msgLogin" class="msg"></div>
+  </div>
+
+  <!-- CONECTAR -->
+  <div id="vistaConectar" class="hide">
+    <h1>Conectar WhatsApp</h1>
+    <p class="sub">Elegí el cliente y conectá su número por <b>coexistencia</b>: sigue usando WhatsApp en su celular y el CRM también recibe los mensajes.</p>
+    <label for="cliente">Cliente</label>
+    <select id="cliente"></select>
+    <button id="btnWA" class="btn-wa">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20z"/></svg>
+      Conectar WhatsApp
+    </button>
+    <div id="msgConectar" class="msg"></div>
+    <div class="paso">
+      Se va a abrir una ventana de Meta. Vas a iniciar sesión con la cuenta de Facebook que administra el negocio, elegir el número, y <b>confirmar la conexión desde la app de WhatsApp Business del celular</b>. El número NO deja de andar en el celular.
+    </div>
+    <div style="text-align:center;margin-top:14px"><a href="#" id="salir" style="font-size:12px;color:var(--ink-mute)">Cerrar sesión</a></div>
+  </div>
+</div>
+
+<script>
+  // ── Config ───────────────────────────────────────────────────
+  const SUPABASE_URL = 'https://ggcstolnadkkqhsqpzql.supabase.co';
+  const PUBLISHABLE  = 'sb_publishable_XQsl345-6ALOLuHksEpeJA_7hxfr9LO';
+  // anon legacy (HS256): solo para pasar el gateway del edge-runtime. La
+  // función valida al usuario con x-user-token. Las dos keys son públicas.
+  const ANON_LEGACY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnY3N0b2xuYWRra3Foc3FwenFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NzM0MjQsImV4cCI6MjA5NjE0OTQyNH0.iUipHKX0AcSLVrEvQOLEHqVJlDq_rTEyBTRR1tDBjEs';
+  const CONECTAR_URL = SUPABASE_URL + '/functions/v1/wa-conectar';
+
+  // ── Meta / Embedded Signup ───────────────────────────────────
+  const META_APP_ID = '2055227465355347';   // CoMakers WS (público)
+  // ⚠️ COMPLETAR: el ID de la "configuración" de Embedded Signup que
+  // creás en Meta (WhatsApp → Configuración → Embedded Signup). Sin
+  // esto el botón no abre la ventana correcta.
+  const META_CONFIG_ID = '1448404120750932';
+
+  const SB = supabase.createClient(SUPABASE_URL, PUBLISHABLE);
+
+  const $ = id => document.getElementById(id);
+  const vistaLogin = $('vistaLogin'), vistaConectar = $('vistaConectar');
+  // Datos que junta el Embedded Signup (llegan por postMessage).
+  let waData = { phone_number_id: '', waba_id: '' };
+
+  // ── Arranque: ¿ya hay sesión? ────────────────────────────────
+  (async () => {
+    const { data } = await SB.auth.getSession();
+    if (data && data.session) mostrarConectar(); else vistaLogin.classList.remove('hide');
+  })();
+
+  // ── Login ────────────────────────────────────────────────────
+  $('btnLogin').onclick = async () => {
+    const email = $('email').value.trim(), pass = $('pass').value;
+    const m = $('msgLogin'); m.className = 'msg';
+    if (!email || !pass) { m.className = 'msg err'; m.textContent = 'Completá email y contraseña.'; return; }
+    $('btnLogin').disabled = true; $('btnLogin').textContent = 'Entrando…';
+    const { error } = await SB.auth.signInWithPassword({ email, password: pass });
+    $('btnLogin').disabled = false; $('btnLogin').textContent = 'Entrar';
+    if (error) { m.className = 'msg err'; m.textContent = 'No se pudo entrar: ' + error.message; return; }
+    mostrarConectar();
+  };
+
+  async function mostrarConectar() {
+    vistaLogin.classList.add('hide');
+    vistaConectar.classList.remove('hide');
+    // Traigo los clientes que el usuario puede ver (RLS).
+    const { data, error } = await SB.from('clientes').select('id, nombre').eq('activo', true).order('nombre');
+    const sel = $('cliente'); sel.innerHTML = '';
+    if (error || !data || !data.length) {
+      const o = document.createElement('option'); o.textContent = 'No se pudieron cargar los clientes'; o.value = ''; sel.appendChild(o);
+      return;
+    }
+    for (const c of data) { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sel.appendChild(o); }
+  }
+
+  $('salir').onclick = async (e) => { e.preventDefault(); await SB.auth.signOut(); location.reload(); };
+
+  // ── Facebook SDK + Embedded Signup ───────────────────────────
+  window.fbAsyncInit = function () {
+    FB.init({ appId: META_APP_ID, autoLogAppEvents: true, xfbml: false, version: 'v26.0' });
+  };
+  (function (d, s, id) {
+    let js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id; js.src = 'https://connect.facebook.net/en_US/sdk.js';
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+
+  // El popup de Embedded Signup manda los datos del número por postMessage.
+  window.addEventListener('message', (ev) => {
+    if (!/facebook\.com$/.test(new URL(ev.origin).hostname)) return;
+    let d; try { d = JSON.parse(ev.data); } catch { return; }
+    if (d.type === 'WA_EMBEDDED_SIGNUP' && d.event === 'FINISH' && d.data) {
+      waData.phone_number_id = String(d.data.phone_number_id || '');
+      waData.waba_id = String(d.data.waba_id || '');
+    }
+  });
+
+  $('btnWA').onclick = () => {
+    const m = $('msgConectar'); m.className = 'msg';
+    const clienteId = $('cliente').value;
+    if (!clienteId) { m.className = 'msg err'; m.textContent = 'Elegí un cliente primero.'; return; }
+    if (META_CONFIG_ID === 'PEGAR_CONFIG_ID_ACA') {
+      m.className = 'msg err'; m.textContent = 'Falta configurar META_CONFIG_ID en la página (ver la guía).'; return;
+    }
+    if (typeof FB === 'undefined') { m.className = 'msg err'; m.textContent = 'Meta todavía no cargó, probá de nuevo en unos segundos.'; return; }
+
+    waData = { phone_number_id: '', waba_id: '' };
+    m.className = 'msg info'; m.textContent = 'Abriendo la ventana de Meta…';
+
+    FB.login((response) => {
+      const code = response && response.authResponse && response.authResponse.code;
+      if (!code) {
+        m.className = 'msg err';
+        m.textContent = 'La conexión se canceló o no se completó en Meta.';
+        return;
+      }
+      // Pequeña espera por si el postMessage del número llega un pelín después.
+      setTimeout(() => finalizar(clienteId, code), 600);
+    }, {
+      config_id: META_CONFIG_ID,
+      response_type: 'code',
+      override_default_response_type: true,
+      extras: {
+        setup: {},
+        featureType: 'whatsapp_business_app_onboarding',  // coexistencia
+        sessionInfoVersion: '3',
+      },
+    });
+  };
+
+  async function finalizar(clienteId, code) {
+    const m = $('msgConectar'); m.className = 'msg info'; m.textContent = 'Conectando el número al CRM…';
+    $('btnWA').disabled = true;
+    try {
+      const sess = (await SB.auth.getSession()).data.session;
+      if (!sess) { m.className = 'msg err'; m.textContent = 'Tu sesión expiró, volvé a entrar.'; $('btnWA').disabled = false; return; }
+      const resp = await fetch(CONECTAR_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': PUBLISHABLE,
+          'Authorization': 'Bearer ' + ANON_LEGACY,
+          'x-user-token': sess.access_token,
+        },
+        body: JSON.stringify({
+          cliente_id: clienteId,
+          code: code,
+          waba_id: waData.waba_id,
+          phone_number_id: waData.phone_number_id,
+        }),
+      });
+      const body = await resp.json().catch(() => null);
+      $('btnWA').disabled = false;
+      if (resp.ok && body && body.ok) {
+        m.className = 'msg ok';
+        m.innerHTML = '✅ ¡Conectado! El número ya está vinculado al CRM. Los mensajes van a empezar a entrar al panel.';
+      } else {
+        m.className = 'msg err';
+        m.textContent = '❌ ' + ((body && body.error && body.error.message) || ('Error ' + resp.status));
+      }
+    } catch (e) {
+      $('btnWA').disabled = false;
+      m.className = 'msg err'; m.textContent = '❌ No se pudo contactar al servidor: ' + e.message;
+    }
+  }
+</script>
+</body>
+</html>
