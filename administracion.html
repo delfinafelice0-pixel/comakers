@@ -914,6 +914,21 @@
   .etq-colores button.on { border-color: var(--ink); }
 
   /* ── EQUIPO · CLIENTES · WIKI ─────────────── */
+  /* ── ACCESOS (solo lectura) ─────────────── */
+  .acc-grupo { margin-bottom: 26px; }
+  .acc-grupo h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+  .acc-grupo .acc-nota { font-size: 12px; color: var(--ink-mute); line-height: 1.5; margin: 0 0 10px; max-width: 640px; }
+  .acc-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .acc-tabla th { text-align: left; font-size: 11px; font-weight: 600; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .03em; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+  .acc-tabla td { padding: 9px 10px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  .acc-tabla tr:last-child td { border-bottom: none; }
+  .acc-panel { font-weight: 500; color: var(--ink); }
+  .acc-si { color: var(--accent); font-weight: 600; }
+  .acc-no { color: var(--ink-mute); }
+  .acc-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .acc-chips .miembro-chip { cursor: default; }
+  .acc-dot { display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:6px; vertical-align:middle; }
+
   .mod-head { margin-bottom: 18px; }
   .mod-head h2 {
     font-family: var(--display); font-size: 26px; font-weight: 500;
@@ -3177,6 +3192,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
           Clientes
         </button>
+        <button class="nav-item" id="navAccesos" style="display:none">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/></svg>
+          <span>Accesos</span>
+        </button>
         <button class="nav-item" id="navServicios" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
           Servicios
@@ -3229,7 +3248,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v02/11 19:38</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v03/11 08:25</div>
     </div>
   </aside>
 
@@ -3257,6 +3276,9 @@
 
     <!-- ═══════════ CLIENTES ═══════════ -->
     <div id="modClientes" style="display:none"></div>
+
+    <!-- ═══════════ ACCESOS (solo lectura) ═══════════ -->
+    <div id="modAccesos" style="display:none"></div>
 
     <!-- ═══════════ SERVICIOS ═══════════ -->
     <div id="modServicios" style="display:none"></div>
@@ -6283,7 +6305,7 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', accesos: 'Accesos',
     servicios: 'Servicios', etiquetas: 'Etiquetas', control: 'Control de tareas'
   };
   function pintarTituloMovil() {
@@ -6547,7 +6569,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
+         || m === 'servicios' || m === 'etiquetas' || m === 'accesos') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -6586,6 +6608,7 @@
     mostrar('#modBandeja',   MODULO === 'bandeja');
     mostrar('#modEquipo',    MODULO === 'equipo');
     mostrar('#modClientes',  MODULO === 'clientes');
+    mostrar('#modAccesos',   MODULO === 'accesos');
     mostrar('#modServicios', MODULO === 'servicios');
     mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
@@ -6601,7 +6624,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas', '#navWiki']
+      ['#navEquipo', '#navAccesos', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas', '#navWiki']
         .forEach(sel => mostrar(sel, true));
       // …menos las que se sacaron del menú (SOLAPAS_OCULTAS).
       SOLAPAS_OCULTAS.forEach(m => { if (NAV_DE[m]) mostrar(NAV_DE[m], false); });
@@ -6616,6 +6639,7 @@
     activar('#navBandeja',  MODULO === 'bandeja');
     activar('#navTablero',  MODULO === 'tareas' && !FILTRO.proyecto);
     activar('#navClientes', MODULO === 'clientes');
+    activar('#navAccesos',  MODULO === 'accesos');
     activar('#navWiki',     MODULO === 'wiki');
     activar('#navControl',  MODULO === 'control');
     activar('#navServicios', MODULO === 'servicios');
@@ -6636,6 +6660,7 @@
     const H = {
       bandeja:  ['Tu <em>bandeja</em>', 'Lo que te asignaron, lo que comentaron donde colaborás y dónde te mencionaron.'],
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
+      accesos:  ['Los <em>accesos</em>', 'Quién entra a cada parte del panel.'],
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
@@ -6825,6 +6850,47 @@
   }
 
   MODULOS.equipo = renderEquipo;
+
+  // ── ACCESOS (solo lectura, solo socias) ──────────────────────
+  // Quién entra a cada parte del panel. No edita nada: el rol se cambia en
+  // Equipo, los miembros en cada proyecto y el equipo a cargo en cada cliente.
+  function renderAccesos() {
+    const el = $si('#modAccesos'); if (!el) return;
+    if (!soySocia()) { el.innerHTML = ''; return; }
+    const nombre = id => { const p = PERSONAS.find(x => x.id === id); return p ? p.nombre : '—'; };
+    const chip = n => '<span class="miembro-chip" style="cursor:default">' + esc(n) + '</span>';
+    const chips = ids => (ids && ids.length)
+      ? '<div class="acc-chips">' + ids.map(i => chip(nombre(i))).join('') + '</div>'
+      : '<span class="acc-no">—</span>';
+    const SI = '<span class="acc-si">Todas</span>';
+    const socias = PERSONAS.filter(p => p.rol === 'socia');
+
+    const filasRep = CLIENTES.filter(c => c.activo !== false).map(c => {
+      const aCargo = ACCESOS[c.id] || [];
+      const equipo = '<span class="acc-no">Toda la agencia</span>'
+        + (aCargo.length ? '<div class="acc-chips" style="margin-top:4px">' + aCargo.map(i => chip(nombre(i))).join('') + '</div>' : '');
+      return '<tr><td class="acc-panel">' + esc(c.nombre) + '</td><td>' + equipo + '</td><td>' + SI + '</td><td>El cliente ve su panel</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="acc-no">Sin clientes activos.</td></tr>';
+
+    const filasInt = PROYECTOS.map(p => {
+      const dot = p.color ? '<span class="acc-dot" style="background:' + esc(p.color) + '"></span>' : '';
+      return '<tr><td class="acc-panel">' + dot + esc(p.nombre) + '</td><td>' + chips(MIEMBROS[p.id] || []) + '</td><td>' + SI + '</td><td class="acc-no">—</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="acc-no">Sin proyectos.</td></tr>';
+
+    const filaAdm = '<tr><td class="acc-panel">Administración</td><td class="acc-no">—</td><td>' + SI + '</td><td class="acc-no">—</td></tr>';
+
+    const tabla = (titulo, nota, filas) =>
+      '<div class="acc-grupo"><h3>' + titulo + '</h3>' + (nota ? '<p class="acc-nota">' + nota + '</p>' : '')
+      + '<table class="acc-tabla"><thead><tr><th>Panel</th><th>Personas del equipo</th><th>Socias</th><th>Cliente</th></tr></thead><tbody>' + filas + '</tbody></table></div>';
+
+    // El título ("Los accesos") ya lo pone la barra de arriba, como en Equipo.
+    el.innerHTML =
+      '<div class="mod-head"><p>Es una vista de solo lectura: los accesos se editan en su lugar — el rol socia/equipo en <b>Equipo</b>, los miembros en cada <b>proyecto</b>, y el equipo a cargo en cada <b>cliente</b>.</p></div>'
+      + tabla('Reportes · paneles de cliente', 'Cada cliente ve únicamente su propio panel. Todas las socias y todo el equipo de la agencia pueden ver los paneles de todos los clientes. Debajo de “Toda la agencia” figura, si corresponde, el equipo a cargo de ese cliente.', filasRep)
+      + tabla('Interno · proyectos', 'Las socias ven todos los proyectos. Las personas del equipo ven los proyectos de los que son miembros.', filasInt)
+      + tabla('Administración', 'Solo las socias entran a Administración (' + socias.map(x => esc(x.nombre)).join(', ') + ').', filaAdm);
+  }
+  MODULOS.accesos = renderAccesos;
   function renderEquipo() {
     if (!soySocia()) { $('#modEquipo').innerHTML = ''; return; }
     const activas = EQUIPO.filter(p => p.activo !== false);
@@ -12288,6 +12354,7 @@
   // "Actualizar" también trae de nuevo la grilla si estás en Control de tareas.
   on('#btnRefrescar', 'click', () => { if (MODULO === 'control') { CTRL.cargado = false; render(); } });
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));
+  on('#navAccesos', 'click', () => cambiarModulo('accesos'));
 
   // ── Barra de formato (detalle, brief y wiki) ─────────────────
   // El campo sobre el que actúa es el que está en modo edición dentro

@@ -914,6 +914,21 @@
   .etq-colores button.on { border-color: var(--ink); }
 
   /* ── EQUIPO · CLIENTES · WIKI ─────────────── */
+  /* ── ACCESOS (solo lectura) ─────────────── */
+  .acc-grupo { margin-bottom: 26px; }
+  .acc-grupo h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+  .acc-grupo .acc-nota { font-size: 12px; color: var(--ink-mute); line-height: 1.5; margin: 0 0 10px; max-width: 640px; }
+  .acc-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .acc-tabla th { text-align: left; font-size: 11px; font-weight: 600; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .03em; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+  .acc-tabla td { padding: 9px 10px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  .acc-tabla tr:last-child td { border-bottom: none; }
+  .acc-panel { font-weight: 500; color: var(--ink); }
+  .acc-si { color: var(--accent); font-weight: 600; }
+  .acc-no { color: var(--ink-mute); }
+  .acc-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .acc-chips .miembro-chip { cursor: default; }
+  .acc-dot { display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:6px; vertical-align:middle; }
+
   .mod-head { margin-bottom: 18px; }
   .mod-head h2 {
     font-family: var(--display); font-size: 26px; font-weight: 500;
@@ -3212,7 +3227,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v02/11 19:38</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v03/11 08:25</div>
     </div>
   </aside>
 
@@ -6272,7 +6287,7 @@
   // que la pantalla chica no puede mostrar de otra forma.
   const TIT_MOD = {
     bandeja: 'Bandeja', clientes: 'Clientes', plata: 'Contabilidad',
-    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo',
+    dist: 'Distribución', wiki: 'Wiki', equipo: 'Equipo', accesos: 'Accesos',
     servicios: 'Servicios', etiquetas: 'Etiquetas', control: 'Control de tareas'
   };
   function pintarTituloMovil() {
@@ -6534,7 +6549,7 @@
     // cortesía de no mostrar un botón que no lleva a ningún lado: el
     // permiso de verdad está en la base.
     if ((m === 'equipo' || m === 'clientes' || m === 'plata' || m === 'dist'
-         || m === 'servicios' || m === 'etiquetas') && !soySocia()) return;
+         || m === 'servicios' || m === 'etiquetas' || m === 'accesos') && !soySocia()) return;
     MODULO = m;
     // La bandeja también puede tener el panel de la tarea abierto al
     // costado: no se cierra al entrar ahí.
@@ -6572,6 +6587,7 @@
     mostrar('#modBandeja',   MODULO === 'bandeja');
     mostrar('#modEquipo',    MODULO === 'equipo');
     mostrar('#modClientes',  MODULO === 'clientes');
+    mostrar('#modAccesos',   MODULO === 'accesos');
     mostrar('#modServicios', MODULO === 'servicios');
     mostrar('#modEtiquetas', MODULO === 'etiquetas');
     mostrar('#modPlata',     MODULO === 'plata');
@@ -6587,7 +6603,7 @@
       // Acá adentro ya sos socia —si no, ni pasaste la puerta— así que
       // el menú entero se muestra. El `display:none` del HTML es la
       // herencia de cuando estos módulos vivían en el panel del equipo.
-      ['#navEquipo', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas', '#navWiki']
+      ['#navEquipo', '#navAccesos', '#navServicios', '#navPlata', '#navDist', '#navEtiquetas', '#navWiki']
         .forEach(sel => mostrar(sel, true));
       // …menos las que se sacaron del menú (SOLAPAS_OCULTAS).
       SOLAPAS_OCULTAS.forEach(m => { if (NAV_DE[m]) mostrar(NAV_DE[m], false); });
@@ -6602,6 +6618,7 @@
     activar('#navBandeja',  MODULO === 'bandeja');
     activar('#navTablero',  MODULO === 'tareas' && !FILTRO.proyecto);
     activar('#navClientes', MODULO === 'clientes');
+    activar('#navAccesos',  MODULO === 'accesos');
     activar('#navWiki',     MODULO === 'wiki');
     activar('#navControl',  MODULO === 'control');
     activar('#navServicios', MODULO === 'servicios');
@@ -6622,6 +6639,7 @@
     const H = {
       bandeja:  ['Tu <em>bandeja</em>', 'Lo que te asignaron, lo que comentaron donde colaborás y dónde te mencionaron.'],
       equipo:   ['El <em>equipo</em>', 'Quién está, qué puede hacer cada una y quién ya no trabaja acá.'],
+      accesos:  ['Los <em>accesos</em>', 'Quién entra a cada parte del panel.'],
       clientes: ['Los <em>clientes</em>', 'Qué tiene contratado cada uno, cuándo paga y cuándo le toca ajuste.'],
       servicios: ['Los <em>servicios</em>', 'Lo que ofrecés, quién te lo paga y cuánto te queda.'],
       plata:    ['La <em>contabilidad</em>', 'Lo que entra, lo que sale y cómo se reparte.'],
@@ -11315,6 +11333,7 @@
   // "Actualizar" también trae de nuevo la grilla si estás en Control de tareas.
   on('#btnRefrescar', 'click', () => { if (MODULO === 'control') { CTRL.cargado = false; render(); } });
   on('#navEquipo', 'click', () => cambiarModulo('equipo'));
+  on('#navAccesos', 'click', () => cambiarModulo('accesos'));
   on('#fGuardar', 'click', guardar);
   initFechaPicker();
   // Botón de notificaciones: si no está activo, activa y pregunta qué recibir
