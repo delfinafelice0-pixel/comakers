@@ -3227,7 +3227,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v03/11 08:25</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v06/11 13:55</div>
     </div>
   </aside>
 
@@ -9783,6 +9783,7 @@
     on('#' + o.btn, 'click', e => { e.stopPropagation(); pop.hidden ? abrir() : cerrar(); });
     on('#' + o.clear, 'click', e => { e.stopPropagation(); set(o.emp, null); set(o.ven, null); activo = 'vence'; commit(); if (!pop.hidden) pintar(); });
     pop.addEventListener('click', e => {
+      e.stopPropagation();        // pintar() reemplaza el nodo clickeado: si el click llega al document, parece externo y cierra
       const dia = e.target.closest('[data-fdia]');
       if (dia) {
         set(activo, dia.dataset.fdia);

@@ -14197,6 +14197,7 @@
     on('#' + o.btn, 'click', e => { e.stopPropagation(); pop.hidden ? abrir() : cerrar(); });
     on('#' + o.clear, 'click', e => { e.stopPropagation(); set(o.emp, null); set(o.ven, null); activo = 'vence'; commit(); if (!pop.hidden) pintar(); });
     pop.addEventListener('click', e => {
+      e.stopPropagation();        // pintar() reemplaza el nodo clickeado: si el click llega al document, parece externo y cierra
       const dia = e.target.closest('[data-fdia]');
       if (dia) {
         set(activo, dia.dataset.fdia);
