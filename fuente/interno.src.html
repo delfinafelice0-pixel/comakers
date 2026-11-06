@@ -14200,7 +14200,7 @@
       e.stopPropagation();        // pintar() reemplaza el nodo clickeado: si el click llega al document, parece externo y cierra
       const dia = e.target.closest('[data-fdia]');
       if (dia) {
-        set(activo, dia.dataset.fdia);
+        set(activo === 'empieza' ? o.emp : o.ven, dia.dataset.fdia);
         if (activo === 'empieza') activo = 'vence';
         const emp = get(o.emp), ven = get(o.ven);
         if (emp && ven && emp > ven) { set(o.emp, ven); set(o.ven, emp); }
