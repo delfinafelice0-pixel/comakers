@@ -1,0 +1,67 @@
+/* =========================================================================
+   CoMakers · Paleta nueva (tokens de diseño)
+   Para aplicar en TODAS las herramientas internas: interno, administracion,
+   panel, CRM, puente. Definí estos tokens en :root y usá las variables en vez
+   de hex sueltos. Reemplaza la paleta vieja (magenta/lima/ink/papel).
+   Tipografía: Poppins en todo.
+   ========================================================================= */
+:root{
+  /* ---- Marca (los 3 que pidió Delfi) ---- */
+  --cm-teal:#3D8078;        /* primario: nav activa, botones, títulos */
+  --cm-orange:#FFB040;      /* acento: CTAs, resaltados (NUNCA como texto) */
+  --cm-pink:#FFD0FC;        /* highlight suave: tags, fondos sutiles, pills */
+
+  /* ---- Derivados de teal (sidebars, hovers, fondos) ---- */
+  --teal-900:#20302E;       /* casi negro verdoso = color de texto principal */
+  --teal-700:#2E635C;       /* hover de botones teal, bordes fuertes */
+  --teal-50:#E3EFEC;        /* fondo teal muy claro (filas activas, chips) */
+
+  /* ---- Neutros ---- */
+  --bg:#FFF9F3;             /* fondo de página (crema) */
+  --surface:#FFFFFF;        /* tarjetas, tablas, modales */
+  --surface-2:#F6F1EA;      /* fondo alterno, encabezados de tabla */
+  --text:#20302E;           /* texto principal */
+  --text-soft:#5F726F;      /* texto secundario */
+  --text-mute:#8A968F;      /* placeholders, deshabilitado */
+  --border:#E7E2E8;         /* bordes y divisores */
+  --border-strong:#D6CEDA;
+
+  /* ---- Roles de uso (apuntá SIEMPRE a estos en los componentes) ---- */
+  --primary:var(--cm-teal);        --primary-contrast:#FFFFFF;
+  --accent:var(--cm-orange);       --accent-contrast:#3A2600; /* texto oscuro sobre naranja */
+  --highlight:var(--cm-pink);      --highlight-contrast:#20302E; /* texto verde oscuro sobre rosa */
+  --sidebar-bg:#23403B;            --sidebar-text:#E8F0ED; --sidebar-active:var(--cm-orange);
+
+  /* ---- Estados / semánticos (NO usar el trío de marca para esto) ---- */
+  --success:#2E9E6B;   --success-bg:#E4F4EC;   --success-text:#1C6B48;
+  --warning:#E0902A;   --warning-bg:#FBEDD7;   --warning-text:#8A5410;
+  --danger:#D8504F;    --danger-bg:#FBE6E6;    --danger-text:#9A2E2D;
+  --info:#3E7FB5;      --info-bg:#E4EFF8;      --info-text:#265A86;
+
+  /* ---- Data viz: paleta categórica para los gráficos de los reportes ---- */
+  --c1:#3D8078; --c2:#FFB040; --c3:#5B8DEF; --c4:#E07BC4; --c5:#8E7BD6; --c6:#58B98E;
+
+  /* ---- Tipografía ---- */
+  --font:'Poppins',system-ui,sans-serif;
+}
+
+/* =========================================================================
+   MAPEO desde la paleta vieja (buscá estos hex y reemplazá por el rol)
+   -------------------------------------------------------------------------
+   #FF82FF magenta  -> --primary (teal). Si era un acento/resaltado -> --accent
+   #D3FF99 lima     -> --accent (naranja) si es resaltado;
+                       --success si marcaba "hecho/ok/activo"
+   #16122E ink      -> --text (texto) ; superficies oscuras -> --sidebar-bg
+   #1E14D6 azul     -> --info (si era informativo) o --primary
+   #F3EFE6 papel    -> --bg  (y mantené la textura de papel de fondo)
+   Fraunces/Caveat/Inter Tight -> Poppins
+
+   REGLAS que no se rompen:
+   - Naranja y rosa JAMÁS como color de texto sobre crema/blanco.
+     Texto = --text / --text-soft / --primary. Naranja = fondo de botón/acento.
+   - Los chips de estado de tareas (pendiente/en progreso/hecho) usan los
+     semánticos (--warning / --info / --success), NO el trío de marca.
+   - Los gráficos usan --c1..--c6, no naranja+rosa a lo loco.
+   - Contraste AA: texto sobre naranja va en --accent-contrast; sobre rosa en
+     --highlight-contrast.
+   ========================================================================= */
