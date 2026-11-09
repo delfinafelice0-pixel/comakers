@@ -7680,8 +7680,13 @@
         '<div class="fila-inv">' +
           '<input type="text" id="invNombre" placeholder="Nombre y apellido">' +
           '<input type="email" id="invEmail" placeholder="mail@ejemplo.com">' +
-          '<select class="sel" id="invRol"><option value="equipo">Equipo</option><option value="socia">Socia</option></select>' +
+          '<select class="sel" id="invRol"><option value="equipo">Equipo</option><option value="socia">Socia</option><option value="cliente">Cliente</option></select>' +
           '<button class="btn-primary" id="invBtn">Invitar</button>' +
+        '</div>' +
+        '<div id="invCliente" style="display:none; margin-top:10px">' +
+          '<input type="password" id="invPass" placeholder="Contraseña (mín. 8 caracteres)" autocomplete="new-password">' +
+          '<div class="res-sub" style="margin:8px 0 4px">¿Qué cliente puede ver?</div>' +
+          '<div id="invClientesBox" class="inv-clientes">Cargando clientes…</div>' +
         '</div>' +
         '<div class="res-sub" id="invAviso" style="margin-top:10px">' + esc(INV_AVISO) + '</div>' +
         '<div class="sep-inv"></div>' +
@@ -7789,19 +7794,51 @@
     }
   }
 
+  function toggleInvCliente() {
+    const sel = document.getElementById('invRol');
+    const box = document.getElementById('invCliente');
+    const btn = document.getElementById('invBtn');
+    if (!sel || !box) return;
+    const esCli = sel.value === 'cliente';
+    box.style.display = esCli ? '' : 'none';
+    if (btn) btn.textContent = esCli ? 'Crear' : 'Invitar';
+    if (esCli) cargarClientesInv();
+  }
+  async function cargarClientesInv() {
+    const box = document.getElementById('invClientesBox');
+    if (!box) return;
+    const { data, error } = await SB.from('clientes').select('id, nombre').order('nombre');
+    if (error) { box.textContent = 'No se pudieron cargar los clientes.'; return; }
+    if (!data || !data.length) { box.textContent = 'No hay clientes cargados todavía.'; return; }
+    box.innerHTML = data.map(c =>
+      '<label class="chk-cli" style="display:inline-flex;align-items:center;gap:6px;margin:0 12px 6px 0">' +
+      '<input type="checkbox" value="' + c.id + '"> ' + esc(c.nombre) + '</label>'
+    ).join('');
+  }
+
   async function invitar() {
     const nombre = $('#invNombre').value.trim();
     const email = $('#invEmail').value.trim().toLowerCase();
     const rol = $('#invRol').value;
-    const aviso = $('#invAviso');
     const decir = t => { INV_AVISO = t; if ($('#invAviso')) $('#invAviso').textContent = t; };
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { decir('Ese mail no parece válido.'); $('#invEmail').focus(); return; }
     if (!SB.functions) { decir('Este navegador no pudo cargar el módulo de invitaciones.'); return; }
 
+    let body;
+    if (rol === 'cliente') {
+      const pass = ($('#invPass') && $('#invPass').value) || '';
+      const marcados = Array.from(document.querySelectorAll('#invClientesBox input:checked')).map(i => i.value);
+      if (pass.trim().length < 8) { decir('La contraseña tiene que tener al menos 8 caracteres.'); return; }
+      if (!marcados.length) { decir('Marcá al menos un cliente que pueda ver.'); return; }
+      body = { email, nombre, tipo: 'cliente', password: pass, clientes: marcados };
+    } else {
+      body = { email, nombre, rol };
+    }
+
     decir('Enviando…');
     $('#invBtn').disabled = true;
     try {
-      const { data, error } = await SB.functions.invoke('invitar-equipo', { body: { email, nombre, rol } });
+      const { data, error } = await SB.functions.invoke('invitar-equipo', { body });
       const msg = (data && data.error) || (error && error.message);
       if (msg) {
         decir(msg.indexOf('Failed to send') !== -1 || msg.indexOf('404') !== -1
@@ -7810,8 +7847,9 @@
         return;
       }
       $('#invNombre').value = ''; $('#invEmail').value = '';
+      if ($('#invPass')) $('#invPass').value = '';
       await cargarPersonas();
-      decir('Listo: le llegó el mail a ' + email + '.');
+      decir(rol === 'cliente' ? 'Listo: cliente creado (' + email + ').' : 'Listo: le llegó el mail a ' + email + '.');
       llenarSelects();
       render();
     } catch (e) {
@@ -17311,6 +17349,7 @@
     }
   });
   on('#modEquipo', 'change', e => {
+    if (e.target.id === 'invRol') { toggleInvCliente(); return; }
     const sel = e.target.closest('[data-prol]');
     if (sel) { guardarPersona(sel.dataset.prol, 'rol', sel.value); return; }
     const mo = e.target.closest('[data-trabmonto]');
