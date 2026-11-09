@@ -5,37 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conectar WhatsApp · CoMakers</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  /* Paleta: copia literal de paleta-nueva-tokens.css. */
   :root{
-    --fucsia:#FF82FF; --lime:#D3FF99; --coral:#F26A8D; --cyan:#CBEEF3;
-    --ink:#1b1b1f; --ink-mute:#6b6b74; --line:#e6e6ea; --bg:#faf8fb;
+    /* ---- Marca (los 3 que pidió Delfi) ---- */
+    --cm-teal:#3D8078;        /* primario: nav activa, botones, títulos */
+    --cm-orange:#FFB040;      /* acento: CTAs, resaltados (NUNCA como texto) */
+    --cm-pink:#FFD0FC;        /* highlight suave: tags, fondos sutiles, pills */
+
+    /* ---- Derivados de teal (sidebars, hovers, fondos) ---- */
+    --teal-900:#20302E;       /* casi negro verdoso = color de texto principal */
+    --teal-700:#2E635C;       /* hover de botones teal, bordes fuertes */
+    --teal-50:#E3EFEC;        /* fondo teal muy claro (filas activas, chips) */
+
+    /* ---- Neutros ---- */
+    --bg:#FFF9F3;             /* fondo de página (crema) */
+    --surface:#FFFFFF;        /* tarjetas, tablas, modales */
+    --surface-2:#F6F1EA;      /* fondo alterno, encabezados de tabla */
+    --text:#20302E;           /* texto principal */
+    --text-soft:#5F726F;      /* texto secundario */
+    --text-mute:#8A968F;      /* placeholders, deshabilitado */
+    --border:#E7E2E8;         /* bordes y divisores */
+    --border-strong:#D6CEDA;
+
+    /* ---- Roles de uso (apuntá SIEMPRE a estos en los componentes) ---- */
+    --primary:var(--cm-teal);        --primary-contrast:#FFFFFF;
+    --primary-strong:#30675F;        /* SOLO texto chico teal sobre crema o fondos tintados claros
+                                        (--primary ahí da 4,41: no llega a AA). Botones, fills y
+                                        texto grande siguen en --primary. */
+    --accent:var(--cm-orange);       --accent-contrast:#3A2600; /* texto oscuro sobre naranja */
+    --highlight:var(--cm-pink);      --highlight-contrast:#20302E; /* texto verde oscuro sobre rosa */
+    --sidebar-bg:#23403B;            --sidebar-text:#E8F0ED; --sidebar-active:var(--cm-orange);
+
+    /* ---- Estados / semánticos (NO usar el trío de marca para esto) ---- */
+    --success:#2E9E6B;   --success-bg:#E4F4EC;   --success-text:#1C6B48;
+    --warning:#E0902A;   --warning-bg:#FBEDD7;   --warning-text:#8A5410;
+    --danger:#D8504F;    --danger-bg:#FBE6E6;    --danger-text:#9A2E2D;
+    --info:#3E7FB5;      --info-bg:#E4EFF8;      --info-text:#265A86;
+
+    /* ---- Data viz: paleta categórica para los gráficos de los reportes ---- */
+    --c1:#3D8078; --c2:#FFB040; --c3:#5B8DEF; --c4:#E07BC4; --c5:#8E7BD6; --c6:#58B98E;
+
+    /* ---- Tipografía ---- */
+    --font:'Poppins',system-ui,sans-serif;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-       background:var(--bg);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;
-        padding:30px 28px;box-shadow:0 8px 30px rgba(0,0,0,.05)}
-  .marca{font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em;margin-bottom:4px}
-  .marca .co{color:#3D8078}
-  .marca .mk{color:#FFB040}
-  h1{font-size:20px;margin:14px 0 6px}
-  p.sub{color:var(--ink-mute);font-size:14px;line-height:1.5;margin:0 0 20px}
-  label{display:block;font-size:12px;font-weight:600;color:var(--ink-mute);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.03em}
-  input,select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:#fff}
-  input:focus,select:focus{outline:none;border-color:var(--ink-mute)}
-  button{width:100%;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px;transition:opacity .12s}
-  button:hover{opacity:.9}
+  body{margin:0;font-family:var(--font);background:var(--bg) url("paper-bg.jpg") center top/cover fixed;color:var(--text);
+       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:18px;max-width:460px;width:100%;
+        padding:30px 28px;box-shadow:0 10px 30px rgba(32,48,46,.08)}
+  /* Logo de texto: "Co" teal, "Makers" naranja (decisión de marca). */
+  .marca{font-family:var(--font);font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1;margin-bottom:4px}
+  .marca .co{color:var(--primary)}
+  .marca .mk{color:var(--accent)}
+  h1{font-size:21px;font-weight:600;letter-spacing:-.02em;margin:16px 0 6px}
+  p.sub{color:var(--text-soft);font-size:14px;line-height:1.5;margin:0 0 20px}
+  label{display:block;font-size:11px;font-weight:600;color:var(--text-soft);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.06em}
+  input,select{width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font);font-size:15px;background:var(--bg);color:var(--text)}
+  input::placeholder{color:var(--text-mute)}
+  input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--teal-50)}
+  button{width:100%;padding:13px;border:none;border-radius:11px;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;margin-top:18px;transition:background .12s,opacity .12s}
   button:disabled{opacity:.5;cursor:default}
-  .btn-wa{background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px}
-  .btn-ink{background:var(--ink);color:#fff}
+  button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* El verde de WhatsApp (#25D366) con texto blanco no llega a AA (2:1):
+     el botón va en el teal de la marca y el ícono dice "WhatsApp". */
+  .btn-wa{background:var(--primary);color:var(--primary-contrast);display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-wa:hover{background:var(--teal-700)}
+  .btn-ink{background:var(--primary);color:var(--primary-contrast)}
+  .btn-ink:hover{background:var(--teal-700)}
   .msg{margin-top:16px;padding:12px 14px;border-radius:10px;font-size:14px;line-height:1.45;display:none}
-  .msg.ok{background:var(--lime);color:#2f4d11;display:block}
-  .msg.err{background:#ffe2e9;color:#8a2740;display:block}
-  .msg.info{background:var(--cyan);color:#1f5560;display:block}
+  .msg.ok{background:var(--success-bg);color:var(--success-text);display:block}
+  .msg.err{background:var(--danger-bg);color:var(--danger-text);display:block}
+  .msg.info{background:var(--info-bg);color:var(--info-text);display:block}
   .hide{display:none}
-  .hint{font-size:12px;color:var(--ink-mute);margin-top:8px;line-height:1.4}
-  .paso{font-size:12px;color:var(--ink-mute);margin-top:18px;border-top:1px solid var(--line);padding-top:14px;line-height:1.5}
+  .hint{font-size:12px;color:var(--text-soft);margin-top:8px;line-height:1.4}
+  .paso{font-size:12px;color:var(--text-soft);margin-top:18px;border-top:1px solid var(--border);padding-top:14px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -68,7 +113,7 @@
     <div class="paso">
       Se va a abrir una ventana de Meta. Vas a iniciar sesión con la cuenta de Facebook que administra el negocio, elegir el número, y <b>confirmar la conexión desde la app de WhatsApp Business del celular</b>. El número NO deja de andar en el celular.
     </div>
-    <div style="text-align:center;margin-top:14px"><a href="#" id="salir" style="font-size:12px;color:var(--ink-mute)">Cerrar sesión</a></div>
+    <div style="text-align:center;margin-top:14px"><a href="#" id="salir" style="font-size:12px;color:var(--text-soft)">Cerrar sesión</a></div>
   </div>
 </div>
 

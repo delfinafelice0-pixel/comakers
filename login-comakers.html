@@ -4,43 +4,69 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Iniciar sesión · CoMakers</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233D8078'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FFB040' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FFB040'/%3E%3C/svg%3E">
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#FF82FF">
+<meta name="theme-color" content="#3D8078">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CoMakers">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --bg: #F7F6F9;
-    --bg-elev: #FFFFFF;
-    --ink: #1B1620;
-    --ink-soft: #5B525E;
-    --ink-mute: #938C99;
-    --line: #ECEAF0;
-    --accent: #FF82FF;
-    --accent-soft: #FFE9FE;
-    --lime: #D3FF99;
-    --coral: #F26A8D;
-    --warn: #F26A8D;
-    --display: 'Playfair Display', Georgia, serif;
-    --body: 'DM Sans', -apple-system, system-ui, sans-serif;
-    --radius: 10px;
-    --shadow: 0 1px 0 rgba(27,22,32,0.04), 0 1px 3px rgba(27,22,32,0.04);
+  /* Paleta: copia literal de paleta-nueva-tokens.css. */
+  :root{
+    /* ---- Marca (los 3 que pidió Delfi) ---- */
+    --cm-teal:#3D8078;        /* primario: nav activa, botones, títulos */
+    --cm-orange:#FFB040;      /* acento: CTAs, resaltados (NUNCA como texto) */
+    --cm-pink:#FFD0FC;        /* highlight suave: tags, fondos sutiles, pills */
+
+    /* ---- Derivados de teal (sidebars, hovers, fondos) ---- */
+    --teal-900:#20302E;       /* casi negro verdoso = color de texto principal */
+    --teal-700:#2E635C;       /* hover de botones teal, bordes fuertes */
+    --teal-50:#E3EFEC;        /* fondo teal muy claro (filas activas, chips) */
+
+    /* ---- Neutros ---- */
+    --bg:#FFF9F3;             /* fondo de página (crema) */
+    --surface:#FFFFFF;        /* tarjetas, tablas, modales */
+    --surface-2:#F6F1EA;      /* fondo alterno, encabezados de tabla */
+    --text:#20302E;           /* texto principal */
+    --text-soft:#5F726F;      /* texto secundario */
+    --text-mute:#8A968F;      /* placeholders, deshabilitado */
+    --border:#E7E2E8;         /* bordes y divisores */
+    --border-strong:#D6CEDA;
+
+    /* ---- Roles de uso (apuntá SIEMPRE a estos en los componentes) ---- */
+    --primary:var(--cm-teal);        --primary-contrast:#FFFFFF;
+    --primary-strong:#30675F;        /* SOLO texto chico teal sobre crema o fondos tintados claros
+                                        (--primary ahí da 4,41: no llega a AA). Botones, fills y
+                                        texto grande siguen en --primary. */
+    --accent:var(--cm-orange);       --accent-contrast:#3A2600; /* texto oscuro sobre naranja */
+    --highlight:var(--cm-pink);      --highlight-contrast:#20302E; /* texto verde oscuro sobre rosa */
+    --sidebar-bg:#23403B;            --sidebar-text:#E8F0ED; --sidebar-active:var(--cm-orange);
+
+    /* ---- Estados / semánticos (NO usar el trío de marca para esto) ---- */
+    --success:#2E9E6B;   --success-bg:#E4F4EC;   --success-text:#1C6B48;
+    --warning:#E0902A;   --warning-bg:#FBEDD7;   --warning-text:#8A5410;
+    --danger:#D8504F;    --danger-bg:#FBE6E6;    --danger-text:#9A2E2D;
+    --info:#3E7FB5;      --info-bg:#E4EFF8;      --info-text:#265A86;
+
+    /* ---- Data viz: paleta categórica para los gráficos de los reportes ---- */
+    --c1:#3D8078; --c2:#FFB040; --c3:#5B8DEF; --c4:#E07BC4; --c5:#8E7BD6; --c6:#58B98E;
+
+    /* ---- Tipografía ---- */
+    --font:'Poppins',system-ui,sans-serif;
   }
+  :root { --radius: 10px; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: var(--body);
-    background: var(--lime);
-    color: var(--ink);
+    font-family: var(--font);
+    background: var(--bg) url("paper-bg.jpg") center top/cover fixed;
+    color: var(--text);
     font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -52,60 +78,51 @@
   }
 
   .card {
-    background: var(--bg-elev);
-    border: 1px solid var(--line);
-    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
     padding: 40px;
     width: 100%;
-    max-width: 380px;
-    box-shadow: 0 2px 8px rgba(26,26,23,0.06);
+    max-width: 390px;
+    box-shadow: 0 10px 30px rgba(32,48,46,0.08);
   }
 
-  .brand {
-    margin-bottom: 32px;
-  }
+  .brand { margin-bottom: 30px; }
+  /* Logo de texto: "Co" teal, "Makers" naranja (decisión de marca). */
   .brand-name {
-    font-family: 'Poppins', var(--body);
-    font-size: 27px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: #3D8078;
-    display: inline-flex;
-    align-items: baseline;
-    line-height: 1;
+    font-family: var(--font); font-size: 28px; font-weight: 800;
+    letter-spacing: -0.02em; line-height: 1;
+    display: inline-flex; align-items: baseline;
   }
-  /* Logo de texto: "Co" teal, "Makers" naranja. */
-  .brand-name .co { color: #3D8078; }
-  .brand-name .mk { color: #FFB040; }
+  .brand-name .co { color: var(--primary); }
+  .brand-name .mk { color: var(--accent); }
   .brand-sub {
-    font-size: 12px;
-    color: var(--ink-mute);
-    letter-spacing: 0.06em;
+    font-size: 11px;
+    color: var(--text-soft);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-top: 4px;
+    margin-top: 6px;
   }
 
   h1 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 600;
     letter-spacing: -0.02em;
     margin-bottom: 4px;
   }
   .subtitle {
     font-size: 13px;
-    color: var(--ink-soft);
-    margin-bottom: 28px;
+    color: var(--text-soft);
+    margin-bottom: 26px;
   }
 
-  .field {
-    margin-bottom: 16px;
-  }
+  .field { margin-bottom: 16px; }
   label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    color: var(--ink-soft);
-    letter-spacing: 0.04em;
+    color: var(--text-soft);
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     margin-bottom: 6px;
   }
@@ -113,68 +130,67 @@
   input[type="password"] {
     width: 100%;
     background: var(--bg);
-    border: 1px solid var(--line);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius);
-    padding: 10px 12px;
-    font-family: var(--body);
+    padding: 11px 12px;
+    font-family: var(--font);
     font-size: 14px;
-    color: var(--ink);
+    color: var(--text);
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
+  input::placeholder { color: var(--text-mute); }
   input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--teal-50);
   }
-  input.error {
-    border-color: var(--warn);
-  }
+  input.error { border-color: var(--danger); }
 
   .error-msg {
     font-size: 12px;
-    color: var(--warn);
+    color: var(--danger-text);
     margin-top: 8px;
     display: none;
   }
-  .error-msg.visible {
-    display: block;
-  }
+  .error-msg.visible { display: block; }
 
   .btn {
     width: 100%;
-    background: var(--accent);
-    color: var(--ink);
+    background: var(--primary);
+    color: var(--primary-contrast);
     border: none;
     border-radius: var(--radius);
-    padding: 11px 16px;
-    font-family: var(--body);
+    padding: 12px 16px;
+    font-family: var(--font);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     margin-top: 8px;
-    transition: opacity 0.15s;
+    transition: background 0.15s;
   }
-  .btn:hover { opacity: 0.88; }
+  .btn:hover { background: var(--teal-700); }
+  .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
   .btn:disabled { opacity: 0.5; cursor: default; }
 
   .link-flojo {
     background: none; border: none; padding: 0; cursor: pointer;
-    font-family: inherit; font-size: 12.5px; color: var(--ink-mute);
+    font-family: inherit; font-size: 12.5px; color: var(--text-soft);
     text-decoration: underline; text-underline-offset: 2px;
   }
-  .link-flojo:hover { color: var(--ink); }
+  .link-flojo:hover { color: var(--primary-strong); }
   .fila-olvide { display: flex; justify-content: flex-end; margin-top: -6px; }
   .aviso-ok {
-    background: #ECFBD4; border-radius: 10px; padding: 11px 13px;
+    background: var(--success-bg); color: var(--success-text); border-radius: 10px; padding: 11px 13px;
     font-size: 13px; line-height: 1.5; margin-top: 14px;
   }
 
   .footer-note {
     font-size: 12px;
-    color: var(--ink-mute);
+    color: var(--text-soft);
     text-align: center;
     margin-top: 24px;
   }
+  @media (max-width: 420px) { .card { padding: 30px 22px; } }
 </style>
 </head>
 <body>
