@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: yaEsta } = await admin
-      .from('profiles').select('id, activo').eq('email', email).maybeSingle();
+      .from('profiles').select('id, activo, tipo').eq('email', email).maybeSingle();
 
     // Escribe las filas de acceso_cliente para un user_id dado (additivo).
     async function asignarClientes(userId: string) {
@@ -113,6 +113,11 @@ Deno.serve(async (req) => {
     //  CAMINO C · Cliente con contraseña
     // ─────────────────────────────────────────────────────────────
     if (tipo === 'cliente') {
+      // Si el mail ya es una cuenta del EQUIPO, no lo convertimos en cliente
+      // ni le pisamos la contraseña por error: avisamos y paramos.
+      if (yaEsta && yaEsta.tipo === 'agencia') {
+        return responder({ error: 'Ese mail ya es de una cuenta del equipo. No lo paso a cliente desde acá para no pisarle la contraseña.' }, 409);
+      }
       if (yaEsta && yaEsta.activo === false) {
         return responder({ error: 'Esa persona está dada de baja. Reactivala antes de darle acceso.' }, 409);
       }
