@@ -12,8 +12,8 @@
 <meta property="og:title" content="CoMakers · Agencia de marketing en Tandil">
 <meta property="og:description" content="Le ponemos cabeza, cámara y data a tu marca. Marketing digital para pymes y marcas.">
 <meta property="og:url" content="https://comakers.com.ar/">
-<meta property="og:image" content="https://comakers.com.ar/og-comakers.png">
-<meta property="og:image:secure_url" content="https://comakers.com.ar/og-comakers.png">
+<meta property="og:image" content="https://comakers.com.ar/og-comakers-2026.png">
+<meta property="og:image:secure_url" content="https://comakers.com.ar/og-comakers-2026.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -23,10 +23,10 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CoMakers · Agencia de marketing en Tandil">
 <meta name="twitter:description" content="Le ponemos cabeza, cámara y data a tu marca. Marketing digital para pymes y marcas.">
-<meta name="twitter:image" content="https://comakers.com.ar/og-comakers.png">
+<meta name="twitter:image" content="https://comakers.com.ar/og-comakers-2026.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600;1,700&display=swap" rel="stylesheet">
 <style>
   :root{
     --orange:#FFB040;--pink:#FFD0FC;--teal:#3D8078;--teal-d:#2C625B;
@@ -261,8 +261,8 @@
   .panel-sec p{color:rgba(255,255,255,.92);font-size:17px;line-height:1.7;max-width:400px;margin-bottom:40px;}
   .dash{background:var(--teal-d);border:1px solid rgba(255,255,255,.18);border-radius:22px;padding:24px;will-change:transform;}
   .dash .dh{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.18);padding-bottom:14px;margin-bottom:18px;}
-  .dash .dh .dlogo{font-family:var(--font);font-weight:700;font-size:17px;color:var(--white);}
-  .dash .dh .dlogo em{font-style:normal;color:var(--orange);}
+  .dash .dh .dlogo{font-family:var(--font);font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--white);}
+  .dash .dh .dlogo .mk{color:var(--orange);}
   .dash .dh .pill{font-size:11px;color:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 10px;}
   .panel-sec .wrap > *{min-width:0;}
   .stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
@@ -332,8 +332,9 @@
 
   /* ===== nav (pills) + footer — bloque compartido: igual en index, servicios, nosotras y privacidad ===== */
   nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 40px;background:rgba(255,249,243,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
-  .logo{display:inline-flex;align-items:center;flex:0 0 auto;font-weight:700;font-size:22px;line-height:1;color:var(--teal);letter-spacing:-.01em;}
-  .logo span{color:var(--orange);}
+  .logo{display:inline-flex;align-items:center;flex:0 0 auto;font-weight:800;font-size:22px;line-height:1;color:var(--teal);letter-spacing:-.02em;}
+  .logo .co{color:var(--teal);}
+  .logo .mk{color:var(--orange);}
   .navlinks{display:flex;align-items:center;gap:12px;}
   .navpill{display:flex;align-items:center;gap:2px;padding:4px;background:rgba(255,255,255,.72);border:1.5px solid var(--line);border-radius:999px;}
   .navpill a{padding:8px 18px;border-radius:999px;font-weight:500;font-size:14.5px;line-height:1.2;color:var(--ink-soft);transition:background .2s,color .2s;}
@@ -349,8 +350,10 @@
 
   footer{background:var(--teal);color:var(--white);}
   .foot-grid{max-width:1120px;margin:0 auto;padding:54px 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
-  .foot-logo{font-weight:700;font-size:28px;line-height:1;color:var(--white);letter-spacing:-.01em;}
-  .foot-logo span{color:var(--orange);}
+  .foot-logo{font-weight:800;font-size:28px;line-height:1;color:var(--white);letter-spacing:-.02em;}
+  /* Footer oscuro: "Co" en blanco, "Makers" en naranja. */
+  .foot-logo .co{color:var(--white);}
+  .foot-logo .mk{color:var(--orange);}
   .foot-meta{font-size:13px;color:rgba(255,255,255,.92);margin-top:8px;}
   .foot-legal{font-size:11.5px;color:rgba(255,255,255,.92);margin-top:14px;line-height:1.5;}
   .foot-legal a{color:rgba(255,255,255,.92);text-decoration:underline;text-underline-offset:2px;}
@@ -375,7 +378,7 @@
 
 <!-- ===== NAV ===== -->
 <nav>
-  <a href="index.html" class="logo" aria-label="CoMakers inicio">Co<span>Makers.</span></a>
+  <a href="index.html" class="logo" aria-label="CoMakers inicio"><span class="co">Co</span><span class="mk">Makers</span></a>
   <div class="navlinks" id="navlinks">
     <div class="navpill">
       <a href="index.html" class="active" aria-current="page">Inicio</a>
@@ -476,7 +479,7 @@
         <span class="bt">cabeza, cámara <em>y data.</em></span>
       </div>
       <div class="ch-info">
-        <div class="ch-avatar"><span class="logo">Co<span>Makers.</span></span></div>
+        <div class="ch-avatar"><span class="logo"><span class="co">Co</span><span class="mk">Makers</span></span></div>
         <div class="ch-meta">
           <div class="ch-name">CoMakers <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4C55 38 62 45 96 50C62 55 55 62 50 96C45 62 38 55 4 50C38 45 45 38 50 4Z"/></svg></div>
           <div class="ch-handle"><b>@co.makers_</b> · 4 videos · Tandil</div>
@@ -589,7 +592,7 @@
     </div>
     <div class="dash reveal d2 tilt-dash">
       <div class="dh">
-        <span class="dlogo">Co Makers<em>.</em></span>
+        <span class="dlogo"><span class="co">Co</span><span class="mk">Makers</span></span>
         <span class="pill">Panel · tu marca</span>
       </div>
       <div class="stat-grid">
@@ -636,7 +639,7 @@
 <footer>
   <div class="foot-grid">
     <div>
-      <div class="foot-logo">Co<span>Makers.</span></div>
+      <div class="foot-logo"><span class="co">Co</span><span class="mk">Makers</span></div>
       <div class="foot-meta">Agencia de marketing digital · Tandil, Buenos Aires</div>
       <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
       <div class="foot-legal">Delfina Felice · CUIT 27-39162785-7<br>Quirno Costa 649, B6550 Bolívar, Buenos Aires, Argentina · <a href="privacidad.html">Privacidad</a></div>

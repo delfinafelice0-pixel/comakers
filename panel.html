@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23D3FF99'/%3E%3Cpath d='M20.8 9.6A8 8 0 1 0 20.8 20.4' fill='none' stroke='%23FF82FF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='25.4' cy='25.4' r='3' fill='%23FF82FF'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="panel-modulos.css">
 <style>
@@ -82,13 +82,15 @@
   }
   .brand { padding: 4px 8px 16px; border-bottom: 1px solid rgba(232,240,237,.16); }
   .brand-name {
-    font-family: var(--font); font-size: 19px; font-weight: 700;
-    letter-spacing: -0.01em; color: var(--sidebar-text);
+    font-family: var(--font); font-size: 19px; font-weight: 800;
+    letter-spacing: -0.02em; color: var(--sidebar-text);
     padding: 5px 0; border-radius: 9px;
     display: inline-flex; align-items: baseline; line-height: 1;
   }
-  .brand-name em { font-family: var(--font); font-style: normal; font-weight: 700; color: var(--accent); }
-  .brand-spark { width: 12px; height: 12px; margin-left: 5px; color: var(--highlight); align-self: flex-start; flex-shrink: 0; }
+  /* Logo de texto: "Co" teal y "Makers" naranja; en la barra oscura "Co" va en blanco. */
+  .brand-name .co { color: var(--primary); }
+  .brand-name .mk { color: var(--accent); }
+  .sidebar .brand-name .co { color: #fff; }
 
   /* El cliente se elige en una caja, como en el CRM. Con un solo
      cliente (lo que ve un cliente) la caja muestra el nombre y nada más. */
@@ -646,7 +648,7 @@
 <div class="app">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="brand-name">Co<em>Makers.</em><svg class="brand-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1 L13.8 9.4 L22 12 L13.8 14.6 L12 23 L10.2 14.6 L2 12 L10.2 9.4 Z"/></svg></div>
+      <div class="brand-name"><span class="co">Co</span><span class="mk">Makers</span></div>
     </div>
 
     <label class="cliente-caja" id="clienteCaja"></label>
@@ -2124,7 +2126,7 @@
 
     const [y, mm] = MES.split('-');
     let html = '<div class="pdf-encabezado solo-pdf">' +
-      '<div class="brand-name">Co<em>Makers.</em></div>' +
+      '<div class="brand-name"><span class="co">Co</span><span class="mk">Makers</span></div>' +
       '<div class="pdf-tipo">' + (enCurso ? 'Reporte parcial' : 'Reporte mensual') + '</div></div>' +
       '<div class="cabecera"><div>' +
       '<h1>Reporte de <em>' + esc(MESES_ES[parseInt(mm, 10) - 1]) + '</em> ' + esc(y) + '</h1>' +

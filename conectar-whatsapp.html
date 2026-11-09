@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conectar WhatsApp · CoMakers</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
 <style>
   :root{
     --fucsia:#FF82FF; --lime:#D3FF99; --coral:#F26A8D; --cyan:#CBEEF3;
@@ -15,8 +16,9 @@
        background:var(--bg);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
   .card{background:#fff;border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;
         padding:30px 28px;box-shadow:0 8px 30px rgba(0,0,0,.05)}
-  .marca{font-weight:800;font-size:20px;letter-spacing:-.01em;margin-bottom:4px}
-  .marca em{color:var(--fucsia);font-style:normal}
+  .marca{font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em;margin-bottom:4px}
+  .marca .co{color:#3D8078}
+  .marca .mk{color:#FFB040}
   h1{font-size:20px;margin:14px 0 6px}
   p.sub{color:var(--ink-mute);font-size:14px;line-height:1.5;margin:0 0 20px}
   label{display:block;font-size:12px;font-weight:600;color:var(--ink-mute);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.03em}
@@ -38,7 +40,7 @@
 </head>
 <body>
 <div class="card">
-  <div class="marca">Co<em>Makers</em></div>
+  <div class="marca"><span class="co">Co</span><span class="mk">Makers</span></div>
 
   <!-- LOGIN -->
   <div id="vistaLogin">

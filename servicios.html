@@ -6,7 +6,7 @@
 <title>Servicios · CoMakers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600;1,700&display=swap" rel="stylesheet">
 <style>
   :root{
     --orange:#FFB040;--pink:#FFD0FC;--teal:#3D8078;--teal-d:#2C625B;
@@ -104,8 +104,9 @@
 
   /* ===== nav (pills) + footer — bloque compartido: igual en index, servicios, nosotras y privacidad ===== */
   nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 40px;background:rgba(255,249,243,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
-  .logo{display:inline-flex;align-items:center;flex:0 0 auto;font-weight:700;font-size:22px;line-height:1;color:var(--teal);letter-spacing:-.01em;}
-  .logo span{color:var(--orange);}
+  .logo{display:inline-flex;align-items:center;flex:0 0 auto;font-weight:800;font-size:22px;line-height:1;color:var(--teal);letter-spacing:-.02em;}
+  .logo .co{color:var(--teal);}
+  .logo .mk{color:var(--orange);}
   .navlinks{display:flex;align-items:center;gap:12px;}
   .navpill{display:flex;align-items:center;gap:2px;padding:4px;background:rgba(255,255,255,.72);border:1.5px solid var(--line);border-radius:999px;}
   .navpill a{padding:8px 18px;border-radius:999px;font-weight:500;font-size:14.5px;line-height:1.2;color:var(--ink-soft);transition:background .2s,color .2s;}
@@ -121,8 +122,10 @@
 
   footer{background:var(--teal);color:var(--white);}
   .foot-grid{max-width:1120px;margin:0 auto;padding:54px 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;}
-  .foot-logo{font-weight:700;font-size:28px;line-height:1;color:var(--white);letter-spacing:-.01em;}
-  .foot-logo span{color:var(--orange);}
+  .foot-logo{font-weight:800;font-size:28px;line-height:1;color:var(--white);letter-spacing:-.02em;}
+  /* Footer oscuro: "Co" en blanco, "Makers" en naranja. */
+  .foot-logo .co{color:var(--white);}
+  .foot-logo .mk{color:var(--orange);}
   .foot-meta{font-size:13px;color:rgba(255,255,255,.92);margin-top:8px;}
   .foot-legal{font-size:11.5px;color:rgba(255,255,255,.92);margin-top:14px;line-height:1.5;}
   .foot-legal a{color:rgba(255,255,255,.92);text-decoration:underline;text-underline-offset:2px;}
@@ -145,7 +148,7 @@
 <body>
 
 <nav>
-  <a href="index.html" class="logo" aria-label="CoMakers inicio">Co<span>Makers.</span></a>
+  <a href="index.html" class="logo" aria-label="CoMakers inicio"><span class="co">Co</span><span class="mk">Makers</span></a>
   <div class="navlinks" id="navlinks">
     <div class="navpill">
       <a href="index.html">Inicio</a>
@@ -208,7 +211,7 @@
 <footer>
   <div class="foot-grid">
     <div>
-      <div class="foot-logo">Co<span>Makers.</span></div>
+      <div class="foot-logo"><span class="co">Co</span><span class="mk">Makers</span></div>
       <div class="foot-meta">Agencia de marketing digital · Tandil, Buenos Aires</div>
       <div class="foot-meta">© 2026 CoMakers. Hecho en Tandil.</div>
       <div class="foot-legal">Delfina Felice · CUIT 27-39162785-7<br>Quirno Costa 649, B6550 Bolívar, Buenos Aires, Argentina · <a href="privacidad.html">Privacidad</a></div>

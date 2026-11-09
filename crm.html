@@ -6,7 +6,7 @@
 <title>CRM · Consultas de WhatsApp — CoMakers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   /* ═══════════════════════════════════════════════════════════
@@ -129,12 +129,15 @@
   }
   .brand { padding: 4px 8px 16px; border-bottom: 1px solid var(--border); }
   .brand-name {
-    font-size: 19px; font-weight: 700; letter-spacing: -0.01em;
+    font-size: 19px; font-weight: 800; letter-spacing: -0.02em;
     color: var(--text);
     padding: 5px 0; border-radius: 9px;
     display: inline-flex; align-items: baseline; line-height: 1;
   }
-  .brand-name em { font-family: var(--font); font-style: normal; font-weight: 700; color: var(--accent); }
+  /* Logo de texto: "Co" teal y "Makers" naranja; en la barra oscura "Co" va en blanco. */
+  .brand-name .co { color: var(--primary); }
+  .brand-name .mk { color: var(--accent); }
+  .sidebar .brand-name .co { color: #fff; }
   .brand-sub { font-size: 11px; color: var(--text-soft); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; }
 
   .client-switcher {
@@ -445,7 +448,7 @@
   <!-- ══════════ SIDEBAR ══════════ -->
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-name">Co<em>Makers</em></div>
+      <div class="brand-name"><span class="co">Co</span><span class="mk">Makers</span></div>
       <div class="brand-sub">Panel de cliente</div>
     </div>
 
