@@ -7455,8 +7455,12 @@
                 : abiertas + ' abierta' + (abiertas === 1 ? '' : 's')) + '</span></div>' +
         '<div class="acc">' +
           (yo ? '' :
+            // "Contraseña" solo para quien tiene cuenta y está activa.
+            ((!p.ext && !baja
+              ? '<button class="mini-btn" data-ppass="' + p.id + '">Contraseña</button>'
+              : '') +
             '<button class="mini-btn" data-pbaja="' + p.id + '">' +
-              (baja ? 'Reactivar' : 'Dar de baja') + '</button>') +
+              (baja ? 'Reactivar' : 'Dar de baja') + '</button>')) +
         '</div>' +
       '</div>';
   }
@@ -7750,6 +7754,37 @@
       if (!confirm(msg)) return;
     }
     await guardarPersona(id, 'activo', baja);
+  }
+
+  // Ponerle (o cambiarle) la contraseña a alguien del equipo, sin mail.
+  // La cuenta la toca la Edge Function `invitar-equipo` con la service_role:
+  // si la persona ya existe le resetea la contraseña, si no, la da de alta.
+  async function ponerPassword(id) {
+    const p = EQUIPO.find(x => x.id === id);
+    if (!p) return;
+    if (p.ext) { toast('Esa ficha no tiene cuenta: no entra al panel.', 'warn'); return; }
+    const n = p.nombre || p.email;
+    const pass = prompt('Contraseña para ' + n + '\n\n' +
+      'Mínimo 8 caracteres. Se la pasás vos; después ella la puede cambiar desde el panel.');
+    if (pass === null) return;
+    if (pass.trim().length < 8) { toast('Tiene que tener al menos 8 caracteres.', 'warn'); return; }
+    if (!SB.functions) { toast('Este navegador no pudo cargar el módulo.', 'warn'); return; }
+    toast('Guardando…');
+    try {
+      const { data, error } = await SB.functions.invoke('invitar-equipo', {
+        body: { email: p.email, nombre: p.nombre, rol: p.rol, password: pass }
+      });
+      const msg = (data && data.error) || (error && error.message);
+      if (msg) {
+        toast(msg.indexOf('Failed to send') !== -1 || msg.indexOf('404') !== -1
+          ? 'No encontramos la función invitar-equipo en Supabase. ¿La desplegaste?'
+          : msg, 'warn');
+        return;
+      }
+      toast('Listo. ' + n + ' ya puede entrar con esa contraseña.');
+    } catch (e) {
+      toast('No se pudo: ' + (e.message || e), 'warn');
+    }
   }
 
   async function invitar() {
@@ -17265,6 +17300,8 @@
     }
     const b = e.target.closest('[data-pbaja]');
     if (b) { alternarBaja(b.dataset.pbaja); return; }
+    const pw = e.target.closest('[data-ppass]');
+    if (pw) { ponerPassword(pw.dataset.ppass); return; }
     if (e.target.closest('#invBtn')) { invitar(); return; }
     if (e.target.closest('#fichaBtn')) {
       crearFicha().catch(err => toast('No se pudo: ' + (err.message || err), 'warn'));
