@@ -49,6 +49,54 @@
 }
 
 /* =========================================================================
+   MODO OSCURO (el que usan interno y administración, botón luna/sol)
+   Se activa con <html data-tema="oscuro">. Redefine SOLO roles: los
+   componentes no cambian. Fondos verde muy oscuro (no negro puro), textos
+   claros, y los fondos de estado apagados para que su -text se siga
+   leyendo. Los llenos de marca (--primary, --accent, --highlight, --c1..c6)
+   NO cambian: sobre oscuro siguen funcionando como fondo de botón/pill.
+   Todo par texto/fondo de acá pasa AA (chequeado en interno y admin).
+   ========================================================================= */
+html[data-tema="oscuro"]{
+  --bg:#131C1A;
+  --surface:#1B2724;
+  --surface-2:#22302D;
+  --text:#EAF1EE;
+  --text-soft:#A9BAB5;
+  --text-mute:#7E8F8A;
+  --border:#2D3C38;
+  --border-strong:#3B4F4A;
+  --teal-50:#1F3833;
+  --primary-strong:#8FCBC1;        /* el teal que se LEE sobre oscuro (texto chico teal) */
+  --sidebar-bg:#0F1715;
+  --success-bg:#183428; --success-text:#8AD7AE;
+  --warning-bg:#3A2C14; --warning-text:#F0C27A;
+  --danger-bg:#3D2020;  --danger-text:#F3A3A1;
+  --info-bg:#182B3B;    --info-text:#9CC6EC;
+  color-scheme:dark;
+}
+/* Notas para reusar el modo oscuro:
+   - La textura de papel es una foto clara: en oscuro se saca
+     (html[data-tema="oscuro"] body { background-image:none; }).
+   - Pills y avatares con fondo pastel lleno (rosa, naranja, --c*) llevan
+     texto OSCURO fijo (--highlight-contrast / --accent-contrast), no --text,
+     que en oscuro es claro.
+   - Texto sobre --highlight en oscuro: --highlight-contrast (no --text).
+
+   BARRA LATERAL OSCURA (en los dos modos): adentro de .sidebar se redefinen
+   los roles, así cada cosa de la barra usa su rol de siempre:
+     --text:var(--sidebar-text); --text-soft:rgba(232,240,237,.78);
+     --text-mute:rgba(232,240,237,.6); --border:rgba(232,240,237,.16);
+     --border-strong:rgba(232,240,237,.3); --surface:rgba(255,255,255,.06);
+     --surface-2:rgba(255,255,255,.09); --teal-50:rgba(255,255,255,.12);
+     --primary-strong:#9FD3CA;
+   El ítem activo va en --sidebar-active con --accent-contrast.
+
+   REGLA DE LA CASA para fondos tintados (--*-bg, --teal-50): el texto
+   secundario adentro pasa al -text de ese color (en --teal-50,
+   --primary-strong), porque --text-soft sobre tintado no llega a AA. */
+
+/* =========================================================================
    MAPEO desde la paleta vieja (buscá estos hex y reemplazá por el rol)
    -------------------------------------------------------------------------
    #FF82FF magenta  -> --primary (teal). Si era un acento/resaltado -> --accent
