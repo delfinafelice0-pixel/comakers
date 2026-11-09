@@ -7807,10 +7807,11 @@
   async function cargarClientesInv() {
     const box = document.getElementById('invClientesBox');
     if (!box) return;
-    const { data, error } = await SB.from('clientes').select('id, nombre').order('nombre');
+    const { data, error } = await SB.from('clientes').select('id, nombre, activo').order('nombre');
     if (error) { box.textContent = 'No se pudieron cargar los clientes.'; return; }
-    if (!data || !data.length) { box.textContent = 'No hay clientes cargados todavía.'; return; }
-    box.innerHTML = data.map(c =>
+    const activos = (data || []).filter(c => c.activo !== false);
+    if (!activos.length) { box.textContent = 'No hay clientes activos todavía.'; return; }
+    box.innerHTML = activos.map(c =>
       '<label class="chk-cli" style="display:inline-flex;align-items:center;gap:6px;margin:0 12px 6px 0">' +
       '<input type="checkbox" value="' + c.id + '"> ' + esc(c.nombre) + '</label>'
     ).join('');
