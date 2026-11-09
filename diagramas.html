@@ -1536,7 +1536,7 @@
       .select('id, email, nombre, tipo, agencia, super_admin, rol, activo')
       .eq('id', sess.session.user.id).single();
     if (error || !prof) { $('#cargando').textContent = 'No pudimos leer tu perfil.'; return; }
-    if (prof.tipo !== 'agencia' && !prof.super_admin) { window.location.replace('panel-comakers.html'); return; }
+    if (prof.tipo !== 'agencia' && !prof.super_admin) { window.location.replace('panel.html'); return; }
     if (prof.activo === false) { $('#cargando').innerHTML = 'Tu acceso al panel está dado de baja.<br>Si es un error, escribile a Delfi.'; return; }
     if (!(prof.rol === 'socia' || prof.super_admin)) {
       $('#cargando').style.display = 'none'; $('#puerta').style.display = ''; return;
