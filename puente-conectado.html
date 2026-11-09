@@ -5,30 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conexión de WhatsApp — CoMakers</title>
 <link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
 <style>
   /* Sin login, sin supabase-js, sin secrets: solo lee query params.
-     Misma identidad que puente.html, con fallbacks si no están las
-     fuentes de marca. */
-  :root {
-    --fucsia:#FF82FF; --verde:#D3FF99; --coral:#F26A8D; --celeste:#CBEEF3;
-    --tinta:#2a2230; --tinta-suave:#6b6472; --bg:#f7f3f9; --blanco:#fff;
-    --display:'Biro Script','Brush Script MT','Segoe Script',cursive;
-    --texto:'Salford',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+     Misma identidad que puente.html (paleta nueva + Poppins). */
+  /* Paleta: copia literal de paleta-nueva-tokens.css; los componentes
+     apuntan a los ROLES, nunca a hex. */
+  :root{
+    /* ---- Marca (los 3 que pidió Delfi) ---- */
+    --cm-teal:#3D8078;        /* primario: nav activa, botones, títulos */
+    --cm-orange:#FFB040;      /* acento: CTAs, resaltados (NUNCA como texto) */
+    --cm-pink:#FFD0FC;        /* highlight suave: tags, fondos sutiles, pills */
+
+    /* ---- Derivados de teal (sidebars, hovers, fondos) ---- */
+    --teal-900:#20302E;       /* casi negro verdoso = color de texto principal */
+    --teal-700:#2E635C;       /* hover de botones teal, bordes fuertes */
+    --teal-50:#E3EFEC;        /* fondo teal muy claro (filas activas, chips) */
+
+    /* ---- Neutros ---- */
+    --bg:#FFF9F3;             /* fondo de página (crema) */
+    --surface:#FFFFFF;        /* tarjetas, tablas, modales */
+    --surface-2:#F6F1EA;      /* fondo alterno, encabezados de tabla */
+    --text:#20302E;           /* texto principal */
+    --text-soft:#5F726F;      /* texto secundario */
+    --text-mute:#8A968F;      /* placeholders, deshabilitado */
+    --border:#E7E2E8;         /* bordes y divisores */
+    --border-strong:#D6CEDA;
+
+    /* ---- Roles de uso (apuntá SIEMPRE a estos en los componentes) ---- */
+    --primary:var(--cm-teal);        --primary-contrast:#FFFFFF;
+    --primary-strong:#30675F;        /* SOLO texto chico teal sobre crema o fondos tintados claros
+                                        (--primary ahí da 4,41: no llega a AA). Botones, fills y
+                                        texto grande siguen en --primary. */
+    --accent:var(--cm-orange);       --accent-contrast:#3A2600; /* texto oscuro sobre naranja */
+    --highlight:var(--cm-pink);      --highlight-contrast:#20302E; /* texto verde oscuro sobre rosa */
+    --sidebar-bg:#23403B;            --sidebar-text:#E8F0ED; --sidebar-active:var(--cm-orange);
+
+    /* ---- Estados / semánticos (NO usar el trío de marca para esto) ---- */
+    --success:#2E9E6B;   --success-bg:#E4F4EC;   --success-text:#1C6B48;
+    --warning:#E0902A;   --warning-bg:#FBEDD7;   --warning-text:#8A5410;
+    --danger:#D8504F;    --danger-bg:#FBE6E6;    --danger-text:#9A2E2D;
+    --info:#3E7FB5;      --info-bg:#E4EFF8;      --info-text:#265A86;
+
+    /* ---- Data viz: paleta categórica para los gráficos de los reportes ---- */
+    --c1:#3D8078; --c2:#FFB040; --c3:#5B8DEF; --c4:#E07BC4; --c5:#8E7BD6; --c6:#58B98E;
+
+    /* ---- Tipografía ---- */
+    --font:'Poppins',system-ui,sans-serif;
   }
   * { box-sizing:border-box; }
   body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-    font-family:var(--texto); color:var(--tinta); background:var(--bg); padding:20px; }
-  .card { background:var(--blanco); border:1px solid #e7e0ea; border-radius:16px;
+    font-family:var(--font); color:var(--text); background:var(--bg) url("paper-bg.jpg") center top/cover fixed; padding:20px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px;
     padding:34px 30px; max-width:440px; width:100%; text-align:center; }
   .emoji { font-size:40px; line-height:1; margin-bottom:10px; }
-  h1 { font-family:var(--display); font-weight:400; font-size:30px; margin:0 0 10px; }
-  h1 em { color:var(--fucsia); font-style:normal; }
-  p { font-size:15px; line-height:1.6; color:var(--tinta); margin:0 0 10px; }
-  .sub { color:var(--tinta-suave); font-size:13.5px; }
-  .ok h1 em { color:#2a8a3e; }
-  .barra { height:6px; border-radius:6px; margin:0 0 20px; background:var(--celeste); }
-  .ok .barra { background:var(--verde); }
-  .err .barra { background:var(--coral); }
+  h1 { font-family:var(--font); font-weight:700; font-size:26px; letter-spacing:-0.01em; margin:0 0 10px; }
+  h1 em { color:var(--primary); font-style:italic; font-weight:600; }
+  p { font-size:15px; line-height:1.6; color:var(--text); margin:0 0 10px; }
+  .sub { color:var(--text-soft); font-size:13.5px; }
+  .ok h1 em { color:var(--success-text); }
+  .barra { height:6px; border-radius:6px; margin:0 0 20px; background:var(--primary); }
+  .ok .barra { background:var(--success); }
+  .err .barra { background:var(--danger); }
+  .err h1 em { color:var(--danger-text); }
 </style>
 </head>
 <body>
