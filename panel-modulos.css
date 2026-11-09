@@ -372,4 +372,4 @@ th > .pm-mini { position: absolute; top: 8px; right: 6px; }
 /* Sobre los fondos tintados de la paleta nueva, el texto secundario toma
    el tono oscuro de ese mismo rol: --text-soft solo no llega a AA ahí. */
 .srv-prox, .os-reco, .pm-chk.tareas, .pm-tareas-resp { --text-soft: var(--info-text); }
-.os-prom, .os-resumen { --text-soft: var(--teal-700); }
+.os-prom, .os-resumen { --text-soft: var(--primary-strong); }

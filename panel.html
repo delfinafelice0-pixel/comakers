@@ -35,6 +35,9 @@
   
     /* ---- Roles de uso (apuntá SIEMPRE a estos en los componentes) ---- */
     --primary:var(--cm-teal);        --primary-contrast:#FFFFFF;
+    --primary-strong:#30675F;        /* SOLO texto chico teal sobre crema o fondos tintados claros
+                                        (--primary ahí da 4,41: no llega a AA). Botones, fills y
+                                        texto grande siguen en --primary. */
     --accent:var(--cm-orange);       --accent-contrast:#3A2600; /* texto oscuro sobre naranja */
     --highlight:var(--cm-pink);      --highlight-contrast:#20302E; /* texto verde oscuro sobre rosa */
     --sidebar-bg:#23403B;            --sidebar-text:#E8F0ED; --sidebar-active:var(--cm-orange);
@@ -316,7 +319,7 @@
             margin-bottom: -1px; font: inherit; color: var(--text-soft); }
   .solapa .t { display: block; font-weight: 700; font-size: 17px; line-height: 1.2; }
   .solapa .s { display: block; font-size: 12px; margin-top: 2px; }
-  .solapa.activa { color: var(--text); border-bottom-color: var(--primary); }
+  .solapa.activa { color: var(--primary-strong); border-bottom-color: var(--primary); }
   .solapa:hover { color: var(--text); }
   .pane { display: none; }
   .pane.activa { display: block; }

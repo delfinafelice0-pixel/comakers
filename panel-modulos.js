@@ -236,13 +236,16 @@
   // El color de la tarjeta: el propio (migración 57) o el de su categoría.
   // Solo se aceptan hex: el valor termina adentro de un style.
   const esHex = v => /^#[0-9A-Fa-f]{6}$/.test(String(v || ''));
-  const colorDe = c => { if (esHex(c.color)) return c.color; const k = catDe(c.categoria_id); return k && esHex(k.color) ? k.color : '#e4e1e8'; };
-  // La paleta de la marca para las tarjetas (texto oscuro encima: todos
-  // claros o medios).
+  const colorDe = c => { if (esHex(c.color)) return c.color; const k = catDe(c.categoria_id); return k && esHex(k.color) ? k.color : '#e7e2e8'; };
+  // La paleta de la marca para las tarjetas, sacada de paleta-nueva-tokens.css:
+  // marca, --c3..--c6 aclarados y los fondos semánticos. Todos dan >= 7,5:1
+  // con el texto oscuro de la tarjeta. Van en hex (y no var()) porque el
+  // color elegido se GUARDA en la base. Las categorías ya creadas quedan
+  // con el color que eligió cada usuario.
   const PALETA = [
-    ['#FF82FF', 'Rosa CoMakers'], ['#FFC9FF', 'Rosa suave'], ['#D3FF99', 'Lima'], ['#ECFBD4', 'Lima suave'],
-    ['#A8E6C3', 'Menta'], ['#CBEEF3', 'Celeste'], ['#9CC3F2', 'Azul'], ['#C9B8F5', 'Lavanda'],
-    ['#F26A8D', 'Coral'], ['#FFC1A6', 'Durazno'], ['#FFE58A', 'Amarillo'], ['#E3DED6', 'Arena']
+    ['#FFB040', 'Naranja CoMakers'], ['#FFDCA3', 'Naranja suave'], ['#FFD0FC', 'Rosa CoMakers'], ['#FFE9FE', 'Rosa suave'],
+    ['#A9D4CC', 'Verde agua'], ['#E3EFEC', 'Verde suave'], ['#BFD3F9', 'Azul'], ['#F3C8E7', 'Fucsia suave'],
+    ['#D2C9F1', 'Lavanda'], ['#BCE4D1', 'Menta'], ['#E4EFF8', 'Celeste'], ['#FBEDD7', 'Arena']
   ];
 
   // ── Fechas especiales de Argentina, calculadas ───────────────────
@@ -606,7 +609,7 @@
         '<label>Responsable<select id="fcResp">' + opciones(gente, c.responsable_id, 'Sin asignar') + '</select></label>' +
         '<div class="ancho pm-colores"><span class="pm-ed-et">Color de la tarjeta</span><div class="pm-swatches">' +
           '<button type="button" class="pm-sw pm-sw-cat' + (esHex(c.color) ? '' : ' on') + '" data-color="" title="El de la categoría">' +
-            '<i style="background:' + esc(catDe(c.categoria_id) && esHex(catDe(c.categoria_id).color) ? catDe(c.categoria_id).color : '#e4e1e8') + '"></i>Categoría</button>' +
+            '<i style="background:' + esc(catDe(c.categoria_id) && esHex(catDe(c.categoria_id).color) ? catDe(c.categoria_id).color : '#e7e2e8') + '"></i>Categoría</button>' +
           PALETA.map(([hex, nom]) => '<button type="button" class="pm-sw' + (String(c.color || '').toUpperCase() === hex ? ' on' : '') +
             '" data-color="' + hex + '" title="' + esc(nom) + '"><i style="background:' + hex + '"></i></button>').join('') +
         '</div></div>' +
@@ -648,7 +651,7 @@
         });
         $('#fcCat', el).addEventListener('change', () => {
           const k = catDe(val('#fcCat', el));
-          $('.pm-sw-cat i', el).style.background = k && esHex(k.color) ? k.color : '#e4e1e8';
+          $('.pm-sw-cat i', el).style.background = k && esHex(k.color) ? k.color : '#e7e2e8';
         });
         // Responsables por tarea: con tareas creadas, los que tienen hoy.
         const caja = $('.pm-tareas-resp', el), tt = $('#fcTareas', el);
@@ -845,7 +848,7 @@
           '<label class="ancho fe-rec">Días de la semana<span class="pm-dias">' + DIAS_CORTOS.map((d, i) =>
             '<label><input type="checkbox" value="' + (i + 1) + '"' + ((e.dias_semana || []).indexOf(i + 1) !== -1 ? ' checked' : '') + '>' + d + '</label>').join('') + '</span></label>' +
           '<label class="fe-rec">Hora<input id="feHora" value="' + esc(e.hora || '') + '" placeholder="09:00"></label>' +
-          '<label>Color (opcional)<input type="color" id="feColor" value="' + esc(e.color || '#d9d4e0') + '"></label>') +
+          '<label>Color (opcional)<input type="color" id="feColor" value="' + esc(e.color || '#e7e2e8') + '"></label>') +
         '<label class="ancho">Detalle<textarea id="feDet" rows="2">' + esc(e.detalle || '') + '</textarea></label>' +
         (esCliente ? '' : '<label class="pm-chk pub ancho"><input type="checkbox" id="fePub"' + (e.publicado ? ' checked' : '') + '> Visible para el cliente</label>') +
         (!esCliente && e.cargado_por_cliente ? '<p class="pm-ayuda ancho">Lo cargó el cliente: lo ve siempre.</p>' : '') +
@@ -874,7 +877,7 @@
           else {
             fila.dias_semana = tipo === 'recurrente' ? $$('.pm-dias input:checked', el).map(x => Number(x.value)) : null;
             fila.hora = tipo === 'recurrente' ? (val('#feHora', el) || null) : null;
-            fila.color = $('#feColor', el).value === '#d9d4e0' ? null : $('#feColor', el).value;
+            fila.color = $('#feColor', el).value === '#e7e2e8' ? null : $('#feColor', el).value;
             fila.publicado = chk('#fePub', el);
             if (tipo === 'recurrente' && !fila.dias_semana.length) { toast('Elegí al menos un día de la semana', true); return; }
           }
@@ -910,7 +913,7 @@
       '<button type="button" class="btn quieto chico" data-catdel="' + esc(k.id) + '" title="Sacar">✕</button></div>';
     modal('<h3>Categorías</h3><p class="pm-ayuda">El color de cada tarjeta del calendario. Las de "todos los clientes" son las de la agencia; también podés crear una solo para este cliente. Los cambios se guardan al salir de cada campo.</p>' +
       '<div id="catLista">' + CAL.cats.map(fila).join('') + '</div>' +
-      '<div class="pm-catfila nueva"><input type="color" id="catColor" value="#bfe3d0"><input id="catNom" placeholder="Nueva categoría">' +
+      '<div class="pm-catfila nueva"><input type="color" id="catColor" value="#e3efec"><input id="catNom" placeholder="Nueva categoría">' +
       '<select id="catAlc"><option value="">Todos los clientes</option><option value="c">Solo ' + esc(P().CLIENTE.nombre) + '</option></select>' +
       '<button type="button" class="btn chico primario" id="catAdd">Agregar</button></div>',
       el => {

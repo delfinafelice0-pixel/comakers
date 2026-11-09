@@ -28,6 +28,9 @@
 
   /* ---- Roles de uso (apuntá SIEMPRE a estos en los componentes) ---- */
   --primary:var(--cm-teal);        --primary-contrast:#FFFFFF;
+  --primary-strong:#30675F;        /* SOLO texto chico teal sobre crema o fondos tintados claros
+                                      (--primary ahí da 4,41: no llega a AA). Botones, fills y
+                                      texto grande siguen en --primary. */
   --accent:var(--cm-orange);       --accent-contrast:#3A2600; /* texto oscuro sobre naranja */
   --highlight:var(--cm-pink);      --highlight-contrast:#20302E; /* texto verde oscuro sobre rosa */
   --sidebar-bg:#23403B;            --sidebar-text:#E8F0ED; --sidebar-active:var(--cm-orange);
