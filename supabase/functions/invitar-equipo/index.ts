@@ -124,6 +124,9 @@ Deno.serve(async (req) => {
       }
       // Ya existe → le reseteamos la clave y sumamos sus clientes.
       if (yaEsta) {
+        // Como en el camino B: solo cuentas de tu misma agencia.
+        if ((yaEsta.agencia ?? null) !== (quien.agencia ?? null))
+          return responder({ error: 'Solo podés tocar cuentas de tu propia agencia.' }, 403);
         const { error: eReset } = await admin.auth.admin.updateUserById(yaEsta.id, { password: passRaw });
         if (eReset) return responder({ error: 'No se pudo cambiar la contraseña: ' + eReset.message }, 400);
         const eAcc = await asignarClientes(yaEsta.id);
