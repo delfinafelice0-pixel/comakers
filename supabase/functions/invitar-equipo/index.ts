@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
         // Solo se resetea a alguien del equipo de tu misma agencia, y nunca a un super-admin.
         if (yaEsta.super_admin === true)
           return responder({ error: 'No podés cambiarle la contraseña a un super-admin desde acá.' }, 403);
-        if (yaEsta.tipo !== 'agencia')
+        if (yaEsta.tipo === 'cliente')   // tipo vacío (perfiles viejos del equipo) sí se deja
           return responder({ error: 'Esto es solo para el equipo. Para un cliente usá la opción de cliente.' }, 403);
         if ((yaEsta.agencia ?? null) !== (quien.agencia ?? null))
           return responder({ error: 'Solo podés tocar cuentas de tu propia agencia.' }, 403);
