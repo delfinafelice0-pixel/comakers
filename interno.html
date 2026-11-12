@@ -1157,9 +1157,12 @@
   }
   .tag-estado.baja { background: var(--surface-2); color: var(--text-soft); }
   .tag-estado.pend { background: var(--warning-bg); --text-soft: var(--warning-text); }
+  /* Solapa "Usuarios cliente": la columna de clientes lleva chips, va más ancha. */
+  .persona.usr-cli { grid-template-columns: 34px minmax(0,1.2fr) minmax(0,1.3fr) minmax(0,1.6fr) 108px auto; }
+  .persona .usr-cli-acc .acc-no { font-size: 12px; color: var(--text-soft); }
   @media (max-width: 900px) {
-    .persona { grid-template-columns: 34px 1fr auto; row-gap: 6px; }
-    .persona .mail, .persona select { grid-column: 2 / -1; }
+    .persona, .persona.usr-cli { grid-template-columns: 34px 1fr auto; row-gap: 6px; }
+    .persona .mail, .persona select, .persona .usr-cli-acc { grid-column: 2 / -1; }
   }
 
   .invitar {
@@ -3233,7 +3236,7 @@
       </div>
       <button class="logout" id="btnNotif" type="button" style="color:var(--accent); margin-bottom:4px;">🔔 Activar notificaciones</button>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v09/11 00:43</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v12/11 17:22</div>
     </div>
   </aside>
 

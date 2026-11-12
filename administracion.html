@@ -1157,9 +1157,12 @@
   }
   .tag-estado.baja { background: var(--surface-2); color: var(--text-soft); }
   .tag-estado.pend { background: var(--warning-bg); --text-soft: var(--warning-text); }
+  /* Solapa "Usuarios cliente": la columna de clientes lleva chips, va más ancha. */
+  .persona.usr-cli { grid-template-columns: 34px minmax(0,1.2fr) minmax(0,1.3fr) minmax(0,1.6fr) 108px auto; }
+  .persona .usr-cli-acc .acc-no { font-size: 12px; color: var(--text-soft); }
   @media (max-width: 900px) {
-    .persona { grid-template-columns: 34px 1fr auto; row-gap: 6px; }
-    .persona .mail, .persona select { grid-column: 2 / -1; }
+    .persona, .persona.usr-cli { grid-template-columns: 34px 1fr auto; row-gap: 6px; }
+    .persona .mail, .persona select, .persona .usr-cli-acc { grid-column: 2 / -1; }
   }
 
   .invitar {
@@ -3254,7 +3257,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v09/11 00:43</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v12/11 17:22</div>
     </div>
   </aside>
 
@@ -6750,6 +6753,8 @@
   //  persona y agrupadas por cliente.
   // ═══════════════════════════════════════════════════════════════
   let EQ_TAB = 'carga', EQ_ABIERTA = null;
+  // Solapa "Usuarios cliente": perfiles tipo='cliente'. null = sin cargar.
+  let USUARIOS_CLI = null, USUARIOS_CLI_ERR = null;
   let EQ_MES = primerDelMes(new Date());
 
   const TILDE_SVG = '<svg class="tilde-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
@@ -6923,10 +6928,15 @@
       '<div class="serv-tabs">' +
         '<button data-eqtab="carga" class="' + (EQ_TAB === 'carga' ? 'on' : '') + '">Quién hace qué</button>' +
         '<button data-eqtab="gente" class="' + (EQ_TAB === 'gente' ? 'on' : '') + '">Permisos y altas</button>' +
+        '<button data-eqtab="clientes" class="' + (EQ_TAB === 'clientes' ? 'on' : '') + '">Usuarios cliente</button>' +
       '</div>';
 
     if (EQ_TAB === 'carga') {
       $('#modEquipo').innerHTML = tabs + renderCargaEquipo();
+      return;
+    }
+    if (EQ_TAB === 'clientes') {
+      $('#modEquipo').innerHTML = tabs + renderUsuariosCliente();
       return;
     }
     // "A pagar" se sacó (09/10/2026): los pagos se llevan en
@@ -7062,6 +7072,120 @@
     } catch (e) {
       toast('No se pudo: ' + (e.message || e), 'warn');
     }
+  }
+
+  // ── USUARIOS CLIENTE ─────────────────────────────────────────
+  // Las cuentas tipo='cliente' (entran solo a su panel). Acá se listan con
+  // los clientes que ven, y se les resetea la clave o se las da de baja.
+  // Qué clientes ve cada una se edita en cada Cliente, no acá.
+  async function cargarUsuariosCliente() {
+    const { data, error } = await SB.from('profiles')
+      .select(COLS_PERSONA + ', activo').eq('tipo', 'cliente').order('nombre');
+    USUARIOS_CLI_ERR = error ? error.message : null;
+    USUARIOS_CLI = error ? [] : (data || []);
+  }
+
+  // user_id → [cliente_id], el inverso de ACCESOS.
+  function clientesDeUsuario(userId) {
+    return Object.keys(ACCESOS).filter(cid => (ACCESOS[cid] || []).indexOf(userId) !== -1);
+  }
+
+  function renderUsuariosCliente() {
+    if (USUARIOS_CLI === null) {
+      cargarUsuariosCliente()
+        .catch(e => { USUARIOS_CLI = []; USUARIOS_CLI_ERR = e.message || String(e); })
+        .then(() => { if (MODULO === 'equipo' && EQ_TAB === 'clientes') render(); });
+      return '<div class="mod-head"><p>Cargando usuarios cliente…</p></div>';
+    }
+    const cab = '<div class="mod-head"><p>Las cuentas de <b>clientes</b>: entran solo a su panel de reportes. ' +
+      'Qué cliente ve cada una se cambia al editar ese <b>Cliente</b>.</p></div>';
+    if (USUARIOS_CLI_ERR) return cab + '<div class="res-falta">No se pudieron cargar: ' + esc(USUARIOS_CLI_ERR) + '</div>';
+    if (!USUARIOS_CLI.length) return cab + '<div class="mod-head"><p>Todavía no hay usuarios cliente. Se crean en <b>Permisos y altas</b>, con rol Cliente.</p></div>';
+    const activos = USUARIOS_CLI.filter(u => u.activo !== false);
+    const bajas = USUARIOS_CLI.filter(u => u.activo === false);
+    return cab +
+      (activos.length ? '<div class="tabla">' + activos.map(filaUsuarioCliente).join('') + '</div>' : '') +
+      (bajas.length
+        ? '<div class="mod-head" style="margin:22px 0 10px"><p>Dados de baja: no pueden entrar a su panel.</p></div>' +
+          '<div class="tabla">' + bajas.map(filaUsuarioCliente).join('') + '</div>'
+        : '');
+  }
+
+  function filaUsuarioCliente(u) {
+    const baja = u.activo === false;
+    const n = u.nombre || u.email || '—';
+    const nombres = clientesDeUsuario(u.id).map(cid => {
+      const c = CLIENTES.find(x => x.id === cid);
+      return c ? c.nombre : null;
+    }).filter(Boolean);
+    const acc = nombres.length
+      ? '<div class="acc-chips">' + nombres.map(x => '<span class="miembro-chip">' + esc(x) + '</span>').join('') + '</div>'
+      : '<span class="acc-no">Sin clientes asignados</span>';
+    return '<div class="persona usr-cli' + (baja ? ' baja' : '') + '" data-usrcli="' + u.id + '">' +
+        '<div class="avatar-sm">' + esc(iniciales(n, u.email)) + '</div>' +
+        '<div class="nom">' + esc(u.nombre || '') + '</div>' +
+        '<div class="mail">' + esc(u.email || '') + '</div>' +
+        '<div class="usr-cli-acc">' + acc + '</div>' +
+        '<div><span class="tag-estado' + (baja ? ' baja' : '') + '">' + (baja ? 'Dado de baja' : 'Activo') + '</span></div>' +
+        '<div class="acc">' +
+          (baja ? '' : '<button class="mini-btn" data-cpass="' + u.id + '">Contraseña</button>') +
+          '<button class="mini-btn" data-cbaja="' + u.id + '">' + (baja ? 'Reactivar' : 'Dar de baja') + '</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // Igual que ponerPassword, pero por el camino C de `invitar-equipo`, que
+  // exige los clientes: se reenvían los que ya tiene (el alta de accesos es
+  // un upsert, así que no cambia nada) y solo se le resetea la clave.
+  async function ponerPasswordCliente(id) {
+    const u = (USUARIOS_CLI || []).find(x => x.id === id);
+    if (!u) return;
+    const n = u.nombre || u.email;
+    const clientes = clientesDeUsuario(id);
+    if (!clientes.length) {
+      toast(n + ' no tiene ningún cliente asignado. Asignale uno desde Clientes y después cambiale la clave.', 'warn');
+      return;
+    }
+    const pass = prompt('Contraseña nueva para ' + n + '\n\nMínimo 8 caracteres. Se la pasás vos.');
+    if (pass === null) return;
+    if (pass.trim().length < 8) { toast('Tiene que tener al menos 8 caracteres.', 'warn'); return; }
+    if (!SB.functions) { toast('Este navegador no pudo cargar el módulo.', 'warn'); return; }
+    toast('Guardando…');
+    try {
+      const { data, error } = await SB.functions.invoke('invitar-equipo', {
+        body: { email: u.email, nombre: u.nombre, tipo: 'cliente', password: pass, clientes }
+      });
+      const msg = (data && data.error) || (error && error.message);
+      if (msg) {
+        toast(msg.indexOf('Failed to send') !== -1 || msg.indexOf('404') !== -1
+          ? 'No encontramos la función invitar-equipo en Supabase. ¿La desplegaste?'
+          : msg, 'warn');
+        return;
+      }
+      toast('Listo. ' + n + ' ya puede entrar con esa contraseña.');
+    } catch (e) {
+      toast('No se pudo: ' + (e.message || e), 'warn');
+    }
+  }
+
+  // Baja / reactivación: el mismo update de `activo` que el equipo (pasa por
+  // el trigger guardia_profiles).
+  async function alternarBajaCliente(id) {
+    const u = (USUARIOS_CLI || []).find(x => x.id === id);
+    if (!u) return;
+    const reactivar = u.activo === false;
+    const n = u.nombre || u.email;
+    if (!reactivar && !confirm('¿Dar de baja a ' + n + '?\n\nNo va a poder entrar más a su panel. Lo podés reactivar cuando quieras.')) return;
+    const anterior = u.activo;
+    u.activo = reactivar;
+    const { error } = await SB.from('profiles').update({ activo: reactivar }).eq('id', id);
+    if (error) {
+      u.activo = anterior;
+      toast('No se pudo guardar: ' + error.message, 'warn');
+    } else {
+      flashRes();
+    }
+    render();
   }
 
   function toggleInvCliente() {
@@ -12583,7 +12707,15 @@
   // ── Equipo ───────────────────────────────────────────────────
   on('#modEquipo', 'click', e => {
     const tb = e.target.closest('[data-eqtab]');
-    if (tb) { EQ_TAB = tb.dataset.eqtab; render(); return; }
+    if (tb) {
+      EQ_TAB = tb.dataset.eqtab;
+      if (EQ_TAB === 'clientes') USUARIOS_CLI = null;   // se relee al entrar
+      render(); return;
+    }
+    const cpw = e.target.closest('[data-cpass]');
+    if (cpw) { ponerPasswordCliente(cpw.dataset.cpass); return; }
+    const cb = e.target.closest('[data-cbaja]');
+    if (cb) { alternarBajaCliente(cb.dataset.cbaja); return; }
     // Pagar va ANTES de `data-irtarea`: la fila entera lleva a la tarea,
     // y sin esto el click en "Pagado" abriría el cajón en vez de pagar.
     const pg = e.target.closest('[data-trabpagar]');
