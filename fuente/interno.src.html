@@ -10402,8 +10402,11 @@
   function egresosDeCobro(cobroId) {
     return MOVIMIENTOS.filter(m => m.cobro_id === cobroId && m.tipo === 'egreso');
   }
+  // Lo que no está cobrado cuenta como cobrado 0: un pendiente con trabajos
+  // de colaboradoras da neto negativo (lo absorben las socias y el fondo).
   function netoDeCobro(cb) {
-    return Number(cb.monto || 0) - egresosDeCobro(cb.id).reduce((a, m) => a + Number(m.monto || 0), 0);
+    const cobrado = cb.estado === 'cobrado' ? Number(cb.monto || 0) : 0;
+    return cobrado - egresosDeCobro(cb.id).reduce((a, m) => a + Number(m.monto || 0), 0);
   }
   // Próximo ajuste: se mide en días desde HOY (no desde el mes que se
   // está mirando). Rojo: ya pasó o faltan 15 días o menos. Amarillo:
@@ -10686,12 +10689,14 @@
   function cobrosDelMes() {
     return CONTRATOS.filter(c => c.activo !== false)
       .map(c => cobroDe(c.id, PERIODO)).filter(Boolean)
-      .sort((a, b) => {
-        const na = nombreCliente(a.cliente_id), nb = nombreCliente(b.cliente_id);
-        if (na !== nb) return na < nb ? -1 : 1;
-        const ca = contratoDe(a.contrato_id), cb2 = contratoDe(b.contrato_id);
-        return (ca ? ca.nombre : '') < (cb2 ? cb2.nombre : '') ? -1 : 1;
-      });
+      .sort(ordenCobros);
+  }
+  // Por cliente y, dentro del cliente, por servicio.
+  function ordenCobros(a, b) {
+    const na = nombreCliente(a.cliente_id), nb = nombreCliente(b.cliente_id);
+    if (na !== nb) return na < nb ? -1 : 1;
+    const ca = contratoDe(a.contrato_id), cb2 = contratoDe(b.contrato_id);
+    return (ca ? ca.nombre : '') < (cb2 ? cb2.nombre : '') ? -1 : 1;
   }
 
   function trabajosDe(cobroId, key) {
@@ -10786,10 +10791,10 @@
       kpi('Para colaboradoras', plata(sumaTrabajos(trab)),
           trab.length + ' trabajo(s) · ' + colabs.filter(c =>
             trab.some(m => claveColab(m) === c.key)).length + ' persona(s)', '') +
-      kpi('Neto a repartir', plata(cobros.filter(c => c.estado === 'cobrado')
+      kpi('Neto a repartir', plata(cobrosParaReparto()
             .reduce((a, c) => a + netoDeCobro(c), 0)),
           'Después de descontar los trabajos', 'verde') +
-      kpi('Fondo CoMakers', plata(cobros.filter(c => c.estado === 'cobrado')
+      kpi('Fondo CoMakers', plata(cobrosParaReparto()
             .reduce((a, c) => a + repartoDe(c).fondo, 0)),
           (REPARTO ? REPARTO.pct_fondo : 10) + '% del neto', '') +
     '</div>';
@@ -10959,11 +10964,25 @@
     const r = [PERIODO, sumarMeses(PERIODO, 1)];
     return COBROS.filter(c => c.estado === 'cobrado' && enRango(c.periodo, r));
   }
+  // Los cobros que entran al reparto: exactamente los de cobradosDelMes()
+  // (incluidos los de contratos archivados) + los PENDIENTES del mes que ya
+  // tienen trabajos de colaboradoras (entran con cobrado 0, ver netoDeCobro).
+  // Lo usan correspondeA, detallePagos, la auditoría y los KPIs de neto y
+  // fondo, para que el total de cada socia y su desglose salgan iguales.
+  function cobrosParaReparto() {
+    const base = cobradosDelMes().slice();
+    const ya = new Set(base.map(c => c.id));
+    COBROS.forEach(cb => {
+      if (!ya.has(cb.id) && cb.estado === 'pendiente' && mesDe(cb.periodo) === mesDe(PERIODO)
+          && egresosDeCobro(cb.id).length > 0) base.push(cb);
+    });
+    return base;
+  }
 
   function correspondeA(f) {
     let t = 0;
     if (f.user_id) {
-      cobradosDelMes().forEach(cb => { t += repartoDe(cb).personas[f.user_id] || 0; });
+      cobrosParaReparto().forEach(cb => { t += repartoDe(cb).personas[f.user_id] || 0; });
     }
     trabajosDelMes().forEach(m => { if (claveColab(m) === f.key) t += Number(m.monto || 0); });
     return t;
@@ -11014,7 +11033,7 @@
       kpi('Falta girar', plata(totCorr - totPag),
           filas.filter(f => corr[f.key] - pag[f.key] > 1).length + ' con saldo',
           totCorr - totPag > 1 ? 'rojo' : '') +
-      kpi('Fondo CoMakers', plata(cobradosDelMes().reduce((a, c) => a + repartoDe(c).fondo, 0)),
+      kpi('Fondo CoMakers', plata(cobrosParaReparto().reduce((a, c) => a + repartoDe(c).fondo, 0)),
           'No se reparte: queda en la caja', '') +
     '</div>';
 
@@ -11098,7 +11117,7 @@
       // igual que correspondeA().
       if (f.user_id) {
         let pozo = 0, nPozo = 0;
-        cobradosDelMes().forEach(cb => {
+        cobrosParaReparto().forEach(cb => {
           const r = repartoDe(cb), suyo = r.personas[f.user_id] || 0;
           const ej = COBRO_EJ[cb.id] || [];
           if (ej.indexOf(f.user_id) >= 0) {
@@ -11165,8 +11184,8 @@
   // con el neto. Si algo no cierra, ahí salta.
   function filasAuditoria() {
     const socias = sociasOrdenadas();
-    return cobrosDelMes()
-      .filter(cb => cb.estado === 'cobrado')
+    return cobrosParaReparto()
+      .sort(ordenCobros)
       .map(cb => {
         const ct = contratoDe(cb.contrato_id);
         const egresos = egresosDeCobro(cb.id);
@@ -11180,7 +11199,7 @@
           cb: cb,
           nombre: nombreCliente(cb.cliente_id),
           servicio: ct ? ct.nombre : '—',
-          cobrado: Number(cb.monto || 0),
+          cobrado: cb.estado === 'cobrado' ? Number(cb.monto || 0) : 0,
           trabajos: trabajos,
           detalleTrabajos: egresos.map(m =>
             (m.colaboradora || '?') + ': ' + plata(m.monto) + (m.concepto ? ' (' + m.concepto + ')' : '')).join(' · '),
