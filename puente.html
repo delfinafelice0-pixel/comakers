@@ -285,6 +285,8 @@
   var linkActual = null, linkVenceISO = null;
   var RUBROS = {};            // rubro -> { interesado, cerro, no_cerro, sin_responder }
   var CUENTA_RUBRO = {};      // zernio_account_id -> rubro
+  var CUENTA_SIN_META = {};   // zernio_account_id -> true si informa_meta = false (crm-07)
+  var MSG_SIN_META = 'Registrado. En España, Meta no permite recibir esta información desde WhatsApp.';
   var soloPautaCliente = false;
 
   var $ = function (id) { return document.getElementById(id); };
@@ -327,8 +329,10 @@
 
   // Deadline de atribución: 7 días DESDE EL CLIC (ctwa_captured_at). Solo
   // tiene sentido en Pauta con clid. Devuelve objeto para la celda.
+  // En cuentas que no informan a Meta (informa_meta = false) no hay
+  // atribución, así que tampoco hay deadline ni "vencida".
   function deadline(c) {
-    if (!c.ctwa_clid || !c.ctwa_captured_at) return { clase: 'sin', txt: '—', orden: Infinity, falta: Infinity };
+    if (CUENTA_SIN_META[c.zernio_account_id] || !c.ctwa_clid || !c.ctwa_captured_at) return { clase: 'sin', txt: '—', orden: Infinity, falta: Infinity };
     var vence = new Date(c.ctwa_captured_at).getTime() + SIETE_DIAS;
     var falta = vence - Date.now();
     var fin = resuelta(c);
@@ -374,10 +378,16 @@
     });
   }
   async function cargarCuentas() {
-    var r = await SB.from('zernio_cuenta').select('zernio_account_id, label, activa, rubro, solo_pauta').eq('activa', true).order('label');
+    var cols = 'zernio_account_id, label, activa, rubro, solo_pauta';
+    var r = await SB.from('zernio_cuenta').select(cols + ', informa_meta').eq('activa', true).order('label');
+    // Sin crm-07 corrida la columna no existe: se pide sin ella (todas informan).
+    if (r.error) r = await SB.from('zernio_cuenta').select(cols).eq('activa', true).order('label');
     CUENTAS = (r.data || []);
-    CUENTA_RUBRO = {};
-    CUENTAS.forEach(function (c) { CUENTA_RUBRO[c.zernio_account_id] = c.rubro; });
+    CUENTA_RUBRO = {}; CUENTA_SIN_META = {};
+    CUENTAS.forEach(function (c) {
+      CUENTA_RUBRO[c.zernio_account_id] = c.rubro;
+      if (c.informa_meta === false) CUENTA_SIN_META[c.zernio_account_id] = true;
+    });
     // El cliente no elige cuenta; el equipo sí, si tiene más de una.
     var sel = $('filtroCuenta');
     if (AGENCIA && CUENTAS.length > 1) {
@@ -491,7 +501,13 @@
       toast(eventName === 'Purchase' ? 'Enviando cierre a Meta…' : 'Enviando interés a Meta…');
       var r = await llamarFuncion(ZERNIO_CONV_URL, { conversacion_id: id, event_name: eventName, value: value, currency: currency });
       var d = r.data;
-      if (!r.error && d && d.ok && d.estado_envio === 'enviado') {
+      if (!r.error && d && d.ok && d.estado_envio === 'no_informa') {
+        // Cuenta que no informa a Meta: la función guardó la clasificación.
+        c.estado = destino;
+        if (destino === 'cerro') { c.valor = value != null ? value : null; c.moneda = currency || 'ARS'; }
+        c._nota = d.mensaje || MSG_SIN_META;
+        render(); toast('Registrado');
+      } else if (!r.error && d && d.ok && d.estado_envio === 'enviado') {
         c.estado = destino;
         if (destino === 'cerro') { c.valor = value != null ? value : c.valor; c.moneda = currency || 'ARS'; }
         c._nota = '✓ Informado a Meta' + (d.trace_id ? ' (trace ' + d.trace_id + ')' : '');
@@ -513,6 +529,8 @@
     if (destino === 'cerro') { c.valor = patch.valor; c.moneda = patch.moneda; }
     c._nota = !eventName
       ? 'Registrado. No se informa a Meta.'
+      : CUENTA_SIN_META[c.zernio_account_id]
+      ? MSG_SIN_META
       : (c.es_pauta
           ? 'Registrado. No se pudo informar a Meta (el anuncio no trajo el ID de clic).'
           : 'Registrado. No se informa a Meta porque no vino de un anuncio.');

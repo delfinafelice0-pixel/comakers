@@ -18,8 +18,11 @@
 //
 //  Recibe: { conversacion_id: uuid, event_name: 'LeadSubmitted'|'Purchase',
 //            value?: number, currency?: string, test?: boolean|string }
-//  Devuelve: { ok, estado_envio: 'enviado'|'fallido'|'sin_clid',
-//              trace_id?, events_received?, events_failed?, error? }
+//  Devuelve: { ok, estado_envio: 'enviado'|'fallido'|'sin_clid'|'no_informa',
+//              trace_id?, events_received?, events_failed?, error?, mensaje? }
+//
+//  Cuenta con zernio_cuenta.informa_meta = false (crm-07): guarda la
+//  clasificación y devuelve 'no_informa' sin llamar a Zernio ni loguear.
 //
 //  Endpoint confirmado contra la doc oficial de Zernio: el path
 //  (POST /v1/whatsapp/conversions) y los campos del body/respuesta
@@ -67,9 +70,6 @@ Deno.serve(async (req) => {
   }
   const value = body?.value != null && body.value !== '' ? Number(body.value) : null;
   const currency = body?.currency ? String(body.currency) : null;
-  if (eventName === 'Purchase' && !(Number(value) > 0)) {
-    return json({ ok: false, error: 'Una venta necesita un monto mayor a 0.' }, 400);
-  }
   // test: string = código directo; true = usa ZERNIO_TEST_CODE si está.
   const testCode = body?.test
     ? (typeof body.test === 'string' ? body.test : (Deno.env.get('ZERNIO_TEST_CODE') || null))
@@ -83,6 +83,38 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (eConv) return json({ ok: false, error: 'No se pudo leer la conversación: ' + eConv.message }, 500);
   if (!conv) return json({ ok: false, estado_envio: 'fallido', code: 'no_encontrada', error: 'Conversación inexistente.' }, 404);
+
+  // ── Cuenta que no informa a Meta (crm-07, p. ej. UE) ───────────
+  // Se clasifica igual que una conversación sin clid (estado + monto, el
+  // monto puede quedar vacío) y NO se llama a Zernio ni se loguea envío.
+  // Si la columna todavía no existe (crm-07 sin correr), la lectura
+  // falla y se sigue como siempre: informa.
+  const { data: cta, error: eCta } = await db
+    .from('zernio_cuenta')
+    .select('informa_meta')
+    .eq('zernio_account_id', conv.zernio_account_id)
+    .maybeSingle();
+  if (!eCta && cta && cta.informa_meta === false) {
+    const patch: Record<string, unknown> = {
+      estado: eventName === 'Purchase' ? 'cerro' : 'interesado',
+      updated_at: new Date().toISOString(),
+    };
+    if (eventName === 'Purchase') {
+      patch.valor = value != null && Number.isFinite(value) ? value : null;
+      patch.moneda = currency || 'ARS';
+    }
+    const { error: eLoc } = await db.from('zernio_conversacion').update(patch).eq('id', conv.id);
+    if (eLoc) return json({ ok: false, estado_envio: 'no_informa', error: 'No se pudo guardar: ' + eLoc.message }, 500);
+    return json({
+      ok: true,
+      estado_envio: 'no_informa',
+      mensaje: 'Registrado. En España, Meta no permite recibir esta información desde WhatsApp.',
+    });
+  }
+
+  if (eventName === 'Purchase' && !(Number(value) > 0)) {
+    return json({ ok: false, error: 'Una venta necesita un monto mayor a 0.' }, 400);
+  }
 
   const eventId = 'zpuente:' + conv.conversation_id + ':' + eventName;
 
