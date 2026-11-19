@@ -68,6 +68,16 @@ const json = (b: unknown, s = 200) =>
 
 const digitos = (s: unknown) => String(s ?? '').replace(/\D/g, '');
 
+// primera_consulta_at (crm-08): Zernio NO da fecha de creación de la
+// conversación (el único timestamp del listado es updatedTime). Se usa la
+// más temprana entre ctwa_captured_at (cuando Zernio guardó el clic del
+// anuncio) y updatedTime. Se manda siempre: el trigger de crm-08 la deja
+// fija si la fila ya tenía valor, y la completa si estaba en null.
+const masTemprana = (...xs: unknown[]): string | null => {
+  const ts = xs.map((x) => Date.parse(String(x ?? ''))).filter((n) => Number.isFinite(n));
+  return ts.length ? new Date(Math.min(...ts)).toISOString() : null;
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (!ZERNIO_API_KEY) return json({ ok: false, error: 'Falta ZERNIO_API_KEY en el servidor.' }, 500);
@@ -160,6 +170,7 @@ Deno.serve(async (req) => {
           ctwa_captured_at: md.ctwa_captured_at ?? null,
           primer_mensaje: typeof it?.lastMessage === 'string' ? it.lastMessage : null,
           ultimo_mensaje_at: it?.updatedTime ?? null,
+          primera_consulta_at: masTemprana(md.ctwa_captured_at, it?.updatedTime),
           updated_at: new Date().toISOString(),
         });
       }
@@ -169,9 +180,16 @@ Deno.serve(async (req) => {
         // incluye `estado`, así que al actualizar una fila existente el
         // estado (clasificación humana) queda intacto. En filas nuevas,
         // estado toma su default 'nuevo'.
-        const { error: eUp } = await dbSvc
+        let { error: eUp } = await dbSvc
           .from('zernio_conversacion')
           .upsert(upserts, { onConflict: 'zernio_account_id,conversation_id' });
+        // Sin crm-08 corrida la columna no existe: se guarda sin ella.
+        if (eUp && /primera_consulta_at/.test(eUp.message || '')) {
+          upserts.forEach((u) => { delete u.primera_consulta_at; });
+          ({ error: eUp } = await dbSvc
+            .from('zernio_conversacion')
+            .upsert(upserts, { onConflict: 'zernio_account_id,conversation_id' }));
+        }
         if (eUp) return json({ ok: false, error: 'No se pudo guardar: ' + eUp.message }, 500);
         synced += upserts.length;
       }

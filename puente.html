@@ -124,6 +124,71 @@
   .acc { display:flex; gap:6px; flex-wrap:wrap; }
   .nota-fila { font-size:11.5px; color:var(--text-soft); margin-top:5px; max-width:230px; }
 
+  /* ── Métricas del mes (diseño copiado de crm.html) ─────────────── */
+  :root {
+    --radius-lg:14px;
+    --est-cerro:var(--success-text); --est-interesado:var(--info-text);
+    --est-no:var(--border-strong);   --est-sin:var(--danger-text); --est-nuevo:var(--highlight);
+    --origen-pauta:var(--c2);        --origen-organico:var(--c1);
+  }
+  .met-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:4px 0 12px; }
+  .met-head h2 { font-size:17px; font-weight:600; margin:0; }
+  .met-alcance { font-size:12.5px; color:var(--text-soft); }
+  .period-selector {
+    display:flex; align-items:center; gap:8px; padding:6px 12px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radio); font-size:13px; font-weight:500; white-space:nowrap;
+  }
+  .period-selector svg { width:14px; height:14px; color:var(--text-soft); }
+  .per-nav { font-size:18px; line-height:1; color:var(--text-soft); padding:0 4px; border:none; background:none; }
+  .per-nav:hover { color:var(--text); }
+  .per-nav:disabled { opacity:.3; cursor:default; }
+  #mesLbl { min-width:9ch; text-align:center; }
+  .kpi-row { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
+  .kpi {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:20px; display:flex; flex-direction:column; justify-content:space-between; min-height:132px;
+  }
+  .kpi-hero { background:var(--sidebar-bg); color:var(--sidebar-text); border-color:var(--sidebar-bg); }
+  .kpi-hero .kpi-label, .kpi-hero .kpi-sub { color:rgba(232,240,237,.78); }
+  .kpi-label { font-size:11px; color:var(--text-soft); letter-spacing:.08em; text-transform:uppercase; font-weight:600; }
+  .kpi-value { font-size:32px; font-weight:600; letter-spacing:-.03em; line-height:1; margin-top:8px; }
+  .kpi-hero .kpi-value { font-size:44px; }
+  .kpi-sub { font-size:12px; color:var(--text-soft); margin-top:8px; }
+  .kpi-alerta { border-color:var(--danger); background:var(--danger-bg); }
+  .kpi-alerta .kpi-label, .kpi-alerta .kpi-sub { color:var(--danger-text); }
+  .embudo { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:12px; }
+  .embudo-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
+  .embudo-head h2 { font-size:17px; font-weight:600; margin:0; }
+  .embudo-head p { font-size:12px; color:var(--text-soft); margin:0; }
+  .embudo-barra { display:flex; gap:3px; height:34px; border-radius:7px; overflow:hidden; background:var(--surface-2); }
+  .embudo-seg { display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; transition:flex-grow .45s cubic-bezier(.16,1,.3,1); min-width:40px; }
+  .embudo-seg.vacio-seg { min-width:0; }
+  .seg-cerro { background:var(--est-cerro); color:var(--primary-contrast); }
+  .seg-interesado { background:var(--est-interesado); color:var(--primary-contrast); }
+  .seg-no_cerro { background:var(--est-no); color:var(--text); }
+  .seg-sin_responder { background:var(--est-sin); color:var(--primary-contrast); }
+  .seg-nuevo { background:var(--est-nuevo); color:var(--highlight-contrast); }
+  .embudo-leyenda { display:flex; gap:18px; margin-top:12px; flex-wrap:wrap; font-size:12px; color:var(--text-soft); }
+  .embudo-leyenda span { display:flex; align-items:center; gap:6px; }
+  .punto { width:9px; height:9px; border-radius:3px; flex-shrink:0; display:inline-block; }
+  .origenes { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .origenes.uno { grid-template-columns:1fr; }
+  .origen-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px; }
+  .origen-card.destacada { border-color:var(--origen-pauta); background:linear-gradient(var(--warning-bg), var(--surface) 70%); }
+  .origen-top { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .origen-top h3 { font-size:13px; font-weight:600; margin:0; }
+  .origen-tasa { font-size:34px; font-weight:600; letter-spacing:-.03em; line-height:1; }
+  .origen-tasa-lbl { font-size:12px; color:var(--text-soft); margin-top:5px; }
+  .origen-detalle { display:flex; gap:22px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border); flex-wrap:wrap; }
+  .origen-detalle div { font-size:12px; color:var(--text-soft); }
+  .origen-detalle b { display:block; font-size:17px; font-weight:600; color:var(--text); }
+  .cierre { background:var(--sidebar-bg); color:var(--sidebar-text); border-radius:var(--radius-lg); padding:15px 20px; margin-bottom:20px; font-size:13px; line-height:1.5; }
+  .cierre b { color:var(--accent); font-weight:600; }
+  .met-error { font-size:12.5px; color:var(--text-soft); margin-bottom:16px; }
+  @media (max-width:1000px) { .kpi-row { grid-template-columns:1fr 1fr; } .kpi-hero .kpi-value { font-size:36px; } }
+  @media (max-width:560px) { .kpi-row, .origenes { grid-template-columns:1fr; } }
+
   .vacio { text-align:center; color:var(--text-soft); padding:40px 10px; }
   .aviso { background:var(--surface); border:1px solid var(--border); border-radius:var(--radio); padding:26px; text-align:center; }
 
@@ -186,6 +251,92 @@
   </div>
 
   <div id="app" style="display:none">
+    <!-- Métricas del mes (mismo diseño que crm.html). Cuentan por
+         primera_consulta_at, sobre las cuentas que ve el usuario. -->
+    <section id="metricas">
+      <div class="met-head">
+        <div>
+          <h2>Resultados del mes</h2>
+          <div class="met-alcance" id="metAlcance"></div>
+        </div>
+        <div class="period-selector">
+          <button class="per-nav" id="mesPrev" type="button" aria-label="Mes anterior">‹</button>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span id="mesLbl">—</span>
+          <button class="per-nav" id="mesNext" type="button" aria-label="Mes siguiente">›</button>
+        </div>
+      </div>
+      <div class="met-error" id="metError" style="display:none"></div>
+      <div id="metCuerpo">
+        <div class="kpi-row">
+          <div class="kpi kpi-hero">
+            <div class="kpi-label" id="kCerradasLbl">Cerradas</div>
+            <div>
+              <div class="kpi-value" id="kCerradas">0</div>
+              <div class="kpi-sub" id="kTasa">—</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Consultas</div>
+            <div>
+              <div class="kpi-value" id="kTotal">0</div>
+              <div class="kpi-sub">entraron este mes</div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Interesados</div>
+            <div>
+              <div class="kpi-value" id="kInteresados">0</div>
+              <div class="kpi-sub" id="kInteresadosSub">—</div>
+            </div>
+          </div>
+          <div class="kpi kpi-alerta">
+            <div class="kpi-label">Sin responder</div>
+            <div>
+              <div class="kpi-value" id="kSin">0</div>
+              <div class="kpi-sub">esperan respuesta</div>
+            </div>
+          </div>
+        </div>
+        <section class="embudo">
+          <div class="embudo-head">
+            <h2 id="embudoTit">Consultas del mes</h2>
+            <p id="embudoSub">—</p>
+          </div>
+          <div class="embudo-barra" id="barraEst"></div>
+          <div class="embudo-leyenda" id="leyendaEst"></div>
+        </section>
+        <section class="origenes" id="origenes">
+          <div class="origen-card destacada">
+            <div class="origen-top">
+              <i class="punto" style="background:var(--origen-pauta)"></i>
+              <h3>Vinieron de la pauta</h3>
+            </div>
+            <div class="origen-tasa" id="pTasa">0%</div>
+            <div class="origen-tasa-lbl" id="pTasaLbl">cerró</div>
+            <div class="origen-detalle">
+              <div><b id="pConsultas">0</b>consultas</div>
+              <div><b id="pCerradas">0</b><span id="pCerradasLbl">cerradas</span></div>
+              <div><b id="pValor">$0</b>facturado</div>
+            </div>
+          </div>
+          <div class="origen-card" id="cardOrganico">
+            <div class="origen-top">
+              <i class="punto" style="background:var(--origen-organico)"></i>
+              <h3>Llegaron solos</h3>
+            </div>
+            <div class="origen-tasa" id="oTasa">0%</div>
+            <div class="origen-tasa-lbl" id="oTasaLbl">cerró</div>
+            <div class="origen-detalle">
+              <div><b id="oConsultas">0</b>consultas</div>
+              <div><b id="oCerradas">0</b><span id="oCerradasLbl">cerradas</span></div>
+              <div><b id="oValor">$0</b>facturado</div>
+            </div>
+          </div>
+        </section>
+        <div class="cierre" id="cierre" style="display:none"></div>
+      </div>
+    </section>
     <div class="barra">
       <button class="primario" id="btnSync">Sincronizar</button>
       <span id="syncEstado" style="font-size:12.5px;color:var(--text-soft)"></span>
@@ -288,6 +439,11 @@
   var CUENTA_SIN_META = {};   // zernio_account_id -> true si informa_meta = false (crm-07)
   var MSG_SIN_META = 'Registrado. En España, Meta no permite recibir esta información desde WhatsApp.';
   var soloPautaCliente = false;
+  var MES = null;             // 'YYYY-MM' de las métricas
+  var metPedido = 0;          // descarta respuestas viejas si cambiás de mes o de cuenta rápido
+  var MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  // Nombres cuando la vista mezcla cuentas de rubros distintos.
+  var ETIQUETA_NEUTRA = { interesado: 'Interesado', cerro: 'Cerró', no_cerro: 'No cerró', sin_responder: 'Sin responder', plural: 'Cerradas' };
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) {
@@ -368,12 +524,16 @@
 
   // ── Datos ─────────────────────────────────────────────────────
   async function cargarRubros() {
-    var r = await SB.from('zernio_rubro').select('rubro, etiqueta_interesado, etiqueta_cerro, etiqueta_no_cerro, etiqueta_sin_responder');
+    var cols = 'rubro, etiqueta_interesado, etiqueta_cerro, etiqueta_no_cerro, etiqueta_sin_responder';
+    var r = await SB.from('zernio_rubro').select(cols + ', etiqueta_cerro_plural');
+    // Sin crm-08 corrida la columna no existe: se pide sin ella.
+    if (r.error) r = await SB.from('zernio_rubro').select(cols);
     RUBROS = {};
     (r.data || []).forEach(function (x) {
       RUBROS[x.rubro] = {
         interesado: x.etiqueta_interesado, cerro: x.etiqueta_cerro,
-        no_cerro: x.etiqueta_no_cerro, sin_responder: x.etiqueta_sin_responder
+        no_cerro: x.etiqueta_no_cerro, sin_responder: x.etiqueta_sin_responder,
+        plural: x.etiqueta_cerro_plural || 'Cerradas'
       };
     });
   }
@@ -407,6 +567,155 @@
     if (r.error) { toast('No se pudieron leer las conversaciones: ' + r.error.message); CONVS = []; }
     else CONVS = r.data || [];
     render();
+    cargarMetricas();
+  }
+
+  // ── Métricas del mes ──────────────────────────────────────────
+  //   Cuentan las conversaciones cuya primera_consulta_at cae en el mes
+  //   (hora de Buenos Aires), sobre lo que ve el usuario: la RLS deja al
+  //   cliente solo sus cuentas; el equipo ve la cuenta elegida o todas.
+  function mesActualBA() {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+  }
+  function mesLabel(m) { var p = m.split('-'); return MESES_ES[parseInt(p[1], 10) - 1] + ' ' + p[0]; }
+  function mesMas(m, delta) {
+    var p = m.split('-');
+    var d = new Date(Date.UTC(parseInt(p[0], 10), parseInt(p[1], 10) - 1 + delta, 1));
+    return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
+  }
+  // Buenos Aires no tiene horario de verano: el mes arranca a las 00:00 -03:00.
+  function rangoMes(m) { return [m + '-01T00:00:00-03:00', mesMas(m, 1) + '-01T00:00:00-03:00']; }
+  function pct(a, b) { return b ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : '0%'; }
+  // Facturado por moneda: "$ 120.000", o "$ 120.000 + € 900" si hay varias.
+  var SIMBOLO = { ARS: '$', USD: 'US$', EUR: '€' };
+  function plata(porMoneda) {
+    var ks = Object.keys(porMoneda).filter(function (k) { return porMoneda[k]; });
+    if (!ks.length) return '$0';
+    return ks.map(function (k) {
+      return (SIMBOLO[k] || k) + ' ' + porMoneda[k].toLocaleString('es-AR', { maximumFractionDigits: 0 });
+    }).join(' + ');
+  }
+  function cuentasEnVista() {
+    return cuentaSel ? CUENTAS.filter(function (c) { return c.zernio_account_id === cuentaSel; }) : CUENTAS;
+  }
+  // Nombres de estado de la vista: los del rubro si todas las cuentas
+  // comparten rubro; si se mezclan, unos neutros.
+  function etiquetasVista() {
+    var rubros = cuentasEnVista().map(function (c) { return c.rubro; })
+      .filter(function (r, i, a) { return a.indexOf(r) === i; });
+    if (rubros.length === 1 && RUBROS[rubros[0]]) return RUBROS[rubros[0]];
+    if (rubros.length <= 1) return Object.assign({ plural: 'Cerradas' }, ETIQUETA_DEFAULT);
+    return ETIQUETA_NEUTRA;
+  }
+
+  async function cargarMetricas() {
+    if (!MES) MES = mesActualBA();
+    $('mesLbl').textContent = mesLabel(MES);
+    $('mesNext').disabled = MES >= mesActualBA();
+    var yo = ++metPedido;
+    var rango = rangoMes(MES);
+    var q = SB.from('zernio_conversacion')
+      .select('zernio_account_id, estado, es_pauta, valor, moneda')
+      .gte('primera_consulta_at', rango[0]).lt('primera_consulta_at', rango[1]);
+    if (cuentaSel) q = q.eq('zernio_account_id', cuentaSel);
+    var r = await q;
+    if (yo !== metPedido) return;              // llegó una más nueva
+    if (r.error) {
+      // Lo más probable: falta correr crm-08 (no existe primera_consulta_at).
+      $('metCuerpo').style.display = 'none';
+      $('metError').style.display = '';
+      $('metError').textContent = AGENCIA
+        ? 'Las métricas no se pudieron calcular: ' + r.error.message
+        : 'Las métricas del mes todavía no están disponibles.';
+      return;
+    }
+    $('metError').style.display = 'none';
+    $('metCuerpo').style.display = '';
+    renderMetricas(r.data || []);
+  }
+
+  function renderMetricas(filas) {
+    var et = etiquetasVista();
+    var vista = cuentasEnVista();
+    var soloPauta = vista.length > 0 && vista.every(function (c) { return c.solo_pauta; });
+    var cero = function () { return { total: 0, cerro: 0, interesado: 0, no_cerro: 0, sin_responder: 0, nuevo: 0, valor: {} }; };
+    var g = { todo: cero(), pauta: cero(), organico: cero() };
+    filas.forEach(function (c) {
+      [g.todo, c.es_pauta ? g.pauta : g.organico].forEach(function (x) {
+        x.total++;
+        if (x[c.estado] !== undefined) x[c.estado]++;
+        if (c.estado === 'cerro' && c.valor) {
+          var mon = c.moneda || 'ARS';
+          x.valor[mon] = (x.valor[mon] || 0) + Number(c.valor);
+        }
+      });
+    });
+    var n = g.todo, total = n.total;
+    var plural = et.plural || 'Cerradas';
+
+    // Alcance: qué se está sumando.
+    var alcance = '';
+    if (AGENCIA && !cuentaSel && CUENTAS.length > 1) alcance = 'Total de las ' + CUENTAS.length + ' cuentas. Elegí una abajo para verla sola.';
+    else if (AGENCIA && vista.length === 1) alcance = 'Cuenta: ' + vista[0].label;
+    $('metAlcance').textContent = alcance;
+
+    // Tarjetas
+    $('kCerradasLbl').textContent = plural;
+    $('kCerradas').textContent = n.cerro;
+    $('kTasa').textContent = pct(n.cerro, total) + ' de las consultas del mes';
+    $('kTotal').textContent = total;
+    $('kInteresados').textContent = n.interesado;
+    $('kInteresadosSub').textContent = et.interesado;
+    $('kSin').textContent = n.sin_responder;
+
+    // Barra: proporción de cada estado, con los nombres del rubro.
+    var segs = [
+      ['cerro', et.cerro], ['interesado', et.interesado], ['no_cerro', et.no_cerro],
+      ['sin_responder', et.sin_responder], ['nuevo', 'Sin clasificar']
+    ];
+    $('barraEst').innerHTML = segs.filter(function (s) { return n[s[0]]; }).map(function (s) {
+      return '<div class="embudo-seg seg-' + s[0] + '" style="flex-grow:' + n[s[0]] + '" title="' + esc(s[1]) + ': ' + n[s[0]] + '">' + n[s[0]] + '</div>';
+    }).join('');
+    $('leyendaEst').innerHTML = segs.map(function (s) {
+      return '<span><i class="punto seg-' + s[0] + '"></i>' + esc(s[1]) + '</span>';
+    }).join('');
+    $('embudoTit').textContent = total ? ('Qué pasó con las ' + total + ' consultas') : 'Consultas del mes';
+    $('embudoSub').textContent = 'Las que entraron en ' + mesLabel(MES) + '.';
+
+    // Pauta / llegaron solos
+    var lblCerro = String(et.cerro || 'cerró').toLowerCase();
+    [['p', g.pauta], ['o', g.organico]].forEach(function (x) {
+      var k = x[0], d = x[1];
+      $(k + 'Tasa').textContent = pct(d.cerro, d.total);
+      $(k + 'TasaLbl').textContent = lblCerro;
+      $(k + 'Consultas').textContent = d.total;
+      $(k + 'Cerradas').textContent = d.cerro;
+      $(k + 'CerradasLbl').textContent = plural.toLowerCase();
+      $(k + 'Valor').textContent = plata(d.valor);
+    });
+    $('cardOrganico').style.display = soloPauta ? 'none' : '';
+    $('origenes').classList.toggle('uno', soloPauta);
+
+    // Franja de aviso: solo con menos de 15 consultas en el mes.
+    var cierre = $('cierre');
+    if (total >= 15) { cierre.style.display = 'none'; return; }
+    cierre.style.display = '';
+    if (!total) {
+      cierre.innerHTML = soloPauta
+        ? 'Todavía no hay consultas este mes. Cuando entren, acá aparece cuántas terminaron en ' + esc(plural.toLowerCase()) + '.'
+        : 'Todavía no hay consultas este mes. Cuando entren, acá aparece la comparación entre lo que trajo la pauta y lo que llegó solo.';
+    } else if (soloPauta) {
+      cierre.innerHTML = '<b>' + g.pauta.cerro + '</b> ' + esc(plural.toLowerCase()) + ' de pauta este mes. Con menos de 15 consultas el porcentaje todavía no es confiable: cuantas más marques, más firme el número.';
+    } else {
+      cierre.innerHTML = '<b>' + g.pauta.cerro + '</b> ' + esc(plural.toLowerCase()) + ' de pauta y <b>' + g.organico.cerro + '</b> de las que llegaron solas este mes. Con menos de 15 consultas la comparación pauta vs. orgánico todavía no es confiable: cuantas más marques, más firme el número.';
+    }
+  }
+
+  function cambiarMes(delta) {
+    var nuevo = mesMas(MES || mesActualBA(), delta);
+    if (nuevo > mesActualBA()) return;   // no vamos al futuro
+    MES = nuevo;
+    cargarMetricas();
   }
 
   // ── Render ────────────────────────────────────────────────────
@@ -442,9 +751,11 @@
       var fin = resuelta(c);
       var et = etiquetas(c);
       var dl = c.es_pauta ? deadline(c) : null;
+      // El "con/sin clid" solo importa si la cuenta informa a Meta.
       var origen = c.es_pauta
         ? '<span class="tag-pauta">Pauta</span>' +
-          (c.ctwa_clid ? '<div class="clid ok">✓ con clid</div>' : '<div class="clid no">⚠ sin clid</div>')
+          (CUENTA_SIN_META[c.zernio_account_id] ? ''
+            : c.ctwa_clid ? '<div class="clid ok">✓ con clid</div>' : '<div class="clid no">⚠ sin clid</div>')
         : '<span class="tag-nopauta">No pauta</span>';
       // Botones por rubro, en TODAS las filas. Re-marcar permitido.
       var acc =
@@ -506,12 +817,12 @@
         c.estado = destino;
         if (destino === 'cerro') { c.valor = value != null ? value : null; c.moneda = currency || 'ARS'; }
         c._nota = d.mensaje || MSG_SIN_META;
-        render(); toast('Registrado');
+        render(); cargarMetricas(); toast('Registrado');
       } else if (!r.error && d && d.ok && d.estado_envio === 'enviado') {
         c.estado = destino;
         if (destino === 'cerro') { c.valor = value != null ? value : c.valor; c.moneda = currency || 'ARS'; }
         c._nota = '✓ Informado a Meta' + (d.trace_id ? ' (trace ' + d.trace_id + ')' : '');
-        render(); toast('✓ Enviado a Meta');
+        render(); cargarMetricas(); toast('✓ Enviado a Meta');
       } else {
         toast((d && d.error) || (r.error && r.error.message) || 'No se pudo enviar.');
         await cargarConvs();
@@ -534,7 +845,7 @@
       : (c.es_pauta
           ? 'Registrado. No se pudo informar a Meta (el anuncio no trajo el ID de clic).'
           : 'Registrado. No se informa a Meta porque no vino de un anuncio.');
-    render(); toast('Registrado');
+    render(); cargarMetricas(); toast('Registrado');
   }
 
   // Modal de cierre (para con-clid y sin-clid por igual)
@@ -592,6 +903,8 @@
   });
   $('modalVenta').addEventListener('click', function (e) { if (e.target === this) cerrarCierre(); });
   $('btnSync').addEventListener('click', function () { sincronizar(false); });
+  $('mesPrev').addEventListener('click', function () { cambiarMes(-1); });
+  $('mesNext').addEventListener('click', function () { cambiarMes(1); });
   $('filtroCuenta').addEventListener('change', function () { cuentaSel = this.value; cargarConvs(); });
   $('btnLink').addEventListener('click', generarLink);
   $('btnCopiarLink').addEventListener('click', function () { if (linkActual) copiar(linkActual, 'Link copiado'); });
