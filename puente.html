@@ -443,7 +443,7 @@
   var metPedido = 0;          // descarta respuestas viejas si cambiás de mes o de cuenta rápido
   var MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   // Nombres cuando la vista mezcla cuentas de rubros distintos.
-  var ETIQUETA_NEUTRA = { interesado: 'Interesado', cerro: 'Cerró', no_cerro: 'No cerró', sin_responder: 'Sin responder', plural: 'Cerradas' };
+  var ETIQUETA_NEUTRA = { interesado: 'Interesado', cerro: 'Cerró', no_cerro: 'No cerró', sin_responder: 'Sin responder', plural: 'Cerradas', singular: 'Cerrada' };
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) {
@@ -525,15 +525,17 @@
   // ── Datos ─────────────────────────────────────────────────────
   async function cargarRubros() {
     var cols = 'rubro, etiqueta_interesado, etiqueta_cerro, etiqueta_no_cerro, etiqueta_sin_responder';
-    var r = await SB.from('zernio_rubro').select(cols + ', etiqueta_cerro_plural');
-    // Sin crm-08 corrida la columna no existe: se pide sin ella.
+    var r = await SB.from('zernio_rubro').select(cols + ', etiqueta_cerro_plural, etiqueta_cerro_singular');
+    // Sin crm-09 (o crm-08) corrida, las columnas no existen: se piden sin ellas.
+    if (r.error) r = await SB.from('zernio_rubro').select(cols + ', etiqueta_cerro_plural');
     if (r.error) r = await SB.from('zernio_rubro').select(cols);
     RUBROS = {};
     (r.data || []).forEach(function (x) {
       RUBROS[x.rubro] = {
         interesado: x.etiqueta_interesado, cerro: x.etiqueta_cerro,
         no_cerro: x.etiqueta_no_cerro, sin_responder: x.etiqueta_sin_responder,
-        plural: x.etiqueta_cerro_plural || 'Cerradas'
+        plural: x.etiqueta_cerro_plural || 'Cerradas',
+        singular: x.etiqueta_cerro_singular || (x.etiqueta_cerro_plural ? x.etiqueta_cerro_plural : 'Cerrada')
       };
     });
   }
@@ -604,7 +606,7 @@
     var rubros = cuentasEnVista().map(function (c) { return c.rubro; })
       .filter(function (r, i, a) { return a.indexOf(r) === i; });
     if (rubros.length === 1 && RUBROS[rubros[0]]) return RUBROS[rubros[0]];
-    if (rubros.length <= 1) return Object.assign({ plural: 'Cerradas' }, ETIQUETA_DEFAULT);
+    if (rubros.length <= 1) return Object.assign({ plural: 'Cerradas', singular: 'Cerrada' }, ETIQUETA_DEFAULT);
     return ETIQUETA_NEUTRA;
   }
 
@@ -652,6 +654,8 @@
     });
     var n = g.todo, total = n.total;
     var plural = et.plural || 'Cerradas';
+    // "1 contratación" / "2 contrataciones": singular solo cuando es 1.
+    var cierres = function (k) { return k === 1 ? (et.singular || 'Cerrada') : plural; };
 
     // Alcance: qué se está sumando.
     var alcance = '';
@@ -660,7 +664,7 @@
     $('metAlcance').textContent = alcance;
 
     // Tarjetas
-    $('kCerradasLbl').textContent = plural;
+    $('kCerradasLbl').textContent = cierres(n.cerro);
     $('kCerradas').textContent = n.cerro;
     $('kTasa').textContent = pct(n.cerro, total) + ' de las consultas del mes';
     $('kTotal').textContent = total;
@@ -690,7 +694,7 @@
       $(k + 'TasaLbl').textContent = lblCerro;
       $(k + 'Consultas').textContent = d.total;
       $(k + 'Cerradas').textContent = d.cerro;
-      $(k + 'CerradasLbl').textContent = plural.toLowerCase();
+      $(k + 'CerradasLbl').textContent = cierres(d.cerro).toLowerCase();
       $(k + 'Valor').textContent = plata(d.valor);
     });
     $('cardOrganico').style.display = soloPauta ? 'none' : '';
@@ -705,9 +709,9 @@
         ? 'Todavía no hay consultas este mes. Cuando entren, acá aparece cuántas terminaron en ' + esc(plural.toLowerCase()) + '.'
         : 'Todavía no hay consultas este mes. Cuando entren, acá aparece la comparación entre lo que trajo la pauta y lo que llegó solo.';
     } else if (soloPauta) {
-      cierre.innerHTML = '<b>' + g.pauta.cerro + '</b> ' + esc(plural.toLowerCase()) + ' de pauta este mes. Con menos de 15 consultas el porcentaje todavía no es confiable: cuantas más marques, más firme el número.';
+      cierre.innerHTML = '<b>' + g.pauta.cerro + '</b> ' + esc(cierres(g.pauta.cerro).toLowerCase()) + ' de pauta este mes. Con menos de 15 consultas el porcentaje todavía no es confiable: cuantas más marques, más firme el número.';
     } else {
-      cierre.innerHTML = '<b>' + g.pauta.cerro + '</b> ' + esc(plural.toLowerCase()) + ' de pauta y <b>' + g.organico.cerro + '</b> de las que llegaron solas este mes. Con menos de 15 consultas la comparación pauta vs. orgánico todavía no es confiable: cuantas más marques, más firme el número.';
+      cierre.innerHTML = '<b>' + g.pauta.cerro + '</b> ' + esc(cierres(g.pauta.cerro).toLowerCase()) + ' de pauta y <b>' + g.organico.cerro + '</b> de las que llegaron solas este mes. Con menos de 15 consultas la comparación pauta vs. orgánico todavía no es confiable: cuantas más marques, más firme el número.';
     }
   }
 
