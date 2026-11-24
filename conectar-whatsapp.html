@@ -186,11 +186,14 @@
 
   // El popup de Embedded Signup manda los datos del número por postMessage.
   window.addEventListener('message', (ev) => {
-    if (!/facebook\.com$/.test(new URL(ev.origin).hostname)) return;
+    let host; try { host = new URL(ev.origin).hostname; } catch { return; }
+    if (!/facebook\.com$/.test(host)) return;
     let d; try { d = JSON.parse(ev.data); } catch { return; }
-    if (d.type === 'WA_EMBEDDED_SIGNUP' && d.event === 'FINISH' && d.data) {
-      waData.phone_number_id = String(d.data.phone_number_id || '');
-      waData.waba_id = String(d.data.waba_id || '');
+    if (d.type !== 'WA_EMBEDDED_SIGNUP') return;
+    console.log('[conectar] WA_EMBEDDED_SIGNUP', d.event, JSON.stringify(d.data || {}));
+    if (typeof d.event === 'string' && d.event.indexOf('FINISH') === 0 && d.data) {
+      if (d.data.waba_id)         waData.waba_id = String(d.data.waba_id);
+      if (d.data.phone_number_id) waData.phone_number_id = String(d.data.phone_number_id);
     }
   });
 
