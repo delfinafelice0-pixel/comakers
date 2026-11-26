@@ -3257,7 +3257,7 @@
         </button>
       </div>
       <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
-      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v18/11 09:28</div>
+      <div class="version" id="version" title="Qué archivo está subido. Si acá dice algo viejo, el que estás viendo no es el último.">v26/11 17:45</div>
     </div>
   </aside>
 
@@ -7128,7 +7128,8 @@
         '<div class="usr-cli-acc">' + acc + '</div>' +
         '<div><span class="tag-estado' + (baja ? ' baja' : '') + '">' + (baja ? 'Dado de baja' : 'Activo') + '</span></div>' +
         '<div class="acc">' +
-          (baja ? '' : '<button class="mini-btn" data-cpass="' + u.id + '">Contraseña</button>') +
+          (baja ? '' : '<button class="mini-btn" data-cmail="' + u.id + '">Mail</button>' +
+                       '<button class="mini-btn" data-cpass="' + u.id + '">Contraseña</button>') +
           '<button class="mini-btn" data-cbaja="' + u.id + '">' + (baja ? 'Reactivar' : 'Dar de baja') + '</button>' +
         '</div>' +
       '</div>';
@@ -7167,6 +7168,42 @@
       toast('No se pudo: ' + (e.message || e), 'warn');
     }
   }
+
+  // Cambiar el mail de login (camino D de `invitar-equipo`). Va por id: la
+  // función cambia auth y profiles.email juntos; acceso_cliente cuelga del
+  // user_id, así que sus clientes no se tocan.
+  async function cambiarMailCliente(id) {
+    const u = usuarioCliDe(id);
+    if (!u) return;
+    const n = u.nombre || u.email;
+    const nuevo = prompt('Mail nuevo para ' + n + '\n\nHoy entra con: ' + (u.email || '—'), u.email || '');
+    if (nuevo === null) return;
+    const mail = nuevo.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { toast('Ese mail no parece válido.', 'warn'); return; }
+    if (mail === (u.email || '').toLowerCase()) { toast('Ese ya es su mail.', 'warn'); return; }
+    if (!confirm('¿Cambiar el mail de ' + n + '?\n\n' + (u.email || '—') + '  →  ' + mail +
+        '\n\nDesde ahora entra con el mail nuevo y la misma contraseña. El viejo deja de servir.')) return;
+    if (!SB.functions) { toast('Este navegador no pudo cargar el módulo.', 'warn'); return; }
+    toast('Guardando…');
+    try {
+      const { data, error } = await SB.functions.invoke('invitar-equipo', {
+        body: { accion: 'cambiar-mail', id: id, email_nuevo: mail }
+      });
+      const msg = (data && data.error) || (error && error.message);
+      if (msg) {
+        toast(msg.indexOf('Failed to send') !== -1 || msg.indexOf('404') !== -1
+          ? 'No encontramos la función invitar-equipo en Supabase. ¿La desplegaste?'
+          : msg, 'warn');
+        return;
+      }
+      toast('Listo. ' + n + ' ahora entra con ' + mail + '.');
+      USUARIOS_CLI = null;   // se relee la lista
+      render();
+    } catch (e) {
+      toast('No se pudo: ' + (e.message || e), 'warn');
+    }
+  }
+  function usuarioCliDe(id) { return (USUARIOS_CLI || []).find(x => x.id === id) || null; }
 
   // Baja / reactivación: el mismo update de `activo` que el equipo (pasa por
   // el trigger guardia_profiles).
@@ -12731,6 +12768,8 @@
       if (EQ_TAB === 'clientes') USUARIOS_CLI = null;   // se relee al entrar
       render(); return;
     }
+    const cml = e.target.closest('[data-cmail]');
+    if (cml) { cambiarMailCliente(cml.dataset.cmail); return; }
     const cpw = e.target.closest('[data-cpass]');
     if (cpw) { ponerPasswordCliente(cpw.dataset.cpass); return; }
     const cb = e.target.closest('[data-cbaja]');

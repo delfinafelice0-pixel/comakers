@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 //  Edge Function `invitar-equipo`
 //
-//  Alta y manejo de cuentas desde administración. Tres cosas:
+//  Alta y manejo de cuentas desde administración. Cuatro cosas:
 //
 //    A) Equipo por mail      → invita por mail para que ponga su clave
 //                              (tipo='agencia', rol socia/equipo).
@@ -10,6 +10,9 @@
 //    C) Cliente con clave      → crea un usuario tipo='cliente' con
 //                              contraseña y le asigna qué cliente(s)
 //                              puede ver (filas en `acceso_cliente`).
+//    D) Cambiar mail          → { accion:'cambiar-mail', id, email_nuevo }:
+//                              cambia el mail de login de un usuario
+//                              cliente (auth + profiles.email).
 //
 //  Un cliente NO entra a administración ni interno: esos paneles
 //  rebotan a cualquier perfil que no sea tipo='agencia'/super. Acá solo
@@ -62,6 +65,52 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
+
+    // ─────────────────────────────────────────────────────────────
+    //  CAMINO D · Cambiar el mail de login de un usuario cliente
+    //  Es un vector de toma de cuenta: mismas guardas que el reseteo de
+    //  clave. El objetivo se identifica por id, nunca por el mail viejo.
+    // ─────────────────────────────────────────────────────────────
+    if (body.accion === 'cambiar-mail') {
+      const id = String(body.id ?? '').trim();
+      const nuevo = String(body.email_nuevo ?? '').trim().toLowerCase();
+      if (!id) return responder({ error: 'Falta a quién cambiarle el mail' }, 400);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(nuevo)) {
+        return responder({ error: 'Ese mail no parece válido' }, 400);
+      }
+      const { data: obj } = await admin
+        .from('profiles').select('id, email, activo, tipo, super_admin, agencia')
+        .eq('id', id).maybeSingle();
+      if (!obj) return responder({ error: 'No encontramos esa cuenta' }, 404);
+      if (obj.super_admin === true)
+        return responder({ error: 'No podés cambiarle el mail a un super-admin desde acá.' }, 403);
+      if (obj.tipo !== 'cliente')
+        return responder({ error: 'Esto es solo para usuarios cliente.' }, 403);
+      if ((obj.agencia ?? null) !== (quien.agencia ?? null))
+        return responder({ error: 'Solo podés tocar cuentas de tu propia agencia.' }, 403);
+      if (obj.activo === false)
+        return responder({ error: 'Esa cuenta está dada de baja. Reactivala antes de cambiarle el mail.' }, 409);
+      if ((obj.email ?? '').toLowerCase() === nuevo)
+        return responder({ error: 'Ese ya es su mail.' }, 400);
+
+      const enUso = 'Ese mail ya lo usa otra cuenta. Elegí otro.';
+      const { data: otro } = await admin.from('profiles').select('id').eq('email', nuevo).neq('id', id).maybeSingle();
+      if (otro) return responder({ error: enUso }, 409);
+
+      const { error: eMail } = await admin.auth.admin.updateUserById(id, { email: nuevo, email_confirm: true });
+      if (eMail) {
+        if (/already|registered|exists|taken|in use/i.test(eMail.message ?? '')) return responder({ error: enUso }, 409);
+        return responder({ error: 'No se pudo cambiar el mail: ' + eMail.message }, 400);
+      }
+      const { error: eFicha } = await admin.from('profiles').update({ email: nuevo }).eq('id', id);
+      if (eFicha) {
+        // Que auth y ficha no queden distintos: se vuelve al mail viejo.
+        await admin.auth.admin.updateUserById(id, { email: obj.email, email_confirm: true });
+        return responder({ error: 'No se pudo actualizar la ficha (' + eFicha.message + '). El mail no cambió.' }, 500);
+      }
+      return responder({ ok: true, modo: 'cambio-mail', id, email: nuevo });
+    }
+
     const email = String(body.email ?? '').trim().toLowerCase();
     const nombre = String(body.nombre ?? '').trim();
     const tipo = body.tipo === 'cliente' ? 'cliente' : 'agencia';

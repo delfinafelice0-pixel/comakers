@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  editor-texto.js · GENERADO (v18/11 09:28) por fuente/build.py desde
+//  editor-texto.js · GENERADO (v26/11 17:45) por fuente/build.py desde
 //  fuente/interno.src.html (bloque @@EDITOR). NO editar a mano: los
 //  cambios van allá y se regenera con el build.
 //
